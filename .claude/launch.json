@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "next-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "ecommerce-nextjs"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "next-start",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start", "--prefix", "ecommerce-nextjs"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "prisma-studio",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["prisma", "studio"],
+      "port": 5555
+    }
+  ]
+}
