@@ -5,17 +5,17 @@ const posts = [
   {
     category: 'Jood Updates',
     title: 'How Weight Loss Medications Are Changing Everyday Lives',
-    image: '/images/quiz-section.png',
+    image: '/images/blog-1.png',
   },
   {
     category: 'Health & Diet',
     title: 'How Weight Loss Medications Are Changing Everyday Lives',
-    image: '/images/product-card-3.png',
+    image: '/images/blog-2.png',
   },
   {
     category: 'Health & Diet',
     title: 'How Weight Loss Medications Are Changing Everyday Lives',
-    image: '/images/product-card-1.png',
+    image: '/images/blog-3.png',
   },
 ];
 

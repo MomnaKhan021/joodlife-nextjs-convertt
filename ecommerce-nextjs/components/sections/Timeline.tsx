@@ -74,7 +74,7 @@ export default function Timeline() {
         <div className="flex justify-center mb-16">
           <div className="relative w-full max-w-[500px] aspect-[3/4]">
             <Image
-              src="/images/certified-badge.png"
+              src="/images/woman-standing.png"
               alt="Transform with Jood"
               fill
               className="object-contain"
@@ -92,7 +92,7 @@ export default function Timeline() {
             </h3>
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4">
               <Image
-                src="/images/product-card-3.png"
+                src="/images/before-1.png"
                 alt="Transformation results"
                 fill
                 className="object-cover"
@@ -121,7 +121,7 @@ export default function Timeline() {
             </h3>
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4">
               <Image
-                src="/images/quiz-section.png"
+                src="/images/doctor-overlay.png"
                 alt="Expert guidance"
                 fill
                 className="object-cover"

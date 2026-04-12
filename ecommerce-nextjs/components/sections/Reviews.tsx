@@ -55,7 +55,10 @@ export default function Reviews() {
               {/* Stars */}
               <div className="flex gap-0.5 mb-4">
                 {[...Array(5)].map((_, i) => (
-                  <Image key={i} src="/icons/trustpilot-stars.svg" alt="" width={17} height={16} className="w-[17px] h-[16px]" />
+                  <svg key={i} width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <rect width="20" height="20" fill="#00B67A" />
+                    <path d="M10 2.5l2 4.2 4.5.6-3.3 3.2.8 4.5L10 12.6 5.9 15l.8-4.5L3.5 7.3l4.5-.6z" fill="white" />
+                  </svg>
                 ))}
               </div>
 

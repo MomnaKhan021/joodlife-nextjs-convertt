@@ -43,7 +43,7 @@ export default function Products() {
           {/* Quick Consultation Card */}
           <div className="relative rounded-2xl overflow-hidden min-h-[400px]">
             <Image
-              src="/images/product-card-2.png"
+              src="/images/consultation-woman.png"
               alt="Quick, Easy Consultation"
               fill
               className="object-cover"
