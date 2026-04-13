@@ -14,7 +14,7 @@ const reviews = [
   {
     initials: 'JR',
     name: 'Jacqueline Riley',
-    text: 'I\ve had a fantastic experience with Jood life, quick service support on hand 24/7, reasonable prices and no pressure to constantly buy injections.',
+    text: "I've had a fantastic experience with Jood life, quick service support on hand 24/7, reasonable prices and no pressure to constantly buy injections.",
   },
   {
     initials: 'MI',
