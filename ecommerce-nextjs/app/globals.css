@@ -45,3 +45,26 @@ body {
 .marquee-track:hover {
   animation-play-state: paused;
 }
+
+/* Hide scrollbar for horizontal scroll slider */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hero slide widths - mobile first */
+.hero-slide {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-slide {
+    width: 460px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-slide {
+    width: 597px;
+  }
+}

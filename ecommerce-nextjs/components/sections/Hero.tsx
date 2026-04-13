@@ -2,11 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
-import 'swiper/css';
 
 const transformations = [
+  { before: '/images/before-1.png', after: '/images/after-1.png' },
+  { before: '/images/before-2.png', after: '/images/after-2.png' },
+  { before: '/images/before-3.png', after: '/images/after-3.png' },
   { before: '/images/before-1.png', after: '/images/after-1.png' },
   { before: '/images/before-2.png', after: '/images/after-2.png' },
   { before: '/images/before-3.png', after: '/images/after-3.png' },
@@ -15,11 +15,10 @@ const transformations = [
 export default function Hero() {
   return (
     <section className="bg-white">
-      {/* Main hero card - dark green rounded rectangle */}
       <div className="px-5 py-0">
-        <div className="max-w-[1400px] mx-auto bg-primary rounded-[24px] overflow-hidden px-6 md:px-[60px] pt-16 md:pt-20 pb-10 md:pb-20">
+        <div className="max-w-[1400px] mx-auto bg-primary rounded-[24px] overflow-hidden pt-16 md:pt-20 pb-10 md:pb-16">
           {/* Content area */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center px-6 md:px-[60px]">
             {/* Trustpilot badge */}
             <div className="flex items-center gap-2 mb-5">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -33,7 +32,7 @@ export default function Hero() {
               </span>
             </div>
 
-            {/* Main heading - Gilroy-SemiBold 60px on desktop */}
+            {/* Main heading */}
             <h1 className="font-[family-name:var(--font-gilroy)] font-semibold text-white tracking-[-1.5px] mb-5 text-[32px] leading-[36px] md:text-[52px] md:leading-[58px] lg:text-[60px] lg:leading-[64px]">
               Innovative{' '}
               <em className="font-[family-name:var(--font-clearface)] italic font-normal">
@@ -53,20 +52,14 @@ export default function Hero() {
                 <div key={text} className="flex items-center gap-2">
                   <svg width="22" height="22" viewBox="0 0 22 22" fill="none" className="shrink-0">
                     <circle cx="11" cy="11" r="11" fill="white" />
-                    <path
-                      d="M7 11l3 3 5-5"
-                      stroke="#142E2A"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <path d="M7 11l3 3 5-5" stroke="#142E2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span>{text}</span>
                 </div>
               ))}
             </div>
 
-            {/* CTA Button - white filled with dark text */}
+            {/* CTA Button */}
             <Link
               href="#get-started"
               className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary text-[16.3px] font-[790] tracking-[-0.32px] uppercase rounded-lg hover:opacity-90 transition-opacity mb-10 md:mb-16"
@@ -75,61 +68,54 @@ export default function Hero() {
             </Link>
           </div>
 
-          {/* Before/After Slider - inside the dark card */}
-          <div className="relative -mx-6 md:-mx-[60px]">
-            {/* Edge fade overlays */}
-            <div className="absolute left-0 top-0 bottom-0 w-12 md:w-20 bg-gradient-to-r from-primary to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-12 md:w-20 bg-gradient-to-l from-primary to-transparent z-10 pointer-events-none" />
+          {/* Before/After horizontal scroll slider */}
+          <div className="relative">
+            {/* Left blur/fade overlay */}
+            <div className="absolute left-0 top-0 bottom-0 w-10 md:w-16 bg-gradient-to-r from-primary to-transparent z-10 pointer-events-none" />
+            {/* Right blur/fade overlay */}
+            <div className="absolute right-0 top-0 bottom-0 w-10 md:w-16 bg-gradient-to-l from-primary to-transparent z-10 pointer-events-none" />
 
-            <Swiper
-              modules={[Autoplay]}
-              slidesPerView={1.1}
-              spaceBetween={20}
-              centeredSlides={true}
-              loop={true}
-              speed={400}
-              autoplay={{ delay: 2000, disableOnInteraction: false }}
-              breakpoints={{
-                640: { slidesPerView: 1.4, spaceBetween: 24 },
-                768: { slidesPerView: 1.8, spaceBetween: 32 },
-                1024: { slidesPerView: 2.1, spaceBetween: 40 },
-              }}
+            {/* Scrollable track */}
+            <div
+              className="flex gap-[22px] overflow-x-auto px-4 md:px-[60px] pb-4 scroll-smooth snap-x snap-mandatory hide-scrollbar"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {transformations.map((pair, i) => (
-                <SwiperSlide key={i}>
-                  <div className="flex gap-0">
-                    {/* Before */}
-                    <div className="relative flex-1 aspect-[299/436] rounded-l-[16px] overflow-hidden">
-                      <Image
-                        src={pair.before}
-                        alt={`Before transformation ${i + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 40vw, 300px"
-                        priority={i === 0}
-                      />
-                      <div className="absolute bottom-3 left-3 bg-white px-3 py-1.5 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)]">
-                        Before
-                      </div>
-                    </div>
-                    {/* After */}
-                    <div className="relative flex-1 aspect-[299/436] rounded-r-[16px] overflow-hidden">
-                      <Image
-                        src={pair.after}
-                        alt={`After transformation ${i + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 40vw, 300px"
-                        priority={i === 0}
-                      />
-                      <div className="absolute bottom-3 right-3 bg-white px-3 py-1.5 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)]">
-                        After
-                      </div>
+                <div
+                  key={i}
+                  className="hero-slide flex rounded-[24px] overflow-hidden snap-start"
+                >
+                  {/* Before image */}
+                  <div className="relative flex-1 aspect-[298/436]">
+                    <Image
+                      src={pair.before}
+                      alt={`Before transformation ${i + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 70vw, 300px"
+                      priority={i < 2}
+                    />
+                    <div className="absolute bottom-3 left-3 bg-white px-3 py-1.5 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)]">
+                      Before
                     </div>
                   </div>
-                </SwiperSlide>
+                  {/* After image */}
+                  <div className="relative flex-1 aspect-[298/436]">
+                    <Image
+                      src={pair.after}
+                      alt={`After transformation ${i + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 70vw, 300px"
+                      priority={i < 2}
+                    />
+                    <div className="absolute bottom-3 right-3 bg-white px-3 py-1.5 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)]">
+                      After
+                    </div>
+                  </div>
+                </div>
               ))}
-            </Swiper>
+            </div>
           </div>
         </div>
       </div>
