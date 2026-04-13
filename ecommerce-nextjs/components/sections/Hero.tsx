@@ -75,22 +75,29 @@ export default function Hero() {
       </div>
 
       {/* Before/After slider - dark background */}
-      <div className="bg-primary px-5 md:px-20 py-10 md:py-20">
-        <div className="max-w-[1280px] mx-auto">
+      <div className="bg-primary relative overflow-hidden">
+        {/* Edge fade overlays */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-r from-primary to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-primary to-transparent z-10 pointer-events-none" />
+
+        <div className="py-10 md:py-16">
           <Swiper
             modules={[Autoplay]}
-            slidesPerView={1}
-            spaceBetween={20}
+            slidesPerView={1.2}
+            spaceBetween={16}
+            centeredSlides={true}
             loop={true}
-            autoplay={{ delay: 4000, disableOnInteraction: false }}
+            speed={800}
+            autoplay={{ delay: 3500, disableOnInteraction: false }}
             breakpoints={{
-              768: { slidesPerView: 2, spaceBetween: 24 },
+              640: { slidesPerView: 1.5, spaceBetween: 20 },
+              768: { slidesPerView: 2.2, spaceBetween: 24 },
+              1024: { slidesPerView: 2.5, spaceBetween: 28 },
             }}
-            className="!overflow-visible"
           >
             {transformations.map((pair, i) => (
               <SwiperSlide key={i}>
-                <div className="flex gap-3 md:gap-4 rounded-[24px] overflow-hidden">
+                <div className="flex gap-2 md:gap-3">
                   {/* Before */}
                   <div className="relative flex-1 aspect-[299/436] rounded-[16px] overflow-hidden">
                     <Image
@@ -98,10 +105,10 @@ export default function Hero() {
                       alt={`Before transformation ${i + 1}`}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 45vw, 300px"
+                      sizes="(max-width: 768px) 40vw, 300px"
                       priority={i === 0}
                     />
-                    <div className="absolute bottom-3 left-3 bg-white px-3 py-1 rounded-md text-[13px] font-[570] text-primary">
+                    <div className="absolute bottom-3 left-3 bg-white px-3 py-1 rounded-md text-[13px] font-[570] text-primary shadow-sm">
                       Before
                     </div>
                   </div>
@@ -112,10 +119,10 @@ export default function Hero() {
                       alt={`After transformation ${i + 1}`}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 45vw, 300px"
+                      sizes="(max-width: 768px) 40vw, 300px"
                       priority={i === 0}
                     />
-                    <div className="absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md text-[13px] font-[570] text-primary">
+                    <div className="absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md text-[13px] font-[570] text-primary shadow-sm">
                       After
                     </div>
                   </div>

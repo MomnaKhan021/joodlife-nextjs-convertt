@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useInView } from '@/hooks/useInView';
 
 const steps = [
   {
@@ -20,13 +23,15 @@ const steps = [
 ];
 
 export default function Timeline() {
-  return (
-    <section className="bg-primary text-white py-16 md:py-24 relative overflow-hidden">
-      {/* Background decorative circles */}
-      <div className="absolute top-20 right-20 w-[400px] h-[400px] rounded-full border border-white/10" />
-      <div className="absolute bottom-40 left-[-100px] w-[300px] h-[300px] rounded-full border border-white/10" />
+  const { ref, inView } = useInView({ threshold: 0.15 });
 
-      <div className="max-w-[1320px] mx-auto px-5 relative z-10">
+  return (
+    <section className="bg-primary text-white py-16 md:py-24 relative overflow-hidden" ref={ref}>
+      {/* Background decorative elements */}
+      <div className="absolute top-[10%] right-[-5%] w-[500px] h-[500px] rounded-full border border-white/5" />
+      <div className="absolute bottom-[20%] left-[-10%] w-[400px] h-[400px] rounded-full border border-white/5" />
+
+      <div className="max-w-[1200px] mx-auto px-5 relative z-10">
         {/* Tag */}
         <div className="mb-6">
           <span className="inline-block px-4 py-1.5 border border-white/30 rounded-full text-[14px] font-[790] uppercase tracking-[-0.32px]">
@@ -35,28 +40,46 @@ export default function Timeline() {
         </div>
 
         {/* Heading */}
-        <h2 className="font-[family-name:var(--font-gilroy)] font-semibold text-[48px] leading-[52px] tracking-[-1.2px] mb-12 md:text-[48px] text-[32px] md:leading-[52px] leading-[36px]">
+        <h2 className="font-[family-name:var(--font-gilroy)] font-semibold text-[32px] leading-[36px] md:text-[48px] md:leading-[52px] tracking-[-1.2px] mb-12">
           What to expect in
           <br />
           <em className="font-[family-name:var(--font-clearface)] italic font-normal">your journey</em>
         </h2>
 
-        {/* Timeline steps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {/* Progress line */}
-          <div className="hidden md:block absolute top-[280px] left-[60px] right-[60px] h-0.5 bg-white/20">
-            <div className="absolute left-0 top-0 w-1/3 h-full bg-white" />
+        {/* Animated progress bar with dots */}
+        <div className="hidden md:block relative mb-8">
+          <div className="w-full h-[2px] bg-white/20 rounded-full">
+            <div
+              className="h-full bg-white rounded-full transition-all duration-[2s] ease-out"
+              style={{ width: inView ? '100%' : '0%' }}
+            />
+          </div>
+          <div className="flex justify-between absolute top-1/2 -translate-y-1/2 left-0 right-0">
             {steps.map((_, i) => (
               <div
                 key={i}
-                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white"
-                style={{ left: `${i * 50}%` }}
+                className="w-3 h-3 rounded-full border-2 border-white bg-primary transition-all duration-500"
+                style={{
+                  transitionDelay: inView ? `${i * 700}ms` : '0ms',
+                  backgroundColor: inView ? 'white' : 'var(--color-primary)',
+                }}
               />
             ))}
           </div>
+        </div>
 
-          {steps.map((step) => (
-            <div key={step.label} className="relative">
+        {/* Timeline steps */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          {steps.map((step, i) => (
+            <div
+              key={step.label}
+              className="opacity-0 translate-y-4 transition-all duration-700"
+              style={{
+                transitionDelay: inView ? `${i * 300}ms` : '0ms',
+                opacity: inView ? 1 : 0,
+                transform: inView ? 'translateY(0)' : 'translateY(16px)',
+              }}
+            >
               <span className="inline-block px-3 py-1 border border-white/30 rounded-full text-[14px] font-[790] uppercase tracking-[-0.32px] mb-4">
                 {step.label}
               </span>
@@ -72,7 +95,7 @@ export default function Timeline() {
 
         {/* Woman image */}
         <div className="flex justify-center mb-16">
-          <div className="relative w-full max-w-[500px] aspect-[3/4]">
+          <div className="relative w-full max-w-[500px] aspect-[646/573]">
             <Image
               src="/images/woman-standing.png"
               alt="Transform with Jood"
@@ -87,7 +110,7 @@ export default function Timeline() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1 - Treatment */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-            <h3 className="font-[family-name:var(--font-gilroy)] font-semibold text-[34px] leading-tight tracking-[-1.4px] mb-4">
+            <h3 className="font-[family-name:var(--font-gilroy)] font-semibold text-[28px] md:text-[34px] leading-tight tracking-[-1.4px] mb-4">
               It&apos;s more than treatment,
             </h3>
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4">
@@ -116,7 +139,7 @@ export default function Timeline() {
 
           {/* Card 2 - Guidance */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-            <h3 className="font-[family-name:var(--font-gilroy)] font-semibold text-[34px] leading-tight tracking-[-1.4px] mb-4">
+            <h3 className="font-[family-name:var(--font-gilroy)] font-semibold text-[28px] md:text-[34px] leading-tight tracking-[-1.4px] mb-4">
               Continuous, Expert Guidance
             </h3>
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4">

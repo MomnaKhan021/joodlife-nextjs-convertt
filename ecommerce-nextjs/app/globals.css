@@ -30,3 +30,18 @@ body {
   background-color: #ffffff;
   font-family: var(--font-saans);
 }
+
+/* Infinite marquee */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+.marquee-track {
+  animation: marquee-scroll 25s linear infinite;
+  will-change: transform;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}

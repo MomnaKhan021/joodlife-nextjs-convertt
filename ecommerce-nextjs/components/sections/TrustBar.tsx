@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 
 const trustItems = [
@@ -11,30 +9,20 @@ const trustItems = [
 ];
 
 export default function TrustBar() {
+  const items = [...trustItems, ...trustItems, ...trustItems];
+
   return (
-    <section className="bg-white py-5 border-y border-gray-100 overflow-hidden">
-      <div className="flex animate-scroll">
-        {[...trustItems, ...trustItems].map((item, i) => (
+    <section className="bg-white py-4 border-y border-gray-100 overflow-hidden">
+      <div className="marquee-track flex">
+        {items.map((item, i) => (
           <div key={i} className="flex items-center gap-3 shrink-0 px-8">
-            <Image src={item.icon} alt="" width={32} height={32} />
-            <span className="text-[16px] font-[500] tracking-[-0.16px] text-primary whitespace-nowrap font-[family-name:var(--font-saans)]">
+            <Image src={item.icon} alt="" width={32} height={32} className="shrink-0" />
+            <span className="text-[16px] font-[500] tracking-[-0.16px] text-primary whitespace-nowrap">
               {item.text}
             </span>
           </div>
         ))}
       </div>
-      <style jsx>{`
-        @keyframes scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-scroll {
-          animation: scroll 30s linear infinite;
-        }
-        .animate-scroll:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
     </section>
   );
 }
