@@ -66,10 +66,10 @@ export default function Hero() {
               ))}
             </div>
 
-            {/* CTA Button - white outline on dark bg */}
+            {/* CTA Button - white filled with dark text */}
             <Link
               href="#get-started"
-              className="inline-flex items-center justify-center px-8 py-3.5 border-[1.5px] border-white text-white text-[16.3px] font-[790] tracking-[-0.32px] uppercase rounded-lg hover:bg-white hover:text-primary transition-all mb-10 md:mb-16"
+              className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary text-[16.3px] font-[790] tracking-[-0.32px] uppercase rounded-lg hover:opacity-90 transition-opacity mb-10 md:mb-16"
             >
               Get started
             </Link>
@@ -83,23 +83,23 @@ export default function Hero() {
 
             <Swiper
               modules={[Autoplay]}
-              slidesPerView={1.15}
-              spaceBetween={12}
+              slidesPerView={1.1}
+              spaceBetween={20}
               centeredSlides={true}
               loop={true}
               speed={400}
               autoplay={{ delay: 2000, disableOnInteraction: false }}
               breakpoints={{
-                640: { slidesPerView: 1.5, spaceBetween: 16 },
-                768: { slidesPerView: 2, spaceBetween: 20 },
-                1024: { slidesPerView: 2.3, spaceBetween: 24 },
+                640: { slidesPerView: 1.4, spaceBetween: 24 },
+                768: { slidesPerView: 1.8, spaceBetween: 32 },
+                1024: { slidesPerView: 2.1, spaceBetween: 40 },
               }}
             >
               {transformations.map((pair, i) => (
                 <SwiperSlide key={i}>
-                  <div className="flex gap-2 md:gap-3">
+                  <div className="flex gap-0">
                     {/* Before */}
-                    <div className="relative flex-1 aspect-[299/436] rounded-[16px] overflow-hidden">
+                    <div className="relative flex-1 aspect-[299/436] rounded-l-[16px] overflow-hidden">
                       <Image
                         src={pair.before}
                         alt={`Before transformation ${i + 1}`}
@@ -108,12 +108,12 @@ export default function Hero() {
                         sizes="(max-width: 768px) 40vw, 300px"
                         priority={i === 0}
                       />
-                      <div className="absolute bottom-3 left-3 bg-white px-3 py-1 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)] shadow-sm">
+                      <div className="absolute bottom-3 left-3 bg-white px-3 py-1.5 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)]">
                         Before
                       </div>
                     </div>
                     {/* After */}
-                    <div className="relative flex-1 aspect-[299/436] rounded-[16px] overflow-hidden">
+                    <div className="relative flex-1 aspect-[299/436] rounded-r-[16px] overflow-hidden">
                       <Image
                         src={pair.after}
                         alt={`After transformation ${i + 1}`}
@@ -122,7 +122,7 @@ export default function Hero() {
                         sizes="(max-width: 768px) 40vw, 300px"
                         priority={i === 0}
                       />
-                      <div className="absolute bottom-3 right-3 bg-white px-3 py-1 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)] shadow-sm">
+                      <div className="absolute bottom-3 right-3 bg-white px-3 py-1.5 rounded-md text-[16px] font-normal text-primary font-[family-name:var(--font-outfit)]">
                         After
                       </div>
                     </div>
