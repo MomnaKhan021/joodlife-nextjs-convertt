@@ -9,15 +9,26 @@ const trustItems = [
 ];
 
 export default function TrustBar() {
+  // Triple the items for seamless infinite scroll
   const items = [...trustItems, ...trustItems, ...trustItems];
 
   return (
-    <section className="bg-white py-4 border-y border-gray-100 overflow-hidden">
+    <section
+      className="bg-white overflow-hidden"
+      style={{
+        borderTop: '1px solid rgba(20, 46, 42, 0.2)',
+        borderBottom: '1px solid rgba(20, 46, 42, 0.2)',
+        padding: '16px 0',
+      }}
+    >
       <div className="marquee-track flex">
         {items.map((item, i) => (
-          <div key={i} className="flex items-center gap-3 shrink-0 px-8">
+          <div key={i} className="flex items-center gap-3 shrink-0 px-6 md:px-8">
             <Image src={item.icon} alt="" width={32} height={32} className="shrink-0" />
-            <span className="text-[16px] font-[500] tracking-[-0.16px] text-primary whitespace-nowrap">
+            <span
+              className="whitespace-nowrap font-[family-name:var(--font-saans)]"
+              style={{ fontSize: '16.3px', fontWeight: 380, letterSpacing: '-0.32px', color: '#3D3838' }}
+            >
               {item.text}
             </span>
           </div>
