@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 const transformations = [
   { before: '/images/before-1.png', after: '/images/after-1.png' },
@@ -12,6 +13,8 @@ const transformations = [
   { before: '/images/before-3.png', after: '/images/after-3.png' },
 ];
 
+const ease = [0.25, 0.46, 0.45, 0.94] as const;
+
 export default function Hero() {
   return (
     <section className="bg-white">
@@ -19,8 +22,13 @@ export default function Hero() {
         <div className="max-w-[1400px] mx-auto bg-primary rounded-[24px] overflow-hidden pt-16 md:pt-20 pb-10 md:pb-16">
           {/* Content area */}
           <div className="flex flex-col items-center text-center px-6 md:px-[60px]">
-            {/* Trustpilot badge - Inter 14.2px */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
+            {/* Trustpilot badge - fade in */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease }}
+              className="flex flex-wrap items-center justify-center gap-2 mb-5"
+            >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M8 0l2.5 5 5.5.8-4 3.9.9 5.3L8 12.5 3.1 15l.9-5.3-4-3.9L5.5 5z" fill="#00B67A" />
               </svg>
@@ -33,10 +41,13 @@ export default function Hero() {
                 4.4{' '}
                 <span className="underline">(50+) Reviews</span>
               </span>
-            </div>
+            </motion.div>
 
-            {/* Main heading - Gilroy-SemiBold, 60px desktop, clamp for responsive */}
-            <h1
+            {/* Main heading - fade + slide up */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.25, ease }}
               className="font-[family-name:var(--font-gilroy)] font-semibold text-white text-center mb-5 max-w-[684px]"
               style={{
                 fontSize: 'clamp(32px, 5vw + 8px, 60px)',
@@ -50,10 +61,15 @@ export default function Hero() {
               </em>
               <br className="hidden md:block" />
               {' '}made just for you.
-            </h1>
+            </motion.h1>
 
-            {/* Trust points - Saans 16.3px, color #D3DABE (muted green-white) */}
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+            {/* Trust points - stagger fade in */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5, ease }}
+              className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6"
+            >
               {[
                 'Lose up to 27% body weight',
                 'Plans tailored to you',
@@ -72,36 +88,40 @@ export default function Hero() {
                   </span>
                 </div>
               ))}
-            </div>
+            </motion.div>
 
-            {/* CTA Button - Saans Bold 16.3px, uppercase */}
-            <Link
-              href="#get-started"
-              className="inline-flex items-center justify-center bg-white text-primary uppercase rounded-lg hover:opacity-90 transition-opacity mb-10 md:mb-16"
-              style={{ padding: '14px 32px', fontSize: '16.3px', fontWeight: 790, letterSpacing: '-0.32px', lineHeight: '19.5px' }}
+            {/* CTA Button - fade in */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.65, ease }}
             >
-              Get started
-            </Link>
+              <Link
+                href="#get-started"
+                className="inline-flex items-center justify-center bg-white text-primary uppercase rounded-lg hover:opacity-90 transition-opacity mb-10 md:mb-16 cursor-pointer"
+                style={{ padding: '14px 32px', fontSize: '16.3px', fontWeight: 790, letterSpacing: '-0.32px', lineHeight: '19.5px' }}
+              >
+                Get started
+              </Link>
+            </motion.div>
           </div>
 
-          {/* Before/After horizontal scroll slider */}
-          <div className="relative">
-            {/* Left blur/fade overlay */}
+          {/* Before/After horizontal scroll slider - stagger animation */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8, ease }}
+            className="relative"
+          >
             <div className="absolute left-0 top-0 bottom-0 w-10 md:w-16 bg-gradient-to-r from-primary to-transparent z-10 pointer-events-none" />
-            {/* Right blur/fade overlay */}
             <div className="absolute right-0 top-0 bottom-0 w-10 md:w-16 bg-gradient-to-l from-primary to-transparent z-10 pointer-events-none" />
 
-            {/* Scrollable track */}
             <div
               className="flex gap-[22px] overflow-x-auto px-4 md:px-[60px] pb-4 scroll-smooth snap-x snap-mandatory hide-scrollbar"
               style={{ scrollbarWidth: 'none' }}
             >
               {transformations.map((pair, i) => (
-                <div
-                  key={i}
-                  className="hero-slide flex rounded-[24px] overflow-hidden snap-start"
-                >
-                  {/* Before image */}
+                <div key={i} className="hero-slide flex rounded-[24px] overflow-hidden snap-start">
                   <div className="relative flex-1 aspect-[298/436]">
                     <Image
                       src={pair.before}
@@ -118,7 +138,6 @@ export default function Hero() {
                       Before
                     </div>
                   </div>
-                  {/* After image */}
                   <div className="relative flex-1 aspect-[298/436]">
                     <Image
                       src={pair.after}
@@ -138,7 +157,7 @@ export default function Hero() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
