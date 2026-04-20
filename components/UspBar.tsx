@@ -15,26 +15,28 @@ const uspItems = [
 ];
 
 export default function UspBar() {
-  // Duplicate items for infinite scroll effect
-  const items = [...uspItems, ...uspItems, ...uspItems];
+  // Duplicate items for infinite scroll effect - duplicated for seamless loop
+  const items = [...uspItems, ...uspItems];
 
   return (
     <section
-      className="relative w-full h-[64px] bg-sage overflow-hidden"
+      className="relative w-full bg-sage overflow-hidden"
+      style={{ height: '64px' }}
     >
-      {/* Marquee Container - no borders */}
+      {/* Marquee Container - no borders, exact 64px height */}
       <div className="flex items-center h-full animate-marquee gap-[65px] px-[65px]">
         {items.map((item, idx) => (
           <div
             key={idx}
             className="flex items-center gap-[12px] whitespace-nowrap flex-shrink-0"
           >
-            <div className="w-[32.4px] h-[32.4px] relative">
+            <div style={{ width: '32.4px', height: '32.4px' }} className="relative">
               <Image
                 src={item.icon}
                 alt={item.text}
                 fill
                 className="object-contain"
+                sizes="32.4px"
               />
             </div>
             <span

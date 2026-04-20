@@ -98,7 +98,7 @@ export default function Hero() {
 
       {/* Content Container - Layer 3 */}
       <div className="relative z-20 h-full flex items-center">
-        <div className="max-w-[1440px] mx-auto px-[20px] md:px-[80px] w-full">
+        <div className="max-w-[1440px] mx-auto w-full px-[20px] sm:px-[40px] md:px-[60px] lg:px-[80px]">
           <div className="flex flex-col gap-[40px] max-w-[564px]">
             {/* Stars + Social Proof */}
             <div className="flex items-center gap-[12px]">
@@ -118,7 +118,7 @@ export default function Hero() {
             {/* Main Headline */}
             <div className="flex flex-col gap-[19px]">
               <h1
-                className="text-white text-[36px] md:text-[56px] leading-[1.1] tracking-[-2.24px] font-bold"
+                className="text-white text-[32px] sm:text-[40px] md:text-[48px] lg:text-[56px] leading-[1.1] tracking-[-2.24px] font-bold"
                 style={{ fontFamily: 'var(--font-gilroy)' }}
               >
                 {slide.title.split(slide.subtitle)[0]}
@@ -148,7 +148,7 @@ export default function Hero() {
                       />
                     </div>
                     <span
-                      className="text-white text-[16px] md:text-[18px] leading-[27px] font-normal"
+                      className="text-white text-[14px] sm:text-[16px] lg:text-[18px] leading-[1.5] font-normal"
                       style={{ fontFamily: 'var(--font-outfit)' }}
                     >
                       {bullet}
@@ -172,13 +172,13 @@ export default function Hero() {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-[20px] md:left-[80px] top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 transition-colors p-[12px] rounded-full text-white"
+        className="absolute left-[12px] sm:left-[20px] lg:left-[80px] top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 transition-colors p-[10px] sm:p-[12px] rounded-full text-white text-[20px] sm:text-[24px]"
       >
         &#8249;
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-[20px] md:right-[80px] top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 transition-colors p-[12px] rounded-full text-white"
+        className="absolute right-[12px] sm:right-[20px] lg:right-[80px] top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 transition-colors p-[10px] sm:p-[12px] rounded-full text-white text-[20px] sm:text-[24px]"
       >
         &#8250;
       </button>
