@@ -32,7 +32,7 @@ export default function WhatToExpect() {
           What to expect in your first month
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[30px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[40px]">
           {steps.map((step) => (
             <div key={step.number} className="flex flex-col gap-[20px]">
               <div

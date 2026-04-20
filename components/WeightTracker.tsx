@@ -40,7 +40,7 @@ export default function WeightTracker() {
   return (
     <section ref={sectionRef} className="bg-white w-full py-[80px] px-[80px]">
       <div className="max-w-[1440px] mx-auto">
-        <div className="bg-sage-light rounded-[24px] p-[80px] flex gap-[51px] items-center min-h-[500px]">
+        <div className="relative bg-sage-light rounded-[24px] p-[80px] flex gap-[51px] items-center min-h-[500px]">
           <div className="flex-1 flex flex-col items-center gap-[54px]">
             <div className="relative w-[420px] h-[420px]">
               <Image

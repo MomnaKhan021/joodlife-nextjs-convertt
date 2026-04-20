@@ -30,7 +30,7 @@ export default function Faq() {
 
   return (
     <section className="w-full bg-cream py-[80px] px-[80px]">
-      <div className="max-w-[1440px] mx-auto max-w-[800px]">
+      <div className="max-w-[800px] mx-auto">
         <h2
           className="text-[40px] leading-[1.1] tracking-[-1.6px] text-primary mb-[60px] text-center"
           style={{ fontFamily: 'var(--font-gilroy)' }}
