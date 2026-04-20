@@ -6,16 +6,17 @@ const verifyIcon = "https://s3-alpha-sig.figma.com/img/1332/c477/cae928dd8b08e76
 
 export default function Hero() {
   return (
-    <section className="relative w-full h-screen overflow-hidden">
+    <section className="relative w-full h-screen overflow-hidden bg-black">
       {/* Background Image - Layer 1 */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 w-full h-full">
         <Image
           src={heroBg}
           alt="Weight loss journey"
           fill
-          className="object-cover"
+          className="object-cover w-full h-full"
           priority
           quality={100}
+          sizes="100vw"
         />
       </div>
 
