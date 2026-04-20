@@ -27,12 +27,21 @@ const reviewsData = [
 export default function Reviews() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % reviewsData.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + reviewsData.length) % reviewsData.length);
+  };
+
   return (
     <section className="w-full bg-white py-[80px] px-[80px]">
       <div className="max-w-[1440px] mx-auto">
+        {/* Heading */}
         <div className="text-center mb-[50px]">
           <h2
-            className="text-[40px] leading-[1.1] tracking-[-1.6px] text-primary mb-[16px] inline-block relative"
+            className="text-[40px] leading-[1.1] tracking-[-1.6px] text-primary mb-[16px]"
             style={{ fontFamily: 'var(--font-gilroy)' }}
           >
             10,000+ 5 star{' '}
@@ -44,17 +53,9 @@ export default function Reviews() {
             >
               reviews
             </span>
-            <div
-              className="absolute bottom-0 left-1/2 transform -translate-x-1/2"
-              style={{
-                borderBottom: '1px solid #142E2A',
-                width: '123px',
-                marginTop: '8px',
-              }}
-            />
           </h2>
           <p
-            className="text-dark-text text-[18px] leading-[1.5] max-w-[846px] mx-auto mt-[24px]"
+            className="text-dark-text text-[18px] leading-[1.5] max-w-[846px] mx-auto"
             style={{ fontFamily: 'var(--font-outfit)' }}
           >
             Our dedicated care team provides ongoing guidance, progress monitoring, and personalized
@@ -62,6 +63,7 @@ export default function Reviews() {
           </p>
         </div>
 
+        {/* Reviews Carousel */}
         <div className="flex gap-[16px] overflow-hidden mb-[30px]">
           {reviewsData.map((review, idx) => (
             <div
@@ -71,7 +73,8 @@ export default function Reviews() {
               }`}
             >
               {idx === currentIndex && (
-                <div className="bg-cream rounded-[4px] p-[32px] h-full flex flex-col gap-[24px] border border-dark-text">
+                <div className="bg-cream rounded-[4px] p-[32px] h-full flex flex-col gap-[24px]">
+                  {/* Stars */}
                   <div className="w-[116px] h-[18.889px] relative">
                     <Image
                       src={starsSrc}
@@ -81,6 +84,7 @@ export default function Reviews() {
                     />
                   </div>
 
+                  {/* Quote */}
                   <p
                     className="text-dark-text text-[18px] leading-[1.5] min-h-[81px]"
                     style={{ fontFamily: 'var(--font-outfit)' }}
@@ -88,6 +92,7 @@ export default function Reviews() {
                     {review.quote}
                   </p>
 
+                  {/* Author */}
                   <p
                     className="text-dark-text text-[18px] leading-[1.5] font-medium"
                     style={{ fontFamily: 'var(--font-outfit)' }}
@@ -100,13 +105,15 @@ export default function Reviews() {
           ))}
         </div>
 
+        {/* Alternative: Show all cards in a visible row with scroll */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[16px] mb-[30px]">
           {reviewsData.map((review, idx) => (
             <div
               key={idx}
-              className="bg-cream rounded-[4px] p-[32px] flex flex-col gap-[24px] cursor-pointer hover:shadow-lg transition-shadow border border-dark-text"
+              className="bg-cream rounded-[4px] p-[32px] flex flex-col gap-[24px] cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => setCurrentIndex(idx)}
             >
+              {/* Stars */}
               <div className="w-[116px] h-[18.889px] relative">
                 <Image
                   src={starsSrc}
@@ -116,6 +123,7 @@ export default function Reviews() {
                 />
               </div>
 
+              {/* Quote */}
               <p
                 className="text-dark-text text-[18px] leading-[1.5] line-clamp-3"
                 style={{ fontFamily: 'var(--font-outfit)' }}
@@ -123,6 +131,7 @@ export default function Reviews() {
                 {review.quote}
               </p>
 
+              {/* Author */}
               <p
                 className="text-dark-text text-[18px] leading-[1.5] font-medium"
                 style={{ fontFamily: 'var(--font-outfit)' }}
@@ -133,6 +142,7 @@ export default function Reviews() {
           ))}
         </div>
 
+        {/* Pagination Dots */}
         <div className="flex justify-center gap-[8px]">
           {reviewsData.map((_, idx) => (
             <button

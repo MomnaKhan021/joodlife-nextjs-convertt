@@ -50,7 +50,7 @@ export default function Hero() {
           {/* Main Headline */}
           <div className="flex flex-col gap-[19px]">
             <h1
-              className="text-white text-[56px] leading-[1.1] tracking-[-2.24px] whitespace-nowrap"
+              className="text-white text-[56px] leading-[1.1] tracking-[-2.24px]"
               style={{ fontFamily: 'var(--font-gilroy)' }}
             >
               Innovative{' '}
