@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
-const heroBg = "https://www.figma.com/api/mcp/asset/ab4ecfb9-9fae-457e-9814-8162677b3e37";
+// Figma CDN URLs - extracted from Figma API
+const heroBg = "https://s3-alpha-sig.figma.com/img/0128/c350/948ec3e26db65852c6a22cf3047efc14?Expires=1777852800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=e4cf0MUrDfW7hO2KHV0XQ7iE13bnSs9ckI10GuPZXg-qfVQYfitatJGlY3sc6O36i91T~8Tr93i~D2oryL0Ybj-MB07d-N6FxvjNiPsP~rIQd0Ad71GCNwR6XeOWsfJBey2i1CLtQ-FgL~YHhSS2ZVFH57Lzcazmlo9G47ayw1dUhOAVXIH~yDkEjeYneWd3X1-knkKvG~rFZyR1HPdbq9ZsNr6pdRbj6KqErKAfThh9-RY~Sro0p4-HlZ9ZH8cxv8sffsCWd9A5SlX8FOyqqOsPoZaa~fbY2wlecp7KlLTIo4vIHx7cYb4E2ps7eOlmESVBb6A2RHlRxMSiuXPc0Q__";
 const verifyIcon = "https://www.figma.com/api/mcp/asset/75af0110-625d-4cb8-a0b6-8454104b47b5";
 
 export default function Hero() {
