@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-const starsSrc = "https://www.figma.com/api/mcp/asset/9c51dc80-3fa8-456a-931b-6672293bffd5";
+const starsSrc = "https://s3-alpha-sig.figma.com/img/2734/b5a1/bef1bae56770bba951cf6ce5a71eb9bd?Expires=1777852800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=W~TDkVqlXAJDYG6h4ECoBIWghJaK8WVMfOof7xhjTU3ST-u053AsrdCV0yRug0nBpYpwzErgDzjNoOeBc7voBdAWIQ0VRz39Tvl5mEEhR8pHelRfJd1qAF5hPGJT28uOm30~u9bACitdsdXmcbOeKpco~GMQPBphiU7PMZLbHgZ36x3GVKxYWVsikgqoZXYbVJODQi1QywuJnMwETrrv72FFYllpNBMoe33ax5ndwZCAvNpcUGeXMnv8qBA3Wawv59qBWOyG6m9oEH4Gtj~T8SpKmAPvXbPxLTeM2R5jEIMjFhWNhm2GyjxpriL39i3IAUq1gWIYOl2Few1oiRQrtw__";
 
 const reviewsData = [
   {

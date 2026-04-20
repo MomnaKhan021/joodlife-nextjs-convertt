@@ -189,7 +189,7 @@
 
 ## TOOLS & RESOURCES
 - Figma API: Authenticated and working
-- Token: figd_4Iafz5rZo-n7dI6eAHgp0XX6-GzWlItcvZFLa3pa
+- Token: Use FIGMA_TOKEN environment variable
 - Images Map: `.figma_images_map.json`
 - Dev Server: localhost:3000 (running)
 

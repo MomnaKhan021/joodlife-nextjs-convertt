@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
-const circleGraphSrc = "https://www.figma.com/api/mcp/asset/a404a661-e2ef-4bdc-be3e-45e81dc8a0a9";
-const productBoxSrc = "https://www.figma.com/api/mcp/asset/ba5c4ca6-fe31-4af1-bc8c-0b1f8b7c545d";
+const circleGraphSrc = "https://s3-alpha-sig.figma.com/img/1e2a/05d2/51286494b40207f02a46a2de2a115e3e?Expires=1777852800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=uKpIlXIfETAdTkMh4yADbZZXJnHEWq1AGyLf1sGiXka2f6UmN0McYPwxcT2XMlNk3jemTLM13R3C1qw-QlUwATpYEHVREYOgTqh~EoYMcPNWCuVcQ5HxiINLtcuSDw625nhwBS70j3QF1Q~fHMCSAPvAxa2RZ948Y2IFEQXYoprpWMvYaPy2dOxybGUEx7uSe2Nf6q~dKsJ-DTFiNT~vdAYKEOv-mpyyfBIbp4pGDF-Z78-NpuzQuBeagjxy8f2cN6wFwdhKBJStMEV-WSTqnArI6sR6KEUHQRr66zjEd53Dm9y~1pJVRUXcHx5jEFGS5An6UukdSeHbC3MWxOQiDw__";
+const productBoxSrc = "https://s3-alpha-sig.figma.com/img/254f/7243/ace880dfdfb6ae021cea8419bf99b44e?Expires=1777852800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=eZU4ER6FDkuTxNoCNX9ZJdbV9FZYkxOZzS2LM-6vOYbsb~2tKVGpuuVJAgM1h90~viefnD8EKR6h2MSuw0Jl0~8HUxwAIIUdtKiVPEiZmDOw4lXCU7EOWrF4Ds1~asRfPOYvgpuUTt9hHwl9tLE-ylH5gF6nIDtaO~eMvGNWYHA7QCih8veqZ1FxPqX6Sv5qAm2j~Xs0lxRFbW9cwhR6kM5i4nBvUkt4djjMZefpn8VWpjZvt9ZaiX7QZx0YRMjnVVilCVThyzn~TdXVmJekwHppN29RrmNI-KNzE8kHdAz6aSo8rL0d9k4yu9rAp572rLUtF4e6Hpxgq45lEsQHqQ__";
 
 export default function WeightTracker() {
   const [weight, setWeight] = useState(0);

@@ -6,7 +6,8 @@
       "mcp__Claude_Preview__preview_start",
       "WebFetch(domain:www.figma.com)",
       "mcp__mcp-registry__search_mcp_registry",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(netstat -ano)"
     ]
   }
 }

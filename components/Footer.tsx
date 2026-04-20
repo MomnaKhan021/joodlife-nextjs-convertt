@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
-const logoSrc = "https://www.figma.com/api/mcp/asset/78c1f8c0-627b-4721-9154-89e29ce30cdb";
+const logoSrc = "https://s3-alpha-sig.figma.com/img/29cf/ab07/c45b5c53e58a4d6df69e873b448f9ea8?Expires=1777852800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=rPudWkX-7AHTMdHAVEePycPFYEd9wB~VZ-dWFdracEjPoMwk82cfwmJKdNenbue9fLoDSmxsmxKegpKUZ3umE4h6r0YUlRkY9SuuD-DH2tC90z8gVXG8342xT96ZJ9CmIYajt3deFVL-cL4cuJdkDKVWaSDSd8PThrgDqEJDUYr2RqyBCMBuipPsXd9Bv0xYX-UEcRWHfeWZAfGcY21rfof-rgOR5HqXvUNA284K~isoMI61-VSyudMn7KLPMTsoeL7EuvStXxTC2nISm1Vu-BLMzxvUdNuZsDgVlGmTVnnNSKt6agUaqXgwYDBl9wQnPmAXSwmuJEF4K1wnnHJ9Iw__";
 
 export default function Footer() {
   const [email, setEmail] = useState('');
