@@ -16,13 +16,13 @@ const uspItems = [
 
 export default function UspBar() {
   // Duplicate items for infinite scroll effect
-  const items = [...uspItems, ...uspItems];
+  const items = [...uspItems, ...uspItems, ...uspItems];
 
   return (
     <section
       className="relative w-full h-[64px] bg-sage overflow-hidden"
     >
-      {/* Marquee Container */}
+      {/* Marquee Container - no borders */}
       <div className="flex items-center h-full animate-marquee gap-[65px] px-[65px]">
         {items.map((item, idx) => (
           <div
