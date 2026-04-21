@@ -45,6 +45,7 @@ function ReviewCard({ review }: { review: Review }) {
         <p className="font-ui text-[16.3px] leading-[22px] text-[#2a2929]">
           {review.text}
         </p>
+        <div className="h-px w-28 bg-[#142e2a]/20" />
       </div>
       <div className="mt-6 flex items-center gap-2">
         {review.avatar ? (
@@ -110,7 +111,7 @@ export default function Reviews() {
             </span>
           </div>
           <h2 className="font-display text-[32px] leading-[36px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            3000+ happy customers
+            3000+ happy <em className="font-serif italic font-normal">customers</em>
           </h2>
           <p className="max-w-[780px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             Thousands have trusted Jood for safe, clinically guided weight-loss

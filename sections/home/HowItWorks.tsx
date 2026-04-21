@@ -128,7 +128,7 @@ export default function HowItWorks() {
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
         <Reveal as="div" className="flex flex-col items-center gap-2 pb-10 text-center">
           <h2 className="font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            How it works
+            How it <em className="font-serif italic font-normal">works</em>
           </h2>
           <p className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             Address symptoms, treat root causes, and adjust your behaviours,

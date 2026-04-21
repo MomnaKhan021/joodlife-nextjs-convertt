@@ -60,7 +60,7 @@ export default function JourneyPlan() {
               </span>
               <h2 className="font-display text-[36px] leading-[44px] font-semibold text-white md:text-[48px] md:leading-[56px]">
                 What to expect in <br className="hidden md:block" />
-                your journey
+                <em className="font-serif italic font-normal">your journey</em>
               </h2>
             </div>
 

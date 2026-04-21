@@ -43,6 +43,9 @@ next-env.d.ts
 # Claude Code local settings (may contain tokens)
 .claude/settings.local.json
 
+# Figma reference PNGs (visual compare only, not shipped)
+/figma-refs/
+
 # Figma scratch / extraction work files
 figma-*.json
 figma-*.png

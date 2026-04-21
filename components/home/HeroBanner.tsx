@@ -109,8 +109,8 @@ export default function HeroBanner() {
             </a>
           </Reveal>
 
-          <Reveal delay={200} className="relative mt-6 w-full">
-            <div className="no-scrollbar flex gap-[22px] overflow-x-auto pb-8">
+          <Reveal delay={200} className="relative mt-6 w-full -mx-[60px]">
+            <div className="no-scrollbar flex gap-[21.8px] overflow-x-auto px-[60px] pb-8">
               {CARDS.map((src, i) => (
                 <div
                   key={i}
@@ -127,8 +127,6 @@ export default function HeroBanner() {
                 </div>
               ))}
             </div>
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#142e2a] to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#142e2a] to-transparent" />
           </Reveal>
         </div>
 
