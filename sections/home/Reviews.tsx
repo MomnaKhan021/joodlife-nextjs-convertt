@@ -33,7 +33,7 @@ const REVIEWS: Review[] = [
 
 function ReviewCard({ review }: { review: Review }) {
   return (
-    <article className="flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg bg-[#f7f9f2] px-3 py-6 md:h-[301.8px]">
+    <article className="flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg bg-[#f7f9f2] px-3 py-6 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_28px_rgba(20,46,42,0.12)] md:h-[301.8px]">
       <div className="flex flex-col gap-4">
         <Image
           src="/assets/figma/stars-5.svg"
@@ -67,16 +67,16 @@ function ReviewCard({ review }: { review: Review }) {
           <p className="font-ui text-[16.3px] font-semibold leading-[20px] text-[#142e2a]">
             {review.name}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Image
               src="/assets/figma/verified-tick.svg"
               alt=""
               width={13}
               height={13}
-              className="h-[13px] w-[13px]"
+              className="h-[13px] w-[13px] flex-shrink-0"
               aria-hidden
             />
-            <span className="font-ui text-[12px] text-[#142e2a]">
+            <span className="font-ui text-[12px] text-[#00b67a] font-medium">
               Verified
             </span>
           </div>
@@ -91,7 +91,13 @@ export default function Reviews() {
     <section aria-label="Reviews" className="w-full bg-white py-16 md:py-0 md:pb-[100px]">
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
         <Reveal as="div" className="flex flex-col items-center gap-3 pb-10 text-center">
-          <div className="flex items-center gap-2">
+          <a
+            href="https://www.trustpilot.com/review/joodlife.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View Jood Life reviews on Trustpilot"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-md transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+          >
             <Image
               src="/assets/icons/trustpilot-logo-only.svg"
               alt="Trustpilot"
@@ -109,7 +115,7 @@ export default function Reviews() {
             <span className="font-inter text-[18px] text-[#142e2a]">
               4.4 (50+) Reviews
             </span>
-          </div>
+          </a>
           <h2 className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             3000+ happy <em className="font-serif italic font-normal">customers</em>
           </h2>

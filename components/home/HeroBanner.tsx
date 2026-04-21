@@ -50,7 +50,13 @@ function CheckIcon() {
 
 function TrustpilotRow() {
   return (
-    <div className="flex items-center justify-center gap-2">
+    <a
+      href="https://www.trustpilot.com/review/joodlife.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View Jood Life reviews on Trustpilot"
+      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+    >
       <Image
         src="/assets/icons/trustpilot-logo-only.svg"
         alt="Trustpilot"
@@ -68,7 +74,7 @@ function TrustpilotRow() {
       <span className="font-inter text-[14.2px] leading-[17px] tracking-normal text-white">
         4.4 (50+) Reviews
       </span>
-    </div>
+    </a>
   );
 }
 
