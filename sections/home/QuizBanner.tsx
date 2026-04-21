@@ -9,7 +9,7 @@ export default function QuizBanner() {
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-20">
         <Reveal as="div" className="flex flex-col items-center gap-3 pb-10 text-center">
-          <h2 className="font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Let&rsquo;s get to <em className="font-serif italic font-normal">know</em> you
           </h2>
           <p className="max-w-[546px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
@@ -61,7 +61,7 @@ export default function QuizBanner() {
             </p>
             <a
               href="#quiz"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-12 font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142f2b] transition hover:bg-[#d3dabe]"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142f2b] transition hover:bg-[#d3dabe]"
             >
               Start Quiz
             </a>

@@ -42,7 +42,7 @@ export default function FeatureGrid() {
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
         <Reveal as="div" className="pb-12 text-center md:mx-auto md:max-w-[700px]">
-          <h2 className="font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[56px] md:leading-[64px]">
+          <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[56px] md:leading-[64px]">
             A treatment plan that{" "}
             <em className="font-serif italic font-normal">works</em> with your
             body
@@ -80,13 +80,13 @@ export default function FeatureGrid() {
         <div className="mt-10 flex flex-col items-center justify-center gap-3 md:flex-row">
           <a
             href="#get-started"
-            className="inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#0c2421] md:w-[200px]"
+            className="inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition hover:bg-[#0c2421] md:w-[200px]"
           >
             Get started
           </a>
           <a
             href="#eligible"
-            className="inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-12 font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142f2b] ring-1 ring-[#142e2a]/15 transition hover:bg-[#f7f9f2] md:w-[279px]"
+            className="inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142f2b] ring-1 ring-[#142e2a]/15 transition hover:bg-[#f7f9f2] md:w-[279px]"
           >
             See if you are eligible
           </a>

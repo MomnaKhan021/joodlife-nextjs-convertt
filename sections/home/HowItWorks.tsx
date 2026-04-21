@@ -127,7 +127,7 @@ export default function HowItWorks() {
     <section aria-label="How it works" className="w-full bg-white py-12">
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
         <Reveal as="div" className="flex flex-col items-center gap-2 pb-10 text-center">
-          <h2 className="font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             How it <em className="font-serif italic font-normal">works</em>
           </h2>
           <p className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">

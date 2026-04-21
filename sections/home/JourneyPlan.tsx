@@ -58,7 +58,7 @@ export default function JourneyPlan() {
               <span className="inline-flex items-center rounded-full bg-white/30 px-4 py-2 font-ui text-[14px] text-white">
                 Timeline
               </span>
-              <h2 className="font-display text-[36px] leading-[44px] font-semibold text-white md:text-[48px] md:leading-[56px]">
+              <h2 className="font-display text-[36px] leading-[44px] font-semibold tracking-[-0.02em] text-white md:text-[48px] md:leading-[56px]">
                 What to expect in <br className="hidden md:block" />
                 <em className="font-serif italic font-normal">your journey</em>
               </h2>

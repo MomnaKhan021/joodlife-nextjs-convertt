@@ -47,7 +47,7 @@ export default function Header() {
         <div className="flex items-center gap-5">
           <Link
             href="#get-started"
-            className="inline-flex h-[44px] items-center justify-center rounded-lg border border-[#142e2a] bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142f2b] transition hover:bg-[#142e2a] hover:text-white"
+            className="inline-flex h-[44px] items-center justify-center rounded-lg border border-[#142e2a] bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142f2b] transition hover:bg-[#142e2a] hover:text-white"
           >
             Get started
           </Link>

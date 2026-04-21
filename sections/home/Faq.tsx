@@ -33,7 +33,7 @@ export default function Faq() {
     <section aria-label="FAQ" className="w-full bg-white py-16 md:py-[60px]">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-10 px-6 md:px-[60px]">
         <Reveal as="div">
-          <h2 className="text-center font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="text-center font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Frequently asked <em className="font-serif italic font-normal">questions</em>
           </h2>
         </Reveal>
@@ -80,7 +80,7 @@ export default function Faq() {
 
         <a
           href="#get-started"
-          className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#0c2421]"
+          className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition hover:bg-[#0c2421]"
         >
           Get started
         </a>

@@ -28,7 +28,7 @@ export default function CtaBanner() {
               aria-hidden
             />
             <div className="flex flex-col gap-3">
-              <h2 className="font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
+              <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
                 Take the first step{" "}
                 <em className="font-serif italic font-normal">toward a better you</em>
               </h2>
@@ -38,7 +38,7 @@ export default function CtaBanner() {
             </div>
             <a
               href="#get-started"
-              className="inline-flex h-[50px] w-fit items-center justify-center rounded-lg bg-white px-12 font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142f2b] ring-1 ring-[#142e2a]/10 transition hover:bg-[#142e2a] hover:text-white"
+              className="inline-flex h-[50px] w-fit items-center justify-center rounded-lg bg-white px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142f2b] ring-1 ring-[#142e2a]/10 transition hover:bg-[#142e2a] hover:text-white"
             >
               Get started
             </a>

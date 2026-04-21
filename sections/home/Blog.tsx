@@ -40,7 +40,7 @@ export default function Blog() {
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
         <div className="flex items-end justify-between gap-4 pb-10">
-          <h2 className="font-display text-[32px] leading-[40px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Recent <em className="font-serif italic font-normal">blog</em> posts
           </h2>
           <div className="hidden items-center gap-3 md:flex">

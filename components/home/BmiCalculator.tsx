@@ -32,7 +32,7 @@ export default function BmiCalculator() {
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px] py-14 md:py-20">
         {/* Heading */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8 pb-10">
-          <h2 className="max-w-[680px] font-display text-[32px] leading-[40px] font-semibold text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
+          <h2 className="max-w-[680px] font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
             Everyone&rsquo;s talking about{" "}
             <em className="font-serif italic font-normal">jood life</em> because
             it works.
@@ -116,7 +116,7 @@ export default function BmiCalculator() {
               </label>
               <button
                 type="submit"
-                className="mt-2 h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#0c2421]"
+                className="mt-2 h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition hover:bg-[#0c2421]"
               >
                 Calculate BMI
               </button>

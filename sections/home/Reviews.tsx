@@ -110,7 +110,7 @@ export default function Reviews() {
               4.4 (50+) Reviews
             </span>
           </div>
-          <h2 className="font-display text-[32px] leading-[36px] font-semibold text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             3000+ happy <em className="font-serif italic font-normal">customers</em>
           </h2>
           <p className="max-w-[780px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
