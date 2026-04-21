@@ -1,58 +1,55 @@
 import type { Metadata } from "next";
-import { Outfit, DM_Sans, Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({
+  subsets: ["latin"],
   variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
+  variable: "--font-inter",
   display: "swap",
 });
 
 const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-gilroy",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  variable: "--font-gilroy",
+  display: "swap",
+});
+
+const saans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-saans",
+  display: "swap",
+});
+
+const sofia = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sofia",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "JoodLife 2.0 — Innovative Weight Loss, Made Just For You",
-  description: "Lose up to 27% body weight with JoodLife. UK Licensed medication, expert guidance, and personalized support for lasting results.",
-  keywords: ["weight loss", "weight loss program", "UK licensed", "medical guidance", "jood", "joodlife"],
-  openGraph: {
-    title: "JoodLife 2.0 — Innovative Weight Loss",
-    description: "Personalized weight loss program with UK licensed medication and expert guidance.",
-    type: "website",
-  },
+  title: "JoodLife — Innovative weight loss, made just for you",
+  description:
+    "Innovative weight loss, made just for you. Lose up to 27% body weight with plans tailored to you and guidance for lasting results.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${dmSans.variable} ${playfair.variable} ${plusJakarta.variable} h-full antialiased`}
+      className={`${outfit.variable} ${inter.variable} ${plusJakarta.variable} ${saans.variable} ${sofia.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-white text-primary antialiased">
+      <body
+        className="min-h-screen bg-white text-[#142e2a] font-ui antialiased"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

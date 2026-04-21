@@ -1,37 +1,61 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@theme {
-  --color-primary: #0c2421;
-  --color-teal: #0b3b3c;
-  --color-sage: #87af73;
-  --color-sage-light: #d3dabe;
-  --color-cream: #f7f9f2;
-  --color-dark-text: #142e2a;
-  --color-white: #ffffff;
+:root {
+  --color-brand-dark: #142e2a;
+  --color-brand-dark-2: #142f2b;
+  --color-brand-dark-3: #0c2421;
+  --color-brand-muted: #d3dabe;
+  --color-text-default: #3d3838;
+  --color-trustpilot-green: #00b67a;
+  --color-navy: #21346e;
+  --background: #ffffff;
+  --foreground: #142e2a;
 }
 
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-@layer utilities {
-  .animate-marquee {
-    animation: marquee 30s linear infinite;
-    will-change: transform;
-  }
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-brand-dark-2: var(--color-brand-dark-2);
+  --color-brand-muted: var(--color-brand-muted);
+  --color-trustpilot-green: var(--color-trustpilot-green);
+  --font-display: var(--font-gilroy), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-ui: var(--font-saans), "Inter", system-ui, sans-serif;
+  --font-outfit: var(--font-outfit), "Outfit", system-ui, sans-serif;
+  --font-inter: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-sofia: var(--font-sofia), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-body {
-  @apply bg-white text-primary antialiased;
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+.animate-marquee {
+  animation: marquee linear infinite;
+  flex-shrink: 0;
+  min-width: 100%;
 }
