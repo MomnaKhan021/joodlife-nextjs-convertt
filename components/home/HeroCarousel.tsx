@@ -27,13 +27,15 @@ export default function HeroCarousel({ cards, variant }: HeroCarouselProps) {
 
     // Pixels per second. Lower = slower / smoother.
     const SPEED = variant === "desktop" ? 24 : 18;
+    const STARTUP_DELAY = 3000; // show clean initial frame before drift kicks in
+    const startAt = performance.now() + STARTUP_DELAY;
     let last = performance.now();
     let rafId = 0;
 
     const loop = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
-      if (!pausedRef.current && el) {
+      if (!pausedRef.current && el && now >= startAt) {
         const maxScroll = el.scrollWidth - el.clientWidth;
         const next = el.scrollLeft + SPEED * dt;
         if (next >= maxScroll - 1) {
@@ -74,12 +76,12 @@ export default function HeroCarousel({ cards, variant }: HeroCarouselProps) {
       <div className="relative w-full overflow-hidden">
         <div
           ref={scrollerRef}
-          className="no-scrollbar flex gap-5 overflow-x-auto pb-20 pl-[60px] pr-[60px]"
+          className="no-scrollbar flex gap-5 overflow-x-auto pb-20 px-[40px]"
         >
           {list.map((src, i) => (
             <div
               key={i}
-              className="relative h-[400px] w-[550px] shrink-0 overflow-hidden rounded-[24px] shadow-[0_36px_60px_-18px_rgba(0,0,0,0.55),0_12px_28px_-6px_rgba(0,0,0,0.35)] ring-1 ring-white/5"
+              className="relative h-[400px] w-[550px] shrink-0 overflow-hidden rounded-[20px]"
             >
               <Image
                 src={src}
@@ -92,16 +94,6 @@ export default function HeroCarousel({ cards, variant }: HeroCarouselProps) {
             </div>
           ))}
         </div>
-        {/* Right-edge fade to match left padding visually */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-[60px] bg-gradient-to-l from-[#142e2a] to-transparent"
-        />
-        {/* Left-edge fade for symmetry (subtle) */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-[40px] bg-gradient-to-r from-[#142e2a] to-transparent"
-        />
       </div>
     );
   }
@@ -110,12 +102,12 @@ export default function HeroCarousel({ cards, variant }: HeroCarouselProps) {
     <div className="relative w-full overflow-hidden">
       <div
         ref={scrollerRef}
-        className="no-scrollbar flex gap-[14px] overflow-x-auto pb-5 pl-6 pr-6"
+        className="no-scrollbar flex gap-[14px] overflow-x-auto pb-5 px-4"
       >
         {list.map((src, i) => (
           <div
             key={i}
-            className="relative h-[259px] w-[300px] shrink-0 overflow-hidden rounded-2xl shadow-[0_22px_36px_-14px_rgba(0,0,0,0.55),0_8px_18px_-4px_rgba(0,0,0,0.3)] ring-1 ring-white/5"
+            className="relative h-[259px] w-[300px] shrink-0 overflow-hidden rounded-[16px]"
           >
             <Image
               src={src}
@@ -128,14 +120,6 @@ export default function HeroCarousel({ cards, variant }: HeroCarouselProps) {
           </div>
         ))}
       </div>
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#142e2a] to-transparent"
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#142e2a] to-transparent"
-      />
     </div>
   );
 }
