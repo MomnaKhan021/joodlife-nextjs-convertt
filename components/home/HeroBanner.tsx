@@ -55,7 +55,7 @@ function TrustpilotRow() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="View Jood Life reviews on Trustpilot"
-      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
     >
       <Image
         src="/assets/icons/trustpilot-logo-only.svg"

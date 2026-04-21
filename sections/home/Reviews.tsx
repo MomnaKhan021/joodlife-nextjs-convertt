@@ -33,7 +33,7 @@ const REVIEWS: Review[] = [
 
 function ReviewCard({ review }: { review: Review }) {
   return (
-    <article className="flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg bg-[#f7f9f2] px-3 py-6 transition-transform duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_28px_rgba(20,46,42,0.12)] md:h-[301.8px]">
+    <article className="flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg border border-[#142E2A]/20 bg-[#f7f9f2] px-4 py-6 transition-[transform,box-shadow] duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(20,46,42,0.12)] md:h-[301.8px]">
       <div className="flex flex-col gap-4">
         <Image
           src="/assets/figma/stars-5.svg"
@@ -45,7 +45,7 @@ function ReviewCard({ review }: { review: Review }) {
         <p className="font-ui text-[16.3px] leading-[22px] text-[#2a2929]">
           {review.text}
         </p>
-        <div className="h-px w-28 bg-[#142e2a]/20" />
+        <div className="h-px w-28 bg-[#142E2A]" />
       </div>
       <div className="mt-6 flex items-center gap-2">
         {review.avatar ? (
@@ -96,10 +96,10 @@ export default function Reviews() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View Jood Life reviews on Trustpilot"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-md transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-md transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
           >
             <Image
-              src="/assets/icons/trustpilot-logo-only.svg"
+              src="/assets/icons/trustpilot-logo-dark.svg"
               alt="Trustpilot"
               width={80}
               height={20}
