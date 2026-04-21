@@ -38,14 +38,6 @@ function calculateBmi(ft: number, inches: number, lbs: number): number {
   return Math.round((kg / (meters * meters)) * 10) / 10;
 }
 
-function weightFromBmi(ft: number, inches: number, bmi: number): number {
-  const totalInches = ft * 12 + inches;
-  const meters = totalInches * 0.0254;
-  if (!meters) return 0;
-  const kg = bmi * meters * meters;
-  return Math.round(kg / 0.453592);
-}
-
 function useInView<T extends HTMLElement>(
   ref: RefObject<T | null>,
   threshold = 0.25
@@ -107,14 +99,16 @@ function useAnimatedNumber(target: number, isActive: boolean, duration = 1400) {
   return value;
 }
 
-const BMI_MIN = 15;
-const BMI_MAX = 40;
+const WEIGHT_MIN = 50;
+const WEIGHT_MAX = 400;
+const DEFAULT_WEIGHT = 98;
 
 export default function BmiCalculator() {
   const [ft, setFt] = useState("5");
   const [inch, setInch] = useState("8");
   const [lbs, setLbs] = useState("98");
-  const [lastSource, setLastSource] = useState<"inputs" | "slider">("inputs");
+
+  const [sliderWeight, setSliderWeight] = useState(DEFAULT_WEIGHT);
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const inView = useInView(sectionRef, 0.2);
@@ -123,52 +117,32 @@ export default function BmiCalculator() {
   const inchNum = Math.max(0, Math.min(11, Number(inch) || 0));
   const lbsNum = Math.max(0, Number(lbs) || 0);
 
-  const computedBmi = useMemo(
+  const bmi = useMemo(
     () => calculateBmi(ftNum, inchNum, lbsNum),
     [ftNum, inchNum, lbsNum]
   );
 
-  const [sliderBmi, setSliderBmi] = useState(computedBmi);
-
-  useEffect(() => {
-    if (lastSource === "inputs") setSliderBmi(computedBmi);
-  }, [computedBmi, lastSource]);
-
-  const activeBmi = lastSource === "slider" ? sliderBmi : computedBmi;
-
-  const animatedBmi = useAnimatedNumber(activeBmi, inView, 1400);
-  const couldLoseTarget = Math.max(0, Math.round(lbsNum * 0.27));
+  const animatedBmi = useAnimatedNumber(bmi, inView, 1400);
+  const couldLoseTarget = Math.max(0, Math.round(sliderWeight * 0.27));
   const animatedCouldLose = useAnimatedNumber(couldLoseTarget, inView, 1600);
-  const animatedStartingWeight = useAnimatedNumber(lbsNum, inView, 1800);
+  const animatedStartingWeight = useAnimatedNumber(sliderWeight, inView, 1800);
 
   const status = getBmiStatus(animatedBmi);
-
-  const handleSliderChange = useCallback(
-    (value: number) => {
-      setLastSource("slider");
-      setSliderBmi(value);
-      if (ftNum > 0 || inchNum > 0) {
-        const newLbs = weightFromBmi(ftNum, inchNum, value);
-        if (newLbs > 0) setLbs(String(newLbs));
-      }
-    },
-    [ftNum, inchNum]
-  );
 
   const handleInputChange = useCallback(
     (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
-      if (raw === "" || /^\d+$/.test(raw)) {
-        setLastSource("inputs");
-        setter(raw);
-      }
+      if (raw === "" || /^\d+$/.test(raw)) setter(raw);
     },
     []
   );
 
   const sliderPct = Math.max(
     0,
-    Math.min(100, ((activeBmi - BMI_MIN) / (BMI_MAX - BMI_MIN)) * 100)
+    Math.min(
+      100,
+      ((sliderWeight - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN)) * 100
+    )
   );
 
   const bmiDisplay = animatedBmi > 0 ? animatedBmi.toFixed(1) : "0.0";
@@ -192,8 +166,8 @@ export default function BmiCalculator() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          <div className="flex flex-col gap-6 rounded-3xl bg-[#e7ecd7] px-6 py-10 md:px-7 md:py-10">
+        <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
+          <div className="flex flex-col gap-6 rounded-3xl bg-[#e7ecd7] p-8 md:min-h-[560px]">
             <div className="flex flex-col items-center gap-2 text-center">
               <p className="font-ui text-[22px] leading-[26px] font-extrabold text-[#142e2a] md:text-[25px]">
                 Check your
@@ -208,10 +182,7 @@ export default function BmiCalculator() {
               aria-live="polite"
             >
               <span className="inline-flex items-baseline gap-2 font-display font-semibold text-[#142e2a]">
-                <span
-                  className="text-[44px] leading-none md:text-[52px] tabular-nums transition-colors duration-300"
-                  style={{ color: status.color }}
-                >
+                <span className="text-[44px] leading-none md:text-[52px] tabular-nums text-[#142e2a]">
                   {bmiDisplay}
                 </span>
                 <span className="font-ui text-[16px] font-bold uppercase tracking-wide text-[#142e2a]/70 md:text-[18px]">
@@ -288,15 +259,14 @@ export default function BmiCalculator() {
 
               <button
                 type="button"
-                onClick={() => setLastSource("inputs")}
-                className="mt-2 h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition hover:bg-[#0c2421]"
+                className="mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition hover:bg-[#0c2421]"
               >
                 Calculate BMI
               </button>
             </form>
           </div>
 
-          <div className="relative min-h-[460px] overflow-hidden rounded-3xl bg-[#e7ecd7] md:min-h-[560px]">
+          <div className="relative overflow-hidden rounded-3xl bg-[#e7ecd7] md:min-h-[560px]">
             <Image
               src="/assets/figma/happy-woman-2.png"
               alt="Happy customer showing results"
@@ -339,16 +309,16 @@ export default function BmiCalculator() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 rounded-3xl bg-[#f7f9f2] py-10 px-6 md:px-8">
+          <div className="flex flex-col gap-6 rounded-3xl bg-[#f7f9f2] p-8 md:min-h-[560px]">
             <div className="flex flex-col items-center gap-2">
-              <p className="font-ui text-[20px] leading-[26px] font-extrabold text-[#142e2a] md:text-[24px]">
+              <p className="font-ui text-[22px] leading-[26px] font-extrabold text-[#142e2a] md:text-[25px]">
                 You could lose:
               </p>
               <div className="flex items-end gap-2">
-                <span className="font-display text-[48px] leading-[52px] font-semibold text-[#0c2421] tabular-nums md:text-[56px]">
+                <span className="font-display text-[44px] leading-none font-semibold text-[#142e2a] tabular-nums md:text-[52px]">
                   {Math.round(animatedCouldLose)}
                 </span>
-                <span className="pb-2 font-ui text-[18px] leading-[22px] font-semibold text-[#171717] md:text-[22px]">
+                <span className="pb-1 font-ui text-[16px] font-bold uppercase tracking-wide text-[#142e2a]/70 md:text-[18px]">
                   lbs
                 </span>
               </div>
@@ -376,7 +346,7 @@ export default function BmiCalculator() {
               })}
             </div>
 
-            <div className="flex flex-col items-center gap-3">
+            <div className="mt-auto flex flex-col items-center gap-3">
               <p className="font-ui text-[18px] leading-[24px] font-extrabold text-[#142e2a] md:text-[22px]">
                 Starting weight:
               </p>
@@ -395,17 +365,17 @@ export default function BmiCalculator() {
                 </div>
                 <input
                   type="range"
-                  min={BMI_MIN}
-                  max={BMI_MAX}
-                  step={0.1}
-                  value={activeBmi || BMI_MIN}
-                  onChange={(e) => handleSliderChange(Number(e.target.value))}
-                  aria-label="Adjust BMI"
+                  min={WEIGHT_MIN}
+                  max={WEIGHT_MAX}
+                  step={1}
+                  value={sliderWeight}
+                  onChange={(e) => setSliderWeight(Number(e.target.value))}
+                  aria-label="Adjust starting weight"
                   className="bmi-slider absolute inset-0 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
                 />
                 <div className="mt-2 flex justify-between font-ui text-[11px] font-semibold text-[#142e2a]/60">
-                  <span>{BMI_MIN}</span>
-                  <span>{BMI_MAX}</span>
+                  <span>{WEIGHT_MIN}</span>
+                  <span>{WEIGHT_MAX}</span>
                 </div>
               </div>
             </div>
