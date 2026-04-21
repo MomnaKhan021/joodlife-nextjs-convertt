@@ -39,7 +39,7 @@ export default function UspStrip() {
   return (
     <section
       aria-label="USP marquee"
-      className="w-full overflow-hidden bg-white py-4"
+      className="w-full overflow-hidden border-b border-[#142e2a]/10 bg-white py-4"
     >
       <div className="group relative flex">
         <ul
