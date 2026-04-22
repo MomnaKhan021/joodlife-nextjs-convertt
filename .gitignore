@@ -58,3 +58,8 @@ sec-*.txt
 svg-*.json
 *-out.txt
 /scripts/
+
+# Payload — generated types / schema / uploaded media
+/src/payload/payload-types.ts
+/src/payload/schema.graphql
+/public/payload-media/
