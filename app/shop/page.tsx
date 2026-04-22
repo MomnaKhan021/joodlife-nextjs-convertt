@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { getPayloadInstance } from "@/lib/payload";
 
-// Render fresh every 60s — swap for revalidatePath/updateTag in prod.
-export const revalidate = 60;
+// Render on-demand (no build-time MongoDB connection). Flip to
+// `revalidate = 60` once DATABASE_URI is available during `next build`.
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Shop — JoodLife",
