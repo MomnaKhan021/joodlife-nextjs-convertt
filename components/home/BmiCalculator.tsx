@@ -167,7 +167,7 @@ export default function BmiCalculator() {
         </div>
 
         <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
-          <div className="flex flex-col gap-6 rounded-3xl bg-[#e7ecd7] p-8 md:min-h-[560px]">
+          <div className="flex h-full flex-col justify-between gap-6 rounded-3xl bg-[#e7ecd7] p-8 md:min-h-[580px]">
             <div className="flex flex-col items-center gap-1.5 text-center">
               <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[26px] md:leading-[32px]">
                 Check your
@@ -266,7 +266,7 @@ export default function BmiCalculator() {
             </form>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl bg-[#e7ecd7] md:min-h-[560px]">
+          <div className="relative h-full overflow-hidden rounded-3xl bg-[#e7ecd7] md:min-h-[580px]">
             <Image
               src="/assets/figma/happy-woman-2.png"
               alt="Happy customer showing results"
@@ -309,7 +309,7 @@ export default function BmiCalculator() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 rounded-3xl bg-[#f7f9f2] p-8 md:min-h-[560px]">
+          <div className="flex h-full flex-col justify-between gap-6 rounded-3xl bg-[#f7f9f2] p-8 md:min-h-[580px]">
             <div className="flex flex-col items-center gap-1.5">
               <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[26px] md:leading-[32px]">
                 You could lose:

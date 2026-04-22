@@ -3,11 +3,11 @@ import Image from "next/image";
 type Item = { icon: string; label: string };
 
 const ITEMS: Item[] = [
-  { icon: "/assets/icons/usp-clinicians.svg", label: "UK Licensed medication" },
-  { icon: "/assets/icons/usp-clinicians.svg", label: "24-Hour WhatsApp support" },
-  { icon: "/assets/icons/usp-delivery.svg", label: "Free next-day delivery" },
-  { icon: "/assets/icons/usp-time.svg", label: "Cancel anytime subscription" },
-  { icon: "/assets/icons/usp-support.svg", label: "Ongoing medical support" },
+  { icon: "/assets/figma/usp-clinicians.svg", label: "UK Licensed medication" },
+  { icon: "/assets/figma/usp-support.svg", label: "24-Hour WhatsApp support" },
+  { icon: "/assets/figma/usp-delivery.svg", label: "Free next-day delivery" },
+  { icon: "/assets/figma/usp-time.svg", label: "Cancel anytime subscription" },
+  { icon: "/assets/figma/usp-clinicians.svg", label: "Ongoing medical support" },
 ];
 
 function Row() {
@@ -16,7 +16,7 @@ function Row() {
       {ITEMS.map((item, i) => (
         <li
           key={i}
-          className="flex shrink-0 items-center gap-3 pr-[65px]"
+          className="flex shrink-0 items-center gap-3 pr-[56px]"
         >
           <Image
             src={item.icon}
@@ -26,7 +26,7 @@ function Row() {
             className="h-8 w-8 shrink-0"
             aria-hidden
           />
-          <span className="whitespace-nowrap font-ui text-[16.3px] leading-[20px] text-[#3d3838]">
+          <span className="whitespace-nowrap font-ui text-[15px] font-medium leading-[20px] tracking-[-0.005em] text-[#142e2a] md:text-[16px]">
             {item.label}
           </span>
         </li>
