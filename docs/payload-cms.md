@@ -17,7 +17,7 @@ npm install
 Required runtime packages:
 
 - `payload` — core
-- `@payloadcms/db-mongodb` — Mongo adapter
+- `@payloadcms/db-postgres` — PostgreSQL adapter
 - `@payloadcms/next` — App Router integration (admin UI + API)
 - `@payloadcms/richtext-lexical` — rich-text editor
 - `@payloadcms/ui` — admin UI components
@@ -29,7 +29,7 @@ Required runtime packages:
 Copy `.env.example` to `.env` and set:
 
 ```
-DATABASE_URI=mongodb://127.0.0.1:27017/joodlife
+DATABASE_URI=postgres://postgres:postgres@127.0.0.1:5432/joodlife
 PAYLOAD_SECRET=<openssl rand -base64 32>
 NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 PAYLOAD_PUBLIC_SERVER_URL=http://localhost:3000
@@ -37,7 +37,25 @@ SEED_ADMIN_EMAIL=admin@joodlife.com
 SEED_ADMIN_PASSWORD=ChangeMe123!
 ```
 
-For production swap `mongodb://…` for your Mongo Atlas / hosted URL.
+For production, use a managed Postgres:
+- **Vercel Postgres** (Neon under the hood) — easiest on this platform
+- **Neon** — free tier, pooled connection string
+- **Supabase** — free tier, use the `postgres://…?sslmode=require` form
+- **Railway / Render** — self-service Postgres instances
+
+Paste the pooled connection string into `DATABASE_URI`. Payload runs
+migrations automatically via `drizzle-orm` on first boot.
+
+### Vercel setup
+
+In **Project → Settings → Storage**:
+1. Create a Postgres database (or connect an existing one).
+2. Vercel will auto-add `DATABASE_URL`, `POSTGRES_URL`, `POSTGRES_PRISMA_URL`, etc.
+3. Add `DATABASE_URI` as a separate env var pointing at the pooled
+   `POSTGRES_URL_NON_POOLING` value (Payload runs its own pool).
+4. Also set `PAYLOAD_SECRET`, `NEXT_PUBLIC_SERVER_URL`,
+   `PAYLOAD_PUBLIC_SERVER_URL`.
+5. Redeploy.
 
 ## 3. Seed data
 

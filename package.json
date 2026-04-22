@@ -12,7 +12,7 @@
     "seed": "npx tsx src/payload/seed.ts"
   },
   "dependencies": {
-    "@payloadcms/db-mongodb": "^3.0.0",
+    "@payloadcms/db-postgres": "^3.0.0",
     "@payloadcms/next": "^3.0.0",
     "@payloadcms/richtext-lexical": "^3.0.0",
     "@payloadcms/ui": "^3.0.0",
