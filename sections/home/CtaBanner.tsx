@@ -25,7 +25,7 @@ export default function CtaBanner() {
             />
           </div>
 
-          <div className="relative grid grid-cols-1 items-center md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,1fr)]">
+          <div className="relative grid grid-cols-1 items-center md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.95fr)]">
             <div className="relative z-10 flex flex-col items-start gap-5 px-6 pt-10 pb-4 md:gap-6 md:px-12 md:py-16 lg:px-16 lg:py-20">
               <Image
                 src="/assets/figma/icon-cta-arrow.svg"
@@ -43,7 +43,7 @@ export default function CtaBanner() {
                 </em>
               </h2>
 
-              <p className="max-w-[360px] font-ui text-[15px] font-medium leading-[22px] text-[#142e2a]/80 md:text-[16px] md:leading-[24px]">
+              <p className="max-w-[360px] font-ui text-[15px] font-medium leading-[22px] tracking-[-0.005em] text-[#142e2a]/80 md:text-[16px] md:leading-[24px]">
                 Simple support for your goals, your routine, and your
                 confidence.
               </p>
@@ -51,7 +51,7 @@ export default function CtaBanner() {
 
             <div className="relative order-3 h-[300px] w-full md:order-2 md:h-full md:min-h-[500px]">
               <Image
-                src="/assets/images/happy-woman-2.png"
+                src="/assets/figma/cta-bg.png"
                 alt="Happy person smiling"
                 fill
                 sizes="(max-width: 768px) 100vw, 35vw"
@@ -63,9 +63,26 @@ export default function CtaBanner() {
             <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-12 md:py-16 lg:px-16 lg:py-20">
               <a
                 href="#get-started"
-                className="inline-flex h-[52px] w-full max-w-[280px] cursor-pointer items-center justify-center rounded-xl bg-[#142e2a] px-10 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white shadow-[0_8px_24px_rgba(20,46,42,0.18)] transition-colors duration-200 hover:bg-[#0c2421] md:h-[56px] md:w-auto md:text-[14px]"
+                className="group inline-flex h-[54px] w-full max-w-[260px] cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-[#142e2a] shadow-[0_6px_20px_rgba(20,46,42,0.12)] transition-all duration-200 hover:bg-[#142e2a] hover:text-white hover:shadow-[0_8px_24px_rgba(20,46,42,0.22)] md:h-[58px] md:text-[13.5px]"
               >
-                Get started
+                <span>Get started</span>
+                <svg
+                  width="14"
+                  height="10"
+                  viewBox="0 0 14 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden
+                  className="transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  <path
+                    d="M1 5h12m0 0L9 1m4 4L9 9"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </a>
             </div>
           </div>

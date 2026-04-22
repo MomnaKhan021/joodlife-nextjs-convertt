@@ -155,12 +155,12 @@ export default function BmiCalculator() {
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px] py-14 md:py-20">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8 pb-10">
-          <h2 className="max-w-[680px] font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
+          <h2 className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Everyone&rsquo;s talking about{" "}
             <em className="font-serif italic font-normal">jood life</em> because
             it works.
           </h2>
-          <p className="max-w-[530px] font-ui text-[15px] leading-[22px] text-[#0c2421] md:text-[16.3px] md:leading-[20px]">
+          <p className="max-w-[530px] font-ui text-[15px] leading-[22px] tracking-[-0.005em] text-[#142e2a]/80 md:text-[16px] md:leading-[24px]">
             Clinically proven treatments, medically supervised guidance, and
             thousand of real transformation all one powerful program.
           </p>
@@ -168,11 +168,11 @@ export default function BmiCalculator() {
 
         <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
           <div className="flex flex-col gap-6 rounded-3xl bg-[#e7ecd7] p-8 md:min-h-[560px]">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <p className="font-ui text-[22px] leading-[26px] font-extrabold text-[#142e2a] md:text-[25px]">
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[26px] md:leading-[32px]">
                 Check your
               </p>
-              <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80 md:text-[15px]">
+              <p className="font-ui text-[14px] leading-[20px] tracking-[-0.005em] text-[#142e2a]/75 md:text-[15px] md:leading-[22px]">
                 Enter your height and weight below
               </p>
             </div>
@@ -181,16 +181,16 @@ export default function BmiCalculator() {
               className="flex flex-col items-center gap-2"
               aria-live="polite"
             >
-              <span className="inline-flex items-baseline gap-2 font-display font-semibold text-[#142e2a]">
-                <span className="text-[44px] leading-none md:text-[52px] tabular-nums text-[#142e2a]">
+              <span className="inline-flex items-baseline gap-2">
+                <span className="font-display text-[48px] leading-none font-semibold tracking-[-0.02em] tabular-nums text-[#142e2a] md:text-[56px]">
                   {bmiDisplay}
                 </span>
-                <span className="font-ui text-[16px] font-bold uppercase tracking-wide text-[#142e2a]/70 md:text-[18px]">
+                <span className="font-ui text-[16px] font-bold uppercase tracking-[0.04em] text-[#142e2a]/65 md:text-[18px]">
                   BMI
                 </span>
               </span>
               <span
-                className="inline-flex items-center rounded-full px-3 py-1 font-ui text-[12px] font-semibold uppercase tracking-wide transition-colors duration-300"
+                className="inline-flex items-center rounded-full px-3 py-1 font-ui text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 md:text-[12px]"
                 style={{ color: status.color, backgroundColor: status.bg }}
               >
                 {status.label}
@@ -202,7 +202,7 @@ export default function BmiCalculator() {
               onSubmit={(e) => e.preventDefault()}
             >
               <label className="flex flex-col gap-2">
-                <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                <span className="font-ui text-[13px] font-semibold tracking-[-0.005em] text-[#142e2a] md:text-[14px]">
                   Height
                 </span>
                 <div className="flex items-center gap-2">
@@ -214,9 +214,9 @@ export default function BmiCalculator() {
                       aria-label="Height in feet"
                       value={ft}
                       onChange={handleInputChange(setFt)}
-                      className="h-11 w-full rounded-lg bg-white px-3 pr-9 font-ui text-[14px] text-[#142e2a] outline-none focus:ring-2 focus:ring-[#142e2a]/30"
+                      className="h-11 w-full rounded-lg bg-white px-3 pr-9 font-ui text-[14px] tracking-[-0.005em] text-[#142e2a] outline-none focus:ring-2 focus:ring-[#142e2a]/30"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-ui text-[14px] font-semibold text-[#142e2a]/60">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-ui text-[13px] font-semibold text-[#142e2a]/55">
                       ft
                     </span>
                   </div>
@@ -228,9 +228,9 @@ export default function BmiCalculator() {
                       aria-label="Height in inches"
                       value={inch}
                       onChange={handleInputChange(setInch)}
-                      className="h-11 w-full rounded-lg bg-white px-3 pr-9 font-ui text-[14px] text-[#142e2a] outline-none focus:ring-2 focus:ring-[#142e2a]/30"
+                      className="h-11 w-full rounded-lg bg-white px-3 pr-9 font-ui text-[14px] tracking-[-0.005em] text-[#142e2a] outline-none focus:ring-2 focus:ring-[#142e2a]/30"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-ui text-[14px] font-semibold text-[#142e2a]/60">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-ui text-[13px] font-semibold text-[#142e2a]/55">
                       in
                     </span>
                   </div>
@@ -238,7 +238,7 @@ export default function BmiCalculator() {
               </label>
 
               <label className="flex flex-col gap-2">
-                <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                <span className="font-ui text-[13px] font-semibold tracking-[-0.005em] text-[#142e2a] md:text-[14px]">
                   Weight
                 </span>
                 <div className="relative">
@@ -249,9 +249,9 @@ export default function BmiCalculator() {
                     aria-label="Weight in pounds"
                     value={lbs}
                     onChange={handleInputChange(setLbs)}
-                    className="h-11 w-full rounded-lg bg-white px-3 pr-10 font-ui text-[14px] text-[#142e2a] outline-none focus:ring-2 focus:ring-[#142e2a]/30"
+                    className="h-11 w-full rounded-lg bg-white px-3 pr-10 font-ui text-[14px] tracking-[-0.005em] text-[#142e2a] outline-none focus:ring-2 focus:ring-[#142e2a]/30"
                   />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-ui text-[14px] font-semibold text-[#142e2a]/60">
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-ui text-[13px] font-semibold text-[#142e2a]/55">
                     lbs
                   </span>
                 </div>
@@ -259,7 +259,7 @@ export default function BmiCalculator() {
 
               <button
                 type="button"
-                className="mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition hover:bg-[#0c2421]"
+                className="mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors hover:bg-[#0c2421]"
               >
                 Calculate BMI
               </button>
@@ -298,7 +298,7 @@ export default function BmiCalculator() {
                     className="h-[22px] w-[22px]"
                     aria-hidden
                   />
-                  <span className="font-ui text-[13px] leading-[18px] text-[#171717] md:text-[15px]">
+                  <span className="font-ui text-[13px] font-medium leading-[18px] tracking-[-0.005em] text-[#171717] md:text-[14.5px] md:leading-[20px]">
                     {b.label}
                   </span>
                   <span className="ml-auto grid h-[18px] w-[18px] place-items-center rounded-full bg-[#ff7300] text-[10px] font-bold text-white">
@@ -310,15 +310,15 @@ export default function BmiCalculator() {
           </div>
 
           <div className="flex flex-col gap-6 rounded-3xl bg-[#f7f9f2] p-8 md:min-h-[560px]">
-            <div className="flex flex-col items-center gap-2">
-              <p className="font-ui text-[22px] leading-[26px] font-extrabold text-[#142e2a] md:text-[25px]">
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[26px] md:leading-[32px]">
                 You could lose:
               </p>
-              <div className="flex items-end gap-2">
-                <span className="font-display text-[44px] leading-none font-semibold text-[#142e2a] tabular-nums md:text-[52px]">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-[48px] leading-none font-semibold tracking-[-0.02em] tabular-nums text-[#142e2a] md:text-[56px]">
                   {Math.round(animatedCouldLose)}
                 </span>
-                <span className="pb-1 font-ui text-[16px] font-bold uppercase tracking-wide text-[#142e2a]/70 md:text-[18px]">
+                <span className="font-ui text-[16px] font-bold uppercase tracking-[0.04em] text-[#142e2a]/65 md:text-[18px]">
                   lbs
                 </span>
               </div>
@@ -347,11 +347,11 @@ export default function BmiCalculator() {
             </div>
 
             <div className="mt-auto flex flex-col items-center gap-3">
-              <p className="font-ui text-[18px] leading-[24px] font-extrabold text-[#142e2a] md:text-[22px]">
+              <p className="font-display text-[20px] leading-[26px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[30px]">
                 Starting weight:
               </p>
               <div className="rounded-md bg-white px-4 py-2 shadow-sm">
-                <p className="font-ui text-[22px] leading-[26px] font-extrabold text-[#142e2a] tabular-nums md:text-[25px]">
+                <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] tabular-nums text-[#142e2a] md:text-[26px] md:leading-[32px]">
                   {Math.round(animatedStartingWeight)} lbs
                 </p>
               </div>
@@ -373,7 +373,7 @@ export default function BmiCalculator() {
                   aria-label="Adjust starting weight"
                   className="bmi-slider absolute inset-0 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
                 />
-                <div className="mt-2 flex justify-between font-ui text-[11px] font-semibold text-[#142e2a]/60">
+                <div className="mt-2 flex justify-between font-ui text-[11px] font-semibold tracking-[0.02em] text-[#142e2a]/55">
                   <span>{WEIGHT_MIN}</span>
                   <span>{WEIGHT_MAX}</span>
                 </div>
