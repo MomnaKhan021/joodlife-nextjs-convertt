@@ -63,26 +63,9 @@ export default function CtaBanner() {
             <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-12 md:py-16 lg:px-16 lg:py-20">
               <a
                 href="#get-started"
-                className="group inline-flex h-[54px] w-full max-w-[260px] cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-[#142e2a] shadow-[0_6px_20px_rgba(20,46,42,0.12)] transition-all duration-200 hover:bg-[#142e2a] hover:text-white hover:shadow-[0_8px_24px_rgba(20,46,42,0.22)] md:h-[58px] md:text-[13.5px]"
+                className="inline-flex h-[50px] w-full max-w-[220px] cursor-pointer items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors duration-200 hover:bg-[#0c2421] md:h-[54px] md:text-[14px]"
               >
-                <span>Get started</span>
-                <svg
-                  width="14"
-                  height="10"
-                  viewBox="0 0 14 10"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                >
-                  <path
-                    d="M1 5h12m0 0L9 1m4 4L9 9"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                Get started
               </a>
             </div>
           </div>
