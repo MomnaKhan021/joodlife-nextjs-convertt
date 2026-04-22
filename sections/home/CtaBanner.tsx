@@ -5,58 +5,64 @@ export default function CtaBanner() {
   return (
     <section
       aria-label="Call to action"
-      className="w-full bg-white py-10 md:py-14"
+      className="w-full bg-white py-10 md:py-16"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
         <Reveal
           as="div"
-          className="relative overflow-hidden rounded-3xl bg-[#e7ecd7]"
+          className="relative overflow-hidden rounded-[24px] bg-[#e7ecd7] md:rounded-[32px]"
         >
-          <div className="relative grid grid-cols-1 items-stretch md:grid-cols-[1.1fr_1fr]">
-            <div className="relative z-10 flex flex-col items-start gap-6 px-6 py-10 md:px-14 md:py-16 lg:px-16 lg:py-20">
-              <div className="grid h-12 w-12 place-items-center rounded-lg bg-[#142e2a] md:h-14 md:w-14">
-                <Image
-                  src="/assets/figma/icon-cta-arrow.svg"
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="h-6 w-6 brightness-0 invert md:h-7 md:w-7"
-                  aria-hidden
-                />
-              </div>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-24 top-1/2 hidden h-[560px] w-[560px] -translate-y-1/2 md:block"
+          >
+            <Image
+              src="/assets/figma/cta-ellipse.svg"
+              alt=""
+              fill
+              sizes="560px"
+              className="object-contain"
+            />
+          </div>
 
-              <h2 className="max-w-[460px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[44px] md:leading-[50px] lg:text-[48px] lg:leading-[54px]">
+          <div className="relative grid grid-cols-1 md:grid-cols-[1fr_1fr] lg:grid-cols-[1.05fr_1fr]">
+            <div className="relative z-10 flex flex-col items-start gap-5 px-6 pt-10 pb-8 md:gap-6 md:px-12 md:pt-16 md:pb-16 lg:px-16 lg:pt-20 lg:pb-20">
+              <Image
+                src="/assets/figma/icon-cta-arrow.svg"
+                alt=""
+                width={56}
+                height={56}
+                className="h-12 w-12 md:h-14 md:w-14"
+                aria-hidden
+              />
+
+              <h2 className="max-w-[440px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[42px] md:leading-[48px] lg:text-[48px] lg:leading-[54px]">
                 Take the first step{" "}
                 <em className="font-serif italic font-normal">
                   toward a better you
                 </em>
               </h2>
 
-              <p className="max-w-[420px] font-ui text-[15px] font-medium leading-[22px] text-[#142e2a]/80 md:text-[16px] md:leading-[24px]">
+              <p className="max-w-[400px] font-ui text-[15px] font-medium leading-[22px] text-[#142e2a]/80 md:text-[16px] md:leading-[24px]">
                 Simple support for your goals, your routine, and your
                 confidence.
               </p>
 
               <a
                 href="#get-started"
-                className="inline-flex h-12 w-full max-w-[260px] cursor-pointer items-center justify-center rounded-lg bg-white px-10 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142f2b] ring-1 ring-[#142e2a]/15 transition-colors duration-200 hover:bg-[#142e2a] hover:text-white hover:ring-[#142e2a] md:h-[52px] md:w-auto md:text-[14px]"
+                className="mt-2 inline-flex h-[50px] w-full max-w-[280px] cursor-pointer items-center justify-center rounded-xl bg-white px-10 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142f2b] shadow-[0_4px_14px_rgba(20,46,42,0.08)] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white md:h-[54px] md:w-auto md:text-[14px]"
               >
                 Get started
               </a>
             </div>
 
-            <div className="relative h-[260px] w-full md:h-auto md:min-h-[420px]">
+            <div className="relative h-[300px] w-full md:h-auto md:min-h-[460px]">
               <Image
                 src="/assets/figma/cta-bg.png"
-                alt="Happy person"
+                alt="Happy person smiling"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover object-center md:object-[left_center]"
-                priority={false}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#e7ecd7] to-transparent md:w-32"
+                className="object-cover object-[center_top] md:object-[center_center]"
               />
             </div>
           </div>
