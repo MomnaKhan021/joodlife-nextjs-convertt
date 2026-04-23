@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import AnimatedLbsBadge from "./AnimatedLbsBadge";
 
 /**
  * Hero banner — matches the Figma "Home page - Desktop 2025, Dec 15"
@@ -75,41 +76,6 @@ function TickBullet({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LbsBadge({ size = "desktop" }: { size?: "desktop" | "mobile" }) {
-  const isDesktop = size === "desktop";
-  return (
-    <div
-      className={`absolute rounded-[12px] bg-[#142e2a]/20 backdrop-blur-sm ${
-        isDesktop
-          ? "bottom-14 right-[82px] w-[240px] px-7 py-5"
-          : "bottom-4 right-4 w-[147px] px-4 py-3"
-      }`}
-    >
-      <p
-        className={`font-display font-semibold leading-none text-white ${
-          isDesktop ? "text-[48px]" : "text-[28px]"
-        }`}
-      >
-        27
-        <span
-          className={`ml-1 align-baseline font-ui font-bold uppercase tracking-[0.02em] ${
-            isDesktop ? "text-[22px]" : "text-[14px]"
-          }`}
-        >
-          lbs
-        </span>
-      </p>
-      <div className="mt-2 flex items-center gap-1.5">
-        <span
-          className={`block rounded-full bg-[#87af73] ${
-            isDesktop ? "h-1 w-20" : "h-[3px] w-10"
-          }`}
-        />
-      </div>
-    </div>
-  );
-}
-
 export default function HeroBanner() {
   return (
     <section
@@ -150,15 +116,16 @@ export default function HeroBanner() {
               </ul>
 
               <div className="mt-2 flex flex-wrap items-center gap-4">
+                {/* Button widths from Figma: primary 200×50, secondary 279×50 */}
                 <a
                   href="#get-started"
-                  className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-10 font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+                  className="inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
                 >
                   Get started
                 </a>
                 <a
                   href="#eligibility"
-                  className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/40 bg-transparent px-10 font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-white transition-colors duration-200 hover:bg-white/10"
+                  className="inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-white transition-colors duration-200 hover:bg-white/10"
                 >
                   See if you are eligible
                 </a>
@@ -184,7 +151,9 @@ export default function HeroBanner() {
               />
             </div>
 
-            <LbsBadge size="desktop" />
+            <div className="absolute bottom-14 right-[82px] z-10">
+              <AnimatedLbsBadge size="desktop" />
+            </div>
           </Reveal>
         </div>
       </div>
@@ -193,7 +162,7 @@ export default function HeroBanner() {
       <div className="px-4 pb-0 pt-3 md:hidden">
         <Reveal
           as="div"
-          className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[16px] bg-[#142e2a]"
+          className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[12px] bg-[#142e2a]"
         >
           <div className="flex flex-col gap-5 px-4 pt-6 pb-3">
             <TrustpilotRow />
@@ -211,9 +180,10 @@ export default function HeroBanner() {
               ))}
             </ul>
 
+            {/* Mobile button from Figma: 239×50 */}
             <a
               href="#get-started"
-              className="mt-1 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-6 font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+              className="mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
             >
               Get started
             </a>
@@ -228,7 +198,9 @@ export default function HeroBanner() {
               className="object-contain object-bottom"
               priority
             />
-            <LbsBadge size="mobile" />
+            <div className="absolute bottom-4 right-4 z-10">
+              <AnimatedLbsBadge size="mobile" />
+            </div>
           </div>
         </Reveal>
       </div>
