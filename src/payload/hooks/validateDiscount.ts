@@ -27,42 +27,55 @@ export const normalizeDiscount: CollectionBeforeValidateHook = async ({
 };
 
 /**
+ * Shape we expect a discount doc to conform to at runtime. Defined
+ * loosely so we can pass in untyped Payload docs (JsonObject & TypeWithID)
+ * without forcing a generated-types dependency on callers.
+ */
+export type DiscountDoc = {
+  isActive?: boolean | null;
+  expiryDate?: string | Date | null;
+  usageLimit?: number | null;
+  usageCount?: number | null;
+  type?: "percentage" | "fixed" | string | null;
+  value?: number | null;
+};
+
+/**
  * Returns { valid, reason } for a given discount doc vs. the current
  * order subtotal. Shared by the endpoint + any other server-side consumer.
  */
 export function evaluateDiscount(
-  discount: {
-    isActive?: boolean;
-    expiryDate?: string | Date | null;
-    usageLimit?: number | null;
-    usageCount?: number | null;
-    type: "percentage" | "fixed";
-    value: number;
-  } | null | undefined,
+  discount: DiscountDoc | null | undefined | Record<string, unknown>,
   subtotal: number
 ): { valid: boolean; reason?: string; amount: number } {
   if (!discount) return { valid: false, reason: "Discount not found", amount: 0 };
-  if (!discount.isActive) return { valid: false, reason: "Discount inactive", amount: 0 };
 
-  if (discount.expiryDate) {
-    const expiry = new Date(discount.expiryDate);
+  const d = discount as DiscountDoc;
+
+  if (!d.isActive) return { valid: false, reason: "Discount inactive", amount: 0 };
+
+  if (d.expiryDate) {
+    const expiry = new Date(d.expiryDate);
     if (!Number.isNaN(expiry.getTime()) && expiry.getTime() < Date.now()) {
       return { valid: false, reason: "Discount expired", amount: 0 };
     }
   }
 
   if (
-    typeof discount.usageLimit === "number" &&
-    typeof discount.usageCount === "number" &&
-    discount.usageCount >= discount.usageLimit
+    typeof d.usageLimit === "number" &&
+    typeof d.usageCount === "number" &&
+    d.usageCount >= d.usageLimit
   ) {
     return { valid: false, reason: "Discount usage limit reached", amount: 0 };
   }
 
+  const value = typeof d.value === "number" ? d.value : 0;
+  if (value <= 0) return { valid: false, reason: "Invalid discount value", amount: 0 };
+
   const amount =
-    discount.type === "percentage"
-      ? Math.round(((subtotal * discount.value) / 100) * 100) / 100
-      : Math.min(subtotal, discount.value);
+    d.type === "percentage"
+      ? Math.round(((subtotal * value) / 100) * 100) / 100
+      : Math.min(subtotal, value);
 
   return { valid: true, amount };
 }
