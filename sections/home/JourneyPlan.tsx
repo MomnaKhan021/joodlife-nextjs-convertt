@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import JourneyBackground from "@/components/home/JourneyBackground";
 
 /**
  * Journey + Transformation — Figma Component 94.
@@ -142,7 +143,7 @@ function HeroWomanPhoto() {
 
 function TransformationCard() {
   return (
-    <div className="flex flex-col gap-5 rounded-[20px] bg-black/20 p-6 backdrop-blur-sm md:p-8">
+    <div className="flex flex-col gap-5 rounded-[24px] bg-black/10 p-6 ring-1 ring-inset ring-white/10 backdrop-blur-md md:p-8">
       <h3 className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
         It&rsquo;s more than treatment,
         <br />
@@ -185,7 +186,7 @@ function TransformationCard() {
 
       <a
         href="#get-personalized"
-        className="mx-auto inline-flex h-[50px] w-full max-w-[280px] items-center justify-center rounded-lg bg-white/15 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white ring-1 ring-white/30 transition-colors hover:bg-white/25"
+        className="mx-auto inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/[0.12]"
       >
         Get personalised plan
       </a>
@@ -195,7 +196,7 @@ function TransformationCard() {
 
 function ExpertGuidanceCard() {
   return (
-    <div className="flex flex-col gap-5 rounded-[20px] bg-black/20 p-6 backdrop-blur-sm md:p-8">
+    <div className="flex flex-col gap-5 rounded-[24px] bg-black/10 p-6 ring-1 ring-inset ring-white/10 backdrop-blur-md md:p-8">
       <h3 className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
         Continuous, Expert Guidance
       </h3>
@@ -225,7 +226,7 @@ function ExpertGuidanceCard() {
 
       <a
         href="#get-started"
-        className="mx-auto inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-[#142f2b] transition-colors hover:bg-[#d3dabe]"
+        className="mx-auto inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/[0.12]"
       >
         Get started
       </a>
@@ -241,16 +242,10 @@ export default function JourneyPlan() {
     >
       <div className="mx-auto w-full max-w-[1440px] px-4 md:px-20">
         <div className="relative overflow-hidden rounded-[20px] bg-[#142e2a] px-5 py-12 md:rounded-3xl md:px-20 md:py-[100px]">
-          {/* Decorative dots */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-25"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, #dff49f 1.5px, transparent 1.5px)",
-              backgroundSize: "120px 120px",
-            }}
-          />
+          {/* Figma background: wavy light-green wash on the lower half
+             with a dashed curve outline and 11 sequential dots that
+             fire on scroll-into-view. */}
+          <JourneyBackground />
 
           <Reveal as="div" className="relative z-10">
             <TimelineBlock />
