@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       // Allow media served from Payload's local uploads folder
       { protocol: "http", hostname: "localhost" },
+      // Allow Shopify CDN (for imported Shopify product images)
+      { protocol: "https", hostname: "cdn.shopify.com" },
     ],
   },
 };

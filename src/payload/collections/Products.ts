@@ -90,18 +90,76 @@ export const Products: CollectionConfig = {
         {
           name: "sku",
           type: "text",
-          required: true,
           unique: true,
           index: true,
-          admin: { width: "50%" },
+          admin: {
+            width: "50%",
+            description:
+              "Main SKU. Optional if the product only sells through variants.",
+          },
         },
         {
           name: "stock",
           type: "number",
-          required: true,
           defaultValue: 0,
           min: 0,
-          admin: { width: "50%" },
+          admin: {
+            width: "50%",
+            description:
+              "Default stock. Ignored when variants are configured — use per-variant stock instead.",
+          },
+        },
+      ],
+    },
+    {
+      name: "variants",
+      type: "array",
+      label: "Variants (dose / size)",
+      admin: {
+        description:
+          "Add one row per option (e.g. 2.5 mg, 5 mg). Leave empty for a single-price product.",
+      },
+      fields: [
+        {
+          type: "row",
+          fields: [
+            {
+              name: "label",
+              type: "text",
+              required: true,
+              admin: { width: "40%" },
+            },
+            {
+              name: "price",
+              type: "number",
+              required: true,
+              min: 0,
+              admin: { width: "30%" },
+            },
+            {
+              name: "comparePrice",
+              type: "number",
+              min: 0,
+              admin: { width: "30%" },
+            },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            {
+              name: "sku",
+              type: "text",
+              admin: { width: "50%" },
+            },
+            {
+              name: "stock",
+              type: "number",
+              defaultValue: 0,
+              min: 0,
+              admin: { width: "50%" },
+            },
+          ],
         },
       ],
     },

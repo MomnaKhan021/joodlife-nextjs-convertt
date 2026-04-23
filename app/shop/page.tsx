@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getPayloadInstance } from "@/lib/payload";
 
-// Render on-demand (no build-time MongoDB connection). Flip to
+// Render on-demand (no build-time DB connection). Flip to
 // `revalidate = 60` once DATABASE_URI is available during `next build`.
 export const dynamic = "force-dynamic";
 
@@ -10,15 +10,24 @@ export const metadata = {
   title: "Shop — JoodLife",
 };
 
+type Variant = {
+  label?: string;
+  price?: number | null;
+  comparePrice?: number | null;
+  sku?: string;
+  stock?: number | null;
+};
+
 type Product = {
-  id: string;
+  id: string | number;
   title: string;
   slug?: string;
   description: string;
-  price: number;
-  comparePrice?: number;
-  stock: number;
+  price?: number | null;
+  comparePrice?: number | null;
+  stock?: number | null;
   category: string;
+  variants?: Variant[];
   images?: Array<{
     image?: {
       url?: string;
@@ -27,6 +36,32 @@ type Product = {
     };
   }>;
 };
+
+function priceLabel(p: Product): { label: string; compareAt?: number } {
+  const vs = (p.variants ?? []).filter(
+    (v): v is Variant & { price: number } => typeof v.price === "number"
+  );
+  if (vs.length) {
+    const cheapest = vs.reduce((a, b) => (a.price < b.price ? a : b));
+    return {
+      label: vs.length > 1
+        ? `from £${cheapest.price.toFixed(2)}`
+        : `£${cheapest.price.toFixed(2)}`,
+      compareAt:
+        typeof cheapest.comparePrice === "number"
+          ? cheapest.comparePrice
+          : undefined,
+    };
+  }
+  if (typeof p.price === "number") {
+    return {
+      label: `£${p.price.toFixed(2)}`,
+      compareAt:
+        typeof p.comparePrice === "number" ? p.comparePrice : undefined,
+    };
+  }
+  return { label: "—" };
+}
 
 export default async function ShopPage() {
   const payload = await getPayloadInstance();
@@ -52,10 +87,11 @@ export default async function ShopPage() {
         {(products as unknown as Product[]).map((p) => {
           const img = p.images?.[0]?.image;
           const imgUrl = img?.sizes?.card?.url ?? img?.url;
+          const { label, compareAt } = priceLabel(p);
 
           return (
             <li
-              key={p.id}
+              key={String(p.id)}
               className="group flex flex-col overflow-hidden rounded-2xl border border-[#142e2a]/10 bg-white transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(20,46,42,0.08)]"
             >
               <Link
@@ -82,11 +118,11 @@ export default async function ShopPage() {
                   </p>
                   <div className="mt-auto flex items-baseline gap-2">
                     <span className="font-display text-[20px] font-semibold text-[#142e2a]">
-                      £{p.price.toFixed(2)}
+                      {label}
                     </span>
-                    {p.comparePrice && p.comparePrice > p.price ? (
+                    {compareAt && typeof p.price === "number" && compareAt > p.price ? (
                       <span className="font-ui text-[14px] text-[#142e2a]/50 line-through">
-                        £{p.comparePrice.toFixed(2)}
+                        £{compareAt.toFixed(2)}
                       </span>
                     ) : null}
                   </div>
