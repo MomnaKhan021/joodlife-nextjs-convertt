@@ -1,21 +1,28 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
-import JourneyBackground from "@/components/home/JourneyBackground";
+import JourneyDivider from "@/components/home/JourneyDivider";
 
 /**
  * Journey + Transformation — Figma Component 94.
  *
- * Three stacked blocks inside a dark-green rounded container:
- *  1. "Timeline" pill + "What to expect in your journey" heading
- *     with a 3-step dashed timeline
- *  2. A hero photo of a smiling customer (pulled from the Figma
- *     asset library at 3× resolution)
- *  3. Two feature cards side-by-side (stacked on mobile):
- *     - "It's more than treatment, it's transformation" — central
- *       photo with orbit-style chip labels (Medication, Support,
- *       Result, Delivery, Guidance, Whatsapp)
- *     - "Continuous, Expert Guidance" — phone mockup with health
- *       check-in panels, "at Every Step" accent, Get started button
+ * Layout: two clearly separated zones (dark green on top, lighter green
+ * on the bottom) connected by a wavy divider with 11 dots that light up
+ * one-by-one as the section scrolls into view.
+ *
+ *  ┌─────────────────────────────────┐
+ *  │ #142e2a (dark green)            │
+ *  │   [Timeline pill]               │
+ *  │   What to expect in your journey│
+ *  │   Today    1-6 Months   6-12    │
+ *  │   • — — — • — — — — — • — — •   │
+ *  │     [Hero portrait overlapping  │
+ *  │      the wavy divider]          │
+ *  │  ╭─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─╮   │
+ *  │  │ #87AF73 (lighter green)  │   │
+ *  │  │  [Transformation card]   │   │
+ *  │  │  [Expert Guidance card]  │   │
+ *  │  └───────────────────────────┘  │
+ *  └─────────────────────────────────┘
  */
 
 const STAGES = [
@@ -37,19 +44,19 @@ const STAGES = [
 ];
 
 const CHIPS = [
-  { label: "Medication", side: "left",  y: "8%"  },
-  { label: "Support",    side: "left",  y: "42%" },
-  { label: "Result",     side: "left",  y: "80%" },
-  { label: "Delivery",   side: "right", y: "8%"  },
-  { label: "Guidance",   side: "right", y: "42%" },
-  { label: "Whatsapp",   side: "right", y: "80%" },
+  { label: "Medication", side: "left", y: "8%" },
+  { label: "Support", side: "left", y: "42%" },
+  { label: "Result", side: "left", y: "80%" },
+  { label: "Delivery", side: "right", y: "8%" },
+  { label: "Guidance", side: "right", y: "42%" },
+  { label: "Whatsapp", side: "right", y: "80%" },
 ];
 
 function TimelineBlock() {
   return (
     <div className="flex flex-col items-center gap-8 md:items-start md:gap-10">
       <div className="flex flex-col items-center gap-4 text-center md:items-start md:gap-5 md:text-left">
-        <span className="inline-flex items-center rounded-full border border-dashed border-white/50 bg-transparent px-5 py-1.5 font-ui text-[14px] font-medium tracking-[-0.02em] text-white">
+        <span className="inline-flex items-center rounded-full border border-dashed border-white/60 px-5 py-1.5 font-ui text-[13px] font-medium tracking-[-0.02em] text-white">
           Timeline
         </span>
         <h2 className="font-display text-[32px] font-semibold leading-[38px] tracking-[-0.025em] text-white md:text-[48px] md:leading-[52px]">
@@ -59,7 +66,7 @@ function TimelineBlock() {
       </div>
 
       <div className="w-full">
-        {/* Desktop: dashed rail with 3 columns */}
+        {/* Desktop rail */}
         <div className="hidden md:block">
           <div
             aria-hidden
@@ -81,8 +88,11 @@ function TimelineBlock() {
           </div>
           <div className="grid grid-cols-3 gap-8">
             {STAGES.map((s) => (
-              <div key={s.pill} className="flex flex-col items-start gap-3 text-left">
-                <span className="inline-flex items-center rounded-full border border-dashed border-white/50 px-4 py-1.5 font-ui text-[13px] font-medium tracking-[-0.02em] text-white">
+              <div
+                key={s.pill}
+                className="flex flex-col items-start gap-3 text-left"
+              >
+                <span className="inline-flex items-center rounded-full border border-dashed border-white/60 px-4 py-1.5 font-ui text-[12px] font-medium tracking-[-0.02em] text-white">
                   {s.pill}
                 </span>
                 <h3 className="font-ui text-[22px] font-bold leading-[26px] tracking-[-0.02em] text-white">
@@ -96,11 +106,11 @@ function TimelineBlock() {
           </div>
         </div>
 
-        {/* Mobile: stacked vertical timeline */}
+        {/* Mobile vertical list */}
         <ul className="flex flex-col gap-6 md:hidden">
           {STAGES.map((s) => (
             <li key={s.pill} className="flex flex-col gap-2">
-              <span className="inline-flex w-fit items-center rounded-full border border-dashed border-white/50 px-4 py-1.5 font-ui text-[12px] font-medium tracking-[-0.02em] text-white">
+              <span className="inline-flex w-fit items-center rounded-full border border-dashed border-white/60 px-4 py-1.5 font-ui text-[12px] font-medium tracking-[-0.02em] text-white">
                 {s.pill}
               </span>
               <h3 className="font-ui text-[18px] font-bold leading-[22px] tracking-[-0.02em] text-white">
@@ -117,33 +127,9 @@ function TimelineBlock() {
   );
 }
 
-function HeroWomanPhoto() {
-  return (
-    <div className="relative mx-auto my-10 flex w-full max-w-[640px] items-end justify-center md:my-12">
-      {/* Soft green wave behind the portrait */}
-      <div
-        aria-hidden
-        className="absolute bottom-0 left-1/2 h-[220px] w-[140%] -translate-x-1/2 rounded-[50%] blur-3xl md:h-[320px]"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(100,136,92,0.85) 0%, rgba(100,136,92,0) 70%)",
-        }}
-      />
-      <Image
-        src="/assets/figma/journey-woman-desktop.png"
-        alt="Smiling customer"
-        width={520}
-        height={415}
-        className="relative z-10 h-auto w-[320px] md:w-[520px]"
-        priority={false}
-      />
-    </div>
-  );
-}
-
 function TransformationCard() {
   return (
-    <div className="flex flex-col gap-5 rounded-[24px] bg-black/10 p-6 ring-1 ring-inset ring-white/10 backdrop-blur-md md:p-8">
+    <div className="relative flex flex-col gap-5 rounded-[24px] border border-white/20 bg-black/20 p-6 backdrop-blur-md md:p-8">
       <h3 className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
         It&rsquo;s more than treatment,
         <br />
@@ -153,7 +139,6 @@ function TransformationCard() {
       </h3>
 
       <div className="relative mx-auto flex h-[320px] w-full max-w-[420px] items-center justify-center md:h-[380px]">
-        {/* Center photo */}
         <div className="relative z-10 h-full w-[180px] overflow-hidden rounded-2xl md:w-[220px]">
           <Image
             src="/assets/figma/journey-transformation-photo.png"
@@ -164,7 +149,6 @@ function TransformationCard() {
           />
         </div>
 
-        {/* Orbit chips — 3 on each side, vertically stacked */}
         {CHIPS.map((c) => (
           <span
             key={c.label}
@@ -179,14 +163,14 @@ function TransformationCard() {
         ))}
       </div>
 
-      <p className="mx-auto max-w-[360px] text-center font-ui text-[14px] font-medium leading-[20px] text-white/80 md:text-[15px] md:leading-[22px]">
+      <p className="mx-auto max-w-[360px] text-center font-ui text-[14px] font-medium leading-[20px] text-white/85 md:text-[15px] md:leading-[22px]">
         A provider licensed in your state will review your information, so that
         they can design a plan around your body&rsquo;s needs.
       </p>
 
       <a
         href="#get-personalized"
-        className="mx-auto inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/[0.12]"
+        className="mx-auto inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/15"
       >
         Get personalised plan
       </a>
@@ -196,7 +180,7 @@ function TransformationCard() {
 
 function ExpertGuidanceCard() {
   return (
-    <div className="flex flex-col gap-5 rounded-[24px] bg-black/10 p-6 ring-1 ring-inset ring-white/10 backdrop-blur-md md:p-8">
+    <div className="relative flex flex-col gap-5 rounded-[24px] border border-white/20 bg-black/20 p-6 backdrop-blur-md md:p-8">
       <h3 className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
         Continuous, Expert Guidance
       </h3>
@@ -219,14 +203,14 @@ function ExpertGuidanceCard() {
         </em>
       </p>
 
-      <p className="mx-auto max-w-[380px] text-center font-ui text-[14px] font-medium leading-[20px] text-white/80 md:text-[15px] md:leading-[22px]">
+      <p className="mx-auto max-w-[380px] text-center font-ui text-[14px] font-medium leading-[20px] text-white/85 md:text-[15px] md:leading-[22px]">
         Get access to qualified medical professionals who are here to support
         you throughout your journey whenever you need advice.
       </p>
 
       <a
         href="#get-started"
-        className="mx-auto inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/[0.12]"
+        className="mx-auto inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/15"
       >
         Get started
       </a>
@@ -241,28 +225,51 @@ export default function JourneyPlan() {
       className="relative w-full bg-white pb-12 md:pb-20"
     >
       <div className="mx-auto w-full max-w-[1440px] px-4 md:px-20">
-        <div className="relative overflow-hidden rounded-[20px] bg-[#142e2a] px-5 py-12 md:rounded-3xl md:px-20 md:py-[100px]">
-          {/* Figma background: wavy light-green wash on the lower half
-             with a dashed curve outline and 11 sequential dots that
-             fire on scroll-into-view. */}
-          <JourneyBackground />
+        <div className="relative overflow-hidden rounded-[20px] md:rounded-3xl">
+          {/* DARK zone (contains timeline) */}
+          <div className="relative bg-[#142e2a] px-5 pt-12 pb-24 md:px-20 md:pt-[100px] md:pb-[180px]">
+            {/* faint dot pattern */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-20"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle, #dff49f 1.5px, transparent 1.5px)",
+                backgroundSize: "120px 120px",
+              }}
+            />
 
-          <Reveal as="div" className="relative z-10">
-            <TimelineBlock />
-          </Reveal>
+            <Reveal as="div" className="relative z-10">
+              <TimelineBlock />
+            </Reveal>
+          </div>
 
-          <Reveal as="div" delay={100} className="relative z-10">
-            <HeroWomanPhoto />
-          </Reveal>
+          {/* CURVE DIVIDER — full-width with animated dots */}
+          <JourneyDivider />
 
-          <Reveal
-            as="div"
-            delay={150}
-            className="relative z-10 grid gap-5 md:grid-cols-2 md:gap-6"
-          >
-            <TransformationCard />
-            <ExpertGuidanceCard />
-          </Reveal>
+          {/* LIGHT zone (contains hero photo overlapping divider + two cards) */}
+          <div className="relative bg-[#87af73] px-5 pt-0 pb-12 md:px-20 md:pb-[100px]">
+            {/* Hero portrait straddles the divider above */}
+            <div className="relative -mt-[160px] mb-10 flex justify-center md:-mt-[280px] md:mb-16">
+              <Image
+                src="/assets/figma/journey-woman-desktop.png"
+                alt="Smiling customer"
+                width={560}
+                height={447}
+                className="h-auto w-[280px] md:w-[520px]"
+                priority={false}
+              />
+            </div>
+
+            <Reveal
+              as="div"
+              delay={150}
+              className="relative z-10 grid gap-5 md:grid-cols-2 md:gap-6"
+            >
+              <TransformationCard />
+              <ExpertGuidanceCard />
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>

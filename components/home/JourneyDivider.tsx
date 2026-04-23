@@ -3,21 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Two-tone background for the Journey section with the Figma curve
- * drawn between the shades and 11 circles that light up sequentially
+ * Wavy divider between the Journey section's dark-green top and
+ * light-green bottom, with the 11 Figma dots that light up one-by-one
  * on scroll-into-view.
  *
- * Structure:
- *  - Full section base: #142e2a (dark green)
- *  - A light-green wash (#87AF73 at 70% opacity) masked to the lower
- *    half via the Figma SVG path
- *  - A dashed #DFF49F stroke overlay = the divider curve
- *  - 11 circles positioned on the curve that animate 0 → 11 with a
- *    180ms stagger (~2s total) on scroll
- *
- * The curve path + dot coordinates come directly from Figma's
- * Component 94 / Vector 3 + Group 1000004229.
+ * This is positioned between two explicit zones (see JourneyPlan.tsx),
+ * so it only needs to render the curve + dot band itself — the
+ * background colours come from the siblings above and below.
  */
+
+const CURVE_PATH =
+  "M231.258 69.9654C162.548 22.6519 49.2585 4.46418 1.20246 1.28451V1210.8H1451.57V343.735C1272.85 361.668 1017.54 266.946 912.222 217.343C835.742 171.937 657.66 150.654 579.409 159.632C453.031 174.131 296.836 115.122 231.258 69.9654Z";
 
 // Dot positions from Figma (each transform translate x, y). Centre = x+5.
 const DOTS: Array<[number, number]> = [
@@ -34,12 +30,9 @@ const DOTS: Array<[number, number]> = [
   [1399.56, 356.69],
 ];
 
-const CURVE_PATH =
-  "M231.258 69.9654C162.548 22.6519 49.2585 4.46418 1.20246 1.28451V1210.8H1451.57V343.735C1272.85 361.668 1017.54 266.946 912.222 217.343C835.742 171.937 657.66 150.654 579.409 159.632C453.031 174.131 296.836 115.122 231.258 69.9654Z";
+const STAGGER_MS = 200;
 
-const STAGGER_MS = 180;
-
-export default function JourneyBackground() {
+export default function JourneyDivider() {
   const ref = useRef<HTMLDivElement | null>(null);
   const [lit, setLit] = useState(0);
 
@@ -65,7 +58,7 @@ export default function JourneyBackground() {
           }
         });
       },
-      { threshold: 0.2 }
+      { threshold: 0.1 }
     );
     observer.observe(el);
     return () => {
@@ -78,14 +71,13 @@ export default function JourneyBackground() {
     <div
       ref={ref}
       aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px] md:rounded-3xl"
+      className="relative -mb-px h-[140px] w-full md:h-[220px]"
     >
-      {/* Single SVG containing the filled curve (= the light-green
-         lower area) + the dashed stroke (= the divider) + 11 dots.
-         preserveAspectRatio=slice so it always covers the section. */}
+      {/* The filled curve — this is the LIGHT-green area crossing into
+         the dark one. Its own gradient fill replicates the Figma stops. */}
       <svg
-        viewBox="0 0 1453 1212"
-        preserveAspectRatio="xMidYMax slice"
+        viewBox="0 0 1453 400"
+        preserveAspectRatio="none"
         className="absolute inset-0 h-full w-full"
       >
         <defs>
@@ -94,32 +86,38 @@ export default function JourneyBackground() {
             x1="774.585"
             y1="1.28451"
             x2="753.591"
-            y2="1210.9"
+            y2="399"
             gradientUnits="userSpaceOnUse"
           >
             <stop stopColor="#87AF73" />
-            <stop offset="0.322115" stopColor="#87AF73" stopOpacity="0.7" />
-            <stop offset="0.647397" stopColor="#87AF73" stopOpacity="0.7" />
-            <stop offset="1" stopColor="#87AF73" stopOpacity="0.7" />
+            <stop offset="1" stopColor="#87AF73" />
           </linearGradient>
         </defs>
-
-        {/* Wavy light-green shape (covers the lower area of the section) */}
+        {/* Path is clipped to a 400-tall viewBox so we only see the
+           wavy top edge of the Figma shape, not the entire bottom half. */}
         <path
           d={CURVE_PATH}
           fill="url(#journey-wave)"
           stroke="#DFF49F"
           strokeWidth="2.4"
+          style={{ transform: "translateY(0)" }}
         />
+      </svg>
 
-        {/* Dots — animated sequentially */}
+      {/* Dots — rendered as a separate SVG so we can animate them
+         cleanly without re-rendering the curve. Same viewBox so the
+         coordinates line up with the curve's top edge. */}
+      <svg
+        viewBox="0 0 1453 400"
+        preserveAspectRatio="none"
+        className="absolute inset-0 h-full w-full"
+      >
         {DOTS.map(([x, y], i) => {
           const cx = x + 5;
           const cy = y + 5;
           const active = i < lit;
           return (
             <g key={i}>
-              {/* Outer glow on the currently-advancing dot */}
               {active && i === lit - 1 && lit < DOTS.length ? (
                 <circle
                   cx={cx}
@@ -127,21 +125,21 @@ export default function JourneyBackground() {
                   r={14}
                   fill="none"
                   stroke="#DFF49F"
-                  strokeOpacity={0.5}
+                  strokeOpacity={0.55}
                   strokeWidth={1.5}
                 />
               ) : null}
               <circle
                 cx={cx}
                 cy={cy}
-                r={5}
+                r={6}
                 fill="#DFF49F"
                 style={{
-                  opacity: active ? 1 : 0.2,
+                  opacity: active ? 1 : 0.25,
                   transform: `scale(${active ? 1 : 0.5})`,
                   transformOrigin: `${cx}px ${cy}px`,
                   transition:
-                    "opacity 320ms ease-out, transform 320ms ease-out",
+                    "opacity 380ms ease-out, transform 380ms ease-out",
                 }}
               />
             </g>
