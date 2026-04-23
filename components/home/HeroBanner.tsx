@@ -3,15 +3,15 @@ import Reveal from "@/components/ui/Reveal";
 
 /**
  * Hero banner — matches the Figma "Home page - Desktop 2025, Dec 15"
- * and "Home page - Mobile 2025, Dec 12 V02" frames.
+ * (1440x842 / card 1400x720) and "Home page - Mobile 2025, Dec 12 V02"
+ * (390x771) frames, pulled via the Figma REST API.
  *
- * Desktop: 1400x720 card (#142e2a), rounded-3xl (24px), two columns —
- * copy on the left (Trustpilot row → headline → 3 bullets → two buttons),
- * a cutout portrait of two women on the right with a "27 lbs" badge
- * floating bottom-right.
- *
- * Mobile: single dark-green card with stacked copy, one button, and
- * the same portrait flowing off the bottom.
+ * Desktop layout (exact Figma geometry):
+ *  - Card: 1400 × 720, #142e2a, radius 24
+ *  - Left column (text):   starts 40px from left, vertically centered
+ *  - Right column (image): 616 wide, image is 817 wide (bleeds left),
+ *                          bottom-aligned to the card
+ *  - 27 lbs badge:         82px from right, 56px from bottom
  */
 const BULLETS_DESKTOP = [
   "Lose up to 27% body weight",
@@ -80,20 +80,29 @@ function LbsBadge({ size = "desktop" }: { size?: "desktop" | "mobile" }) {
   return (
     <div
       className={`absolute rounded-[12px] bg-[#142e2a]/20 backdrop-blur-sm ${
-        isDesktop ? "bottom-5 right-5 px-6 py-4" : "bottom-3 right-3 px-4 py-3"
+        isDesktop
+          ? "bottom-14 right-[82px] w-[240px] px-7 py-5"
+          : "bottom-4 right-4 w-[147px] px-4 py-3"
       }`}
     >
       <p
-        className={`font-display font-semibold tabular-nums leading-none text-white ${
+        className={`font-display font-semibold leading-none text-white ${
           isDesktop ? "text-[48px]" : "text-[28px]"
         }`}
       >
-        27<span className="ml-1 align-baseline font-ui text-[0.5em] font-bold uppercase tracking-[0.02em]">lbs</span>
+        27
+        <span
+          className={`ml-1 align-baseline font-ui font-bold uppercase tracking-[0.02em] ${
+            isDesktop ? "text-[22px]" : "text-[14px]"
+          }`}
+        >
+          lbs
+        </span>
       </p>
-      <div className="mt-1.5 flex items-center gap-1.5">
+      <div className="mt-2 flex items-center gap-1.5">
         <span
           className={`block rounded-full bg-[#87af73] ${
-            isDesktop ? "h-1 w-16" : "h-[3px] w-10"
+            isDesktop ? "h-1 w-20" : "h-[3px] w-10"
           }`}
         />
       </div>
@@ -110,21 +119,28 @@ export default function HeroBanner() {
     >
       {/* Desktop */}
       <div className="hidden md:block">
-        <div className="relative mx-auto w-full max-w-[1400px] overflow-hidden rounded-3xl bg-[#142e2a]">
+        <div className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-3xl bg-[#142e2a]">
           <Reveal
             delay={0}
-            className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-12 px-[60px] py-[80px] lg:gap-16"
+            as="div"
+            className="relative flex h-full items-center pl-10 pr-[85px]"
           >
-            <div className="flex flex-col items-start gap-7">
+            {/* Left column: copy. max-width is generous enough to let
+               the headline's first line (which we force to one line
+               via whitespace-nowrap) fit in our fallback Plus Jakarta
+               Sans face, which is slightly wider than Gilroy-SemiBold
+               used in the Figma. */}
+            <div className="relative z-10 flex max-w-[720px] flex-col items-start gap-7">
               <TrustpilotRow />
 
-              <h1 className="max-w-[580px] font-display text-[48px] font-semibold leading-[1.13] tracking-[-0.027em] text-white lg:text-[60px] lg:leading-[68px]">
-                Innovative{" "}
-                <em className="font-serif italic font-normal tracking-[-0.02em]">
-                  weight loss,
-                </em>
-                <br />
-                made just for you.
+              <h1 className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
+                <span className="block whitespace-nowrap">
+                  Innovative{" "}
+                  <em className="font-serif italic font-normal tracking-[-0.02em]">
+                    weight loss,
+                  </em>
+                </span>
+                <span className="block">made just for you.</span>
               </h1>
 
               <ul className="flex flex-col gap-3">
@@ -149,32 +165,42 @@ export default function HeroBanner() {
               </div>
             </div>
 
-            <div className="relative h-[620px]">
+            {/* Right column: portrait. Figma places the image at
+               x=5033, width 817, bottom-aligned to the card — i.e.
+               about 23px from the card's right edge, extending 817px
+               to the left. Absolute positioning so it can bleed
+               into the left column area. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute bottom-0 right-[23px] h-[634px] w-[817px]"
+            >
               <Image
                 src="/assets/figma/hero-two-women-desktop.png"
-                alt="Two happy customers"
+                alt=""
                 fill
-                sizes="(min-width: 1024px) 700px, 50vw"
-                className="object-contain object-right-bottom"
+                sizes="817px"
+                className="object-contain object-bottom"
                 priority
               />
-              <LbsBadge size="desktop" />
             </div>
+
+            <LbsBadge size="desktop" />
           </Reveal>
         </div>
       </div>
 
       {/* Mobile */}
       <div className="px-4 pb-0 pt-3 md:hidden">
-        <Reveal className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[16px] bg-[#142e2a]">
-          <div className="flex flex-col gap-5 px-4 pt-6 pb-2">
+        <Reveal
+          as="div"
+          className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[16px] bg-[#142e2a]"
+        >
+          <div className="flex flex-col gap-5 px-4 pt-6 pb-3">
             <TrustpilotRow />
 
             <h1 className="font-sofia text-[36px] font-medium leading-[38px] tracking-[-0.033em] text-white">
               Innovative{" "}
-              <em className="font-serif italic font-normal">
-                weight loss,
-              </em>
+              <em className="font-serif italic font-normal">weight loss,</em>
               <br />
               made just for you.
             </h1>
@@ -187,7 +213,7 @@ export default function HeroBanner() {
 
             <a
               href="#get-started"
-              className="mt-2 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-6 font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+              className="mt-1 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-6 font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
             >
               Get started
             </a>
@@ -196,7 +222,7 @@ export default function HeroBanner() {
           <div className="relative h-[320px] w-full">
             <Image
               src="/assets/figma/hero-two-women-mobile.png"
-              alt="Two happy customers"
+              alt=""
               fill
               sizes="100vw"
               className="object-contain object-bottom"
