@@ -72,8 +72,9 @@ export async function POST(req: NextRequest) {
       ) * 100
     ) / 100;
 
-  // Discount
-  let discountId: string | undefined;
+  // Discount — Payload IDs are string (Mongo) or number (Postgres),
+  // so use the union for anything that round-trips through the DB.
+  let discountId: string | number | undefined;
   let discountAmount = 0;
   if (body.discountCode) {
     const { docs } = await payload.find({
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    discountId = docs[0]?.id;
+    discountId = docs[0]?.id as string | number | undefined;
     discountAmount = result.amount;
   }
 
