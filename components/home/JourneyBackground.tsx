@@ -3,73 +3,73 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Background SVG extracted from Figma Component 94 (Vector 3 + 11
- * dots). The wavy light-green shape covers the bottom portion of
- * the section so it reads as two shades of green separated by a
- * dashed curve. Dots light up sequentially from point 0 to the
- * last one when the section scrolls into view.
+ * Two-tone background for the Journey section with the Figma curve
+ * drawn between the shades and 11 circles that light up sequentially
+ * on scroll-into-view.
+ *
+ * Structure:
+ *  - Full section base: #142e2a (dark green)
+ *  - A light-green wash (#87AF73 at 70% opacity) masked to the lower
+ *    half via the Figma SVG path
+ *  - A dashed #DFF49F stroke overlay = the divider curve
+ *  - 11 circles positioned on the curve that animate 0 → 11 with a
+ *    180ms stagger (~2s total) on scroll
+ *
+ * The curve path + dot coordinates come directly from Figma's
+ * Component 94 / Vector 3 + Group 1000004229.
  */
 
-// Dot positions copied straight from the Figma export (each matrix
-// translate is the (x, y) of the circle's top-left; offset by +5 for
-// the centre since r=5).
+// Dot positions from Figma (each transform translate x, y). Centre = x+5.
 const DOTS: Array<[number, number]> = [
-  [59.22 + 5, 14.6 + 5],
-  [193.25 + 5, 55.61 + 5],
-  [326.29 + 5, 125.63 + 5],
-  [461.32 + 5, 161.64 + 5],
-  [584.35 + 5, 163.64 + 5],
-  [727.39 + 5, 172.64 + 5],
-  [862.42 + 5, 202.65 + 5],
-  [993.46 + 5, 260.66 + 5],
-  [1128.49 + 5, 305.68 + 5],
-  [1261.53 + 5, 337.68 + 5],
-  [1394.56 + 5, 351.69 + 5],
+  [64.22, 19.6],
+  [198.25, 60.61],
+  [331.29, 130.63],
+  [466.32, 166.64],
+  [589.35, 168.64],
+  [732.39, 177.64],
+  [867.42, 207.65],
+  [998.46, 265.66],
+  [1133.49, 310.68],
+  [1266.53, 342.68],
+  [1399.56, 356.69],
 ];
 
-// Per-dot stagger in ms (total animation ~2s)
+const CURVE_PATH =
+  "M231.258 69.9654C162.548 22.6519 49.2585 4.46418 1.20246 1.28451V1210.8H1451.57V343.735C1272.85 361.668 1017.54 266.946 912.222 217.343C835.742 171.937 657.66 150.654 579.409 159.632C453.031 174.131 296.836 115.122 231.258 69.9654Z";
+
 const STAGGER_MS = 180;
 
 export default function JourneyBackground() {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [active, setActive] = useState(0); // how many dots are lit
+  const [lit, setLit] = useState(0);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
     let raf = 0;
-    let observer: IntersectionObserver | null = null;
-
-    observer = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Start staggered reveal
             const start = performance.now();
-            const total = DOTS.length;
-
             const tick = (now: number) => {
-              const elapsed = now - start;
-              const lit = Math.min(
-                total,
-                Math.floor(elapsed / STAGGER_MS) + 1
+              const n = Math.min(
+                DOTS.length,
+                Math.floor((now - start) / STAGGER_MS) + 1
               );
-              setActive(lit);
-              if (lit < total) raf = requestAnimationFrame(tick);
+              setLit(n);
+              if (n < DOTS.length) raf = requestAnimationFrame(tick);
             };
-
             raf = requestAnimationFrame(tick);
-            observer?.disconnect();
+            observer.disconnect();
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.2 }
     );
-
     observer.observe(el);
     return () => {
-      observer?.disconnect();
+      observer.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
@@ -80,11 +80,12 @@ export default function JourneyBackground() {
       aria-hidden
       className="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px] md:rounded-3xl"
     >
-      {/* Wavy light-green shape covering the lower half + dashed
-         dotted curve along its top edge */}
+      {/* Single SVG containing the filled curve (= the light-green
+         lower area) + the dashed stroke (= the divider) + 11 dots.
+         preserveAspectRatio=slice so it always covers the section. */}
       <svg
         viewBox="0 0 1453 1212"
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMidYMax slice"
         className="absolute inset-0 h-full w-full"
       >
         <defs>
@@ -102,39 +103,47 @@ export default function JourneyBackground() {
             <stop offset="1" stopColor="#87AF73" stopOpacity="0.7" />
           </linearGradient>
         </defs>
+
+        {/* Wavy light-green shape (covers the lower area of the section) */}
         <path
-          d="M231.258 69.9654C162.548 22.6519 49.2585 4.46418 1.20246 1.28451V1210.8H1451.57V343.735C1272.85 361.668 1017.54 266.946 912.222 217.343C835.742 171.937 657.66 150.654 579.409 159.632C453.031 174.131 296.836 115.122 231.258 69.9654Z"
+          d={CURVE_PATH}
           fill="url(#journey-wave)"
           stroke="#DFF49F"
-          strokeWidth="2.40401"
+          strokeWidth="2.4"
         />
 
-        {/* Dots, lit sequentially on scroll-into-view */}
-        {DOTS.map(([cx, cy], i) => {
-          const lit = i < active;
+        {/* Dots — animated sequentially */}
+        {DOTS.map(([x, y], i) => {
+          const cx = x + 5;
+          const cy = y + 5;
+          const active = i < lit;
           return (
-            <g
-              key={i}
-              style={{
-                opacity: lit ? 1 : 0.25,
-                transform: lit ? "scale(1)" : "scale(0.6)",
-                transformOrigin: `${cx}px ${cy}px`,
-                transition:
-                  "opacity 350ms ease-out, transform 350ms ease-out",
-              }}
-            >
-              <circle cx={cx} cy={cy} r={5} fill="#DFF49F" />
-              {/* Soft glow ring that appears on the last lit dot */}
-              {lit && i === active - 1 && i !== DOTS.length - 1 ? (
+            <g key={i}>
+              {/* Outer glow on the currently-advancing dot */}
+              {active && i === lit - 1 && lit < DOTS.length ? (
                 <circle
                   cx={cx}
                   cy={cy}
-                  r={12}
+                  r={14}
                   fill="none"
                   stroke="#DFF49F"
-                  strokeOpacity={0.4}
+                  strokeOpacity={0.5}
+                  strokeWidth={1.5}
                 />
               ) : null}
+              <circle
+                cx={cx}
+                cy={cy}
+                r={5}
+                fill="#DFF49F"
+                style={{
+                  opacity: active ? 1 : 0.2,
+                  transform: `scale(${active ? 1 : 0.5})`,
+                  transformOrigin: `${cx}px ${cy}px`,
+                  transition:
+                    "opacity 320ms ease-out, transform 320ms ease-out",
+                }}
+              />
             </g>
           );
         })}
