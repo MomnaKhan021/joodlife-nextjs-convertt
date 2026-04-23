@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withPayload } from "@payloadcms/next/withPayload";
 
 const nextConfig: NextConfig = {
   // Keep Postgres / Payload native deps external so Next.js doesn't try
@@ -15,4 +14,22 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPayload(nextConfig);
+// Apply Payload's Next.js wrapper when the package is installed.
+// The worktree may not have it installed locally even though Vercel
+// installs it fresh on every deploy — this keeps `next dev` working
+// on machines where `npm install` hasn't pulled the Payload stack yet.
+let finalConfig: NextConfig = nextConfig;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { withPayload } = require("@payloadcms/next/withPayload");
+  finalConfig = withPayload(nextConfig);
+} catch {
+  if (process.env.NODE_ENV !== "test") {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[next.config] @payloadcms/next not installed — running without Payload integration."
+    );
+  }
+}
+
+export default finalConfig;
