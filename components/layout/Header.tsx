@@ -66,10 +66,10 @@ export default function Header() {
                 aria-hidden
               />
             </button>
-            <button
+            <Link
+              href="/account"
               aria-label="Account"
-              type="button"
-              className="grid h-[41px] w-[36.9px] place-items-center"
+              className="grid h-[41px] w-[36.9px] place-items-center transition-opacity hover:opacity-70"
             >
               <Image
                 src="/assets/icons/icon-user.svg"
@@ -79,7 +79,7 @@ export default function Header() {
                 className="h-[30px] w-auto"
                 aria-hidden
               />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -169,6 +169,15 @@ export default function Header() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href="/account"
+              onClick={() => setMobileOpen(false)}
+              className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+            >
+              Account
+            </Link>
+          </li>
         </ul>
 
         <div className="mt-auto px-4 pb-6">
