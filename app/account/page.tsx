@@ -27,7 +27,9 @@ export default async function AccountPage() {
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 py-12 md:px-[60px] md:py-16">
       <h1 className="font-display text-[32px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
-        {user ? `Hi, ${(user as { name?: string }).name ?? user.email}` : "My account"}
+        {user
+          ? `Hi, ${(user as { name?: string }).name ?? user.email ?? "there"}`
+          : "My account"}
       </h1>
       <p className="mt-2 max-w-[560px] font-ui text-[15px] text-[#142e2a]/75">
         {user
@@ -40,7 +42,10 @@ export default async function AccountPage() {
           <AccountDashboard
             user={{
               id: String(user.id),
-              email: user.email,
+              // Payload types `email` as string | undefined for custom
+              // auth collections, but in practice our Users slug always
+              // has one (the built-in auth requires it).
+              email: user.email ?? "",
               name: (user as { name?: string }).name,
               role: (user as { role?: string }).role ?? "customer",
             }}
