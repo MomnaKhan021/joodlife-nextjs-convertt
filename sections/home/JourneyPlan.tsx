@@ -43,13 +43,13 @@ const STAGES = [
   },
 ];
 
-const CHIPS = [
-  { label: "Medication", side: "left", y: "8%" },
-  { label: "Support", side: "left", y: "42%" },
-  { label: "Result", side: "left", y: "80%" },
-  { label: "Delivery", side: "right", y: "8%" },
-  { label: "Guidance", side: "right", y: "42%" },
-  { label: "Whatsapp", side: "right", y: "80%" },
+const CHIPS: Array<{ label: string; side: "left" | "right"; y: number }> = [
+  { label: "Medication", side: "left",  y: 10 },
+  { label: "Support",    side: "left",  y: 45 },
+  { label: "Result",     side: "left",  y: 80 },
+  { label: "Delivery",   side: "right", y: 10 },
+  { label: "Guidance",   side: "right", y: 45 },
+  { label: "Whatsapp",   side: "right", y: 80 },
 ];
 
 function TimelineBlock() {
@@ -138,24 +138,59 @@ function TransformationCard() {
         </em>
       </h3>
 
-      <div className="relative mx-auto flex h-[320px] w-full max-w-[420px] items-center justify-center md:h-[380px]">
-        <div className="relative z-10 h-full w-[180px] overflow-hidden rounded-2xl md:w-[220px]">
+      <div className="relative mx-auto h-[360px] w-full max-w-[460px] md:h-[420px]">
+        {/* Connector lines from chip position to centre photo */}
+        <svg
+          aria-hidden
+          viewBox="0 0 460 420"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+        >
+          {CHIPS.map((c, i) => {
+            const yPct = c.y / 100;
+            const y = yPct * 420;
+            const startX = c.side === "left" ? 70 : 390;
+            const endX = 230;
+            const endY = 210;
+            return (
+              <line
+                key={i}
+                x1={startX}
+                y1={y}
+                x2={endX}
+                y2={endY}
+                stroke="#ffffff"
+                strokeOpacity={0.25}
+                strokeWidth={1}
+                strokeDasharray="3 4"
+              />
+            );
+          })}
+        </svg>
+
+        {/* Central photo */}
+        <div className="absolute left-1/2 top-1/2 z-10 h-[280px] w-[170px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl md:h-[320px] md:w-[200px]">
           <Image
             src="/assets/figma/journey-transformation-photo.png"
             alt="Personalised plan patient"
             fill
-            sizes="(max-width: 768px) 200px, 260px"
+            sizes="(max-width: 768px) 170px, 200px"
             className="object-cover"
           />
         </div>
 
+        {/* Orbit chips */}
         {CHIPS.map((c) => (
           <span
             key={c.label}
-            className={`absolute z-20 inline-flex items-center gap-1.5 rounded-full bg-[#142e2a] px-3 py-1.5 font-ui text-[11px] font-semibold text-white shadow-[0_4px_10px_rgba(0,0,0,0.25)] md:text-[12px] ${
-              c.side === "left" ? "left-0 md:left-2" : "right-0 md:right-2"
-            }`}
-            style={{ top: c.y }}
+            className={`absolute z-20 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-[#142e2a] px-3 py-1.5 font-ui text-[11px] font-semibold text-white shadow-[0_4px_10px_rgba(0,0,0,0.35)] md:text-[12px]`}
+            style={{
+              top: `${c.y}%`,
+              ...(c.side === "left"
+                ? { left: "0%" }
+                : { right: "0%" }),
+              transform: "translateY(-50%)",
+            }}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-[#b4ff9f]" />
             {c.label}
@@ -185,15 +220,31 @@ function ExpertGuidanceCard() {
         Continuous, Expert Guidance
       </h3>
 
-      <div className="relative mx-auto flex h-[320px] w-full max-w-[420px] items-center justify-center md:h-[380px]">
-        <div className="relative h-full w-full overflow-hidden rounded-2xl">
+      <div className="relative mx-auto flex h-[360px] w-full max-w-[460px] items-center justify-center md:h-[420px]">
+        {/* Left vertical label */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 [writing-mode:vertical-rl] md:left-2">
+          <span className="inline-block rotate-180 font-ui text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80 md:text-[12px]">
+            <span className="mr-2 text-white">Monthly Check-in</span>
+            <span>Free Consultation Every Month</span>
+          </span>
+        </div>
+
+        {/* Central phone mockup */}
+        <div className="relative h-full w-[220px] overflow-hidden rounded-2xl md:w-[280px]">
           <Image
             src="/assets/figma/journey-expert-phone.png"
             alt="Treatment check-in dashboard"
             fill
-            sizes="(max-width: 768px) 90vw, 420px"
+            sizes="(max-width: 768px) 220px, 280px"
             className="object-contain"
           />
+        </div>
+
+        {/* Right vertical label */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 [writing-mode:vertical-rl] md:right-2">
+          <span className="inline-block font-ui text-[11px] font-semibold uppercase tracking-[0.12em] text-white md:text-[12px]">
+            Health Assessment
+          </span>
         </div>
       </div>
 
