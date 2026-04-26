@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
@@ -59,6 +60,48 @@ function resolveDatabaseUrl(): string {
 
 const DATABASE_URL = resolveDatabaseUrl();
 
+/**
+ * Resolve a non-empty Payload secret. Order:
+ *  1. PAYLOAD_SECRET (explicit, recommended)
+ *  2. Any common alternative auth-secret name (NEXTAUTH_SECRET, JWT_SECRET, AUTH_SECRET)
+ *  3. Deterministic SHA-256 of the database URL — only kicks in when no
+ *     explicit secret is set. The DB URL is already scoped per-deployment
+ *     and never sent to clients, so a hash of it makes a stable, unguessable
+ *     secret that survives deployments. Sessions invalidate only if the DB
+ *     password is rotated, which is the desired security property.
+ *
+ * Logged at boot (length only, never the value) so the operator can see
+ * which path was taken.
+ */
+function resolveSecret(): string {
+  const explicit =
+    process.env.PAYLOAD_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    process.env.JWT_SECRET ||
+    process.env.AUTH_SECRET;
+  if (explicit && explicit.length >= 16) return explicit;
+
+  if (DATABASE_URL) {
+    const derived = crypto
+      .createHash("sha256")
+      .update(`payload:${DATABASE_URL}`)
+      .digest("hex");
+    if (process.env.NODE_ENV !== "test") {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[payload] PAYLOAD_SECRET not set — falling back to a deterministic " +
+          "secret derived from DATABASE_URL. Set PAYLOAD_SECRET in Vercel env " +
+          "vars when you can."
+      );
+    }
+    return derived;
+  }
+
+  // Last-resort placeholder — Payload will refuse to boot, but the
+  // empty-string error is more informative than crashing earlier.
+  return "";
+}
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -70,7 +113,7 @@ export default buildConfig({
   editor: lexicalEditor(),
   collections: [Users, Products, Orders, Discounts, Media],
   endpoints: [applyDiscountEndpoint],
-  secret: process.env.PAYLOAD_SECRET || "",
+  secret: resolveSecret(),
   typescript: {
     outputFile: path.resolve(dirname, "src/payload/payload-types.ts"),
   },
@@ -82,12 +125,33 @@ export default buildConfig({
       connectionString: DATABASE_URL,
     },
   }),
-  cors: [
-    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
-  ].filter(Boolean),
-  csrf: [
-    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000",
-  ].filter(Boolean),
+  // Allow same-origin and explicit configured URLs. Vercel
+  // sets VERCEL_URL automatically (no protocol) for every deploy,
+  // so we can derive the public URL even without explicit setup.
+  cors: (() => {
+    const out = new Set<string>();
+    if (process.env.NEXT_PUBLIC_SERVER_URL)
+      out.add(process.env.NEXT_PUBLIC_SERVER_URL);
+    if (process.env.PAYLOAD_PUBLIC_SERVER_URL)
+      out.add(process.env.PAYLOAD_PUBLIC_SERVER_URL);
+    if (process.env.VERCEL_URL) out.add(`https://${process.env.VERCEL_URL}`);
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+      out.add(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+    out.add("http://localhost:3000");
+    return Array.from(out);
+  })(),
+  csrf: (() => {
+    const out = new Set<string>();
+    if (process.env.NEXT_PUBLIC_SERVER_URL)
+      out.add(process.env.NEXT_PUBLIC_SERVER_URL);
+    if (process.env.PAYLOAD_PUBLIC_SERVER_URL)
+      out.add(process.env.PAYLOAD_PUBLIC_SERVER_URL);
+    if (process.env.VERCEL_URL) out.add(`https://${process.env.VERCEL_URL}`);
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+      out.add(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+    out.add("http://localhost:3000");
+    return Array.from(out);
+  })(),
   upload: {
     limits: {
       fileSize: 10_000_000, // 10 MB
