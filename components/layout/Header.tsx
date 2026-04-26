@@ -67,7 +67,7 @@ export default function Header() {
               />
             </button>
             <Link
-              href="/account"
+              href="/profile"
               aria-label="Account"
               className="grid h-[41px] w-[36.9px] place-items-center transition-opacity hover:opacity-70"
             >
@@ -171,7 +171,7 @@ export default function Header() {
           ))}
           <li>
             <Link
-              href="/account"
+              href="/profile"
               onClick={() => setMobileOpen(false)}
               className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
             >
