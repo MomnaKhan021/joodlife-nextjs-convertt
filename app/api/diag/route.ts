@@ -64,19 +64,20 @@ export async function GET() {
     NODE_ENV: process.env.NODE_ENV,
   };
 
-  if (!db.value || !env.PAYLOAD_SECRET.present) {
+  if (!db.value) {
     return NextResponse.json(
       {
         ok: false,
         reason: "missing-env",
         env,
-        hint: !db.value
-          ? "No Postgres URL found. Add DATABASE_URI in Vercel (or rename your Neon integration to use DATABASE_URL_UNPOOLED / POSTGRES_URL_NON_POOLING)."
-          : "Set PAYLOAD_SECRET in Vercel env vars and redeploy.",
+        hint: "No Postgres URL found. Add DATABASE_URI in Vercel (or rename your Neon integration to use DATABASE_URL_UNPOOLED / POSTGRES_URL_NON_POOLING).",
       },
       { status: 500 }
     );
   }
+  // PAYLOAD_SECRET is optional — payload.config.ts falls back to a
+  // SHA-256 of DATABASE_URL when missing. We just note its presence
+  // in the response for visibility.
 
   // Attempt to boot Payload and capture the underlying error
   try {
