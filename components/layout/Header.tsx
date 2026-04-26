@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+import CartDrawer from "@/components/layout/CartDrawer";
+
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
@@ -13,6 +15,7 @@ const NAV_LINKS = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
 
   return (
     <header className="w-full bg-white">
@@ -52,10 +55,12 @@ export default function Header() {
             Get started
           </Link>
           <div className="flex items-center gap-[5px]">
-            <button
-              aria-label="Cart"
-              type="button"
-              className="grid h-[41px] w-[36.9px] place-items-center"
+            {/* Account — uses the icon-cart.svg artwork (Figma's account
+               icon happens to live in this filename) */}
+            <Link
+              href="/profile"
+              aria-label="Account"
+              className="grid h-[41px] w-[36.9px] cursor-pointer place-items-center transition-opacity hover:opacity-70"
             >
               <Image
                 src="/assets/icons/icon-cart.svg"
@@ -65,11 +70,14 @@ export default function Header() {
                 className="h-7 w-auto"
                 aria-hidden
               />
-            </button>
-            <Link
-              href="/profile"
-              aria-label="Account"
-              className="grid h-[41px] w-[36.9px] place-items-center transition-opacity hover:opacity-70"
+            </Link>
+            {/* Cart — opens the slide-in drawer */}
+            <button
+              type="button"
+              aria-label="Open cart"
+              aria-expanded={cartOpen}
+              onClick={() => setCartOpen(true)}
+              className="grid h-[41px] w-[36.9px] cursor-pointer place-items-center transition-opacity hover:opacity-70"
             >
               <Image
                 src="/assets/icons/icon-user.svg"
@@ -79,7 +87,7 @@ export default function Header() {
                 className="h-[30px] w-auto"
                 aria-hidden
               />
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -190,6 +198,9 @@ export default function Header() {
           </Link>
         </div>
       </nav>
+
+      {/* Slide-in cart drawer */}
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   );
 }
