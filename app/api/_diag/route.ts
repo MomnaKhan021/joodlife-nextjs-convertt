@@ -13,7 +13,6 @@ export const dynamic = "force-dynamic";
 
 function describe(value: string | undefined) {
   if (!value) return { present: false };
-  // Only return safe metadata
   const startsWith = value.slice(0, 12);
   return {
     present: true,
@@ -22,23 +21,58 @@ function describe(value: string | undefined) {
   };
 }
 
+function resolveDb(): { name: string | null; value: string | null } {
+  const exact = [
+    "DATABASE_URI",
+    "DATABASE_URL_UNPOOLED",
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_URL",
+    "POSTGRES_URL",
+  ];
+  for (const k of exact) {
+    if (process.env[k]) return { name: k, value: process.env[k] as string };
+  }
+  const suffixes = [
+    "DATABASE_URL_UNPOOLED",
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_URL",
+    "POSTGRES_URL",
+  ];
+  for (const s of suffixes) {
+    const found = Object.keys(process.env).find(
+      (k) => k.endsWith(s) && process.env[k]
+    );
+    if (found) return { name: found, value: process.env[found] as string };
+  }
+  return { name: null, value: null };
+}
+
 export async function GET() {
+  const db = resolveDb();
   const env = {
-    DATABASE_URI: describe(process.env.DATABASE_URI),
+    DATABASE_URL_resolved_from: db.name,
+    DATABASE_URL: describe(db.value ?? undefined),
     PAYLOAD_SECRET: describe(process.env.PAYLOAD_SECRET),
     NEXT_PUBLIC_SERVER_URL: describe(process.env.NEXT_PUBLIC_SERVER_URL),
     PAYLOAD_PUBLIC_SERVER_URL: describe(process.env.PAYLOAD_PUBLIC_SERVER_URL),
+    // Helpful when an integration uses a prefix — we list candidate keys so
+    // you can see at a glance which the runtime can see.
+    available_db_keys: Object.keys(process.env).filter(
+      (k) =>
+        /DATABASE_URL|POSTGRES_URL|DATABASE_URI/.test(k) && process.env[k]
+    ),
     NODE_ENV: process.env.NODE_ENV,
   };
 
-  // If the obvious vars are missing, surface that first
-  if (!env.DATABASE_URI.present || !env.PAYLOAD_SECRET.present) {
+  if (!db.value || !env.PAYLOAD_SECRET.present) {
     return NextResponse.json(
       {
         ok: false,
         reason: "missing-env",
         env,
-        hint: "Set DATABASE_URI and PAYLOAD_SECRET in Vercel env vars and redeploy.",
+        hint: !db.value
+          ? "No Postgres URL found. Add DATABASE_URI in Vercel (or rename your Neon integration to use DATABASE_URL_UNPOOLED / POSTGRES_URL_NON_POOLING)."
+          : "Set PAYLOAD_SECRET in Vercel env vars and redeploy.",
       },
       { status: 500 }
     );
