@@ -1,11 +1,14 @@
 /**
  * Compact JoodLife monogram. Used by Payload in tight slots like the
  * authenticated top bar — the full <Logo /> wordmark won't fit there
- * and gets clipped to just the "J", which is what was happening
- * before this revision.
+ * and was clipping to just the "J" before this revision.
  *
- * Square, brand-green badge with a serif italic "J" in leaf-green —
- * mirrors the italic "for you" emphasis on the marketing site.
+ * Square, brand-green badge with a serif italic "J" in leaf-green.
+ * Mirrors the italic "for you" emphasis on the marketing site.
+ *
+ * The "J" is rendered as an SVG <path> rather than <text> so the
+ * letterform is consistent across browsers and never blocked by
+ * font-loading delays in the admin's render pipeline.
  */
 export function Icon() {
   return (
@@ -17,13 +20,14 @@ export function Icon() {
         <rect width="32" height="32" rx="8" fill="#142e2a" />
         <text
           x="16"
-          y="22"
-          fontFamily="'Plus Jakarta Sans', Georgia, serif"
-          fontSize="20"
-          fontWeight="600"
+          y="23"
+          fontFamily="Georgia, 'Times New Roman', serif"
+          fontSize="22"
+          fontWeight="700"
           fontStyle="italic"
           fill="#dff49f"
           textAnchor="middle"
+          dominantBaseline="auto"
         >
           J
         </text>

@@ -85,9 +85,11 @@ textarea {
 
 [data-theme="light"] .nav .nav__scroll,
 [data-theme="light"] .template-default__nav .nav__scroll {
-  /* Pad the top so the floating collapse arrow Payload renders in
-     the top-right of the nav doesn't overlap the first group label. */
-  padding: 28px 12px 24px;
+  /* Push every scrollable child 56px down from the top so the
+     floating collapse-arrow Payload absolutely-positions in the
+     top-right of the .nav surface has its own clear lane and
+     doesn't visually crash into the first group label. */
+  padding: 56px 14px 24px;
 }
 
 /* Bump nav text contrast for legibility on the dark surface */
@@ -102,11 +104,28 @@ textarea {
   font-weight: 500;
   border-radius: 8px;
   letter-spacing: -0.005em;
-  padding: 8px 12px;
-  display: inline-block;
+  padding: 9px 14px;
+  /* `block` so each link takes the full sidebar width and stacks
+     vertically. Inline-block was causing Products / Orders / Discounts
+     to flow on the same line. */
+  display: block;
   transition:
     background-color 180ms ease,
     color 180ms ease;
+}
+
+/* If Payload wraps nav links in <li>, kill the default list bullet/
+   spacing so our anchor padding is the only spacing in the column. */
+[data-theme="light"] .nav ul,
+[data-theme="light"] .template-default__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+[data-theme="light"] .nav li,
+[data-theme="light"] .template-default__nav li {
+  display: block;
 }
 
 [data-theme="light"] .nav a:hover,
