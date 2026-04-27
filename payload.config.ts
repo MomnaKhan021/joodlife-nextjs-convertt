@@ -106,8 +106,25 @@ function resolveSecret(): string {
 export default buildConfig({
   admin: {
     user: Users.slug,
+    theme: "light",
     meta: {
       titleSuffix: " · JoodLife CMS",
+      icons: [
+        {
+          rel: "icon",
+          type: "image/svg+xml",
+          url: "/assets/icons/logo-wesmount.svg",
+        },
+      ],
+      openGraph: {
+        siteName: "JoodLife CMS",
+      },
+    },
+    components: {
+      graphics: {
+        Logo: "@/components/admin/Logo#Logo",
+        Icon: "@/components/admin/Icon#Icon",
+      },
     },
     // /admin is the default route for Payload 3.x with the Next.js plugin.
   },

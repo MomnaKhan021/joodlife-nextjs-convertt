@@ -1,1 +1,434 @@
-/* Optional: tweak Payload admin styles here. */
+/**
+ * JoodLife admin theme — overrides Payload's default look with the
+ * site's brand palette and typography. Keeps every Payload internal
+ * class working; only repaints the surface, accent, and font tokens.
+ *
+ * Brand tokens
+ *   --jood-green      #142e2a   primary (sidebar, headings, primary buttons)
+ *   --jood-green-700  #1d3a35   hover / dark surface
+ *   --jood-cream      #f7f9f2   page background
+ *   --jood-leaf       #dff49f   accent / highlight
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  --jood-green: #142e2a;
+  --jood-green-700: #1d3a35;
+  --jood-green-soft: rgba(20, 46, 42, 0.06);
+  --jood-cream: #f7f9f2;
+  --jood-cream-dark: #ecf0e3;
+  --jood-leaf: #dff49f;
+  --jood-text: #142e2a;
+  --jood-muted: rgba(20, 46, 42, 0.65);
+  --jood-border: rgba(20, 46, 42, 0.1);
+}
+
+/* ---------------- Light-theme variable overrides ----------------- */
+[data-theme="light"] {
+  /* Surface stack — anchor the lightest surfaces in cream so the form
+     panels feel native to the marketing site. */
+  --color-base-0: 255, 255, 255; /* cards / inputs stay white */
+  --color-base-50: 247, 249, 242; /* page bg */
+  --color-base-100: 236, 240, 227; /* hover / muted */
+  --color-base-150: 220, 226, 209;
+  --color-base-200: 199, 207, 187;
+
+  /* Brand accent for "primary action" intent (Save buttons, etc.) */
+  --color-success-50: 232, 244, 207;
+  --color-success-100: 213, 235, 165;
+  --color-success-150: 196, 226, 134;
+  --color-success-200: 162, 198, 114;
+  --color-success-250: 128, 170, 95;
+  --color-success-300: 100, 145, 78;
+  --color-success-350: 75, 119, 60;
+  --color-success-400: 48, 90, 50;
+  --color-success-450: 37, 72, 43;
+  --color-success-500: 20, 46, 42; /* deep green = brand */
+  --color-success-550: 18, 41, 38;
+  --color-success-600: 16, 36, 33;
+  --color-success-650: 14, 31, 28;
+  --color-success-700: 12, 28, 25;
+
+  --theme-bg: var(--jood-cream);
+  --theme-input-bg: #ffffff;
+  --theme-text: var(--jood-text);
+
+  background: var(--theme-bg) !important;
+}
+
+/* ---------------- Global typography ----------------- */
+html,
+body {
+  font-family:
+    "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+  background: var(--jood-cream);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Display headings get the same display family as the marketing site */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.dashboard__label,
+.collection-edit__header h1,
+.dashboard__group-name {
+  font-family:
+    "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--jood-text);
+}
+
+/* ---------------- Sidebar ----------------- */
+.template-default {
+  background: var(--jood-cream);
+}
+
+.template-default__nav,
+.nav__wrap,
+.nav {
+  background: var(--jood-green) !important;
+  color: #f1f4ec !important;
+  border-right: 1px solid var(--jood-green-700);
+}
+
+.nav .nav__link,
+.template-default__nav a,
+.nav-group__toggle,
+.nav-group__content a {
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  border-radius: 8px;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.nav .nav__link:hover,
+.nav-group__toggle:hover,
+.nav-group__content a:hover {
+  background-color: rgba(223, 244, 159, 0.08) !important;
+  color: #ffffff !important;
+}
+
+.nav .nav__link.active,
+.nav-group__content a.active {
+  background-color: rgba(223, 244, 159, 0.14) !important;
+  color: var(--jood-leaf) !important;
+  font-weight: 600;
+}
+
+.nav-group__label,
+.nav__group-label,
+.nav-group__toggle .nav-group__label {
+  color: rgba(255, 255, 255, 0.5) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Sidebar logo wrapper — make the brand wordmark glow in light leaf */
+.nav .graphic-logo,
+.nav__header .graphic-icon,
+.nav__header .graphic-logo {
+  color: var(--jood-leaf) !important;
+}
+
+.nav__header,
+.nav .nav__scroll {
+  padding-block: 1rem;
+}
+
+/* ---------------- Top app bar ----------------- */
+.app-header,
+.template-default__wrap .step-nav,
+.collection-list__header,
+.collection-edit__header,
+.dashboard__header {
+  background: #ffffff;
+  border-bottom: 1px solid var(--jood-border);
+}
+
+.step-nav a,
+.step-nav__last {
+  color: var(--jood-muted);
+  font-weight: 500;
+}
+
+.step-nav a:hover {
+  color: var(--jood-text);
+}
+
+/* ---------------- Cards / panels ----------------- */
+.collection-list,
+.collection-edit,
+.dashboard,
+.dashboard__group,
+.field-type,
+.tabs-field__tab-container,
+.collapsible__content {
+  border-radius: 14px;
+}
+
+.dashboard__group,
+.list-controls,
+.collection-list__page,
+.collection-edit__sidebar,
+.collection-edit__main {
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(20, 46, 42, 0.04);
+}
+
+.dashboard__group {
+  padding: 18px 22px;
+}
+
+.dashboard__card,
+.card,
+.card__title {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--jood-border);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.dashboard__card:hover,
+.card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20, 46, 42, 0.18);
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.06);
+}
+
+/* ---------------- Buttons ----------------- */
+.btn--style-primary,
+.btn--style-primary:not(:disabled):not(.btn--disabled) {
+  background: var(--jood-green) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--jood-green) !important;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.btn--style-primary:hover {
+  background: var(--jood-green-700) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.16);
+}
+
+.btn--style-secondary {
+  background: #ffffff !important;
+  color: var(--jood-text) !important;
+  border: 1px solid var(--jood-border) !important;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn--style-secondary:hover {
+  background: var(--jood-cream-dark) !important;
+  border-color: rgba(20, 46, 42, 0.18) !important;
+}
+
+.btn--icon-style-with-border .btn__icon {
+  border-color: var(--jood-border);
+}
+
+/* ---------------- Inputs ----------------- */
+.field-type input,
+.field-type textarea,
+.field-type select,
+.field-type .react-select__control,
+.search-filter__input {
+  border: 1px solid var(--jood-border) !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.field-type input:focus,
+.field-type textarea:focus,
+.field-type .react-select__control--is-focused {
+  border-color: var(--jood-green) !important;
+  box-shadow: 0 0 0 3px rgba(20, 46, 42, 0.1) !important;
+  outline: none !important;
+}
+
+.field-label,
+label {
+  color: var(--jood-text);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.field-description {
+  color: var(--jood-muted);
+}
+
+/* ---------------- Tables (collection list) ----------------- */
+.table {
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.table thead th {
+  background: var(--jood-cream-dark);
+  color: var(--jood-text);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--jood-border);
+}
+
+.table tbody tr:hover {
+  background: var(--jood-green-soft);
+}
+
+/* ---------------- Login page ----------------- */
+.template-minimal,
+.login {
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(223, 244, 159, 0.18) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      rgba(20, 46, 42, 0.08) 0%,
+      transparent 50%
+    ),
+    var(--jood-cream);
+}
+
+.login__brand {
+  margin-bottom: 28px;
+}
+
+.login__wrap {
+  max-width: 420px;
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  border-radius: 18px;
+  padding: 36px 32px;
+  box-shadow: 0 24px 48px rgba(20, 46, 42, 0.08);
+}
+
+/* ---------------- Custom Logo / Icon scaffolding ----------------- */
+.jood-admin-logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--jood-text);
+}
+
+.jood-admin-logo svg {
+  height: 38px;
+  width: auto;
+}
+
+.jood-admin-logo__suffix {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--jood-muted);
+  text-transform: uppercase;
+}
+
+/* On dark sidebar surfaces the wordmark colour flips to leaf */
+.nav .jood-admin-logo,
+.nav__header .jood-admin-logo {
+  color: var(--jood-leaf);
+}
+
+.nav .jood-admin-logo svg {
+  height: 26px;
+}
+
+.nav .jood-admin-logo__suffix {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.jood-admin-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jood-admin-icon svg {
+  height: 28px;
+  width: 28px;
+}
+
+/* ---------------- Tabs / collapsibles ----------------- */
+.tabs-field__tab-button.tabs-field__tab-button--active {
+  color: var(--jood-green) !important;
+  border-bottom-color: var(--jood-green) !important;
+}
+
+.collapsible__toggle {
+  font-weight: 600;
+  color: var(--jood-text);
+}
+
+.collapsible {
+  border: 1px solid var(--jood-border);
+  border-radius: 12px;
+  background: var(--jood-cream);
+}
+
+/* ---------------- Misc polish ----------------- */
+::selection {
+  background: rgba(20, 46, 42, 0.18);
+  color: var(--jood-text);
+}
+
+a {
+  color: var(--jood-green);
+}
+
+a:hover {
+  color: var(--jood-green-700);
+}
+
+.array-field__draggable-rows .array-field__row {
+  border: 1px solid var(--jood-border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.array-field__row-header {
+  background: var(--jood-cream);
+  border-radius: 12px 12px 0 0;
+}
