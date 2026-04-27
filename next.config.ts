@@ -2,8 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Keep Postgres / Payload native deps external so Next.js doesn't try
-  // to bundle their optional binaries.
-  serverExternalPackages: ["pg", "pg-native", "drizzle-orm"],
+  // to bundle their optional binaries. drizzle-kit MUST stay external
+  // because Payload's postgres adapter does a dynamic `require('drizzle-
+  // kit/api')` at runtime to push schemas — Turbopack rewrites the
+  // module specifier when it bundles, breaking the import.
+  serverExternalPackages: [
+    "pg",
+    "pg-native",
+    "drizzle-orm",
+    "drizzle-kit",
+  ],
   images: {
     remotePatterns: [
       // Allow media served from Payload's local uploads folder

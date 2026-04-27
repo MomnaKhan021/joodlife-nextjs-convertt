@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v7-drizzle-kit-push";
+const VERSION = "diag-v8-drizzle-kit-external";
 
 export async function GET() {
   const env = envSnapshot();
