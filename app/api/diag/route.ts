@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v8-drizzle-kit-external";
+const VERSION = "diag-v9-direct-import";
 
 export async function GET() {
   const env = envSnapshot();
@@ -143,34 +143,37 @@ export async function POST(req: NextRequest) {
       const { getPayloadInstance } = await import("@/lib/payload");
       const payload = await getPayloadInstance();
       const db = payload.db as unknown as {
-        requireDrizzleKit?: () => {
-          pushSchema?: (
-            schema: Record<string, unknown>,
-            client: unknown
-          ) => Promise<{
-            warnings?: string[];
-            apply?: () => Promise<void>;
-            statementsToExecute?: string[];
-          }>;
-        };
         drizzle?: unknown;
         schema?: Record<string, unknown>;
       };
 
-      const dk = db.requireDrizzleKit?.();
-      if (!dk?.pushSchema) {
+      // Direct dynamic import of drizzle-kit/api — avoids Payload's
+      // internal `requireDrizzleKit` which Turbopack mangles to a
+      // hashed module specifier.
+      const dkMod = (await import(/* @vite-ignore */ "drizzle-kit/api")) as {
+        pushSchema?: (
+          schema: Record<string, unknown>,
+          client: unknown
+        ) => Promise<{
+          warnings?: string[];
+          apply?: () => Promise<void>;
+          statementsToExecute?: string[];
+        }>;
+      };
+
+      if (!dkMod.pushSchema) {
         return NextResponse.json(
           {
             version: VERSION,
             ok: false,
-            reason: "drizzle-kit-unavailable",
-            hint: "Install drizzle-kit as a runtime dependency",
+            reason: "drizzle-kit-no-pushSchema",
+            keys: Object.keys(dkMod),
           },
           { status: 500 }
         );
       }
 
-      const result = await dk.pushSchema(
+      const result = await dkMod.pushSchema(
         db.schema ?? {},
         db.drizzle as unknown
       );
@@ -181,7 +184,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         version: VERSION,
         ok: true,
-        ran: "drizzle-kit pushSchema",
+        ran: "drizzle-kit/api pushSchema",
         warnings: result?.warnings,
         statements: result?.statementsToExecute?.length,
       });
