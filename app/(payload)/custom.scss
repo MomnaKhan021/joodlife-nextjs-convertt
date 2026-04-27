@@ -1,15 +1,17 @@
 /**
- * JoodLife admin theme — conservative override.
+ * JoodLife admin theme.
  *
- * Strategy: change CSS variables (and a few small things we own) only.
- * Don't fight Payload's internal layout with `!important` rules — that
- * was causing the overlap bugs in the earlier iteration.
+ * Strategy: change CSS variables Payload reads + lightly target the
+ * specific Payload v3 classes we know exist. Avoid `!important` —
+ * use selector specificity instead so we don't accidentally collide
+ * with Payload's internal layout (that was the cause of the earlier
+ * text-overlap reports).
  *
  * Brand tokens
- *   --jood-green      #142e2a   primary (sidebar, headings, primary buttons)
+ *   --jood-green      #142e2a   sidebar, primary buttons, headings
  *   --jood-green-700  #1d3a35   hover
- *   --jood-cream      #f7f9f2   surface tint
- *   --jood-leaf       #dff49f   accent
+ *   --jood-cream      #f7f9f2   page background
+ *   --jood-leaf       #dff49f   sidebar accent
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap");
@@ -24,18 +26,16 @@
   --jood-muted: rgba(20, 46, 42, 0.65);
   --jood-border: rgba(20, 46, 42, 0.1);
 
-  /* Override Payload's font tokens. These propagate to every text
-     element inside the admin without touching individual classes. */
+  /* Override Payload's font tokens. These propagate through every
+     text element inside the admin via Payload's own typography rules,
+     no per-class overrides needed. */
   --font-body:
     "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    "Segoe UI", Roboto, sans-serif;
   --font-mono:
     "DM Sans", ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 }
 
-/* Apply the body font globally. Payload reads --font-body from :root,
-   but re-declaring on body guarantees it wins against any cached
-   user-agent stylesheet. */
 html,
 body,
 button,
@@ -47,16 +47,14 @@ textarea {
   letter-spacing: -0.005em;
 }
 
-/* ---------------- Light-theme palette overrides ----------------- */
+/* Light-theme palette nudged toward the brand cream + green ramp.
+   Payload reads these for surface, hover, table headers, primary
+   buttons, success toasts, etc. — so changing the variables ripples
+   everywhere without per-component rules. */
 [data-theme="light"] {
-  /* Subtle warm tint on the lower surfaces — this is what Payload
-     pulls from for the page bg, hover states, table headers, etc. */
-  --color-base-50: 247, 249, 242; /* page bg / cream */
-  --color-base-100: 236, 240, 227; /* hover */
+  --color-base-50: 247, 249, 242;
+  --color-base-100: 236, 240, 227;
 
-  /* Brand-green --color-success-* ramp powers primary actions
-     ("Save", "Publish", success toasts). Keeping the lighter steps
-     intact for tints; pinning -500 onwards to brand. */
   --color-success-500: 20, 46, 42;
   --color-success-600: 16, 36, 33;
   --color-success-700: 12, 28, 25;
@@ -65,55 +63,119 @@ textarea {
   --color-success-1000: 0, 0, 0;
 }
 
-/* ---------------- Logo / Icon component scaffolding ----------------- */
-.jood-admin-logo {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
-  color: var(--jood-text);
+/* ------------------------------------------------------------------ */
+/* Sidebar — deep-green branded surface                                */
+/* ------------------------------------------------------------------ */
+/* We bind to the .nav element and its descendants. No !important —
+   higher selector specificity wins against Payload's `.nav { ... }`
+   one-class rules naturally. */
+
+[data-theme="light"] .nav,
+[data-theme="light"] .template-default__nav {
+  background: var(--jood-green);
+  color: rgba(255, 255, 255, 0.78);
+  border-right: 1px solid var(--jood-green-700);
 }
 
-.jood-admin-logo svg {
-  height: 38px;
-  width: auto;
+[data-theme="light"] .nav .nav__header,
+[data-theme="light"] .template-default__nav .nav__header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.jood-admin-logo__suffix {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--jood-muted);
-  text-transform: uppercase;
+[data-theme="light"] .nav .nav__scroll,
+[data-theme="light"] .template-default__nav .nav__scroll {
+  padding: 14px 12px 24px;
 }
 
-/* On the dark sidebar surface, the wordmark flips to leaf and the
-   "CMS" suffix to a translucent off-white. */
-.nav .jood-admin-logo,
-.nav__header .jood-admin-logo {
+[data-theme="light"] .nav a,
+[data-theme="light"] .template-default__nav a {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
+  border-radius: 8px;
+  letter-spacing: -0.005em;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+[data-theme="light"] .nav a:hover,
+[data-theme="light"] .template-default__nav a:hover {
+  background-color: rgba(223, 244, 159, 0.08);
+  color: #ffffff;
+}
+
+[data-theme="light"] .nav a.active,
+[data-theme="light"] .nav-group__list-item--active a,
+[data-theme="light"] .template-default__nav a.active {
+  background-color: rgba(223, 244, 159, 0.14);
   color: var(--jood-leaf);
+  font-weight: 600;
 }
 
-.nav .jood-admin-logo svg {
-  height: 26px;
-}
-
-.nav .jood-admin-logo__suffix {
+[data-theme="light"] .nav .nav-group__label,
+[data-theme="light"] .nav .nav-group__toggle {
   color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
 }
 
+[data-theme="light"] .nav .nav-group__toggle:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ------------------------------------------------------------------ */
+/* Logo + Icon                                                         */
+/* ------------------------------------------------------------------ */
+/* Payload's chrome calls graphics.Logo on the login screen and in the
+   nav header, and graphics.Icon as a tighter compact mark. To stop
+   them visually colliding inside a single header, we hide the Icon
+   slot when a Logo is alongside it — `.nav__header .jood-admin-icon`
+   is suppressed below. */
+
+.jood-admin-logo,
 .jood-admin-icon {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  color: var(--jood-text);
 }
 
+.jood-admin-logo svg,
 .jood-admin-icon svg {
-  height: 28px;
-  width: 28px;
+  height: 32px;
+  width: auto;
 }
 
-/* ---------------- Login screen polish ----------------- */
+/* On the login screen — go larger */
+.template-minimal .jood-admin-logo svg {
+  height: 44px;
+}
+
+/* In the dark sidebar — flip to leaf and shrink slightly */
+[data-theme="light"] .nav .jood-admin-logo,
+[data-theme="light"] .nav__header .jood-admin-logo,
+[data-theme="light"] .nav .jood-admin-icon,
+[data-theme="light"] .nav__header .jood-admin-icon {
+  color: var(--jood-leaf);
+}
+
+[data-theme="light"] .nav .jood-admin-logo svg,
+[data-theme="light"] .nav__header .jood-admin-logo svg {
+  height: 26px;
+}
+
+/* When both Logo and Icon land in the same header, suppress the Icon
+   so we don't render two copies of the wordmark side-by-side. */
+.nav__header .jood-admin-icon,
+.template-default__nav .jood-admin-icon {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Login screen polish                                                 */
+/* ------------------------------------------------------------------ */
 .template-minimal,
 .login {
   background:
@@ -132,9 +194,13 @@ textarea {
 
 .login__brand {
   margin-bottom: 28px;
+  display: flex;
+  justify-content: center;
 }
 
-/* ---------------- Selection + link colour ----------------- */
+/* ------------------------------------------------------------------ */
+/* Misc                                                                */
+/* ------------------------------------------------------------------ */
 ::selection {
   background: rgba(20, 46, 42, 0.18);
   color: var(--jood-text);

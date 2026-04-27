@@ -1,19 +1,26 @@
 /**
- * JoodLife admin logo — shown on the /admin login screen.
+ * JoodLife admin logo — used in two slots in Payload's admin chrome:
+ *   1. The login screen (full-size brand mark)
+ *   2. The expanded sidebar nav header
  *
- * Inlined as JSX so Payload can render it without hitting the Next.js
- * static asset pipeline (admin pages are served by Payload's own SSR
- * stack inside the (payload) route group).
+ * The companion <Icon> component reuses the same artwork so when both
+ * slots render simultaneously (e.g. Payload's nav header on some
+ * breakpoints), they don't visually fight each other. CSS sizes the
+ * SVG per slot via `.jood-admin-logo` and `.jood-admin-icon`.
  */
 export function Logo() {
+  return <JoodWordmark className="jood-admin-logo" />;
+}
+
+export default Logo;
+
+export function JoodWordmark({ className }: { className?: string }) {
   return (
-    <div className="jood-admin-logo">
+    <span className={className} aria-label="JoodLife" role="img">
       <svg
         viewBox="0 0 95 30"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        aria-label="JoodLife"
-        role="img"
       >
         <g clipPath="url(#jood-logo-clip)">
           <path
@@ -35,9 +42,6 @@ export function Logo() {
           </clipPath>
         </defs>
       </svg>
-      <span className="jood-admin-logo__suffix">CMS</span>
-    </div>
+    </span>
   );
 }
-
-export default Logo;
