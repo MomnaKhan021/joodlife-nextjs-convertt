@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v13-stub-collections";
+const VERSION = "diag-v14-alter-rels";
 
 export async function GET() {
   const env = envSnapshot();
@@ -291,6 +291,12 @@ export async function POST(req: NextRequest) {
           "discounts_id" integer REFERENCES "discounts"("id") ON DELETE CASCADE,
           "media_id" integer REFERENCES "media"("id") ON DELETE CASCADE
         );
+        -- ALTER for existing rows that were created by an earlier
+        -- iteration of this script (only had users_id).
+        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "products_id" integer REFERENCES "products"("id") ON DELETE CASCADE;
+        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "orders_id" integer REFERENCES "orders"("id") ON DELETE CASCADE;
+        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "discounts_id" integer REFERENCES "discounts"("id") ON DELETE CASCADE;
+        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "media_id" integer REFERENCES "media"("id") ON DELETE CASCADE;
         CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_parent_id_idx" ON "payload_locked_documents_rels" ("parent_id");
 
         CREATE TABLE IF NOT EXISTS "payload_migrations" (
