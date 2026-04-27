@@ -176,26 +176,142 @@ textarea {
 /* ------------------------------------------------------------------ */
 /* Login screen polish                                                 */
 /* ------------------------------------------------------------------ */
+/* Real Payload v3 classes here: .login.template-minimal wraps the page,
+   .template-minimal__wrap is the content column, .login__brand is the
+   logo slot. We turn the wrap into a centred card. */
+
 .template-minimal,
 .login {
+  min-height: 100vh;
   background:
     radial-gradient(
       circle at 0% 0%,
-      rgba(223, 244, 159, 0.18) 0%,
-      transparent 40%
+      rgba(223, 244, 159, 0.22) 0%,
+      transparent 45%
     ),
     radial-gradient(
       circle at 100% 100%,
-      rgba(20, 46, 42, 0.06) 0%,
-      transparent 50%
+      rgba(20, 46, 42, 0.08) 0%,
+      transparent 55%
     ),
     var(--jood-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.template-minimal__wrap {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  border-radius: 18px;
+  padding: 36px 32px 32px;
+  box-shadow: 0 24px 48px rgba(20, 46, 42, 0.08);
+}
+
+@media (max-width: 480px) {
+  .template-minimal__wrap {
+    padding: 28px 22px 24px;
+    border-radius: 16px;
+  }
 }
 
 .login__brand {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   display: flex;
   justify-content: center;
+}
+
+/* Brand the "required" asterisk that Payload renders next to labels.
+   Default styles use a red `*` which clashes with the cream/green
+   palette. */
+.template-minimal label .required,
+.template-minimal label > span[aria-label="required"],
+.template-minimal label::after,
+.required {
+  color: var(--jood-green) !important;
+}
+
+/* Inputs on the login card */
+.template-minimal input[type="email"],
+.template-minimal input[type="password"],
+.template-minimal input[type="text"] {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--jood-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--jood-text);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.template-minimal input[type="email"]:focus,
+.template-minimal input[type="password"]:focus,
+.template-minimal input[type="text"]:focus {
+  outline: none;
+  border-color: var(--jood-green);
+  box-shadow: 0 0 0 3px rgba(20, 46, 42, 0.1);
+}
+
+.template-minimal label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--jood-text);
+  letter-spacing: -0.005em;
+}
+
+/* Login button — match the brand-green pill the marketing site uses */
+.template-minimal button[type="submit"],
+.template-minimal .btn--style-primary {
+  width: 100%;
+  height: 48px;
+  margin-top: 6px;
+  border: 1px solid var(--jood-green);
+  border-radius: 10px;
+  background: var(--jood-green);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+  cursor: pointer;
+}
+
+.template-minimal button[type="submit"]:hover,
+.template-minimal .btn--style-primary:hover {
+  background: var(--jood-green-700);
+  border-color: var(--jood-green-700);
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.16);
+  transform: translateY(-1px);
+}
+
+/* Forgot password link */
+.template-minimal a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--jood-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--jood-border);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.template-minimal a:hover {
+  color: var(--jood-green);
+  border-bottom-color: var(--jood-green);
 }
 
 /* ------------------------------------------------------------------ */
