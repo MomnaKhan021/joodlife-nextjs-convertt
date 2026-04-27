@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v4-method-introspect";
+const VERSION = "diag-v5-generate-schema";
 
 export async function GET() {
   const env = envSnapshot();
@@ -142,51 +142,78 @@ export async function POST(req: NextRequest) {
     try {
       const { getPayloadInstance } = await import("@/lib/payload");
       const payload = await getPayloadInstance();
-      const db = payload.db as unknown as Record<string, unknown>;
-      // List all callable methods on the adapter so we can see exactly
-      // which schema-push function exists in this Payload version.
-      const methods = Object.getOwnPropertyNames(
-        Object.getPrototypeOf(db) ?? {}
-      )
-        .concat(Object.keys(db))
-        .filter((k) => typeof (db as Record<string, unknown>)[k] === "function")
-        .sort();
-      const ran: string[] = [];
+      const db = payload.db as unknown as {
+        generateSchema?: (...args: unknown[]) => Promise<string> | string;
+        execute?: (args: { drizzle?: unknown; raw?: string }) => Promise<unknown>;
+        requireDrizzleKit?: () => unknown;
+        migrateFresh?: (...args: unknown[]) => Promise<void>;
+      };
 
-      // Try every plausible name in order
-      for (const name of [
-        "pushDevSchema",
-        "pushSchema",
-        "push",
-        "createMigration",
-        "migrate",
-      ]) {
-        if (typeof (db as Record<string, unknown>)[name] === "function") {
-          try {
-            await (db as Record<string, () => Promise<unknown>>)[name]();
-            ran.push(name);
-          } catch (e) {
-            return NextResponse.json(
-              {
-                version: VERSION,
-                ok: false,
-                reason: `${name}-failed`,
-                methods,
-                ran,
-                error: captureError(e),
-              },
-              { status: 500 }
-            );
-          }
+      // Approach 1: try drizzle-kit push if available
+      try {
+        const drizzleKit = db.requireDrizzleKit?.() as
+          | { pushSchema?: (...a: unknown[]) => Promise<unknown> }
+          | undefined;
+        if (drizzleKit?.pushSchema) {
+          // Most postgres adapters internally call pushDevSchema; we
+          // try the public surface above via methods list. Bypass.
         }
+      } catch {
+        /* ignore — drizzle-kit not bundled at runtime is normal */
       }
 
-      return NextResponse.json({
-        version: VERSION,
-        ok: ran.length > 0,
-        ran,
-        methods,
-      });
+      // Approach 2: generate the schema SQL and run it via execute()
+      if (typeof db.generateSchema === "function") {
+        const sql = await db.generateSchema();
+        if (typeof sql === "string" && sql.length > 0 && db.execute) {
+          // Split on `;` boundaries, run each non-empty statement.
+          // Drizzle's pg execute accepts { drizzle, raw } — try raw first.
+          const statements = sql
+            .split(/;\s*\n/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+          let ranCount = 0;
+          for (const stmt of statements) {
+            try {
+              await db.execute({ raw: stmt + ";" });
+              ranCount++;
+            } catch (e) {
+              return NextResponse.json(
+                {
+                  version: VERSION,
+                  ok: false,
+                  reason: "execute-failed",
+                  ranCount,
+                  failingStatement: stmt.slice(0, 200),
+                  error: captureError(e),
+                },
+                { status: 500 }
+              );
+            }
+          }
+          return NextResponse.json({
+            version: VERSION,
+            ok: true,
+            ran: "generateSchema+execute",
+            statementCount: statements.length,
+          });
+        }
+        return NextResponse.json(
+          {
+            version: VERSION,
+            ok: false,
+            reason: "generateSchema-empty",
+            sqlPreview:
+              typeof sql === "string" ? sql.slice(0, 500) : typeof sql,
+          },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json(
+        { version: VERSION, ok: false, reason: "no-generateSchema" },
+        { status: 500 }
+      );
     } catch (err) {
       return NextResponse.json(
         {
