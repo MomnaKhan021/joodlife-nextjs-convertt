@@ -1,23 +1,25 @@
 /**
- * Diagnostic endpoint that surfaces the underlying Payload init error.
- * Hit `/api/_diag` to see exactly why Payload won't boot — env-var
- * presence checks + the raw error message from getPayload().
+ * Diagnostic endpoint that surfaces Payload init + user-create errors.
  *
- * This is intentionally read-only and only reports back the SHAPE of
- * env values (length / starts-with), never the values themselves, so
- * it's safe to leave deployed during early integration.
+ *   GET  /api/diag — env-var presence + boot status
+ *   POST /api/diag/?action=create-user
+ *     body: { name, email, password }
+ *     → calls payload.create({ collection: "users", ... }) and returns
+ *       the *real* error if it fails
+ *
+ * Read-only on env (length / first 12 chars only — never the full
+ * value). Safe to leave deployed during integration.
  */
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 function describe(value: string | undefined) {
   if (!value) return { present: false };
-  const startsWith = value.slice(0, 12);
   return {
     present: true,
     length: value.length,
-    startsWith: startsWith + (value.length > 12 ? "…" : ""),
+    startsWith: value.slice(0, 12) + (value.length > 12 ? "…" : ""),
   };
 }
 
@@ -32,13 +34,12 @@ function resolveDb(): { name: string | null; value: string | null } {
   for (const k of exact) {
     if (process.env[k]) return { name: k, value: process.env[k] as string };
   }
-  const suffixes = [
+  for (const s of [
     "DATABASE_URL_UNPOOLED",
     "POSTGRES_URL_NON_POOLING",
     "DATABASE_URL",
     "POSTGRES_URL",
-  ];
-  for (const s of suffixes) {
+  ]) {
     const found = Object.keys(process.env).find(
       (k) => k.endsWith(s) && process.env[k]
     );
@@ -47,39 +48,59 @@ function resolveDb(): { name: string | null; value: string | null } {
   return { name: null, value: null };
 }
 
-export async function GET() {
+function envSnapshot() {
   const db = resolveDb();
-  const env = {
+  return {
     DATABASE_URL_resolved_from: db.name,
     DATABASE_URL: describe(db.value ?? undefined),
     PAYLOAD_SECRET: describe(process.env.PAYLOAD_SECRET),
     NEXT_PUBLIC_SERVER_URL: describe(process.env.NEXT_PUBLIC_SERVER_URL),
     PAYLOAD_PUBLIC_SERVER_URL: describe(process.env.PAYLOAD_PUBLIC_SERVER_URL),
-    // Helpful when an integration uses a prefix — we list candidate keys so
-    // you can see at a glance which the runtime can see.
     available_db_keys: Object.keys(process.env).filter(
-      (k) =>
-        /DATABASE_URL|POSTGRES_URL|DATABASE_URI/.test(k) && process.env[k]
+      (k) => /DATABASE_URL|POSTGRES_URL|DATABASE_URI/.test(k) && process.env[k]
     ),
     NODE_ENV: process.env.NODE_ENV,
   };
+}
 
-  if (!db.value) {
+function captureError(err: unknown) {
+  const e = err as Error & {
+    cause?: unknown;
+    code?: string;
+    data?: unknown;
+  };
+  return {
+    name: e.name,
+    message: e.message,
+    code: e.code,
+    cause:
+      e.cause && typeof e.cause === "object"
+        ? (e.cause as { message?: string; code?: string }).message ??
+          JSON.stringify(e.cause).slice(0, 300)
+        : undefined,
+    data:
+      typeof e.data === "object"
+        ? JSON.stringify(e.data).slice(0, 300)
+        : undefined,
+    stack: e.stack?.split("\n").slice(0, 8).join("\n"),
+  };
+}
+
+export async function GET() {
+  const env = envSnapshot();
+
+  if (!env.DATABASE_URL.present) {
     return NextResponse.json(
       {
         ok: false,
         reason: "missing-env",
         env,
-        hint: "No Postgres URL found. Add DATABASE_URI in Vercel (or rename your Neon integration to use DATABASE_URL_UNPOOLED / POSTGRES_URL_NON_POOLING).",
+        hint: "No Postgres URL found. Add DATABASE_URI in Vercel.",
       },
       { status: 500 }
     );
   }
-  // PAYLOAD_SECRET is optional — payload.config.ts falls back to a
-  // SHA-256 of DATABASE_URL when missing. We just note its presence
-  // in the response for visibility.
 
-  // Attempt to boot Payload and capture the underlying error
   try {
     const { getPayloadInstance } = await import("@/lib/payload");
     const payload = await getPayloadInstance();
@@ -92,20 +113,67 @@ export async function GET() {
       },
     });
   } catch (err) {
-    const e = err as Error;
     return NextResponse.json(
       {
         ok: false,
         reason: "payload-init-failed",
         env,
-        error: {
-          name: e.name,
-          message: e.message,
-          // Drizzle / pg errors often include nested `cause`
-          cause: (e as Error & { cause?: { message?: string } }).cause?.message,
-          // First few lines of stack to help diagnose
-          stack: e.stack?.split("\n").slice(0, 6).join("\n"),
-        },
+        error: captureError(err),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const action = req.nextUrl.searchParams.get("action");
+  if (action !== "create-user") {
+    return NextResponse.json({ ok: false, reason: "unknown-action" }, { status: 400 });
+  }
+
+  let body: { name?: string; email?: string; password?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { ok: false, reason: "invalid-json" },
+      { status: 400 }
+    );
+  }
+
+  const { name, email, password } = body;
+  if (!name || !email || !password) {
+    return NextResponse.json(
+      { ok: false, reason: "missing-fields", needs: ["name", "email", "password"] },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const { getPayloadInstance } = await import("@/lib/payload");
+    const payload = await getPayloadInstance();
+
+    const created = await payload.create({
+      collection: "users",
+      data: { name, email, password },
+      overrideAccess: true,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      created: {
+        id: String(created.id),
+        email: created.email,
+        name: (created as { name?: string }).name,
+        role: (created as { role?: string }).role,
+      },
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        ok: false,
+        reason: "create-failed",
+        error: captureError(err),
       },
       { status: 500 }
     );
