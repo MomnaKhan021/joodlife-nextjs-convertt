@@ -79,21 +79,31 @@ textarea {
 
 [data-theme="light"] .nav .nav__header,
 [data-theme="light"] .template-default__nav .nav__header {
-  padding: 18px 20px 14px;
+  padding: 22px 20px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="light"] .nav .nav__scroll,
 [data-theme="light"] .template-default__nav .nav__scroll {
-  padding: 14px 12px 24px;
+  /* Pad the top so the floating collapse arrow Payload renders in
+     the top-right of the nav doesn't overlap the first group label. */
+  padding: 28px 12px 24px;
+}
+
+/* Bump nav text contrast for legibility on the dark surface */
+[data-theme="light"] .nav,
+[data-theme="light"] .template-default__nav {
+  color: rgba(255, 255, 255, 0.92);
 }
 
 [data-theme="light"] .nav a,
 [data-theme="light"] .template-default__nav a {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.86);
   font-weight: 500;
   border-radius: 8px;
   letter-spacing: -0.005em;
+  padding: 8px 12px;
+  display: inline-block;
   transition:
     background-color 180ms ease,
     color 180ms ease;
@@ -135,42 +145,45 @@ textarea {
    slot when a Logo is alongside it — `.nav__header .jood-admin-icon`
    is suppressed below. */
 
-.jood-admin-logo,
-.jood-admin-icon {
+.jood-admin-logo {
   display: inline-flex;
   align-items: center;
   color: var(--jood-text);
 }
 
-.jood-admin-logo svg,
-.jood-admin-icon svg {
+.jood-admin-logo svg {
   height: 32px;
   width: auto;
 }
 
-/* On the login screen — go larger */
+/* Compact monogram for tight slots (top bar). Square, fits any 32px
+   container without overflow / clipping. */
+.jood-admin-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jood-admin-icon svg {
+  height: 32px;
+  width: 32px;
+  display: block;
+}
+
+/* On the login screen the full wordmark goes larger */
 .template-minimal .jood-admin-logo svg {
   height: 44px;
 }
 
-/* In the dark sidebar — flip to leaf and shrink slightly */
+/* In the dark sidebar — flip the wordmark to leaf and shrink slightly */
 [data-theme="light"] .nav .jood-admin-logo,
-[data-theme="light"] .nav__header .jood-admin-logo,
-[data-theme="light"] .nav .jood-admin-icon,
-[data-theme="light"] .nav__header .jood-admin-icon {
+[data-theme="light"] .nav__header .jood-admin-logo {
   color: var(--jood-leaf);
 }
 
 [data-theme="light"] .nav .jood-admin-logo svg,
 [data-theme="light"] .nav__header .jood-admin-logo svg {
   height: 26px;
-}
-
-/* When both Logo and Icon land in the same header, suppress the Icon
-   so we don't render two copies of the wordmark side-by-side. */
-.nav__header .jood-admin-icon,
-.template-default__nav .jood-admin-icon {
-  display: none;
 }
 
 /* ------------------------------------------------------------------ */
