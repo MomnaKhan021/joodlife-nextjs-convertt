@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v9-direct-import";
+const VERSION = "diag-v10-handwritten-sql";
 
 export async function GET() {
   const env = envSnapshot();
@@ -143,57 +143,89 @@ export async function POST(req: NextRequest) {
       const { getPayloadInstance } = await import("@/lib/payload");
       const payload = await getPayloadInstance();
       const db = payload.db as unknown as {
-        drizzle?: unknown;
-        schema?: Record<string, unknown>;
+        execute?: (args: { raw?: string }) => Promise<unknown>;
       };
 
-      // Direct dynamic import of drizzle-kit/api — avoids Payload's
-      // internal `requireDrizzleKit` which Turbopack mangles to a
-      // hashed module specifier.
-      const dkMod = (await import(/* @vite-ignore */ "drizzle-kit/api")) as {
-        pushSchema?: (
-          schema: Record<string, unknown>,
-          client: unknown
-        ) => Promise<{
-          warnings?: string[];
-          apply?: () => Promise<void>;
-          statementsToExecute?: string[];
-        }>;
-      };
-
-      if (!dkMod.pushSchema) {
+      if (!db.execute) {
         return NextResponse.json(
-          {
-            version: VERSION,
-            ok: false,
-            reason: "drizzle-kit-no-pushSchema",
-            keys: Object.keys(dkMod),
-          },
+          { version: VERSION, ok: false, reason: "no-execute" },
           { status: 500 }
         );
       }
 
-      const result = await dkMod.pushSchema(
-        db.schema ?? {},
-        db.drizzle as unknown
-      );
-      if (result?.apply) {
-        await result.apply();
+      // Hand-written SQL for the minimum schema Payload's auth path
+      // needs (users + users_sessions). Other Payload tables get
+      // auto-created lazily when their first query runs through
+      // Drizzle's dev push at admin time. This bootstraps the
+      // signup flow without depending on drizzle-kit/api at runtime
+      // (which Turbopack can't load on Vercel).
+      const SQL = `
+        CREATE TABLE IF NOT EXISTS "users" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "name" varchar,
+          "role" varchar DEFAULT 'customer' NOT NULL,
+          "email" varchar NOT NULL UNIQUE,
+          "reset_password_token" varchar,
+          "reset_password_expiration" timestamp(3) with time zone,
+          "salt" varchar,
+          "hash" varchar,
+          "login_attempts" numeric DEFAULT 0,
+          "lock_until" timestamp(3) with time zone,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS "users_email_idx" ON "users" ("email");
+        CREATE INDEX IF NOT EXISTS "users_created_at_idx" ON "users" ("created_at");
+        CREATE INDEX IF NOT EXISTS "users_updated_at_idx" ON "users" ("updated_at");
+
+        CREATE TABLE IF NOT EXISTS "users_sessions" (
+          "_order" integer NOT NULL,
+          "_parent_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+          "id" varchar PRIMARY KEY NOT NULL,
+          "created_at" timestamp(3) with time zone,
+          "expires_at" timestamp(3) with time zone
+        );
+        CREATE INDEX IF NOT EXISTS "users_sessions_order_idx" ON "users_sessions" ("_order");
+        CREATE INDEX IF NOT EXISTS "users_sessions_parent_id_idx" ON "users_sessions" ("_parent_id");
+      `;
+
+      // Split + execute one statement at a time so a partial failure
+      // doesn't leave a half-applied transaction.
+      const statements = SQL.split(";")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const ran: string[] = [];
+      for (const s of statements) {
+        try {
+          await db.execute({ raw: s });
+          ran.push(s.slice(0, 80));
+        } catch (e) {
+          return NextResponse.json(
+            {
+              version: VERSION,
+              ok: false,
+              reason: "execute-failed",
+              ran,
+              failingStatement: s.slice(0, 200),
+              error: captureError(e),
+            },
+            { status: 500 }
+          );
+        }
       }
 
       return NextResponse.json({
         version: VERSION,
         ok: true,
-        ran: "drizzle-kit/api pushSchema",
-        warnings: result?.warnings,
-        statements: result?.statementsToExecute?.length,
+        ran: ran.length,
+        message: "users + users_sessions tables ensured",
       });
     } catch (err) {
       return NextResponse.json(
         {
           version: VERSION,
           ok: false,
-          reason: "push-failed",
+          reason: "migrate-init-failed",
           error: captureError(err),
         },
         { status: 500 }
