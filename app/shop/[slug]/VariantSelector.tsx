@@ -14,28 +14,31 @@ export default function VariantSelector({
   productId,
   variants,
   fallbackPrice,
-  fallbackComparePrice,
 }: {
   productId: string | number;
   variants: Variant[];
   fallbackPrice?: number | null;
-  fallbackComparePrice?: number | null;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const active = variants[activeIndex];
 
-  const price = active?.price ?? fallbackPrice;
-  const compareAt = active?.comparePrice ?? fallbackComparePrice;
-  const stock = active?.stock ?? 0;
+  const price =
+    active?.price !== undefined && active?.price !== null
+      ? active.price
+      : fallbackPrice;
+  const compareAt = active?.comparePrice;
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-baseline gap-3">
-        <span className="font-display text-[28px] font-bold text-[#142e2a]">
+        <span className="font-display text-[36px] font-semibold text-[#142e2a]">
           {typeof price === "number" ? `£${price.toFixed(2)}` : "—"}
         </span>
-        {typeof compareAt === "number" && typeof price === "number" && compareAt > price ? (
-          <span className="font-ui text-[16px] text-[#142e2a]/50 line-through">
+        <span className="font-ui text-[14px] text-[#142e2a]/60">/ month*</span>
+        {typeof compareAt === "number" &&
+        typeof price === "number" &&
+        compareAt > price ? (
+          <span className="font-ui text-[16px] text-[#142e2a]/45 line-through">
             £{compareAt.toFixed(2)}
           </span>
         ) : null}
@@ -43,8 +46,8 @@ export default function VariantSelector({
 
       {variants.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <p className="font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-[#142e2a]/70">
-            Dose / size
+          <p className="font-ui text-[12px] font-semibold uppercase tracking-[0.08em] text-[#142e2a]/60">
+            Dosage
           </p>
           <div className="flex flex-wrap gap-2">
             {variants.map((v, i) => {
@@ -68,10 +71,6 @@ export default function VariantSelector({
         </div>
       ) : null}
 
-      <p className="font-ui text-[13px] text-[#142e2a]/60">
-        {stock > 0 ? `In stock: ${stock}` : "Out of stock"}
-      </p>
-
       <form
         action="/api/storefront/orders"
         method="post"
@@ -83,10 +82,9 @@ export default function VariantSelector({
         ) : null}
         <button
           type="submit"
-          disabled={stock <= 0}
-          className="inline-flex h-[50px] w-fit items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421] disabled:cursor-not-allowed disabled:bg-[#142e2a]/40"
+          className="inline-flex h-[54px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421]"
         >
-          {stock > 0 ? "Buy now" : "Sold out"}
+          Get started
         </button>
       </form>
     </div>

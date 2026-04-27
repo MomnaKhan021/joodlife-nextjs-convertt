@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost" },
       // Allow Shopify CDN (for imported Shopify product images)
       { protocol: "https", hostname: "cdn.shopify.com" },
+      // Allow joodlife.com's CDN proxy (where the live store hosts product imagery)
+      { protocol: "https", hostname: "joodlife.com" },
     ],
   },
 };

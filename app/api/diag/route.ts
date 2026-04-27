@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v14-alter-rels";
+const VERSION = "diag-v15-seed-products";
 
 export async function GET() {
   const env = envSnapshot();
@@ -345,6 +345,182 @@ export async function POST(req: NextRequest) {
           version: VERSION,
           ok: false,
           reason: "migrate-init-failed",
+          error: captureError(err),
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  // POST /api/diag?action=seed-products
+  // Adds the missing columns to the products stub table, wipes any
+  // existing rows, and inserts the three medications scraped from
+  // joodlife.com (Mounjaro, Wegovy, Saxenda). Each row carries its
+  // hero image URL, tagline, "from" price, and variant list as JSON.
+  if (action === "seed-products") {
+    try {
+      const { getPayloadInstance } = await import("@/lib/payload");
+      const payload = await getPayloadInstance();
+      const db = payload.db as unknown as {
+        execute?: (args: { drizzle?: unknown; raw?: string }) => Promise<unknown>;
+        drizzle?: unknown;
+      };
+      if (!db.execute || !db.drizzle) {
+        return NextResponse.json(
+          { ok: false, reason: "no-execute" },
+          { status: 500 }
+        );
+      }
+
+      const SQL = `
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "tagline" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "from_price" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "hero_image_url" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "gallery_image_urls" jsonb;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "variants_json" jsonb;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "subscription_price" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "badge" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_value" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_count" integer;
+        DELETE FROM "products";
+      `;
+
+      const ddl = SQL.split(";")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      for (const stmt of ddl) {
+        await db.execute({ drizzle: db.drizzle, raw: stmt });
+      }
+
+      const products = [
+        {
+          title: "Mounjaro",
+          slug: "mounjaro",
+          tagline: "Tirzepatide",
+          description:
+            "Once-weekly injection that activates GLP-1 and GIP receptors. Suppresses appetite and supports metabolic health. MHRA-approved, prescribed online after clinician review.",
+          category: "medication",
+          fromPrice: 139,
+          subscriptionPrice: 189,
+          heroImageUrl:
+            "https://joodlife.com/cdn/shop/files/2.png?v=1767173456&width=1200",
+          galleryImageUrls: [
+            "https://joodlife.com/cdn/shop/files/2.png?v=1767173456&width=1200",
+            "https://joodlife.com/cdn/shop/files/Rectangle_5574.png?v=1767173528&width=1200",
+            "https://joodlife.com/cdn/shop/files/Frame_2147239881.png?v=1767173497&width=1200",
+            "https://joodlife.com/cdn/shop/files/4.png?v=1767173456&width=1200",
+          ],
+          variants: [
+            { label: "2.5 mg",  price: 139 },
+            { label: "5 mg",    price: 153 },
+            { label: "7.5 mg",  price: 205 },
+            { label: "10 mg",   price: 230 },
+            { label: "12.5 mg", price: 247 },
+            { label: "15 mg",   price: 269 },
+          ],
+          ratingValue: 4.8,
+          ratingCount: 312,
+          badge: "Best seller",
+        },
+        {
+          title: "Wegovy",
+          slug: "wegovy",
+          tagline: "Semaglutide",
+          description:
+            "Prescription-only once-weekly injection. Activates GLP-1 receptors to reduce appetite and increase fullness, supporting steady weight loss alongside lifestyle changes.",
+          category: "medication",
+          fromPrice: 90,
+          subscriptionPrice: 189,
+          heroImageUrl:
+            "https://joodlife.com/cdn/shop/files/3.png?v=1767173497&width=1200",
+          galleryImageUrls: [
+            "https://joodlife.com/cdn/shop/files/3.png?v=1767173497&width=1200",
+            "https://joodlife.com/cdn/shop/files/Frame_2147239881.png?v=1767173497&width=1200",
+            "https://joodlife.com/cdn/shop/files/Rectangle_5574.png?v=1767173528&width=1200",
+            "https://joodlife.com/cdn/shop/files/5.png?v=1767173497&width=1200",
+          ],
+          variants: [
+            { label: "0.25 mg", price: 90 },
+            { label: "0.5 mg",  price: 90 },
+            { label: "1 mg",    price: 90 },
+            { label: "1.7 mg",  price: 145 },
+            { label: "2.4 mg",  price: 234 },
+          ],
+          ratingValue: 4.8,
+          ratingCount: 248,
+          badge: null,
+        },
+        {
+          title: "Saxenda",
+          slug: "saxenda",
+          tagline: "Liraglutide",
+          description:
+            "Clinician-prescribed daily injection that helps reduce appetite. A long-established GLP-1 option for steady, supported weight management.",
+          category: "medication",
+          fromPrice: 145,
+          subscriptionPrice: 189,
+          heroImageUrl:
+            "https://joodlife.com/cdn/shop/files/4_1.png?v=1767173528&width=1200",
+          galleryImageUrls: [
+            "https://joodlife.com/cdn/shop/files/4_1.png?v=1767173528&width=1200",
+            "https://joodlife.com/cdn/shop/files/4.png?v=1767173456&width=1200",
+          ],
+          variants: [
+            { label: "6 mg",  price: 145 },
+            { label: "12 mg", price: 199 },
+            { label: "18 mg", price: 245 },
+          ],
+          ratingValue: 4.7,
+          ratingCount: 96,
+          badge: null,
+        },
+      ];
+
+      let inserted = 0;
+      for (const p of products) {
+        const insert = `
+          INSERT INTO "products" (
+            title, slug, description, category, is_active,
+            tagline, from_price, hero_image_url,
+            gallery_image_urls, variants_json,
+            subscription_price, rating_value, rating_count, badge,
+            updated_at, created_at
+          ) VALUES (
+            $T_TITLE, $T_SLUG, $T_DESC, 'medication', true,
+            $T_TAGLINE, ${p.fromPrice}, $T_HERO,
+            $T_GALLERY::jsonb, $T_VARIANTS::jsonb,
+            ${p.subscriptionPrice}, ${p.ratingValue}, ${p.ratingCount},
+            ${p.badge ? "$T_BADGE" : "NULL"},
+            now(), now()
+          );
+        `;
+        // We don't have a parametrised execute so escape strings inline
+        const esc = (s: string) => "'" + s.replace(/'/g, "''") + "'";
+        const filled = insert
+          .replace("$T_TITLE", esc(p.title))
+          .replace("$T_SLUG", esc(p.slug))
+          .replace("$T_DESC", esc(p.description))
+          .replace("$T_TAGLINE", esc(p.tagline))
+          .replace("$T_HERO", esc(p.heroImageUrl))
+          .replace("$T_GALLERY", esc(JSON.stringify(p.galleryImageUrls)))
+          .replace("$T_VARIANTS", esc(JSON.stringify(p.variants)))
+          .replace("$T_BADGE", p.badge ? esc(p.badge) : "");
+        await db.execute({ drizzle: db.drizzle, raw: filled });
+        inserted++;
+      }
+
+      return NextResponse.json({
+        version: VERSION,
+        ok: true,
+        inserted,
+        products: products.map((p) => p.slug),
+      });
+    } catch (err) {
+      return NextResponse.json(
+        {
+          version: VERSION,
+          ok: false,
+          reason: "seed-failed",
           error: captureError(err),
         },
         { status: 500 }
