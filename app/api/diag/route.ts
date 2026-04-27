@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v11-pass-drizzle";
+const VERSION = "diag-v12-promote+payload-internals";
 
 export async function GET() {
   const env = envSnapshot();
@@ -160,12 +160,10 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Hand-written SQL for the minimum schema Payload's auth path
-      // needs (users + users_sessions). Other Payload tables get
-      // auto-created lazily when their first query runs through
-      // Drizzle's dev push at admin time. This bootstraps the
-      // signup flow without depending on drizzle-kit/api at runtime
-      // (which Turbopack can't load on Vercel).
+      // Hand-written SQL for the minimum schema Payload needs to render
+      // /admin: users + users_sessions for auth, plus the Payload-internal
+      // tables (preferences, locked documents, migrations, kv) that the
+      // admin UI reads on every navigation.
       const SQL = `
         CREATE TABLE IF NOT EXISTS "users" (
           "id" serial PRIMARY KEY NOT NULL,
@@ -194,6 +192,50 @@ export async function POST(req: NextRequest) {
         );
         CREATE INDEX IF NOT EXISTS "users_sessions_order_idx" ON "users_sessions" ("_order");
         CREATE INDEX IF NOT EXISTS "users_sessions_parent_id_idx" ON "users_sessions" ("_parent_id");
+
+        CREATE TABLE IF NOT EXISTS "payload_preferences" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "key" varchar,
+          "value" jsonb,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS "payload_preferences_key_idx" ON "payload_preferences" ("key");
+
+        CREATE TABLE IF NOT EXISTS "payload_preferences_rels" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "order" integer,
+          "parent_id" integer NOT NULL REFERENCES "payload_preferences"("id") ON DELETE CASCADE,
+          "path" varchar NOT NULL,
+          "users_id" integer REFERENCES "users"("id") ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS "payload_preferences_rels_parent_id_idx" ON "payload_preferences_rels" ("parent_id");
+        CREATE INDEX IF NOT EXISTS "payload_preferences_rels_path_idx" ON "payload_preferences_rels" ("path");
+
+        CREATE TABLE IF NOT EXISTS "payload_locked_documents" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "global_slug" varchar,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS "payload_locked_documents_global_slug_idx" ON "payload_locked_documents" ("global_slug");
+
+        CREATE TABLE IF NOT EXISTS "payload_locked_documents_rels" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "order" integer,
+          "parent_id" integer NOT NULL REFERENCES "payload_locked_documents"("id") ON DELETE CASCADE,
+          "path" varchar NOT NULL,
+          "users_id" integer REFERENCES "users"("id") ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_parent_id_idx" ON "payload_locked_documents_rels" ("parent_id");
+
+        CREATE TABLE IF NOT EXISTS "payload_migrations" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "name" varchar,
+          "batch" numeric,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
       `;
 
       // Split + execute one statement at a time so a partial failure
@@ -233,6 +275,67 @@ export async function POST(req: NextRequest) {
           version: VERSION,
           ok: false,
           reason: "migrate-init-failed",
+          error: captureError(err),
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  // Promote a user to admin role. Pass {email} in the body.
+  if (action === "promote") {
+    let body: { email?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { ok: false, reason: "invalid-json" },
+        { status: 400 }
+      );
+    }
+    if (!body.email) {
+      return NextResponse.json(
+        { ok: false, reason: "missing-email" },
+        { status: 400 }
+      );
+    }
+    try {
+      const { getPayloadInstance } = await import("@/lib/payload");
+      const payload = await getPayloadInstance();
+      const found = await payload.find({
+        collection: "users",
+        where: { email: { equals: body.email } },
+        limit: 1,
+        overrideAccess: true,
+      });
+      const target = found.docs[0];
+      if (!target) {
+        return NextResponse.json(
+          { ok: false, reason: "user-not-found" },
+          { status: 404 }
+        );
+      }
+      const updated = await payload.update({
+        collection: "users",
+        id: target.id,
+        data: { role: "admin" } as Record<string, unknown>,
+        overrideAccess: true,
+      });
+      return NextResponse.json({
+        version: VERSION,
+        ok: true,
+        promoted: {
+          id: String(updated.id),
+          email: updated.email,
+          role: (updated as { role?: string }).role,
+        },
+      });
+    } catch (err) {
+      return NextResponse.json(
+        {
+          version: VERSION,
+          ok: false,
+          reason: "promote-failed",
           error: captureError(err),
         },
         { status: 500 }
