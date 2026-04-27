@@ -41,28 +41,28 @@ export async function POST(req: NextRequest) {
   // Pull fresh product docs + compute a server-trusted subtotal.
   const orderItems = await Promise.all(
     items.map(async (i) => {
-      const product = await payload.findByID({
+      const product = (await payload.findByID({
         collection: "products",
         id: i.productId,
         depth: 0,
-      });
+      })) as Record<string, unknown> & { id: string | number };
       const quantity = Math.max(1, Number(i.quantity ?? 1));
+      // Variant pricing lives in `variants_json`. With no variant
+      // selection on the order payload, fall back to the displayed
+      // "from" price. Stock is variant-level too — checkout-time
+      // reservation will be re-implemented when checkout ships.
+      const priceAtPurchase = Number(
+        (product.fromPrice as number | undefined) ??
+          (product.from_price as number | undefined) ??
+          0
+      );
       return {
         product: product.id,
         quantity,
-        priceAtPurchase: product.price,
-        _stock: product.stock,
+        priceAtPurchase,
       };
     })
   );
-
-  const insufficient = orderItems.find((i) => i.quantity > (i._stock ?? 0));
-  if (insufficient) {
-    return NextResponse.json(
-      { error: "Insufficient stock for one or more items" },
-      { status: 409 }
-    );
-  }
 
   const subtotal =
     Math.round(
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
     collection: "orders",
     data: {
       user: user.id,
-      products: orderItems.map(({ _stock, ...rest }) => rest),
+      products: orderItems,
       discount: discountId,
       discountAmount,
       totalAmount,

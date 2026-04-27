@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v15-seed-products";
+const VERSION = "diag-v16-cms-products";
 
 export async function GET() {
   const env = envSnapshot();
@@ -374,12 +374,15 @@ export async function POST(req: NextRequest) {
 
       const SQL = `
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "tagline" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "card_copy" text;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "from_price" numeric;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "hero_image_url" varchar;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "gallery_image_urls" jsonb;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "variants_json" jsonb;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "subscription_price" numeric;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "badge" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "footer_color" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "display_order" integer DEFAULT 100;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_value" numeric;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_count" integer;
         DELETE FROM "products";
@@ -397,11 +400,15 @@ export async function POST(req: NextRequest) {
           title: "Mounjaro",
           slug: "mounjaro",
           tagline: "Tirzepatide",
+          cardCopy:
+            "Our most advanced weight-loss option. Supports appetite control and long-term results.",
           description:
             "Once-weekly injection that activates GLP-1 and GIP receptors. Suppresses appetite and supports metabolic health. MHRA-approved, prescribed online after clinician review.",
           category: "medication",
           fromPrice: 139,
           subscriptionPrice: 189,
+          displayOrder: 1,
+          footerColor: "#3a2350",
           heroImageUrl:
             "https://joodlife.com/cdn/shop/files/2.png?v=1767173456&width=1200",
           galleryImageUrls: [
@@ -426,11 +433,15 @@ export async function POST(req: NextRequest) {
           title: "Wegovy",
           slug: "wegovy",
           tagline: "Semaglutide",
+          cardCopy:
+            "Once-weekly appetite control. Supports steady weight loss.",
           description:
             "Prescription-only once-weekly injection. Activates GLP-1 receptors to reduce appetite and increase fullness, supporting steady weight loss alongside lifestyle changes.",
           category: "medication",
           fromPrice: 90,
           subscriptionPrice: 189,
+          displayOrder: 2,
+          footerColor: "#2e3030",
           heroImageUrl:
             "https://joodlife.com/cdn/shop/files/3.png?v=1767173497&width=1200",
           galleryImageUrls: [
@@ -454,11 +465,15 @@ export async function POST(req: NextRequest) {
           title: "Saxenda",
           slug: "saxenda",
           tagline: "Liraglutide",
+          cardCopy:
+            "Clinician-prescribed treatment to help reduce appetite.",
           description:
             "Clinician-prescribed daily injection that helps reduce appetite. A long-established GLP-1 option for steady, supported weight management.",
           category: "medication",
           fromPrice: 145,
           subscriptionPrice: 189,
+          displayOrder: 3,
+          footerColor: "#3f5675",
           heroImageUrl:
             "https://joodlife.com/cdn/shop/files/4_1.png?v=1767173528&width=1200",
           galleryImageUrls: [
@@ -481,15 +496,17 @@ export async function POST(req: NextRequest) {
         const insert = `
           INSERT INTO "products" (
             title, slug, description, category, is_active,
-            tagline, from_price, hero_image_url,
+            tagline, card_copy, from_price, hero_image_url,
             gallery_image_urls, variants_json,
-            subscription_price, rating_value, rating_count, badge,
+            subscription_price, display_order, footer_color,
+            rating_value, rating_count, badge,
             updated_at, created_at
           ) VALUES (
             $T_TITLE, $T_SLUG, $T_DESC, 'medication', true,
-            $T_TAGLINE, ${p.fromPrice}, $T_HERO,
+            $T_TAGLINE, $T_CARDCOPY, ${p.fromPrice}, $T_HERO,
             $T_GALLERY::jsonb, $T_VARIANTS::jsonb,
-            ${p.subscriptionPrice}, ${p.ratingValue}, ${p.ratingCount},
+            ${p.subscriptionPrice}, ${p.displayOrder}, $T_FOOTERCOLOR,
+            ${p.ratingValue}, ${p.ratingCount},
             ${p.badge ? "$T_BADGE" : "NULL"},
             now(), now()
           );
@@ -501,6 +518,8 @@ export async function POST(req: NextRequest) {
           .replace("$T_SLUG", esc(p.slug))
           .replace("$T_DESC", esc(p.description))
           .replace("$T_TAGLINE", esc(p.tagline))
+          .replace("$T_CARDCOPY", esc(p.cardCopy))
+          .replace("$T_FOOTERCOLOR", esc(p.footerColor))
           .replace("$T_HERO", esc(p.heroImageUrl))
           .replace("$T_GALLERY", esc(JSON.stringify(p.galleryImageUrls)))
           .replace("$T_VARIANTS", esc(JSON.stringify(p.variants)))

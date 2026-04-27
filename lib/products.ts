@@ -15,10 +15,13 @@ export type StorefrontProduct = {
   title: string;
   slug: string;
   tagline: string | null;
+  cardCopy: string | null;
   description: string;
   category: string;
   fromPrice: number | null;
   subscriptionPrice: number | null;
+  displayOrder: number | null;
+  footerColor: string | null;
   heroImageUrl: string | null;
   galleryImageUrls: string[];
   variants: ProductVariant[];
@@ -33,10 +36,13 @@ type Row = {
   title: string;
   slug: string;
   tagline: string | null;
+  card_copy: string | null;
   description: string;
   category: string;
   from_price: string | null;
   subscription_price: string | null;
+  display_order: number | null;
+  footer_color: string | null;
   hero_image_url: string | null;
   gallery_image_urls: unknown;
   variants_json: unknown;
@@ -52,11 +58,14 @@ function rowToProduct(row: Row): StorefrontProduct {
     title: row.title,
     slug: row.slug,
     tagline: row.tagline,
+    cardCopy: row.card_copy,
     description: row.description,
     category: row.category,
     fromPrice: row.from_price !== null ? Number(row.from_price) : null,
     subscriptionPrice:
       row.subscription_price !== null ? Number(row.subscription_price) : null,
+    displayOrder: row.display_order,
+    footerColor: row.footer_color,
     heroImageUrl: row.hero_image_url,
     galleryImageUrls: Array.isArray(row.gallery_image_urls)
       ? (row.gallery_image_urls as string[])
@@ -76,6 +85,10 @@ function rowToProduct(row: Row): StorefrontProduct {
  * hatch. We avoid Payload's `find()` because the products schema is
  * the lightweight stub we created via /api/diag — it doesn't carry
  * all of the relationship tables Payload's Local API expects.
+ *
+ * Admin updates through /admin still hit the same `products` table
+ * (Payload writes the same column names declared in the collection
+ * config), so anything written there is immediately visible here.
  */
 async function rawQuery<T>(sql: string): Promise<T[]> {
   const payload = await getPayloadInstance();
@@ -96,16 +109,18 @@ async function rawQuery<T>(sql: string): Promise<T[]> {
   return Array.isArray(result) ? result : (result.rows ?? []);
 }
 
+const SELECT_COLUMNS = `id, title, slug, tagline, card_copy, description, category,
+       from_price, subscription_price, display_order, footer_color,
+       hero_image_url, gallery_image_urls, variants_json,
+       rating_value, rating_count, badge, is_active`;
+
 export async function listStorefrontProducts(): Promise<StorefrontProduct[]> {
   try {
     const rows = await rawQuery<Row>(
-      `SELECT id, title, slug, tagline, description, category,
-              from_price, subscription_price, hero_image_url,
-              gallery_image_urls, variants_json,
-              rating_value, rating_count, badge, is_active
+      `SELECT ${SELECT_COLUMNS}
        FROM products
        WHERE is_active = true
-       ORDER BY from_price ASC NULLS LAST, id ASC`
+       ORDER BY display_order ASC NULLS LAST, from_price ASC NULLS LAST, id ASC`
     );
     return rows.map(rowToProduct);
   } catch (err) {
@@ -122,10 +137,7 @@ export async function getStorefrontProduct(
   try {
     const safeSlug = slug.replace(/'/g, "''");
     const rows = await rawQuery<Row>(
-      `SELECT id, title, slug, tagline, description, category,
-              from_price, subscription_price, hero_image_url,
-              gallery_image_urls, variants_json,
-              rating_value, rating_count, badge, is_active
+      `SELECT ${SELECT_COLUMNS}
        FROM products
        WHERE slug = '${safeSlug}' AND is_active = true
        LIMIT 1`
