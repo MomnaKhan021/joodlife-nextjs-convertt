@@ -124,6 +124,13 @@ export default buildConfig({
     pool: {
       connectionString: DATABASE_URL,
     },
+    // Auto-sync the Drizzle schema with Postgres so first-boot doesn't
+    // hit "relation X does not exist". On Vercel this turns the
+    // freshly-provisioned Neon DB into a fully-tabled Payload schema
+    // without needing a separate `payload migrate` step. Safe for a
+    // single-environment setup; if you adopt staging/prod separation,
+    // switch to migrations and set push to false in production.
+    push: true,
   }),
   // Allow same-origin and explicit configured URLs. Vercel
   // sets VERCEL_URL automatically (no protocol) for every deploy,
