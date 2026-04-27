@@ -4,9 +4,11 @@ import { useState } from "react";
 
 export type Variant = {
   label?: string;
+  size?: string | null;
+  color?: string | null;
   price?: number | null;
   comparePrice?: number | null;
-  sku?: string;
+  sku?: string | null;
   stock?: number | null;
 };
 

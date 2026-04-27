@@ -5,23 +5,19 @@ import { isPublic } from "../access/isLoggedIn";
 
 /**
  * Storefront product. Drives both the /shop collection page and
- * each /shop/[slug] PDP. Image-heavy fields are stored as plain
- * URLs (or JSON arrays of URLs) rather than upload-relations so
- * Payload's Drizzle adapter doesn't need separate join tables —
- * everything lives in one row of the `products` table.
+ * each /shop/[slug] PDP. Two parallel ways to attach images/variants:
  *
- * Column-name mapping (Payload snake_cases field names):
- *   tagline           -> tagline
- *   cardCopy          -> card_copy
- *   fromPrice         -> from_price
- *   subscriptionPrice -> subscription_price
- *   displayOrder      -> display_order
- *   heroImageUrl      -> hero_image_url
- *   galleryImageUrls  -> gallery_image_urls (jsonb)
- *   variantsJson      -> variants_json (jsonb)
- *   footerColor       -> footer_color
- *   ratingValue       -> rating_value
- *   ratingCount       -> rating_count
+ * 1. Native Payload arrays (preferred):
+ *    - `images`  — array of upload-to-media rows (uploads via /admin)
+ *    - `variants` — array of structured rows (size, colour, price,
+ *      comparePrice, sku, stock)
+ *
+ * 2. URL-based fallbacks (used by the joodlife.com seed):
+ *    - `heroImageUrl` (text), `galleryImageUrls` (json)
+ *    - `variantsJson` (json)
+ *
+ * lib/products.ts prefers (1) when present, falls back to (2) so
+ * existing seeded rows keep rendering while admins migrate them.
  */
 export const Products: CollectionConfig = {
   slug: "products",
@@ -37,7 +33,7 @@ export const Products: CollectionConfig = {
     group: "Commerce",
   },
   access: {
-    read: isPublic, // storefront needs to read products
+    read: isPublic,
     create: isAdmin,
     update: isAdmin,
     delete: isAdmin,
@@ -122,6 +118,16 @@ export const Products: CollectionConfig = {
           },
         },
         {
+          name: "comparePrice",
+          type: "number",
+          min: 0,
+          admin: {
+            width: "33%",
+            description:
+              "Optional MSRP / strike-through price shown next to the active price.",
+          },
+        },
+        {
           name: "subscriptionPrice",
           type: "number",
           min: 0,
@@ -130,42 +136,125 @@ export const Products: CollectionConfig = {
             description: "Optional ongoing subscription price (£).",
           },
         },
+      ],
+    },
+    {
+      name: "displayOrder",
+      type: "number",
+      defaultValue: 100,
+      admin: {
+        description: "Lower numbers appear first on /shop.",
+      },
+    },
+    /* ---------------------------------------------------------------- */
+    /* Product images — uploaded via the Media collection                */
+    /* ---------------------------------------------------------------- */
+    {
+      name: "images",
+      type: "array",
+      label: "Product images",
+      labels: { singular: "Image", plural: "Images" },
+      admin: {
+        description:
+          "Upload product photos. The first image is the hero shot used on /shop and the PDP gallery.",
+      },
+      fields: [
         {
-          name: "displayOrder",
-          type: "number",
-          defaultValue: 100,
+          name: "image",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+        },
+        {
+          name: "alt",
+          type: "text",
           admin: {
-            width: "33%",
-            description: "Lower numbers appear first on /shop.",
+            description:
+              "Optional override for the image's alt text (defaults to the Media row's alt).",
           },
         },
       ],
     },
+    /* ---------------------------------------------------------------- */
+    /* Variants — size / colour / dosage rows with their own pricing     */
+    /* ---------------------------------------------------------------- */
     {
-      name: "heroImageUrl",
-      type: "text",
-      admin: {
-        description:
-          "Full URL or /uploads path. The image's brand colour fills the card backdrop.",
-      },
-    },
-    {
-      name: "galleryImageUrls",
-      type: "json",
-      admin: {
-        description:
-          'PDP gallery images as a JSON array of URLs, e.g. ["https://…/1.png", "https://…/2.png"].',
-      },
-    },
-    {
-      name: "variantsJson",
-      type: "json",
+      name: "variants",
+      type: "array",
       label: "Variants",
+      labels: { singular: "Variant", plural: "Variants" },
       admin: {
         description:
-          'Array of dose options, e.g. [{"label":"5 mg","price":153,"sku":"MNJ-5"}]',
+          "Each row is a buyable option (e.g. 5 mg / Black / Large). Leave empty for a single-price product.",
       },
+      fields: [
+        {
+          type: "row",
+          fields: [
+            {
+              name: "label",
+              type: "text",
+              required: true,
+              admin: {
+                width: "33%",
+                description: 'e.g. "5 mg" or "Large"',
+              },
+            },
+            {
+              name: "size",
+              type: "text",
+              admin: { width: "33%" },
+            },
+            {
+              name: "color",
+              type: "text",
+              admin: { width: "33%", description: "Optional colour name." },
+            },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            {
+              name: "price",
+              type: "number",
+              required: true,
+              min: 0,
+              admin: { width: "50%" },
+            },
+            {
+              name: "comparePrice",
+              type: "number",
+              min: 0,
+              admin: {
+                width: "50%",
+                description: "Strike-through price for this variant.",
+              },
+            },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            {
+              name: "sku",
+              type: "text",
+              admin: { width: "50%" },
+            },
+            {
+              name: "stock",
+              type: "number",
+              defaultValue: 0,
+              min: 0,
+              admin: { width: "50%" },
+            },
+          ],
+        },
+      ],
     },
+    /* ---------------------------------------------------------------- */
+    /* Card styling                                                      */
+    /* ---------------------------------------------------------------- */
     {
       type: "row",
       fields: [
@@ -204,6 +293,41 @@ export const Products: CollectionConfig = {
           type: "number",
           min: 0,
           admin: { width: "50%" },
+        },
+      ],
+    },
+    /* ---------------------------------------------------------------- */
+    /* URL-based fallbacks (collapsible advanced section)                */
+    /* ---------------------------------------------------------------- */
+    {
+      type: "collapsible",
+      label: "URL-based image fallback (advanced)",
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: "heroImageUrl",
+          type: "text",
+          admin: {
+            description:
+              "Used only when no Product images are uploaded above. Useful for importing existing CDN URLs.",
+          },
+        },
+        {
+          name: "galleryImageUrls",
+          type: "json",
+          admin: {
+            description:
+              'JSON array of image URLs, e.g. ["https://…/1.png", "https://…/2.png"]',
+          },
+        },
+        {
+          name: "variantsJson",
+          type: "json",
+          label: "Variants (legacy JSON)",
+          admin: {
+            description:
+              "Legacy variants list. Used only when the Variants array above is empty.",
+          },
         },
       ],
     },

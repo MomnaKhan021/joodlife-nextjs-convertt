@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 
 import { Users } from "./src/payload/collections/Users";
 import { Products } from "./src/payload/collections/Products";
@@ -164,4 +165,26 @@ export default buildConfig({
       fileSize: 10_000_000, // 10 MB
     },
   },
+  /**
+   * Storage plugins. Vercel Blob persists uploaded files to Vercel's
+   * managed object store so admin uploads survive serverless cold-starts
+   * (the default disk-backed store doesn't on Vercel — every function
+   * instance gets its own ephemeral filesystem).
+   *
+   * Auto-enabled when BLOB_READ_WRITE_TOKEN is set in env. To turn it on:
+   *   1. In Vercel project: Storage → Connect Blob (gives a token)
+   *   2. The token gets exposed as BLOB_READ_WRITE_TOKEN automatically
+   *   3. Redeploy. Uploads from /admin will now go to Vercel Blob.
+   *
+   * Without the token the plugin is omitted and Payload falls back to
+   * the local staticDir — fine for dev, ephemeral on Vercel.
+   */
+  plugins: process.env.BLOB_READ_WRITE_TOKEN
+    ? [
+        vercelBlobStorage({
+          collections: { media: true },
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        }),
+      ]
+    : [],
 });

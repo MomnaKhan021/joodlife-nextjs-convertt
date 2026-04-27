@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v16-cms-products";
+const VERSION = "diag-v17-cms-uploads-variants";
 
 export async function GET() {
   const env = envSnapshot();
@@ -306,6 +306,73 @@ export async function POST(req: NextRequest) {
           "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
           "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
         );
+
+        -- Extra storefront columns on products
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "compare_price" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "tagline" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "card_copy" text;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "from_price" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "subscription_price" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "display_order" integer DEFAULT 100;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "hero_image_url" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "gallery_image_urls" jsonb;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "variants_json" jsonb;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "footer_color" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "badge" varchar;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_value" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_count" integer;
+
+        -- Native Payload array — uploads-to-media join table
+        CREATE TABLE IF NOT EXISTS "products_images" (
+          "_order" integer NOT NULL,
+          "_parent_id" integer NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+          "id" varchar PRIMARY KEY NOT NULL,
+          "image_id" integer REFERENCES "media"("id") ON DELETE SET NULL,
+          "alt" varchar
+        );
+        CREATE INDEX IF NOT EXISTS "products_images_order_idx" ON "products_images" ("_order");
+        CREATE INDEX IF NOT EXISTS "products_images_parent_id_idx" ON "products_images" ("_parent_id");
+        CREATE INDEX IF NOT EXISTS "products_images_image_idx" ON "products_images" ("image_id");
+
+        -- Native Payload array — variants with size/color/price/comparePrice/sku/stock
+        CREATE TABLE IF NOT EXISTS "products_variants" (
+          "_order" integer NOT NULL,
+          "_parent_id" integer NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+          "id" varchar PRIMARY KEY NOT NULL,
+          "label" varchar,
+          "size" varchar,
+          "color" varchar,
+          "price" numeric,
+          "compare_price" numeric,
+          "sku" varchar,
+          "stock" numeric DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS "products_variants_order_idx" ON "products_variants" ("_order");
+        CREATE INDEX IF NOT EXISTS "products_variants_parent_id_idx" ON "products_variants" ("_parent_id");
+
+        -- Media: image-size columns (for the thumb/card/feature variants
+        -- defined in src/payload/collections/Media.ts). Without these,
+        -- Payload's upload handler errors on INSERT.
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_url" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_width" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_height" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_mime_type" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_filesize" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_filename" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_url" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_width" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_height" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_mime_type" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_filesize" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_filename" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_url" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_width" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_height" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_mime_type" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filesize" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filename" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_x" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_y" numeric;
       `;
 
       // Split + execute one statement at a time so a partial failure
@@ -376,6 +443,7 @@ export async function POST(req: NextRequest) {
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "tagline" varchar;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "card_copy" text;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "from_price" numeric;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "compare_price" numeric;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "hero_image_url" varchar;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "gallery_image_urls" jsonb;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "variants_json" jsonb;
@@ -385,6 +453,56 @@ export async function POST(req: NextRequest) {
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "display_order" integer DEFAULT 100;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_value" numeric;
         ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "rating_count" integer;
+
+        -- Native Payload array join tables (admin-managed images + variants)
+        CREATE TABLE IF NOT EXISTS "products_variants" (
+          "_order" integer NOT NULL,
+          "_parent_id" integer NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+          "id" varchar PRIMARY KEY NOT NULL,
+          "label" varchar,
+          "size" varchar,
+          "color" varchar,
+          "price" numeric,
+          "compare_price" numeric,
+          "sku" varchar,
+          "stock" numeric DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS "products_variants_order_idx" ON "products_variants" ("_order");
+        CREATE INDEX IF NOT EXISTS "products_variants_parent_id_idx" ON "products_variants" ("_parent_id");
+
+        CREATE TABLE IF NOT EXISTS "products_images" (
+          "_order" integer NOT NULL,
+          "_parent_id" integer NOT NULL REFERENCES "products"("id") ON DELETE CASCADE,
+          "id" varchar PRIMARY KEY NOT NULL,
+          "image_id" integer REFERENCES "media"("id") ON DELETE SET NULL,
+          "alt" varchar
+        );
+        CREATE INDEX IF NOT EXISTS "products_images_order_idx" ON "products_images" ("_order");
+        CREATE INDEX IF NOT EXISTS "products_images_parent_id_idx" ON "products_images" ("_parent_id");
+        CREATE INDEX IF NOT EXISTS "products_images_image_idx" ON "products_images" ("image_id");
+
+        -- Media: image-size columns for Payload upload pipeline
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_url" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_width" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_height" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_mime_type" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_filesize" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_thumb_filename" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_url" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_width" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_height" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_mime_type" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_filesize" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_card_filename" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_url" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_width" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_height" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_mime_type" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filesize" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filename" varchar;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_x" numeric;
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_y" numeric;
+
         DELETE FROM "products";
       `;
 
@@ -491,8 +609,12 @@ export async function POST(req: NextRequest) {
         },
       ];
 
+      const esc = (s: string) => "'" + s.replace(/'/g, "''") + "'";
+
       let inserted = 0;
+      let variantRows = 0;
       for (const p of products) {
+        // 1) Upsert the product row, capture its generated id.
         const insert = `
           INSERT INTO "products" (
             title, slug, description, category, is_active,
@@ -509,10 +631,8 @@ export async function POST(req: NextRequest) {
             ${p.ratingValue}, ${p.ratingCount},
             ${p.badge ? "$T_BADGE" : "NULL"},
             now(), now()
-          );
+          ) RETURNING id;
         `;
-        // We don't have a parametrised execute so escape strings inline
-        const esc = (s: string) => "'" + s.replace(/'/g, "''") + "'";
         const filled = insert
           .replace("$T_TITLE", esc(p.title))
           .replace("$T_SLUG", esc(p.slug))
@@ -524,14 +644,44 @@ export async function POST(req: NextRequest) {
           .replace("$T_GALLERY", esc(JSON.stringify(p.galleryImageUrls)))
           .replace("$T_VARIANTS", esc(JSON.stringify(p.variants)))
           .replace("$T_BADGE", p.badge ? esc(p.badge) : "");
-        await db.execute({ drizzle: db.drizzle, raw: filled });
+
+        const result = (await db.execute({
+          drizzle: db.drizzle,
+          raw: filled,
+        })) as { rows?: Array<{ id: number }> } | Array<{ id: number }>;
+
+        const rows = Array.isArray(result) ? result : (result.rows ?? []);
+        const productId = rows[0]?.id;
         inserted++;
+
+        // 2) Populate the products_variants table so the structured
+        //    array shows up in Payload admin AND on the storefront.
+        if (productId) {
+          for (let i = 0; i < p.variants.length; i++) {
+            const v = p.variants[i];
+            const uuid =
+              typeof crypto !== "undefined" && "randomUUID" in crypto
+                ? crypto.randomUUID()
+                : `${p.slug}-v-${i}`;
+            const variantSql = `
+              INSERT INTO "products_variants"
+                (_order, _parent_id, id, label, price)
+              VALUES
+                (${i + 1}, ${productId}, $T_UUID, $T_LABEL, ${v.price});
+            `
+              .replace("$T_UUID", esc(uuid))
+              .replace("$T_LABEL", esc(v.label));
+            await db.execute({ drizzle: db.drizzle, raw: variantSql });
+            variantRows++;
+          }
+        }
       }
 
       return NextResponse.json({
         version: VERSION,
         ok: true,
         inserted,
+        variantRows,
         products: products.map((p) => p.slug),
       });
     } catch (err) {
