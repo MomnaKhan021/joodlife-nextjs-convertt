@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v5-generate-schema";
+const VERSION = "diag-v6-tmp-output";
 
 export async function GET() {
   const env = envSnapshot();
@@ -163,8 +163,12 @@ export async function POST(req: NextRequest) {
       }
 
       // Approach 2: generate the schema SQL and run it via execute()
+      // generateSchema() writes to disk by default — redirect to /tmp
+      // since /var/task is read-only on Vercel.
       if (typeof db.generateSchema === "function") {
-        const sql = await db.generateSchema();
+        const sql = await db.generateSchema({
+          outputFile: "/tmp/payload-generated-schema.ts",
+        } as Parameters<typeof db.generateSchema>[0]);
         if (typeof sql === "string" && sql.length > 0 && db.execute) {
           // Split on `;` boundaries, run each non-empty statement.
           // Drizzle's pg execute accepts { drizzle, raw } — try raw first.
