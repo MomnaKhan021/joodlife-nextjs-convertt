@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v10-handwritten-sql";
+const VERSION = "diag-v11-pass-drizzle";
 
 export async function GET() {
   const env = envSnapshot();
@@ -143,12 +143,19 @@ export async function POST(req: NextRequest) {
       const { getPayloadInstance } = await import("@/lib/payload");
       const payload = await getPayloadInstance();
       const db = payload.db as unknown as {
-        execute?: (args: { raw?: string }) => Promise<unknown>;
+        execute?: (args: { drizzle?: unknown; raw?: string }) => Promise<unknown>;
+        drizzle?: { execute?: (sql: unknown) => Promise<unknown> };
       };
 
-      if (!db.execute) {
+      if (!db.execute || !db.drizzle) {
         return NextResponse.json(
-          { version: VERSION, ok: false, reason: "no-execute" },
+          {
+            version: VERSION,
+            ok: false,
+            reason: "no-execute",
+            hasExecute: typeof db.execute,
+            hasDrizzle: typeof db.drizzle,
+          },
           { status: 500 }
         );
       }
@@ -197,7 +204,7 @@ export async function POST(req: NextRequest) {
       const ran: string[] = [];
       for (const s of statements) {
         try {
-          await db.execute({ raw: s });
+          await db.execute({ drizzle: db.drizzle, raw: s });
           ran.push(s.slice(0, 80));
         } catch (e) {
           return NextResponse.json(
