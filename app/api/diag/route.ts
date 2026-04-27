@@ -142,25 +142,59 @@ export async function POST(req: NextRequest) {
     try {
       const { getPayloadInstance } = await import("@/lib/payload");
       const payload = await getPayloadInstance();
-      const db = payload.db as unknown as {
-        push?: () => Promise<void>;
-        migrate?: () => Promise<void>;
-      };
-      if (typeof db.push === "function") {
-        await db.push();
-        return NextResponse.json({ version: VERSION, ok: true, ran: "push" });
+      const db = payload.db as unknown as Record<string, unknown>;
+      // List all callable methods on the adapter so we can see exactly
+      // which schema-push function exists in this Payload version.
+      const methods = Object.getOwnPropertyNames(
+        Object.getPrototypeOf(db) ?? {}
+      )
+        .concat(Object.keys(db))
+        .filter((k) => typeof (db as Record<string, unknown>)[k] === "function")
+        .sort();
+      const ran: string[] = [];
+
+      // Try every plausible name in order
+      for (const name of [
+        "pushDevSchema",
+        "pushSchema",
+        "push",
+        "createMigration",
+        "migrate",
+      ]) {
+        if (typeof (db as Record<string, unknown>)[name] === "function") {
+          try {
+            await (db as Record<string, () => Promise<unknown>>)[name]();
+            ran.push(name);
+          } catch (e) {
+            return NextResponse.json(
+              {
+                version: VERSION,
+                ok: false,
+                reason: `${name}-failed`,
+                methods,
+                ran,
+                error: captureError(e),
+              },
+              { status: 500 }
+            );
+          }
+        }
       }
-      if (typeof db.migrate === "function") {
-        await db.migrate();
-        return NextResponse.json({ version: VERSION, ok: true, ran: "migrate" });
-      }
-      return NextResponse.json(
-        { version: VERSION, ok: false, reason: "no-migrate-fn" },
-        { status: 500 }
-      );
+
+      return NextResponse.json({
+        version: VERSION,
+        ok: ran.length > 0,
+        ran,
+        methods,
+      });
     } catch (err) {
       return NextResponse.json(
-        { version: VERSION, ok: false, reason: "migrate-failed", error: captureError(err) },
+        {
+          version: VERSION,
+          ok: false,
+          reason: "migrate-init-failed",
+          error: captureError(err),
+        },
         { status: 500 }
       );
     }
