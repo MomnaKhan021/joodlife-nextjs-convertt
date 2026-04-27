@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v12-promote+payload-internals";
+const VERSION = "diag-v13-stub-collections";
 
 export async function GET() {
   const env = envSnapshot();
@@ -220,12 +220,76 @@ export async function POST(req: NextRequest) {
         );
         CREATE INDEX IF NOT EXISTS "payload_locked_documents_global_slug_idx" ON "payload_locked_documents" ("global_slug");
 
+        -- Stub tables for the other collections so FK references in
+        -- payload_locked_documents_rels resolve. Real schemas can be
+        -- expanded later as you start using each collection.
+        CREATE TABLE IF NOT EXISTS "products" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "title" varchar,
+          "slug" varchar,
+          "description" text,
+          "price" numeric,
+          "compare_price" numeric,
+          "sku" varchar,
+          "stock" numeric DEFAULT 0,
+          "category" varchar,
+          "is_active" boolean DEFAULT true,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS "orders" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "order_number" varchar,
+          "user_id" integer REFERENCES "users"("id") ON DELETE SET NULL,
+          "discount_id" integer,
+          "discount_amount" numeric DEFAULT 0,
+          "total_amount" numeric,
+          "status" varchar DEFAULT 'pending',
+          "payment_method" varchar DEFAULT 'card',
+          "notes" text,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS "discounts" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "code" varchar UNIQUE,
+          "type" varchar DEFAULT 'percentage',
+          "value" numeric,
+          "expiry_date" timestamp(3) with time zone,
+          "usage_limit" numeric,
+          "usage_count" numeric DEFAULT 0,
+          "is_active" boolean DEFAULT true,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS "media" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "alt" varchar,
+          "caption" varchar,
+          "url" varchar,
+          "thumbnail_u_r_l" varchar,
+          "filename" varchar,
+          "mime_type" varchar,
+          "filesize" numeric,
+          "width" numeric,
+          "height" numeric,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS "payload_locked_documents_rels" (
           "id" serial PRIMARY KEY NOT NULL,
           "order" integer,
           "parent_id" integer NOT NULL REFERENCES "payload_locked_documents"("id") ON DELETE CASCADE,
           "path" varchar NOT NULL,
-          "users_id" integer REFERENCES "users"("id") ON DELETE CASCADE
+          "users_id" integer REFERENCES "users"("id") ON DELETE CASCADE,
+          "products_id" integer REFERENCES "products"("id") ON DELETE CASCADE,
+          "orders_id" integer REFERENCES "orders"("id") ON DELETE CASCADE,
+          "discounts_id" integer REFERENCES "discounts"("id") ON DELETE CASCADE,
+          "media_id" integer REFERENCES "media"("id") ON DELETE CASCADE
         );
         CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_parent_id_idx" ON "payload_locked_documents_rels" ("parent_id");
 
