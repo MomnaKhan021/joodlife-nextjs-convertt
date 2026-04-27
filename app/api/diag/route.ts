@@ -86,6 +86,10 @@ function captureError(err: unknown) {
   };
 }
 
+// Bump this when shipping a new diag — lets us confirm the function
+// is the latest build.
+const VERSION = "diag-v3-push-check";
+
 export async function GET() {
   const env = envSnapshot();
 
@@ -105,6 +109,7 @@ export async function GET() {
     const { getPayloadInstance } = await import("@/lib/payload");
     const payload = await getPayloadInstance();
     return NextResponse.json({
+      version: VERSION,
       ok: true,
       env,
       payload: {
@@ -115,6 +120,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json(
       {
+        version: VERSION,
         ok: false,
         reason: "payload-init-failed",
         env,
@@ -127,8 +133,41 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const action = req.nextUrl.searchParams.get("action");
+
+  // POST /api/diag?action=migrate — forces the Drizzle schema push so
+  // the empty Postgres gets all Payload tables created up-front. Useful
+  // when push: true on the adapter doesn't trigger because Payload 3.x
+  // skips it under NODE_ENV=production by default.
+  if (action === "migrate") {
+    try {
+      const { getPayloadInstance } = await import("@/lib/payload");
+      const payload = await getPayloadInstance();
+      const db = payload.db as unknown as {
+        push?: () => Promise<void>;
+        migrate?: () => Promise<void>;
+      };
+      if (typeof db.push === "function") {
+        await db.push();
+        return NextResponse.json({ version: VERSION, ok: true, ran: "push" });
+      }
+      if (typeof db.migrate === "function") {
+        await db.migrate();
+        return NextResponse.json({ version: VERSION, ok: true, ran: "migrate" });
+      }
+      return NextResponse.json(
+        { version: VERSION, ok: false, reason: "no-migrate-fn" },
+        { status: 500 }
+      );
+    } catch (err) {
+      return NextResponse.json(
+        { version: VERSION, ok: false, reason: "migrate-failed", error: captureError(err) },
+        { status: 500 }
+      );
+    }
+  }
+
   if (action !== "create-user") {
-    return NextResponse.json({ ok: false, reason: "unknown-action" }, { status: 400 });
+    return NextResponse.json({ version: VERSION, ok: false, reason: "unknown-action" }, { status: 400 });
   }
 
   let body: { name?: string; email?: string; password?: string };
