@@ -88,7 +88,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v17-cms-uploads-variants";
+const VERSION = "diag-v18-user-profile";
 
 export async function GET() {
   const env = envSnapshot();
@@ -373,6 +373,14 @@ export async function POST(req: NextRequest) {
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filename" varchar;
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_x" numeric;
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_y" numeric;
+
+        -- Users: profile fields (phone + avatar relation).
+        -- Note: media must be created first (above) for the FK to resolve.
+        -- Inline REFERENCES is idempotent under ADD COLUMN IF NOT EXISTS:
+        -- the whole clause is skipped when the column already exists.
+        ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "phone" varchar;
+        ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_id" integer REFERENCES "media"("id") ON DELETE SET NULL;
+        CREATE INDEX IF NOT EXISTS "users_avatar_idx" ON "users" ("avatar_id");
       `;
 
       // Split + execute one statement at a time so a partial failure
