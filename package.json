@@ -14,6 +14,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@payloadcms/db-postgres": "^3.0.0",
+    "drizzle-kit": "^0.27.2",
     "@payloadcms/next": "^3.0.0",
     "@payloadcms/richtext-lexical": "^3.0.0",
     "@payloadcms/ui": "^3.0.0",
