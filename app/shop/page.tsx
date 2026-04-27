@@ -13,6 +13,34 @@ export const metadata = {
   title: "Shop — JoodLife",
 };
 
+/**
+ * Per-product card overrides. Each joodlife.com card uses the brand
+ * colour baked into the product image as its full backdrop, with a
+ * darker variant of that colour for the bottom price/CTA strip and a
+ * 1–2 sentence "card" copy that's tighter than the SEO description.
+ *
+ * The hex values approximate the colours sampled from joodlife.com's
+ * production images.
+ */
+const CARD_THEMES: Record<
+  string,
+  { footerBg: string; cardCopy: string }
+> = {
+  mounjaro: {
+    footerBg: "#3a2350",
+    cardCopy:
+      "Our most advanced weight-loss option. Supports appetite control and long-term results.",
+  },
+  wegovy: {
+    footerBg: "#2e3030",
+    cardCopy: "Once-weekly appetite control. Supports steady weight loss.",
+  },
+  saxenda: {
+    footerBg: "#3f5675",
+    cardCopy: "Clinician-prescribed treatment to help reduce appetite.",
+  },
+};
+
 export default async function ShopPage() {
   const products = await listStorefrontProducts();
 
@@ -21,24 +49,14 @@ export default async function ShopPage() {
       <AnnouncementBar />
       <Header />
 
-      {/* Hero / intro — matches home-page section typography */}
-      <section className="mx-auto w-full max-w-[1440px] px-6 pt-12 pb-8 text-center md:px-[60px] md:pt-20 md:pb-12">
+      {/* Heading — left aligned, "for you." on second line in italic serif */}
+      <section className="mx-auto w-full max-w-[1440px] px-6 pt-12 pb-8 md:px-[60px] md:pt-16 md:pb-10">
         <Reveal>
-          <p className="font-ui text-[12px] font-semibold uppercase tracking-[0.18em] text-[#142e2a]/60">
-            Treatments
-          </p>
-        </Reveal>
-        <Reveal delay={80}>
-          <h1 className="mt-3 font-display text-[32px] font-semibold leading-[38px] tracking-[-0.025em] text-[#142e2a] md:text-[56px] md:leading-[60px]">
-            Weight loss solutions{" "}
-            <em className="font-serif italic font-normal">for you</em>
+          <h1 className="font-display text-[40px] font-semibold leading-[44px] tracking-[-0.025em] text-[#142e2a] md:text-[56px] md:leading-[60px]">
+            Weight loss solutions
+            <br />
+            <em className="font-serif italic font-normal">for you.</em>
           </h1>
-        </Reveal>
-        <Reveal delay={160}>
-          <p className="mx-auto mt-4 max-w-[640px] font-ui text-[15px] leading-[22px] text-[#142e2a]/75 md:text-[16px] md:leading-[26px]">
-            Clinically proven treatments, prescribed online, delivered next-day.
-            Every plan is reviewed by a UK-licensed clinician before dispatch.
-          </p>
         </Reveal>
       </section>
 
@@ -56,80 +74,90 @@ export default async function ShopPage() {
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-7">
-            {products.map((p, i) => (
-              <Reveal as="li" key={p.id} delay={i * 120}>
-                <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-[#142e2a]/10 bg-[#f7f9f2] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(20,46,42,0.10)]">
-                  {p.badge ? (
-                    <span className="absolute left-4 top-4 z-10 rounded-full bg-[#142e2a] px-3 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-[0_4px_12px_rgba(20,46,42,0.18)]">
-                      {p.badge}
-                    </span>
-                  ) : null}
+            {products.map((p, i) => {
+              const theme = CARD_THEMES[p.slug] ?? {
+                footerBg: "#142e2a",
+                cardCopy: p.description,
+              };
+              return (
+                <Reveal as="li" key={p.id} delay={i * 120}>
+                  <article className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-3xl transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(20,46,42,0.16)]">
+                    {/* Full-bleed product image — its baked-in colour
+                        becomes the card backdrop */}
+                    {p.heroImageUrl ? (
+                      <Image
+                        src={p.heroImageUrl}
+                        alt={p.title}
+                        fill
+                        sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 33vw"
+                        className="object-cover object-right transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                        priority={i === 0}
+                      />
+                    ) : null}
 
-                  <Link
-                    href={`/shop/${p.slug}`}
-                    className="flex flex-1 flex-col gap-5 p-5 md:p-6"
-                  >
-                    {/* Image tile */}
-                    <div className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl bg-white">
-                      {p.heroImageUrl ? (
-                        <Image
-                          src={p.heroImageUrl}
-                          alt={p.title}
-                          fill
-                          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 33vw"
-                          className="object-contain p-6 transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                        />
-                      ) : null}
-                    </div>
-
-                    {/* Body */}
-                    <div className="flex flex-1 flex-col gap-3">
-                      {/* Active-ingredient pill (tagline) */}
+                    {/* Top-left content stack */}
+                    <div className="relative z-10 flex flex-1 flex-col gap-3 p-5 pr-2 md:p-6 md:pr-3">
+                      {/* Active-ingredient pill */}
                       {p.tagline ? (
-                        <span className="inline-flex w-fit items-center rounded-full border border-[#142e2a]/15 bg-white px-3 py-1 font-ui text-[11px] font-semibold uppercase tracking-[0.12em] text-[#142e2a]/70">
+                        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 font-ui text-[12px] font-medium text-[#142e2a] shadow-[0_2px_6px_rgba(20,46,42,0.06)] backdrop-blur-sm">
+                          <span
+                            aria-hidden
+                            className="h-1.5 w-1.5 rounded-full bg-[#3aa55a]"
+                          />
                           {p.tagline}
                         </span>
                       ) : null}
 
                       {/* Title */}
-                      <h2 className="font-display text-[28px] font-semibold leading-[32px] tracking-[-0.02em] text-[#142e2a] md:text-[32px] md:leading-[36px]">
+                      <h2 className="font-display text-[22px] font-bold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[28px]">
                         {p.title}
                       </h2>
 
-                      {/* Description */}
-                      <p className="line-clamp-3 font-ui text-[14px] leading-[21px] text-[#142e2a]/75 md:text-[15px] md:leading-[22px]">
-                        {p.description}
+                      {/* Short card copy */}
+                      <p className="max-w-[55%] font-ui text-[13px] leading-[19px] text-[#142e2a]/85 md:text-[14px] md:leading-[20px]">
+                        {theme.cardCopy}
                       </p>
-
-                      {/* Price */}
-                      {p.fromPrice !== null ? (
-                        <p className="mt-auto pt-3 font-ui text-[13px] text-[#142e2a]/65 md:text-[14px]">
-                          Starting from{" "}
-                          <span className="font-display text-[20px] font-semibold text-[#142e2a] md:text-[22px]">
-                            £{p.fromPrice.toFixed(2)}
-                          </span>
-                          /month*
-                        </p>
-                      ) : null}
                     </div>
-                  </Link>
 
-                  {/* CTA */}
-                  <div className="px-5 pb-5 md:px-6 md:pb-6">
+                    {/* Optional badge top-right (e.g. "Best seller") */}
+                    {p.badge ? (
+                      <span className="absolute right-4 top-4 z-10 rounded-full bg-[#142e2a] px-3 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-[0_4px_12px_rgba(20,46,42,0.18)]">
+                        {p.badge}
+                      </span>
+                    ) : null}
+
+                    {/* Bottom strip: price (left) + Get Started (right) */}
+                    <div
+                      className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-3 px-5 py-3.5 md:px-6 md:py-4"
+                      style={{ backgroundColor: theme.footerBg }}
+                    >
+                      <span className="font-ui text-[13px] font-semibold text-white md:text-[14px]">
+                        {p.fromPrice !== null
+                          ? `Starting from £${p.fromPrice.toFixed(0)}/month*`
+                          : "Starting from /month*"}
+                      </span>
+                      <Link
+                        href={`/shop/${p.slug}`}
+                        className="inline-flex h-[34px] items-center justify-center rounded-full bg-white px-4 font-ui text-[12px] font-semibold text-[#142e2a] transition-colors duration-200 hover:bg-[#f7f9f2] md:h-[38px] md:px-5 md:text-[13px]"
+                      >
+                        Get Started
+                      </Link>
+                    </div>
+
+                    {/* Whole-card click target — sits behind the CTA */}
                     <Link
                       href={`/shop/${p.slug}`}
-                      className="inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
-                    >
-                      Get started
-                    </Link>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
+                      aria-label={`Open ${p.title}`}
+                      className="absolute inset-0 z-0"
+                    />
+                  </article>
+                </Reveal>
+              );
+            })}
           </ul>
         )}
 
-        <p className="mt-8 text-center font-ui text-[12px] text-[#142e2a]/55 md:mt-10">
+        <p className="mt-8 font-ui text-[12px] text-[#142e2a]/55 md:mt-10">
           *Prices shown are starting prices. Final cost depends on your
           treatment plan after clinical review.
         </p>
