@@ -42,6 +42,8 @@ next-env.d.ts
 
 # Claude Code local settings (may contain tokens)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
 
 # Figma reference PNGs (visual compare only, not shipped)
 /figma-refs/
