@@ -281,16 +281,19 @@ textarea {
 /* "Dashboard" text link in the app-header breadcrumb (replaced the
    small J badge — see components/admin/Icon.tsx).
 
-   Payload's app-header reserves a square ~32px slot for graphics.Icon.
-   We have to widen the parent so a multi-character word fits, and
-   cap the link's overflow behaviour explicitly. */
-.app-header .graphic-icon,
-.app-header .nav__brand,
-.app-header [class*="graphic"] {
+   Payload's app-header wraps graphics.Icon in `.step-nav__home`
+   (an <a>) plus an unnamed inner <span>, both pinned to ~18px wide
+   with overflow: hidden. DOM probe at 1440 confirmed the chain. We
+   force every link in that chain to size to its content so the
+   word "Dashboard" actually shows up. */
+.app-header .step-nav__home,
+.app-header .step-nav__home > span,
+.app-header .step-nav__home > * {
   width: auto !important;
-  min-width: auto !important;
+  min-width: 0 !important;
   max-width: none !important;
   overflow: visible !important;
+  height: auto !important;
 }
 
 .jood-admin-home {
