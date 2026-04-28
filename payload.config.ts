@@ -199,12 +199,13 @@ export default buildConfig({
    * Without the token the plugin is omitted and Payload falls back to
    * the local staticDir — fine for dev, ephemeral on Vercel.
    */
-  plugins: process.env.BLOB_READ_WRITE_TOKEN
-    ? [
-        vercelBlobStorage({
-          collections: { media: true },
-          token: process.env.BLOB_READ_WRITE_TOKEN,
-        }),
-      ]
-    : [],
+  plugins:
+    process.env.BLOB_READ_WRITE_TOKEN && process.env.JOOD_BLOB_ENABLED === "true"
+      ? [
+          vercelBlobStorage({
+            collections: { media: true },
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+          }),
+        ]
+      : [],
 });
