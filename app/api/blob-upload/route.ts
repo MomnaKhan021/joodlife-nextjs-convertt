@@ -88,6 +88,9 @@ export async function POST(req: NextRequest) {
   const prefix = Math.random().toString(36).slice(2, 10);
   const path = `media/${prefix}/${safeName}`;
 
+  let blobUrl: string;
+  let blobSize: number;
+  let blobMime: string;
   try {
     const { put } = (await import("@vercel/blob")) as typeof import("@vercel/blob");
     const result = await put(path, file as Blob, {
@@ -95,13 +98,9 @@ export async function POST(req: NextRequest) {
       addRandomSuffix: false,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
-    return NextResponse.json({
-      ok: true,
-      url: result.url,
-      filename: safeName,
-      size: (file as File).size,
-      contentType: (file as File).type,
-    });
+    blobUrl = result.url;
+    blobSize = (file as File).size;
+    blobMime = (file as File).type;
   } catch (err) {
     return NextResponse.json(
       {
@@ -112,6 +111,78 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // Caller can opt out of Media-row creation by passing ?no-record=1.
+  // Default is to also create the Media row so the upload immediately
+  // shows up in /admin/collections/media and Product image pickers.
+  const skipRecord = req.nextUrl.searchParams.get("no-record") === "1";
+  if (skipRecord) {
+    return NextResponse.json({
+      ok: true,
+      url: blobUrl,
+      filename: safeName,
+      size: blobSize,
+      contentType: blobMime,
+    });
+  }
+
+  // Optional alt text from the form, defaulting to the filename.
+  const alt = (form.get("alt") as string | null)?.toString().trim() || safeName;
+  const caption = (form.get("caption") as string | null)?.toString().trim() ?? "";
+
+  // Direct SQL INSERT into the media table. Payload's Local API .create()
+  // routes through the upload pipeline (multipart parse + disk write) and
+  // fails on Vercel's read-only filesystem, so we sidestep it by writing
+  // the row directly. The schema columns we touch all exist via
+  // /api/diag?action=migrate.
+  let mediaId: number | null = null;
+  try {
+    const drizzle = (
+      payload.db as unknown as {
+        drizzle?: { execute?: (q: unknown) => Promise<unknown> };
+      }
+    ).drizzle;
+    if (!drizzle?.execute) {
+      throw new Error("payload.db.drizzle.execute unavailable");
+    }
+    const { sql: drizzleSql } = (await import("drizzle-orm")) as {
+      sql: { raw: (s: string) => unknown };
+    };
+    const esc = (s: string) => "'" + s.replace(/'/g, "''") + "'";
+    const stmt = `
+      INSERT INTO "media"
+        (alt, caption, url, filename, mime_type, filesize, updated_at, created_at)
+      VALUES
+        (${esc(alt)}, ${caption ? esc(caption) : "NULL"}, ${esc(blobUrl)},
+         ${esc(safeName)}, ${esc(blobMime || "application/octet-stream")},
+         ${blobSize || 0}, now(), now())
+      RETURNING id;
+    `;
+    const result = (await drizzle.execute(drizzleSql.raw(stmt))) as
+      | { rows?: Array<{ id: number }> }
+      | Array<{ id: number }>;
+    const rows = Array.isArray(result) ? result : (result.rows ?? []);
+    mediaId = rows[0]?.id ?? null;
+  } catch (err) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Media row insert failed",
+        url: blobUrl,
+        detail: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    url: blobUrl,
+    filename: safeName,
+    size: blobSize,
+    contentType: blobMime,
+    mediaId,
+  });
 }
 
 export async function GET() {
