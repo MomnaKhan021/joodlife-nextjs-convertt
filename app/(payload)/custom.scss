@@ -660,6 +660,112 @@ textarea {
   color: var(--jood-green);
 }
 
+/* ------------------------------------------------------------------ */
+/* Custom BlobUploadField (Media collection)                            */
+/* ------------------------------------------------------------------ */
+.jood-blob-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.jood-blob-field__label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--jood-text);
+}
+
+.jood-blob-field__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--jood-muted);
+}
+
+.jood-blob-field__dropzone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  border: 2px dashed rgba(20, 46, 42, 0.2);
+  border-radius: 14px;
+  background: var(--jood-cream);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.jood-blob-field__dropzone:hover {
+  background: var(--jood-cream-dark);
+  border-color: var(--jood-green);
+}
+
+.jood-blob-field__pick {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  background: var(--jood-green);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.jood-blob-field__pick:hover {
+  background: var(--jood-green-700);
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.16);
+  transform: translateY(-1px);
+}
+
+.jood-blob-field__pick input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.jood-blob-field__status {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--jood-green);
+}
+
+.jood-blob-field__error {
+  margin: 0;
+  font-size: 13px;
+  color: #b3261e;
+  background: rgba(179, 38, 30, 0.08);
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+.jood-blob-field__preview {
+  margin-top: 6px;
+  border: 1px solid var(--jood-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  max-width: 380px;
+}
+
+.jood-blob-field__preview-media {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: contain;
+  background: var(--jood-cream-dark);
+}
+
 /* "Create new …" button when picking an upload via a Products field */
 [data-theme="light"] .upload .upload__create-new,
 [data-theme="light"] .upload-row__create {
