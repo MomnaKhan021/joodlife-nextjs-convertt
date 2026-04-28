@@ -104,11 +104,30 @@ async function fetchRecentUsers(): Promise<UserRow[]> {
 }
 
 export async function Dashboard() {
-  const [stats, recentProducts, recentUsers] = await Promise.all([
-    fetchStats(),
-    fetchRecentProducts(),
-    fetchRecentUsers(),
-  ]);
+  // Belt-and-braces: any SQL exception bubbling out of these helpers
+  // would unmount the whole widget under Payload's error boundary,
+  // making the dashboard look broken. Catch each one so we always
+  // render the layout.
+  let stats: Stats = {
+    productsTotal: 0,
+    productsActive: 0,
+    usersTotal: 0,
+    usersAdmins: 0,
+    ordersTotal: 0,
+    ordersRevenue: 0,
+    mediaCount: 0,
+  };
+  let recentProducts: ProductRow[] = [];
+  let recentUsers: UserRow[] = [];
+  try {
+    [stats, recentProducts, recentUsers] = await Promise.all([
+      fetchStats(),
+      fetchRecentProducts(),
+      fetchRecentUsers(),
+    ]);
+  } catch (err) {
+    console.warn("[dashboard] data fetch failed:", err);
+  }
 
   return (
     <section className="jood-dashboard">
