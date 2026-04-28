@@ -377,8 +377,8 @@ export async function POST(req: NextRequest) {
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filename" varchar;
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_x" numeric;
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_y" numeric;
-        -- Vercel Blob storage plugin expects a `prefix` column on
-        -- collections it manages, used as the upload path prefix.
+        -- Upload-path prefix column. Used by storage plugins (Vercel Blob)
+        -- to namespace uploads by collection. Harmless when unused.
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "prefix" varchar;
 
         -- Users: profile fields (phone + avatar relation).
