@@ -476,6 +476,205 @@ textarea {
 }
 
 /* ------------------------------------------------------------------ */
+/* Buttons (admin-wide)                                                 */
+/* ------------------------------------------------------------------ */
+/* Targets Payload's chrome buttons: "Create New", "Bulk Upload",
+   "Save", "Filters", "Columns" dropdowns, plus the Media upload's
+   "Select a file" / "Paste URL". Default Payload renders these as
+   pale grey pills; we restyle to match the marketing-site palette. */
+
+[data-theme="light"] button.btn,
+[data-theme="light"] a.btn,
+[data-theme="light"] .pill {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  border-radius: 10px;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+/* Primary (filled brand-green) — Save, Publish, Login, etc. */
+[data-theme="light"] .btn--style-primary,
+[data-theme="light"] .btn--style-primary:not(:disabled):not(.btn--disabled) {
+  background: var(--jood-green);
+  color: #ffffff;
+  border: 1px solid var(--jood-green);
+}
+
+[data-theme="light"] .btn--style-primary:hover {
+  background: var(--jood-green-700);
+  border-color: var(--jood-green-700);
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.16);
+  transform: translateY(-1px);
+}
+
+/* Secondary (outlined) — Create New, Bulk Upload, Filters, Columns,
+   Select a file, Paste URL */
+[data-theme="light"] .btn--style-secondary,
+[data-theme="light"] .btn--icon-style-without-border,
+[data-theme="light"] .pill--style-light,
+[data-theme="light"] .pill--style-light-gray {
+  background: #ffffff;
+  color: var(--jood-text);
+  border: 1px solid var(--jood-border);
+  padding: 6px 14px;
+}
+
+[data-theme="light"] .btn--style-secondary:hover,
+[data-theme="light"] .pill--style-light:hover,
+[data-theme="light"] .pill--style-light-gray:hover {
+  background: var(--jood-cream);
+  border-color: var(--jood-green);
+  color: var(--jood-green);
+}
+
+/* "Pill" components — Payload uses these for collection filters /
+   column toggles. Match the secondary look. */
+[data-theme="light"] button.pill {
+  background: #ffffff;
+  color: var(--jood-text);
+  border: 1px solid var(--jood-border);
+}
+
+[data-theme="light"] button.pill:hover {
+  background: var(--jood-cream);
+  border-color: var(--jood-green);
+  color: var(--jood-green);
+}
+
+/* "Add file" / "Bulk upload" CTA at the top of a collection list */
+[data-theme="light"] .collection-list__sub-header .btn,
+[data-theme="light"] .doc-controls .btn,
+[data-theme="light"] .list-controls__buttons .btn {
+  border-radius: 10px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Upload field (Media + every <upload> field)                          */
+/* ------------------------------------------------------------------ */
+/* Dropzone — brand-cream surface, branded dashed border, hover lifts
+   to active brand-green */
+[data-theme="light"] .upload .dropzone,
+[data-theme="light"] .upload__dropzone,
+[data-theme="light"] .file-field__upload,
+[data-theme="light"] .field-type.upload .upload {
+  background: var(--jood-cream);
+  border: 2px dashed rgba(20, 46, 42, 0.18);
+  border-radius: 14px;
+  padding: 24px 28px;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+[data-theme="light"] .upload .dropzone:hover,
+[data-theme="light"] .upload__dropzone:hover,
+[data-theme="light"] .file-field__upload:hover,
+[data-theme="light"] .field-type.upload .upload:hover {
+  background: var(--jood-cream-dark);
+  border-color: var(--jood-green);
+}
+
+/* Buttons inside the dropzone — make "Select a file" the primary
+   filled brand-green, "Paste URL" the secondary outlined. */
+[data-theme="light"]
+  .upload
+  .dropzone
+  button:first-of-type,
+[data-theme="light"]
+  .upload__dropzone
+  button:first-of-type {
+  background: var(--jood-green);
+  color: #ffffff;
+  border: 1px solid var(--jood-green);
+}
+
+[data-theme="light"]
+  .upload
+  .dropzone
+  button:first-of-type:hover,
+[data-theme="light"]
+  .upload__dropzone
+  button:first-of-type:hover {
+  background: var(--jood-green-700);
+  border-color: var(--jood-green-700);
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.16);
+  transform: translateY(-1px);
+}
+
+/* Helper text in the dropzone ("or drag and drop a file") */
+[data-theme="light"] .upload .dropzone__text,
+[data-theme="light"] .upload__dropzone-text,
+[data-theme="light"] .file-field__drag-and-drop,
+[data-theme="light"] .upload .dropzone span {
+  color: var(--jood-muted);
+  font-size: 13px;
+  letter-spacing: -0.005em;
+}
+
+/* Selected file preview — when a file is already attached, Payload
+   renders a thumbnail card. Keep it on-brand. */
+[data-theme="light"] .file-details,
+[data-theme="light"] .upload__file-details,
+[data-theme="light"] .file-field__file-details {
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+[data-theme="light"] .thumbnail,
+[data-theme="light"] .file-details__thumbnail,
+[data-theme="light"] .upload-row__thumbnail {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--jood-cream-dark);
+}
+
+/* "Remove" / "Choose another" buttons over the thumbnail */
+[data-theme="light"] .file-details__actions button,
+[data-theme="light"] .upload__file-details-buttons button {
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  color: var(--jood-text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+[data-theme="light"] .file-details__actions button:hover,
+[data-theme="light"] .upload__file-details-buttons button:hover {
+  background: var(--jood-cream);
+  border-color: var(--jood-green);
+  color: var(--jood-green);
+}
+
+/* "Create new …" button when picking an upload via a Products field */
+[data-theme="light"] .upload .upload__create-new,
+[data-theme="light"] .upload-row__create {
+  background: var(--jood-green);
+  color: #ffffff;
+  border: 1px solid var(--jood-green);
+  border-radius: 10px;
+}
+
+[data-theme="light"] .upload .upload__create-new:hover {
+  background: var(--jood-green-700);
+  border-color: var(--jood-green-700);
+}
+
+/* ------------------------------------------------------------------ */
 /* Misc                                                                */
 /* ------------------------------------------------------------------ */
 ::selection {

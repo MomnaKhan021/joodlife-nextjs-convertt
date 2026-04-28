@@ -20,9 +20,12 @@ export const Media: CollectionConfig = {
     delete: isAdmin,
   },
   upload: {
-    // Writes uploaded files to /public/payload-media so Next.js can serve them
+    // Writes uploaded files to /public/payload-media so Next.js can serve them.
+    // On Vercel this filesystem is read-only — connect Vercel Blob and set
+    // BLOB_READ_WRITE_TOKEN + JOOD_BLOB_ENABLED=true for persistent uploads.
     staticDir: path.resolve(dirname, "../../../public/payload-media"),
-    mimeTypes: ["image/*"],
+    // Accept both images and video. Videos skip the imageSizes pipeline.
+    mimeTypes: ["image/*", "video/mp4", "video/webm", "video/quicktime"],
     imageSizes: [
       { name: "thumb", width: 320, height: 320, position: "centre" },
       { name: "card", width: 640, height: 640, position: "centre" },
