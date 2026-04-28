@@ -97,7 +97,10 @@ textarea {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  padding: 14px 16px 18px;
+  /* Left padding clears Payload's floating collapse-button at the
+     top-left of the .nav surface (it's ~44px wide). Top padding gives
+     the wordmark its own breathing room above the divider. */
+  padding: 18px 16px 18px 56px;
   margin-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
