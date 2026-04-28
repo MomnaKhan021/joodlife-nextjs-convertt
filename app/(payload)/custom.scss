@@ -77,10 +77,47 @@ textarea {
   border-right: 1px solid var(--jood-green-700);
 }
 
+/* Mobile drawer: cap the sidebar at 75% of the viewport (max 320px)
+   and add a soft backdrop on the right so the page stays visible
+   behind it. */
+@media (max-width: 768px) {
+  [data-theme="light"] .nav,
+  [data-theme="light"] .template-default__nav {
+    width: 75% !important;
+    max-width: 320px !important;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Dim the page content while the drawer is open so it reads as a
+     true overlay, not a side-by-side split. */
+  [data-theme="light"]
+    .template-default--nav-open
+    .template-default__wrap::before,
+  [data-theme="light"] .template-default--nav-animate-in::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 46, 42, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 5;
+    pointer-events: none;
+  }
+}
+
+/* Payload v3 may render an empty .nav__header when graphics.Logo
+   isn't being injected here (we render <SidebarBrand /> via
+   beforeNavLinks instead). The empty band was visible in screenshots
+   as a hollow divider between the wordmark and the first group label.
+   Collapse it. */
 [data-theme="light"] .nav .nav__header,
 [data-theme="light"] .template-default__nav .nav__header {
-  padding: 22px 20px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0;
+  border-bottom: none;
+}
+
+[data-theme="light"] .nav .nav__header:empty,
+[data-theme="light"] .template-default__nav .nav__header:empty {
+  display: none;
 }
 
 [data-theme="light"] .nav .nav__scroll,
