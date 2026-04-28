@@ -1,13 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-import FieldInput from "@/components/auth/FieldInput";
-import SubmitButton from "@/components/auth/SubmitButton";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
@@ -54,25 +52,61 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
   });
 
   return (
-    <form
-      onSubmit={onSubmit}
-      noValidate
-      className="flex flex-col gap-4 rounded-2xl border border-[#142e2a]/10 bg-[#f7f9f2] p-6 md:p-8"
-    >
-      <FieldInput
-        label="Email"
-        type="email"
-        autoComplete="email"
-        error={errors.email?.message}
-        {...register("email")}
-      />
-      <FieldInput
-        label="Password"
-        type="password"
-        autoComplete="current-password"
-        error={errors.password?.message}
-        {...register("password")}
-      />
+    <form onSubmit={onSubmit} noValidate className="flex w-full flex-col gap-5">
+      <label className="flex flex-col gap-2">
+        <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+          Email
+        </span>
+        <input
+          type="email"
+          autoComplete="email"
+          placeholder="mail@abc.com"
+          aria-invalid={Boolean(errors.email) || undefined}
+          {...register("email")}
+          className={`h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] placeholder:text-[#142e2a]/35 outline-none ring-1 transition-shadow focus:ring-2 ${
+            errors.email
+              ? "ring-red-500/60 focus:ring-red-500/70"
+              : "ring-[#142e2a]/15 focus:ring-[#142e2a]/40"
+          }`}
+        />
+        {errors.email ? (
+          <span role="alert" className="font-ui text-[12px] text-red-700">
+            {errors.email.message}
+          </span>
+        ) : null}
+      </label>
+
+      <label className="flex flex-col gap-2">
+        <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+          password
+        </span>
+        <input
+          type="password"
+          autoComplete="current-password"
+          placeholder="••••••••••"
+          aria-invalid={Boolean(errors.password) || undefined}
+          {...register("password")}
+          className={`h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] placeholder:text-[#142e2a]/35 outline-none ring-1 transition-shadow focus:ring-2 ${
+            errors.password
+              ? "ring-red-500/60 focus:ring-red-500/70"
+              : "ring-[#142e2a]/15 focus:ring-[#142e2a]/40"
+          }`}
+        />
+        {errors.password ? (
+          <span role="alert" className="font-ui text-[12px] text-red-700">
+            {errors.password.message}
+          </span>
+        ) : null}
+      </label>
+
+      <div className="flex justify-end">
+        <Link
+          href="/forgot"
+          className="font-ui text-[13px] font-medium text-[#142e2a] underline underline-offset-2 decoration-[1px] hover:text-[#0c2421]"
+        >
+          Forgot your password?
+        </Link>
+      </div>
 
       {serverError ? (
         <p
@@ -83,9 +117,23 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         </p>
       ) : null}
 
-      <SubmitButton loading={isSubmitting} loadingLabel="Signing in…">
-        Sign in
-      </SubmitButton>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-1 inline-flex h-[52px] w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.16)] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSubmitting ? (
+          <>
+            <span
+              aria-hidden
+              className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"
+            />
+            Signing in…
+          </>
+        ) : (
+          "Log Into Your Account"
+        )}
+      </button>
     </form>
   );
 }
