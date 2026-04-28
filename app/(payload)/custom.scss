@@ -85,11 +85,74 @@ textarea {
 
 [data-theme="light"] .nav .nav__scroll,
 [data-theme="light"] .template-default__nav .nav__scroll {
-  /* Push every scrollable child 56px down from the top so the
-     floating collapse-arrow Payload absolutely-positions in the
-     top-right of the .nav surface has its own clear lane and
-     doesn't visually crash into the first group label. */
-  padding: 56px 14px 24px;
+  /* Top padding 16px is fine now that <SidebarBrand /> renders above
+     the nav and absorbs the space the floating collapse-arrow needs. */
+  padding: 16px 14px 24px;
+}
+
+/* ------------------------------------------------------------------ */
+/* SidebarBrand block (lives above the nav groups)                     */
+/* ------------------------------------------------------------------ */
+.jood-sidebar-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 16px 18px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.jood-sidebar-brand__mark {
+  color: var(--jood-leaf);
+}
+
+.jood-sidebar-brand__mark svg {
+  height: 22px;
+  width: auto;
+}
+
+.jood-sidebar-brand__suffix {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ */
+/* Logout button (bottom of sidebar)                                   */
+/* ------------------------------------------------------------------ */
+/* Payload renders a logout icon-only button at the bottom-left of the
+   sidebar (`a[href*="logout"]` in v3). Add a "Log out" label after the
+   icon so the affordance is obvious. */
+[data-theme="light"] .nav a[href*="logout"],
+[data-theme="light"] .template-default__nav a[href*="logout"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 8px 8px;
+  padding: 10px 12px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+[data-theme="light"] .nav a[href*="logout"]::after,
+[data-theme="light"] .template-default__nav a[href*="logout"]::after {
+  content: "Log out";
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+[data-theme="light"] .nav a[href*="logout"]:hover,
+[data-theme="light"] .template-default__nav a[href*="logout"]:hover {
+  background: rgba(223, 244, 159, 0.1);
+  color: #ffffff;
 }
 
 /* Bump nav text contrast for legibility on the dark surface */

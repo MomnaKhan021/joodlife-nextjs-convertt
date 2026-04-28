@@ -56,8 +56,12 @@ function envSnapshot() {
     PAYLOAD_SECRET: describe(process.env.PAYLOAD_SECRET),
     NEXT_PUBLIC_SERVER_URL: describe(process.env.NEXT_PUBLIC_SERVER_URL),
     PAYLOAD_PUBLIC_SERVER_URL: describe(process.env.PAYLOAD_PUBLIC_SERVER_URL),
+    BLOB_READ_WRITE_TOKEN: describe(process.env.BLOB_READ_WRITE_TOKEN),
     available_db_keys: Object.keys(process.env).filter(
       (k) => /DATABASE_URL|POSTGRES_URL|DATABASE_URI/.test(k) && process.env[k]
+    ),
+    available_blob_keys: Object.keys(process.env).filter(
+      (k) => /BLOB|VERCEL_BLOB/i.test(k) && process.env[k]
     ),
     NODE_ENV: process.env.NODE_ENV,
   };

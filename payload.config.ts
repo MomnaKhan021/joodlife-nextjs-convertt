@@ -125,6 +125,9 @@ export default buildConfig({
         Logo: "@/components/admin/Logo#Logo",
         Icon: "@/components/admin/Icon#Icon",
       },
+      // Renders inside the sidebar, above the nav groups. Replaces the
+      // empty band Payload leaves at the top of the .nav surface.
+      beforeNavLinks: ["@/components/admin/SidebarBrand#SidebarBrand"],
     },
     // /admin is the default route for Payload 3.x with the Next.js plugin.
   },
