@@ -202,13 +202,17 @@ export default buildConfig({
    * Without the token the plugin is omitted and Payload falls back to
    * the local staticDir — fine for dev, ephemeral on Vercel.
    */
-  plugins:
-    process.env.BLOB_READ_WRITE_TOKEN && process.env.JOOD_BLOB_ENABLED === "true"
-      ? [
-          vercelBlobStorage({
-            collections: { media: true },
-            token: process.env.BLOB_READ_WRITE_TOKEN,
-          }),
-        ]
-      : [],
+  plugins: process.env.BLOB_READ_WRITE_TOKEN
+    ? [
+        vercelBlobStorage({
+          collections: { media: true },
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+          // disablePayloadAccessControl skips Payload's internal /api/media
+          // ACL pipeline and lets the Blob URL be served directly. This
+          // avoids the SSR-hydration knot we hit on the previous attempt
+          // when the plugin tried to wire up Payload's URL middleware.
+          disablePayloadAccessControl: true,
+        }),
+      ]
+    : [],
 });

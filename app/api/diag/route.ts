@@ -92,7 +92,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v18-user-profile";
+const VERSION = "diag-v19-blob-prefix";
 
 export async function GET() {
   const env = envSnapshot();
@@ -377,6 +377,9 @@ export async function POST(req: NextRequest) {
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "sizes_feature_filename" varchar;
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_x" numeric;
         ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "focal_y" numeric;
+        -- Vercel Blob storage plugin expects a `prefix` column on
+        -- collections it manages, used as the upload path prefix.
+        ALTER TABLE "media" ADD COLUMN IF NOT EXISTS "prefix" varchar;
 
         -- Users: profile fields (phone + avatar relation).
         -- Note: media must be created first (above) for the FK to resolve.
