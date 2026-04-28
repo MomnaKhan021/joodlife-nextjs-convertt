@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
-import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 
 import { Users } from "./src/payload/collections/Users";
 import { Products } from "./src/payload/collections/Products";
@@ -202,17 +201,10 @@ export default buildConfig({
    * Without the token the plugin is omitted and Payload falls back to
    * the local staticDir — fine for dev, ephemeral on Vercel.
    */
-  plugins: process.env.BLOB_READ_WRITE_TOKEN
-    ? [
-        vercelBlobStorage({
-          collections: { media: true },
-          token: process.env.BLOB_READ_WRITE_TOKEN,
-          // disablePayloadAccessControl skips Payload's internal /api/media
-          // ACL pipeline and lets the Blob URL be served directly. This
-          // avoids the SSR-hydration knot we hit on the previous attempt
-          // when the plugin tried to wire up Payload's URL middleware.
-          disablePayloadAccessControl: true,
-        }),
-      ]
-    : [],
+  // Vercel Blob plugin disabled. Two attempts to enable it broke the
+  // Vercel build / admin hydration on this Next 16 / Payload 3.x stack.
+  // Uploads are handled instead by a custom beforeChange hook on the
+  // Media collection that calls @vercel/blob's put() directly — see
+  // src/payload/hooks/uploadMediaToBlob.ts.
+  plugins: [],
 });
