@@ -241,18 +241,27 @@ textarea {
   width: auto;
 }
 
-/* Compact monogram for tight slots (top bar). Square, fits any 32px
-   container without overflow / clipping. */
-.jood-admin-icon {
+/* "Dashboard" text link in the app-header breadcrumb (replaced the
+   small J badge — see components/admin/Icon.tsx). */
+.jood-admin-home {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.005em;
+  color: var(--jood-text);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
-.jood-admin-icon svg {
-  height: 32px;
-  width: 32px;
-  display: block;
+.jood-admin-home:hover {
+  background: var(--jood-cream-dark);
+  color: var(--jood-green-700);
 }
 
 /* On the login screen the full wordmark goes larger */
@@ -426,4 +435,243 @@ a {
 
 a:hover {
   color: var(--jood-green-700);
+}
+
+/* ------------------------------------------------------------------ */
+/* Custom dashboard widget (rendered above default /admin)             */
+/* ------------------------------------------------------------------ */
+.jood-dashboard {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 28px 32px;
+  font-family: var(--font-body);
+  color: var(--jood-text);
+}
+
+.jood-dashboard__header {
+  margin-bottom: 28px;
+}
+
+.jood-dashboard__eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--jood-muted);
+  margin: 0 0 6px;
+}
+
+.jood-dashboard__title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--jood-text);
+  margin: 0 0 6px;
+}
+
+.jood-dashboard__subtitle {
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--jood-muted);
+  margin: 0;
+}
+
+/* Stat-card grid */
+.jood-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.jood-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 22px 22px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  text-decoration: none;
+  color: var(--jood-text);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.jood-stat-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20, 46, 42, 0.2);
+  box-shadow: 0 12px 28px rgba(20, 46, 42, 0.08);
+  color: var(--jood-text);
+}
+
+.jood-stat-card--green .jood-stat-card__value,
+.jood-stat-card--leaf .jood-stat-card__value {
+  color: var(--jood-green);
+}
+
+.jood-stat-card--leaf {
+  background: linear-gradient(180deg, var(--jood-cream) 0%, #ffffff 100%);
+}
+
+.jood-stat-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--jood-muted);
+}
+
+.jood-stat-card__value {
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.jood-stat-card__subtitle {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--jood-muted);
+}
+
+/* Side-by-side panels */
+.jood-panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .jood-panels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.jood-panel {
+  background: #ffffff;
+  border: 1px solid var(--jood-border);
+  border-radius: 14px;
+  padding: 18px 20px 12px;
+}
+
+.jood-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.jood-panel__title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.jood-panel__link {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--jood-muted);
+  text-decoration: none;
+}
+
+.jood-panel__link:hover {
+  color: var(--jood-green);
+}
+
+.jood-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.jood-panel__row {
+  border-top: 1px solid var(--jood-border);
+}
+
+.jood-panel__row:first-child {
+  border-top: 0;
+}
+
+.jood-panel__row-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 4px;
+  text-decoration: none;
+  color: var(--jood-text);
+  transition: color 180ms ease;
+}
+
+.jood-panel__row-link:hover {
+  color: var(--jood-green-700);
+}
+
+.jood-panel__row-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.jood-panel__row-meta {
+  font-size: 12px;
+  color: var(--jood-muted);
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.jood-panel__pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--jood-cream-dark);
+  color: var(--jood-text);
+}
+
+.jood-panel__pill--ok {
+  background: rgba(20, 46, 42, 0.08);
+  color: var(--jood-green);
+}
+
+.jood-panel__pill--off {
+  background: rgba(20, 46, 42, 0.06);
+  color: var(--jood-muted);
+}
+
+.jood-panel__pill--neutral {
+  background: var(--jood-cream-dark);
+  color: var(--jood-text);
+}
+
+.jood-panel__empty {
+  padding: 16px 4px 20px;
+  font-size: 14px;
+  color: var(--jood-muted);
+}
+
+@media (max-width: 640px) {
+  .jood-dashboard {
+    padding: 18px 16px 24px;
+  }
+
+  .jood-dashboard__title {
+    font-size: 24px;
+  }
+
+  .jood-stat-card__value {
+    font-size: 32px;
+  }
 }

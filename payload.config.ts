@@ -128,6 +128,9 @@ export default buildConfig({
       // Renders inside the sidebar, above the nav groups. Replaces the
       // empty band Payload leaves at the top of the .nav surface.
       beforeNavLinks: ["@/components/admin/SidebarBrand#SidebarBrand"],
+      // Custom dashboard surface: stat cards + recent products + recent
+      // users. Renders above whatever Payload puts on /admin by default.
+      beforeDashboard: ["@/components/admin/Dashboard#Dashboard"],
     },
     // /admin is the default route for Payload 3.x with the Next.js plugin.
   },
