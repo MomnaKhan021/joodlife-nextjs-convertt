@@ -94,7 +94,38 @@ function captureError(err: unknown) {
 // is the latest build.
 const VERSION = "diag-v20-rollback-blob";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Optional ?probe=media — returns the raw media rows so we can
+  // verify what's actually in the `url` column (Payload's REST API
+  // overrides url on read for upload collections, which masks the
+  // true value).
+  if (req.nextUrl.searchParams.get("probe") === "media") {
+    try {
+      const { getPayloadInstance } = await import("@/lib/payload");
+      const payload = await getPayloadInstance();
+      const drizzle = (
+        payload.db as unknown as {
+          drizzle?: { execute?: (q: unknown) => Promise<unknown> };
+        }
+      ).drizzle;
+      const { sql: drizzleSql } = (await import("drizzle-orm")) as {
+        sql: { raw: (s: string) => unknown };
+      };
+      const result = (await drizzle!.execute!(
+        drizzleSql.raw(
+          "SELECT id, alt, url, filename, mime_type, filesize FROM media ORDER BY id DESC LIMIT 5"
+        )
+      )) as { rows?: unknown[] } | unknown[];
+      const rows = Array.isArray(result) ? result : (result.rows ?? []);
+      return NextResponse.json({ ok: true, rows });
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: String(err) },
+        { status: 500 }
+      );
+    }
+  }
+
   const env = envSnapshot();
 
   if (!env.DATABASE_URL.present) {
