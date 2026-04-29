@@ -2,20 +2,34 @@ import type { CollectionConfig } from "payload";
 
 import { isAdmin } from "../access/isAdmin";
 import { isAdminOrSelf } from "../access/isAdminOrSelf";
-import { isLoggedIn } from "../access/isLoggedIn";
-import { reduceStockAfterOrder } from "../hooks/reduceStock";
 
+/**
+ * Orders. Created by /api/checkout — guest checkout is allowed (no
+ * payment integration yet, this is the testing-phase flow), so the
+ * `user` relation is optional. When a logged-in customer places the
+ * order their id is attached automatically.
+ *
+ * Cart line items live in the `itemsJson` column (jsonb). We don't
+ * use Payload's products array-of-relations because that requires
+ * a join table that's tedious to keep in sync with our hand-written
+ * schema.
+ */
 export const Orders: CollectionConfig = {
   slug: "orders",
   admin: {
     useAsTitle: "orderNumber",
-    defaultColumns: ["orderNumber", "user", "totalAmount", "status", "createdAt"],
+    defaultColumns: [
+      "orderNumber",
+      "customerName",
+      "customerEmail",
+      "totalAmount",
+      "status",
+      "createdAt",
+    ],
     group: "Commerce",
   },
   access: {
-    // Authenticated users can create their own orders; reads are scoped
-    // per-user (admins see everything).
-    create: isLoggedIn,
+    create: () => true, // guest checkout allowed during testing phase
     read: isAdminOrSelf,
     update: isAdmin,
     delete: isAdmin,
@@ -24,9 +38,7 @@ export const Orders: CollectionConfig = {
     beforeChange: [
       ({ data, operation, req }) => {
         if (operation === "create") {
-          // Attach the current user if the client didn't send one
           if (!data.user && req.user) data.user = req.user.id;
-          // Short, human-friendly order number
           if (!data.orderNumber) {
             data.orderNumber = `JL-${Date.now().toString(36).toUpperCase()}`;
           }
@@ -34,7 +46,6 @@ export const Orders: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [reduceStockAfterOrder],
   },
   fields: [
     {
@@ -45,59 +56,87 @@ export const Orders: CollectionConfig = {
       admin: { readOnly: true },
     },
     {
-      name: "user",
-      type: "relationship",
-      relationTo: "users",
-      required: true,
-      admin: { position: "sidebar" },
-    },
-    {
-      name: "products",
-      type: "array",
-      minRows: 1,
-      required: true,
+      type: "row",
       fields: [
         {
-          name: "product",
+          name: "customerName",
+          type: "text",
+          admin: { width: "50%" },
+        },
+        {
+          name: "customerEmail",
+          type: "email",
+          admin: { width: "50%" },
+        },
+      ],
+    },
+    {
+      type: "row",
+      fields: [
+        {
+          name: "customerPhone",
+          type: "text",
+          admin: { width: "50%" },
+        },
+        {
+          name: "user",
           type: "relationship",
-          relationTo: "products",
-          required: true,
-        },
-        {
-          name: "quantity",
-          type: "number",
-          required: true,
-          min: 1,
-          defaultValue: 1,
-        },
-        {
-          name: "priceAtPurchase",
-          type: "number",
-          required: true,
-          min: 0,
+          relationTo: "users",
           admin: {
-            description: "Unit price captured at checkout.",
+            width: "50%",
+            description:
+              "Optional — auto-set when a logged-in customer checks out.",
           },
         },
       ],
     },
     {
-      name: "discount",
-      type: "relationship",
-      relationTo: "discounts",
-      admin: { position: "sidebar" },
+      name: "shippingAddress",
+      type: "textarea",
+      admin: { description: "Full delivery address." },
     },
     {
-      name: "discountAmount",
-      type: "number",
-      defaultValue: 0,
-      min: 0,
+      name: "itemsJson",
+      type: "json",
+      label: "Items",
+      admin: {
+        description:
+          'Cart contents at checkout. Array of { productId, slug, title, dose, price, quantity }.',
+      },
     },
     {
-      name: "totalAmount",
-      type: "number",
-      required: true,
-      min: 0,
+      type: "row",
+      fields: [
+        {
+          name: "totalAmount",
+          type: "number",
+          required: true,
+          min: 0,
+          admin: { width: "33%", description: "£ total." },
+        },
+        {
+          name: "discountAmount",
+          type: "number",
+          defaultValue: 0,
+          min: 0,
+          admin: { width: "33%" },
+        },
+        {
+          name: "paymentMethod",
+          type: "select",
+          required: true,
+          defaultValue: "test",
+          options: [
+            { label: "Test (no payment)", value: "test" },
+            { label: "Card", value: "card" },
+            { label: "PayPal", value: "paypal" },
+            { label: "Apple Pay", value: "apple_pay" },
+            { label: "Google Pay", value: "google_pay" },
+            { label: "Bank transfer", value: "bank_transfer" },
+          ],
+          admin: { width: "33%" },
+        },
+      ],
     },
     {
       name: "status",
@@ -114,21 +153,9 @@ export const Orders: CollectionConfig = {
       admin: { position: "sidebar" },
     },
     {
-      name: "paymentMethod",
-      type: "select",
-      required: true,
-      defaultValue: "card",
-      options: [
-        { label: "Card", value: "card" },
-        { label: "PayPal", value: "paypal" },
-        { label: "Apple Pay", value: "apple_pay" },
-        { label: "Google Pay", value: "google_pay" },
-        { label: "Bank transfer", value: "bank_transfer" },
-      ],
-    },
-    {
       name: "notes",
       type: "textarea",
+      admin: { description: "Customer notes added at checkout." },
     },
   ],
 };

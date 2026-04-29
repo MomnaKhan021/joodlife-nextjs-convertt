@@ -92,7 +92,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v21-consultations";
+const VERSION = "diag-v22-orders-guest-checkout";
 
 export async function GET(req: NextRequest) {
   // Optional ?probe=media — returns the raw media rows so we can
@@ -443,6 +443,18 @@ export async function POST(req: NextRequest) {
         CREATE INDEX IF NOT EXISTS "consultations_created_at_idx" ON "consultations" ("created_at");
 
         ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "consultations_id" integer REFERENCES "consultations"("id") ON DELETE CASCADE;
+
+        -- Orders: guest-checkout fields + items JSON. Existing user_id
+        -- column already allows NULL so guest orders work without
+        -- another migration on that side.
+        ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "customer_name" varchar;
+        ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "customer_email" varchar;
+        ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "customer_phone" varchar;
+        ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "shipping_address" text;
+        ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "items_json" jsonb;
+        CREATE INDEX IF NOT EXISTS "orders_customer_email_idx" ON "orders" ("customer_email");
+        CREATE INDEX IF NOT EXISTS "orders_status_idx" ON "orders" ("status");
+        CREATE INDEX IF NOT EXISTS "orders_created_at_idx" ON "orders" ("created_at");
       `;
 
       // Split + execute one statement at a time so a partial failure

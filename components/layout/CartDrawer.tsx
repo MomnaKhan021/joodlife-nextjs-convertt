@@ -219,9 +219,16 @@ export default function CartDrawer() {
               Tax + delivery calculated at checkout. A clinical consultation is required before dispatch.
             </p>
             <Link
-              href="/consultation"
+              href="/checkout"
               onClick={closeDrawer}
               className="mt-3 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421]"
+            >
+              Checkout
+            </Link>
+            <Link
+              href="/consultation"
+              onClick={closeDrawer}
+              className="mt-2 inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-6 font-ui text-[12px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
             >
               Start consultation
             </Link>
