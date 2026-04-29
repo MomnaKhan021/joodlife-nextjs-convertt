@@ -1,7 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import ConsultationFlow from "./ConsultationFlow";
-import { JoodWordmark } from "@/components/admin/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +28,16 @@ export default async function ConsultationPage({ searchParams }: Props) {
         <Link
           href="/"
           aria-label="Back to home"
-          className="text-[#142e2a] transition-opacity hover:opacity-70"
+          className="inline-flex items-center transition-opacity hover:opacity-70"
         >
-          <JoodWordmark className="block h-7 w-auto" />
+          <Image
+            src="/assets/icons/logo-wesmount.svg"
+            alt="JoodLife"
+            width={95}
+            height={30}
+            priority
+            className="h-7 w-auto"
+          />
         </Link>
       </header>
 
