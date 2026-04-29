@@ -421,8 +421,8 @@ export async function POST(req: NextRequest) {
         CREATE INDEX IF NOT EXISTS "users_avatar_idx" ON "users" ("avatar_id");
 
         -- Consultations: quiz/health-questionnaire responses captured
-        -- by /consultation. Public POST is allowed (storefront customers
-        -- start anonymously); admin-only read.
+        -- by /consultation. Public POST is allowed for anonymous
+        -- storefront customers, with admin-only read.
         CREATE TABLE IF NOT EXISTS "consultations" (
           "id" serial PRIMARY KEY NOT NULL,
           "full_name" varchar,
