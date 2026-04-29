@@ -41,16 +41,24 @@ type Body = {
   status?: "draft" | "submitted";
 };
 
-async function getDrizzle() {
+type DrizzleExec = { execute: (q: unknown) => Promise<unknown> };
+
+async function getDrizzle(): Promise<{
+  payload: Awaited<ReturnType<typeof getPayloadInstance>>;
+  drizzle: DrizzleExec;
+  sql: { raw: (s: string) => unknown };
+}> {
   const payload = await getPayloadInstance();
-  const drizzle = (
+  const raw = (
     payload.db as unknown as {
       drizzle?: { execute?: (q: unknown) => Promise<unknown> };
     }
   ).drizzle;
-  if (!drizzle?.execute) {
+  if (!raw?.execute) {
     throw new Error("payload.db.drizzle.execute unavailable");
   }
+  // Narrow once here so callers don't have to deal with optional chains.
+  const drizzle: DrizzleExec = { execute: raw.execute };
   const { sql: drizzleSql } = (await import("drizzle-orm")) as {
     sql: { raw: (s: string) => unknown };
   };
