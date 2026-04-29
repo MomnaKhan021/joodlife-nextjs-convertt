@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { useCart } from "@/components/cart/CartContext";
+
 export type Variant = {
   label?: string;
   size?: string | null;
@@ -14,18 +16,25 @@ export type Variant = {
 };
 
 export default function VariantSelector({
+  productId,
+  productTitle,
+  productImageUrl,
   variants,
   fallbackPrice,
   productSlug,
 }: {
-  productId: string | number;
+  productId: number;
+  productTitle: string;
+  productImageUrl?: string | null;
   variants: Variant[];
   fallbackPrice?: number | null;
   productSlug: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const active = variants[activeIndex];
+  const [justAdded, setJustAdded] = useState(false);
+  const { addItem, openDrawer } = useCart();
 
+  const active = variants[activeIndex];
   const price =
     active?.price !== undefined && active?.price !== null
       ? active.price
@@ -36,9 +45,27 @@ export default function VariantSelector({
     productSlug
   )}${active?.label ? `&dose=${encodeURIComponent(active.label)}` : ""}`;
 
+  function handleAddToCart() {
+    if (typeof price !== "number") return;
+    addItem(
+      {
+        productId,
+        slug: productSlug,
+        title: productTitle,
+        dose: active?.label ?? null,
+        price,
+        imageUrl: productImageUrl ?? null,
+      },
+      1
+    );
+    openDrawer();
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1800);
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Dosage chip grid — 3 cols on mobile, 6 across on md+ for the full row */}
+      {/* Dosage chip grid */}
       {variants.length > 0 ? (
         <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
           {variants.map((v, i) => {
@@ -89,13 +116,64 @@ export default function VariantSelector({
         ) : null}
       </div>
 
-      {/* CTA — links to the consultation flow */}
-      <Link
-        href={consultationHref}
-        className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.16)]"
-      >
-        Check Your Eligibility
-      </Link>
+      {/* Two CTAs stacked */}
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={typeof price !== "number"}
+          className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-lg border-[1.5px] border-[#142e2a] bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] transition-all hover:bg-[#f7f9f2] hover:shadow-[0_8px_18px_rgba(20,46,42,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {justAdded ? (
+            <>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden
+              >
+                <path
+                  d="M3 8.5l3.2 3.2L13 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Added to cart
+            </>
+          ) : (
+            <>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <path
+                  d="M6 6h15l-1.5 9h-12L4 3H2"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="9" cy="20" r="1.5" stroke="currentColor" strokeWidth="1.7" />
+                <circle cx="18" cy="20" r="1.5" stroke="currentColor" strokeWidth="1.7" />
+              </svg>
+              Add to cart
+            </>
+          )}
+        </button>
+
+        <Link
+          href={consultationHref}
+          className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.16)]"
+        >
+          Check Your Eligibility
+        </Link>
+      </div>
     </div>
   );
 }

@@ -207,6 +207,8 @@ export default async function ProductPage({ params }: Params) {
               </h2>
               <VariantSelector
                 productId={product.id}
+                productTitle={product.title}
+                productImageUrl={heroImage ?? null}
                 variants={product.variants}
                 fallbackPrice={product.fromPrice}
                 productSlug={product.slug}
