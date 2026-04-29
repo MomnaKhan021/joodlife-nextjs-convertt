@@ -178,12 +178,17 @@ export default function ConsultationFlow({
         }
         setConsultationId(json.id as number);
       } else {
-        const res = await fetch(`/api/consultations/${consultationId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
+        // Note: ?id=N — Payload's catch-all owns /api/consultations/[id]
+        // so we keep PATCH on the parent path with the id as a query.
+        const res = await fetch(
+          `/api/consultations?id=${consultationId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(payload),
+          }
+        );
         const json = await res.json();
         if (!res.ok) {
           throw new Error(
