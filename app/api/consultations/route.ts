@@ -41,28 +41,33 @@ type Body = {
   status?: "draft" | "submitted";
 };
 
-type DrizzleExec = { execute: (q: unknown) => Promise<unknown> };
+type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
 
 async function getDrizzle(): Promise<{
   payload: Awaited<ReturnType<typeof getPayloadInstance>>;
-  drizzle: DrizzleExec;
+  drizzle: DrizzleLike;
   sql: { raw: (s: string) => unknown };
 }> {
   const payload = await getPayloadInstance();
-  const raw = (
+  const drizzle = (
     payload.db as unknown as {
       drizzle?: { execute?: (q: unknown) => Promise<unknown> };
     }
   ).drizzle;
-  if (!raw?.execute) {
+  if (!drizzle?.execute) {
     throw new Error("payload.db.drizzle.execute unavailable");
   }
-  // Narrow once here so callers don't have to deal with optional chains.
-  const drizzle: DrizzleExec = { execute: raw.execute };
   const { sql: drizzleSql } = (await import("drizzle-orm")) as {
     sql: { raw: (s: string) => unknown };
   };
-  return { payload, drizzle, sql: drizzleSql };
+  // Cast — TS can't carry the optional-chain narrowing across the
+  // function boundary, but drizzle is the real Drizzle instance and
+  // its method binding (`this`) must stay intact, so we don't wrap it.
+  return {
+    payload,
+    drizzle: drizzle as DrizzleLike,
+    sql: drizzleSql,
+  };
 }
 
 function esc(s: string | null | undefined) {
