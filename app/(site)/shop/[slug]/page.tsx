@@ -5,13 +5,76 @@ import { notFound } from "next/navigation";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/sections/home/Footer";
-import Reveal from "@/components/ui/Reveal";
 import { getStorefrontProduct } from "@/lib/products";
 import VariantSelector from "./VariantSelector";
 
 export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ slug: string }> };
+
+const INCLUDED = [
+  "Online clinical consultation",
+  "Prescription and medication",
+  "24/7 WhatsApp support",
+  "Regular progress check-ins",
+];
+
+function CheckIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M3.5 8.5L6.5 11.5L12.5 5.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function StarsRow({ rating }: { rating: number | null }) {
+  if (rating === null) return null;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-0.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <svg
+            key={i}
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden
+            className={
+              i < Math.round(rating) ? "text-[#00b67a]" : "text-[#142e2a]/15"
+            }
+          >
+            <rect width="16" height="16" rx="2" fill="currentColor" />
+            <path
+              d="M8 3L9.4 6.2L13 6.5L10.3 8.8L11.1 12.3L8 10.6L4.9 12.3L5.7 8.8L3 6.5L6.6 6.2L8 3Z"
+              fill="white"
+            />
+          </svg>
+        ))}
+      </div>
+      <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+        {rating.toFixed(1)}/5
+      </span>
+      <span className="font-ui text-[14px] font-medium text-[#142e2a]">
+        Rated Excellence
+      </span>
+    </div>
+  );
+}
 
 export default async function ProductPage({ params }: Params) {
   const { slug } = await params;
@@ -25,128 +88,151 @@ export default async function ProductPage({ params }: Params) {
         ? [product.heroImageUrl]
         : [];
   const heroImage = images[0];
+  const subtitle = `Sustainable weight loss with ${product.title}`;
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
 
-      <section className="mx-auto w-full max-w-[1440px] px-6 py-10 md:px-[60px] md:py-16">
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-1 font-ui text-[13px] font-semibold text-[#142e2a]/70 transition-colors hover:text-[#142e2a]"
-        >
-          ← Back to shop
-        </Link>
-
-        <div className="mt-6 grid grid-cols-1 gap-10 md:mt-10 md:grid-cols-2 md:gap-14">
-          {/* Gallery */}
-          <Reveal direction="left">
-            <div className="flex flex-col gap-3">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-[#f7f9f2]">
-                {product.badge ? (
-                  <span className="absolute left-4 top-4 z-10 rounded-full bg-[#142e2a] px-3 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-[0_4px_12px_rgba(20,46,42,0.18)]">
-                    {product.badge}
-                  </span>
-                ) : null}
-                {heroImage ? (
-                  <Image
-                    src={heroImage}
-                    alt={product.title}
-                    fill
-                    sizes="(max-width: 768px) 90vw, 50vw"
-                    className="object-contain p-8 transition-transform duration-500 ease-out hover:scale-[1.02]"
-                    priority
-                  />
-                ) : null}
-              </div>
+      <section className="mx-auto w-full max-w-[1280px] px-6 py-8 md:px-10 md:py-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
+          {/* ---------- Gallery (left) ---------- */}
+          <div className="flex flex-col gap-3">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#f7f9f2]">
+              {heroImage ? (
+                <Image
+                  src={heroImage}
+                  alt={product.title}
+                  fill
+                  sizes="(max-width: 768px) 92vw, 50vw"
+                  className="object-cover"
+                  priority
+                />
+              ) : null}
+              {/* Pagination dots — only meaningful when there are multiple images */}
               {images.length > 1 ? (
-                <div className="grid grid-cols-4 gap-2">
-                  {images.slice(0, 4).map((src, i) => (
-                    <div
+                <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+                  {images.slice(0, 4).map((_, i) => (
+                    <span
                       key={i}
-                      className="relative aspect-square overflow-hidden rounded-xl bg-[#f7f9f2] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(20,46,42,0.08)]"
-                    >
-                      <Image
-                        src={src}
-                        alt={`${product.title} thumbnail ${i + 1}`}
-                        fill
-                        sizes="120px"
-                        className="object-contain p-2"
-                      />
-                    </div>
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === 0
+                          ? "w-5 bg-white"
+                          : "w-1.5 bg-white/55"
+                      }`}
+                    />
                   ))}
                 </div>
               ) : null}
             </div>
-          </Reveal>
 
-          {/* Info */}
-          <Reveal direction="right" delay={120}>
-            <div className="flex flex-col gap-6">
-              <div>
-                {product.tagline ? (
-                  <span className="inline-flex w-fit items-center rounded-full border border-[#142e2a]/15 bg-[#f7f9f2] px-3 py-1 font-ui text-[11px] font-semibold uppercase tracking-[0.12em] text-[#142e2a]/70">
-                    {product.tagline}
-                  </span>
-                ) : null}
-
-                <h1 className="mt-3 font-display text-[36px] font-semibold leading-[42px] tracking-[-0.025em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-                  {product.title}
-                </h1>
-
-                {product.ratingValue !== null ? (
-                  <p className="mt-3 flex items-center gap-2 font-ui text-[14px] text-[#142e2a]/65">
-                    <span className="text-[#142e2a]">
-                      ★ {product.ratingValue.toFixed(1)}
-                    </span>
-                    {product.ratingCount
-                      ? `· ${product.ratingCount} reviews`
-                      : null}
-                  </p>
-                ) : null}
+            {images.length > 1 ? (
+              <div className="grid grid-cols-4 gap-2">
+                {images.slice(0, 4).map((src, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`relative aspect-square overflow-hidden rounded-lg bg-[#f7f9f2] transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_18px_rgba(20,46,42,0.08)] ${
+                      i === 0 ? "ring-2 ring-[#142e2a]" : ""
+                    }`}
+                  >
+                    <Image
+                      src={src}
+                      alt={`${product.title} thumbnail ${i + 1}`}
+                      fill
+                      sizes="120px"
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
               </div>
+            ) : null}
+          </div>
 
-              <p className="font-ui text-[15px] leading-[24px] text-[#142e2a]/80 md:text-[16px] md:leading-[26px]">
-                {product.description}
-              </p>
+          {/* ---------- Info (right) ---------- */}
+          <div className="flex flex-col gap-5">
+            {/* Active-ingredient pill */}
+            {product.tagline ? (
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#dff49f]/40 px-3 py-1.5 font-ui text-[12px] font-semibold text-[#0c2421]">
+                <span className="grid h-4 w-4 place-items-center rounded-full bg-[#142e2a] text-white">
+                  <CheckIcon size={10} />
+                </span>
+                {product.tagline}
+              </span>
+            ) : null}
 
+            {/* Title */}
+            <h1 className="font-display text-[40px] font-bold leading-[44px] tracking-[-0.02em] text-[#142e2a] md:text-[44px] md:leading-[48px]">
+              {product.title}
+            </h1>
+
+            {/* Rating */}
+            <StarsRow rating={product.ratingValue} />
+
+            {/* Subtitle */}
+            <p className="font-display text-[18px] font-semibold leading-[24px] text-[#142e2a] md:text-[19px]">
+              {subtitle}
+            </p>
+
+            {/* Description */}
+            <p className="font-ui text-[14px] leading-[22px] text-[#142e2a]/80 md:text-[15px] md:leading-[24px]">
+              {product.description}
+            </p>
+
+            {/* What's included panel */}
+            <section className="rounded-xl bg-[#f7f9f2] p-5 md:p-6">
+              <h2 className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                What&apos;s Included In Your Treatment
+              </h2>
+              <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {INCLUDED.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 font-ui text-[13px] leading-[18px] text-[#142e2a] md:text-[14px] md:leading-[20px]"
+                  >
+                    <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[#142e2a] text-[#dff49f]">
+                      <CheckIcon size={9} />
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {/* Variants + price + CTA */}
+            <div className="flex flex-col gap-4">
+              <h2 className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                Choose Your Dose
+              </h2>
               <VariantSelector
                 productId={product.id}
                 variants={product.variants}
                 fallbackPrice={product.fromPrice}
+                productSlug={product.slug}
               />
-
-              <ul className="grid grid-cols-2 gap-3 border-t border-[#142e2a]/10 pt-5 font-ui text-[13px] text-[#142e2a]/75 md:text-[14px]">
-                <li className="flex items-center gap-2">
-                  <span aria-hidden className="text-[#142e2a]">✓</span>
-                  UK-licensed medication
-                </li>
-                <li className="flex items-center gap-2">
-                  <span aria-hidden className="text-[#142e2a]">✓</span>
-                  Clinician-reviewed online
-                </li>
-                <li className="flex items-center gap-2">
-                  <span aria-hidden className="text-[#142e2a]">✓</span>
-                  Next-day delivery
-                </li>
-                <li className="flex items-center gap-2">
-                  <span aria-hidden className="text-[#142e2a]">✓</span>
-                  Cancel anytime
-                </li>
-              </ul>
-
-              {product.subscriptionPrice ? (
-                <p className="rounded-xl bg-[#f7f9f2] px-4 py-3 font-ui text-[13px] leading-[20px] text-[#142e2a]/75 md:text-[14px]">
-                  <span className="font-semibold text-[#142e2a]">
-                    Subscription from £
-                    {product.subscriptionPrice.toFixed(2)}/month
-                  </span>{" "}
-                  — includes ongoing clinical support and next-day delivery.
-                </p>
-              ) : null}
             </div>
-          </Reveal>
+
+            {/* Disclaimer + delivery badge */}
+            <div className="flex flex-col gap-2">
+              <p className="font-ui text-[12px] text-[#142e2a]/65 md:text-[13px]">
+                Medication is prescribed subject to clinical suitability.
+              </p>
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#f7f9f2] px-3 py-1.5 font-ui text-[12px] font-medium text-[#142e2a] md:text-[13px]">
+                <span className="grid h-4 w-4 place-items-center rounded-full bg-[#142e2a] text-[#dff49f]">
+                  <CheckIcon size={9} />
+                </span>
+                Next-Day Delivery
+              </span>
+            </div>
+
+            <Link
+              href="/shop"
+              className="font-ui text-[13px] font-medium text-[#142e2a]/55 underline decoration-[1px] underline-offset-4 hover:text-[#142e2a]"
+            >
+              ← Back to shop
+            </Link>
+          </div>
         </div>
       </section>
 

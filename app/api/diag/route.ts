@@ -92,7 +92,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v20-rollback-blob";
+const VERSION = "diag-v21-consultations";
 
 export async function GET(req: NextRequest) {
   // Optional ?probe=media — returns the raw media rows so we can
@@ -419,6 +419,30 @@ export async function POST(req: NextRequest) {
         ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "phone" varchar;
         ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_id" integer REFERENCES "media"("id") ON DELETE SET NULL;
         CREATE INDEX IF NOT EXISTS "users_avatar_idx" ON "users" ("avatar_id");
+
+        -- Consultations: quiz/health-questionnaire responses captured
+        -- by /consultation. Public POST is allowed (storefront customers
+        -- start anonymously); admin-only read.
+        CREATE TABLE IF NOT EXISTS "consultations" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "full_name" varchar,
+          "email" varchar,
+          "phone" varchar,
+          "date_of_birth" varchar,
+          "product_slug" varchar,
+          "dose" varchar,
+          "answers" jsonb,
+          "status" varchar DEFAULT 'submitted' NOT NULL,
+          "user_id" integer REFERENCES "users"("id") ON DELETE SET NULL,
+          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS "consultations_email_idx" ON "consultations" ("email");
+        CREATE INDEX IF NOT EXISTS "consultations_product_slug_idx" ON "consultations" ("product_slug");
+        CREATE INDEX IF NOT EXISTS "consultations_status_idx" ON "consultations" ("status");
+        CREATE INDEX IF NOT EXISTS "consultations_created_at_idx" ON "consultations" ("created_at");
+
+        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "consultations_id" integer REFERENCES "consultations"("id") ON DELETE CASCADE;
       `;
 
       // Split + execute one statement at a time so a partial failure
