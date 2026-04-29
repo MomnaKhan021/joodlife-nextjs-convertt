@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
 
@@ -26,6 +26,7 @@ export default function CheckoutClient() {
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const canPlaceOrder =
     items.length > 0 &&
@@ -71,9 +72,23 @@ export default function CheckoutClient() {
     setBusy(true);
     setError(null);
     try {
+      // Idempotency-Key: same key on a retry returns the same order
+      // instead of creating a duplicate. We mint one per attempt and
+      // keep it on the component so React-strict-mode double-mounts +
+      // network blips don't accidentally double-charge.
+      const idempotencyKey =
+        idempotencyKeyRef.current ??
+        (idempotencyKeyRef.current = `co_${
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : Date.now() + "_" + Math.random().toString(36).slice(2)
+        }`);
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
         credentials: "include",
         body: JSON.stringify({
           items,
