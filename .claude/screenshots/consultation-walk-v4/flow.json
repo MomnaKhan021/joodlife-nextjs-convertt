@@ -1,0 +1,2998 @@
+[
+  {
+    "id": "s_intro",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_dob",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nWhat is your date of birth?\nWe use this to confirm you meet the age criteria for treatment.\n← Back\nContinue →\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_sex",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_height",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_weight",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_target",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_pregnancy",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_breastfeeding",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_meds",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_allergies",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_conditions",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_diabetes",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_thyroid",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_kidney",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_heart",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_eating",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_alcohol",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_smoking",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_activity",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_goal",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_treatments_tried",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_address",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_gp",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nProvide your GP details\nIf you share your GP details, we'll inform them about your treatment. This supports safe, coordinated care.\nGP practice\n← Back\nContinue →\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_phone",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_email",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_name",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_consent",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  },
+  {
+    "id": "s_review",
+    "heading": "JOOD",
+    "text": "Skip to content\n0%\nBefore you continue\nThis consultation helps our clinicians determine whether weight loss treatment is suitable for you. It should take around 3 to 5 minutes to complete.\nPlease confirm that:\n◆\nYou are completing this consultation for yourself\n◆\nThe information you provide will be honest, accurate, and complete\n◆\nYou will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking\n◆\nYou understand you should only use one weight loss treatment at a time\n◆\nYou understand a short video consultation is required before treatment can be supplied\n◆\nYou understand a clinician may need to review your answers before treatment is approved\n◆\nYou agree to our Terms and Conditions and confirm you have read our Privacy Policy\nI have read and agree to the above\n>",
+    "inputs": [
+      {
+        "type": "email",
+        "name": "",
+        "placeholder": "you@example.com",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 170",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 5",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 11",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 90",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 14",
+        "required": false
+      },
+      {
+        "type": "number",
+        "name": "",
+        "placeholder": "e.g. 2",
+        "required": false
+      },
+      {
+        "type": "textarea",
+        "name": "",
+        "placeholder": "Tell us more...",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "file",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "tel",
+        "name": "",
+        "placeholder": "+44 7700 000000",
+        "required": false
+      },
+      {
+        "type": "date",
+        "name": "",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "text",
+        "name": "",
+        "placeholder": "Start typing your GP practice name...",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "form_type",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "hidden",
+        "name": "utf8",
+        "placeholder": "",
+        "required": false
+      },
+      {
+        "type": "email",
+        "name": "contact[email]",
+        "placeholder": "Your email here",
+        "required": true
+      }
+    ],
+    "labels": [
+      "GP practice",
+      "Translation missing: en.blocks.email_signup.label"
+    ]
+  }
+]

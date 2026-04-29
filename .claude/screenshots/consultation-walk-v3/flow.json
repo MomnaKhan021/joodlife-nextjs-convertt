@@ -1,0 +1,50 @@
+[
+  {
+    "step": 1,
+    "url": "https://joodlife.com/pages/consultation",
+    "heading": "",
+    "intro": [],
+    "choices": [],
+    "inputs": []
+  },
+  {
+    "step": 2,
+    "url": "https://joodlife.com/pages/consultation?step=s_dob",
+    "heading": "",
+    "intro": [],
+    "choices": [],
+    "inputs": []
+  },
+  {
+    "step": 3,
+    "url": "https://joodlife.com/pages/consultation?step=s_dob",
+    "heading": "",
+    "intro": [],
+    "choices": [],
+    "inputs": []
+  },
+  {
+    "step": 4,
+    "url": "https://joodlife.com/pages/consultation?step=s_dob",
+    "heading": "",
+    "intro": [],
+    "choices": [],
+    "inputs": []
+  },
+  {
+    "step": 5,
+    "url": "https://joodlife.com/pages/consultation?step=s_dob",
+    "heading": "",
+    "intro": [],
+    "choices": [],
+    "inputs": []
+  },
+  {
+    "step": 6,
+    "url": "https://joodlife.com/pages/consultation?step=s_dob",
+    "heading": "",
+    "intro": [],
+    "choices": [],
+    "inputs": []
+  }
+]
