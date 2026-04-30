@@ -49,6 +49,35 @@ export const Users: CollectionConfig = {
     delete: isAdmin,
     admin: ({ req: { user } }) => user?.role === "admin",
   },
+  hooks: {
+    afterChange: [
+      // Mirror to HubSpot on signup + admin edits. Fire-and-forget so
+      // user-facing flows aren't blocked by HubSpot latency.
+      async ({ doc, operation }) => {
+        if (operation !== "create" && operation !== "update") return doc;
+        if (!doc?.email) return doc;
+        try {
+          const { fireHubSpot, upsertContact } = await import("@/lib/hubspot");
+          const [first, ...rest] = String(doc.name ?? "").split(" ");
+          void fireHubSpot("users:contact", () =>
+            upsertContact({
+              email: String(doc.email),
+              firstName: first || null,
+              lastName: rest.join(" ") || null,
+              phone: doc.phone ?? null,
+              extra: {
+                jood_user_id: doc.id,
+                jood_role: doc.role ?? "customer",
+              },
+            })
+          );
+        } catch {
+          // Never let HubSpot failures break user create/update
+        }
+        return doc;
+      },
+    ],
+  },
   fields: [
     {
       type: "row",

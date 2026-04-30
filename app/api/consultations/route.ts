@@ -26,6 +26,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { addNoteToContact, fireHubSpot, upsertContact } from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -132,7 +133,44 @@ export async function POST(req: NextRequest) {
       | { rows?: Array<{ id: number }> }
       | Array<{ id: number }>;
     const rows = Array.isArray(result) ? result : (result.rows ?? []);
-    return NextResponse.json({ ok: true, id: rows[0]?.id ?? null });
+    const insertedId = rows[0]?.id ?? null;
+
+    // Fire-and-forget HubSpot mirror: only push when the customer hits
+    // Submit (status === 'submitted'). Drafts churn too much.
+    if (status === "submitted" && body.email) {
+      const [first, ...rest] = (body.fullName ?? "").split(" ");
+      void fireHubSpot("consultation:contact", () =>
+        upsertContact({
+          email: body.email!,
+          firstName: first || null,
+          lastName: rest.join(" ") || null,
+          phone: body.phone ?? null,
+          extra: {
+            jood_product_interest: body.productSlug ?? null,
+            jood_consultation_status: "submitted",
+            jood_consultation_id: insertedId ?? undefined,
+          },
+        })
+      );
+
+      // Compact answers as a Note so clinicians can read them inside HubSpot
+      const noteLines = Object.entries(body.answers ?? {})
+        .filter(([k]) => !k.startsWith("_")) // skip internal flags
+        .map(([k, v]) => {
+          const value = Array.isArray(v) ? v.join(", ") : String(v ?? "—");
+          return `<b>${k}</b>: ${value}`;
+        })
+        .join("<br/>");
+      const noteBody =
+        `<p><b>JoodLife consultation submitted</b><br/>` +
+        `Reference: #${insertedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
+        `<hr/><p>${noteLines}</p>`;
+      void fireHubSpot("consultation:note", () =>
+        addNoteToContact(body.email!, noteBody)
+      );
+    }
+
+    return NextResponse.json({ ok: true, id: insertedId });
   } catch (err) {
     return NextResponse.json(
       {
@@ -190,7 +228,41 @@ export async function PATCH(req: NextRequest) {
     if (rows.length === 0) {
       return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
     }
-    return NextResponse.json({ ok: true, id: rows[0].id });
+    const updatedId = rows[0].id;
+
+    // Mirror to HubSpot when this PATCH is the final submit.
+    if (status === "submitted" && body.email) {
+      const [first, ...rest] = (body.fullName ?? "").split(" ");
+      void fireHubSpot("consultation:contact", () =>
+        upsertContact({
+          email: body.email!,
+          firstName: first || null,
+          lastName: rest.join(" ") || null,
+          phone: body.phone ?? null,
+          extra: {
+            jood_product_interest: body.productSlug ?? null,
+            jood_consultation_status: "submitted",
+            jood_consultation_id: updatedId,
+          },
+        })
+      );
+      const noteLines = Object.entries(body.answers ?? {})
+        .filter(([k]) => !k.startsWith("_"))
+        .map(([k, v]) => {
+          const value = Array.isArray(v) ? v.join(", ") : String(v ?? "—");
+          return `<b>${k}</b>: ${value}`;
+        })
+        .join("<br/>");
+      const noteBody =
+        `<p><b>JoodLife consultation submitted</b><br/>` +
+        `Reference: #${updatedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
+        `<hr/><p>${noteLines}</p>`;
+      void fireHubSpot("consultation:note", () =>
+        addNoteToContact(body.email!, noteBody)
+      );
+    }
+
+    return NextResponse.json({ ok: true, id: updatedId });
   } catch (err) {
     return NextResponse.json(
       {

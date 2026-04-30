@@ -20,6 +20,7 @@ import { headers as nextHeaders } from "next/headers";
 import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -405,6 +406,45 @@ export async function POST(req: NextRequest) {
         orderNumber,
         total: repriced.total,
       });
+    }
+
+    // ── HubSpot mirror (fire-and-forget) ─────────────────────────
+    // Upsert contact + create a Deal worth the order total. Both run
+    // in the background; we don't block the customer's response.
+    {
+      const [first, ...rest] = customer.name.split(" ");
+      void fireHubSpot("checkout:contact", () =>
+        upsertContact({
+          email: customer.email,
+          firstName: first || null,
+          lastName: rest.join(" ") || null,
+          phone: customer.phone || null,
+          extra: {
+            jood_last_order_number: orderNumber,
+            jood_last_order_total: repriced.total,
+          },
+        })
+      );
+
+      const itemSummary = repriced.items
+        .map(
+          (i) =>
+            `${i.title}${i.dose ? ` (${i.dose})` : ""} × ${i.quantity}`
+        )
+        .join(", ");
+      void fireHubSpot("checkout:deal", () =>
+        createDeal({
+          name: `JoodLife — ${orderNumber}`,
+          amount: repriced.total,
+          contactEmail: customer.email,
+          extra: {
+            jood_order_number: orderNumber,
+            jood_order_items: itemSummary,
+            jood_order_status: "pending",
+            jood_payment_method: "test",
+          },
+        })
+      );
     }
 
     return NextResponse.json({

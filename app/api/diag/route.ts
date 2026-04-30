@@ -57,6 +57,10 @@ function envSnapshot() {
     NEXT_PUBLIC_SERVER_URL: describe(process.env.NEXT_PUBLIC_SERVER_URL),
     PAYLOAD_PUBLIC_SERVER_URL: describe(process.env.PAYLOAD_PUBLIC_SERVER_URL),
     BLOB_READ_WRITE_TOKEN: describe(process.env.BLOB_READ_WRITE_TOKEN),
+    HUBSPOT_ACCESS_TOKEN: describe(process.env.HUBSPOT_ACCESS_TOKEN),
+    JOOD_REQUIRE_AUTH_FOR_CHECKOUT: describe(
+      process.env.JOOD_REQUIRE_AUTH_FOR_CHECKOUT
+    ),
     available_db_keys: Object.keys(process.env).filter(
       (k) => /DATABASE_URL|POSTGRES_URL|DATABASE_URI/.test(k) && process.env[k]
     ),
