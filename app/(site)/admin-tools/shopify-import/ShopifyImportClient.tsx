@@ -2,24 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type Blog = {
-  id: number;
-  title: string;
-  handle: string;
-  sampleArticleTitle: string | null;
-};
-
-type ImportPage = {
-  ok: boolean;
-  fetched: number;
-  inserted: number;
-  updated: number;
-  skipped: number;
-  errors: string[];
-  nextPageInfo: string | null;
-  error?: string;
-  status?: number;
-};
+/* ------------------------------------------------------------------ */
+/* Shared types                                                        */
+/* ------------------------------------------------------------------ */
 
 type Stats = {
   pages: number;
@@ -39,8 +24,410 @@ const ZERO: Stats = {
   errors: [],
 };
 
+type Method = "feed" | "app";
+
 export default function ShopifyImportClient() {
-  // --- connection state ---
+  const [method, setMethod] = useState<Method>("feed");
+  return (
+    <div>
+      <div role="tablist" className="mb-6 inline-flex rounded-full border border-[#142e2a]/15 bg-[#f7f9f2] p-1 font-ui text-[13px]">
+        <TabButton
+          active={method === "feed"}
+          onClick={() => setMethod("feed")}
+        >
+          ① Public feed
+          <span className="ml-1.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em] text-emerald-800">
+            No setup
+          </span>
+        </TabButton>
+        <TabButton
+          active={method === "app"}
+          onClick={() => setMethod("app")}
+        >
+          ② Custom app
+          <span className="ml-1.5 rounded-full bg-[#142e2a]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em] text-[#142e2a]/70">
+            Advanced
+          </span>
+        </TabButton>
+      </div>
+
+      {method === "feed" ? <FeedImportPanel /> : <AppImportPanel />}
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`inline-flex items-center rounded-full px-4 py-2 font-semibold transition ${
+        active
+          ? "bg-[#142e2a] text-white"
+          : "text-[#142e2a]/70 hover:text-[#142e2a]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ================================================================== */
+/* Method 1 — Public Atom feed (no setup, recommended)                 */
+/* ================================================================== */
+
+type FeedPage = {
+  ok: boolean;
+  feedTitle: string | null;
+  fetched: number;
+  inserted: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+  nextFeedUrl: string | null;
+  error?: string;
+  status?: number;
+};
+
+function FeedImportPanel() {
+  const [storeInput, setStoreInput] = useState("");
+  const [blogHandle, setBlogHandle] = useState("news");
+  const [defaultStatus, setDefaultStatus] = useState<"as-shopify" | "draft">(
+    "as-shopify"
+  );
+  const [running, setRunning] = useState(false);
+  const [done, setDone] = useState(false);
+  const [feedTitle, setFeedTitle] = useState<string | null>(null);
+  const [stats, setStats] = useState<Stats>(ZERO);
+  const [fatal, setFatal] = useState<string | null>(null);
+  const cancelRef = useRef(false);
+
+  const start = useCallback(async () => {
+    if (!storeInput.trim()) return;
+    cancelRef.current = false;
+    setRunning(true);
+    setDone(false);
+    setFatal(null);
+    setStats(ZERO);
+    setFeedTitle(null);
+
+    // Build the initial URL on the client just for display; the server
+    // builds its own canonical URL too.
+    let nextUrl = buildClientFeedUrl(storeInput.trim(), blogHandle.trim() || "news");
+    const acc: Stats = { ...ZERO, errors: [] };
+
+    try {
+      // Hard-bound the loop. 1000 pages × 50 entries = 50k articles.
+      for (let page = 0; page < 1000; page++) {
+        if (cancelRef.current) break;
+
+        const res = await fetch("/api/shopify/import-feed", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            feedUrl: nextUrl,
+            ...(defaultStatus === "draft" ? { status: "draft" } : {}),
+          }),
+        });
+
+        const json = (await res.json()) as FeedPage;
+        if (!res.ok || !json.ok) {
+          setFatal(
+            json.error ??
+              `Import failed (HTTP ${res.status}${
+                json.status ? ` · upstream ${json.status}` : ""
+              })`
+          );
+          break;
+        }
+
+        if (json.feedTitle && !feedTitle) setFeedTitle(json.feedTitle);
+
+        acc.pages += 1;
+        acc.fetched += json.fetched ?? 0;
+        acc.inserted += json.inserted ?? 0;
+        acc.updated += json.updated ?? 0;
+        acc.skipped += json.skipped ?? 0;
+        if (json.errors?.length) acc.errors.push(...json.errors);
+        setStats({ ...acc, errors: [...acc.errors] });
+
+        if (!json.nextFeedUrl) break;
+        nextUrl = json.nextFeedUrl;
+      }
+    } catch (err) {
+      setFatal(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRunning(false);
+      setDone(true);
+    }
+  }, [storeInput, blogHandle, defaultStatus, feedTitle]);
+
+  const cancel = useCallback(() => {
+    cancelRef.current = true;
+  }, []);
+
+  const previewUrl = storeInput.trim()
+    ? buildClientFeedUrl(storeInput.trim(), blogHandle.trim() || "news")
+    : null;
+
+  return (
+    <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+      {/* Left: action card */}
+      <section className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 md:p-8">
+        <h2 className="font-display text-[20px] font-semibold text-[#142e2a]">
+          Import from public Atom feed
+        </h2>
+        <p className="mt-2 font-ui text-[14px] text-[#142e2a]/75">
+          Every Shopify storefront exposes its blog at{" "}
+          <code className="rounded bg-[#142e2a]/8 px-1">
+            /blogs/&lt;handle&gt;.atom
+          </code>{" "}
+          — no token, no scope, nothing to set up. Paste your store
+          URL below and we&apos;ll pull every published article.
+        </p>
+
+        <div className="mt-6 grid gap-4">
+          <label className="block">
+            <span className="font-ui text-[12px] font-semibold uppercase tracking-[0.06em] text-[#142e2a]/60">
+              Shopify store URL or domain
+            </span>
+            <input
+              type="text"
+              placeholder="e.g. joodlife.com or yourstore.myshopify.com"
+              value={storeInput}
+              onChange={(e) => setStoreInput(e.target.value)}
+              disabled={running}
+              className="mt-2 w-full rounded-lg border border-[#142e2a]/15 bg-white px-3 py-2 font-ui text-[14px] text-[#142e2a] placeholder:text-[#142e2a]/40 focus:outline-none focus:ring-2 focus:ring-[#142e2a]/20"
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="font-ui text-[12px] font-semibold uppercase tracking-[0.06em] text-[#142e2a]/60">
+                Blog handle
+              </span>
+              <input
+                type="text"
+                value={blogHandle}
+                onChange={(e) => setBlogHandle(e.target.value)}
+                disabled={running}
+                className="mt-2 w-full rounded-lg border border-[#142e2a]/15 bg-white px-3 py-2 font-ui text-[14px] text-[#142e2a] focus:outline-none focus:ring-2 focus:ring-[#142e2a]/20"
+              />
+              <span className="mt-1 block font-ui text-[11px] text-[#142e2a]/55">
+                Default Shopify blog is <code>news</code>. Other common
+                values: <code>blog</code>, <code>articles</code>.
+              </span>
+            </label>
+            <label className="block">
+              <span className="font-ui text-[12px] font-semibold uppercase tracking-[0.06em] text-[#142e2a]/60">
+                Status on import
+              </span>
+              <select
+                value={defaultStatus}
+                onChange={(e) =>
+                  setDefaultStatus(
+                    e.target.value as "as-shopify" | "draft"
+                  )
+                }
+                disabled={running}
+                className="mt-2 w-full rounded-lg border border-[#142e2a]/15 bg-white px-3 py-2 font-ui text-[14px] text-[#142e2a] focus:outline-none focus:ring-2 focus:ring-[#142e2a]/20"
+              >
+                <option value="as-shopify">
+                  Match Shopify (publish if published there)
+                </option>
+                <option value="draft">All as drafts (review first)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        {previewUrl ? (
+          <p className="mt-4 break-all font-mono text-[12px] text-[#142e2a]/55">
+            Will fetch: {previewUrl}
+          </p>
+        ) : null}
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={start}
+            disabled={running || !storeInput.trim()}
+            className="inline-flex items-center gap-2 rounded-full bg-[#142e2a] px-6 py-3 font-ui text-[14px] font-semibold text-white transition hover:bg-[#1d3f3a] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {running ? (
+              <>
+                <Spinner /> Importing…
+              </>
+            ) : done ? (
+              "Run import again"
+            ) : (
+              "Start import"
+            )}
+          </button>
+          {running ? (
+            <button
+              type="button"
+              onClick={cancel}
+              className="inline-flex items-center rounded-full border border-[#142e2a]/20 px-5 py-3 font-ui text-[14px] font-semibold text-[#142e2a] transition hover:border-[#142e2a]/40"
+            >
+              Stop
+            </button>
+          ) : null}
+          {done && !fatal ? (
+            <>
+              <a
+                href="/admin/collections/posts"
+                className="inline-flex items-center rounded-full border border-[#142e2a]/20 px-5 py-3 font-ui text-[14px] font-semibold text-[#142e2a] transition hover:border-[#142e2a]/40"
+              >
+                Open Posts in CMS →
+              </a>
+              <a
+                href="/blog"
+                className="inline-flex items-center rounded-full border border-[#142e2a]/20 px-5 py-3 font-ui text-[14px] font-semibold text-[#142e2a] transition hover:border-[#142e2a]/40"
+              >
+                View /blog →
+              </a>
+            </>
+          ) : null}
+        </div>
+
+        {fatal ? (
+          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 font-ui text-[13px] text-red-800">
+            <strong className="font-semibold">Import stopped.</strong>{" "}
+            {fatal}
+          </div>
+        ) : null}
+
+        {stats.errors.length > 0 ? (
+          <details className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 font-ui text-[13px] text-amber-900">
+            <summary className="cursor-pointer font-semibold">
+              {stats.errors.length} per-row error
+              {stats.errors.length === 1 ? "" : "s"}
+            </summary>
+            <ul className="mt-3 space-y-1 font-mono text-[12px] leading-relaxed">
+              {stats.errors.slice(0, 50).map((e, i) => (
+                <li key={i} className="break-all">
+                  • {e}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+
+        <details className="mt-8 rounded-xl border border-[#142e2a]/10 bg-[#f7f9f2] p-4 font-ui text-[13px] text-[#142e2a]/75">
+          <summary className="cursor-pointer font-semibold text-[#142e2a]">
+            What gets imported (and what doesn&apos;t)
+          </summary>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            <li>
+              <strong>Imported:</strong> title, slug (from URL), full HTML
+              body, hero image (first <code>&lt;img&gt;</code> in body),
+              tags, author, published date.
+            </li>
+            <li>
+              <strong>Not imported:</strong> drafts (the public feed only
+              shows published articles), Shopify-internal article IDs (we
+              derive a stable surrogate), per-article custom metafields.
+            </li>
+            <li>
+              Re-running is safe — articles are matched by their feed ID
+              and updated in place, not duplicated.
+            </li>
+          </ul>
+        </details>
+      </section>
+
+      {/* Right: live stats */}
+      <aside className="rounded-2xl border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
+        <h2 className="font-ui text-[12px] font-semibold uppercase tracking-[0.06em] text-[#142e2a]/60">
+          Progress
+        </h2>
+        {feedTitle ? (
+          <p className="mt-2 font-display text-[16px] font-semibold leading-[1.2] text-[#142e2a]">
+            {feedTitle}
+          </p>
+        ) : null}
+        <dl className="mt-4 space-y-3 font-ui text-[14px]">
+          <Row label="Pages" value={stats.pages} />
+          <Row label="Fetched" value={stats.fetched} />
+          <Row label="Inserted" value={stats.inserted} accent="green" />
+          <Row label="Updated" value={stats.updated} accent="blue" />
+          <Row label="Skipped" value={stats.skipped} />
+          <Row
+            label="Errors"
+            value={stats.errors.length}
+            accent={stats.errors.length ? "red" : undefined}
+          />
+        </dl>
+        {done && !fatal ? (
+          <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-3 font-ui text-[13px] text-emerald-900">
+            ✓ Import complete. {stats.inserted} new, {stats.updated} updated.
+          </p>
+        ) : null}
+      </aside>
+    </div>
+  );
+}
+
+/* Same client-side normalisation as the server's buildFeedUrl().
+   Kept locally so we can show the user a preview URL without a round-trip. */
+function buildClientFeedUrl(input: string, blogHandle: string): string {
+  let s = input.trim();
+  if (!s) return "";
+  if (!/^https?:\/\//i.test(s) && !s.includes("/")) {
+    return `https://${s}/blogs/${blogHandle}.atom`;
+  }
+  if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+  s = s.replace(/\/$/, "");
+  try {
+    const u = new URL(s);
+    if (!u.pathname.endsWith(".atom")) {
+      if (/\/blogs\/[^/]+$/.test(u.pathname)) {
+        u.pathname = u.pathname + ".atom";
+      } else if (u.pathname === "" || u.pathname === "/") {
+        u.pathname = `/blogs/${blogHandle}.atom`;
+      }
+    }
+    return u.toString();
+  } catch {
+    return s;
+  }
+}
+
+/* ================================================================== */
+/* Method 2 — Custom-app Admin API (drafts + full fidelity)            */
+/* ================================================================== */
+
+type Blog = {
+  id: number;
+  title: string;
+  handle: string;
+  sampleArticleTitle: string | null;
+};
+
+type AppPage = {
+  ok: boolean;
+  fetched: number;
+  inserted: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+  nextPageInfo: string | null;
+  error?: string;
+  status?: number;
+};
+
+function AppImportPanel() {
   const [config, setConfig] = useState<
     | { state: "loading" }
     | { state: "missing"; error: string }
@@ -48,7 +435,6 @@ export default function ShopifyImportClient() {
     | { state: "ready"; blogs: Blog[] }
   >({ state: "loading" });
 
-  // --- import state ---
   const [selectedBlog, setSelectedBlog] = useState<number | null>(null);
   const [defaultStatus, setDefaultStatus] = useState<"as-shopify" | "draft">(
     "as-shopify"
@@ -59,7 +445,6 @@ export default function ShopifyImportClient() {
   const [fatal, setFatal] = useState<string | null>(null);
   const cancelRef = useRef(false);
 
-  // --- bootstrap: fetch list of Shopify blogs ---
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -105,10 +490,8 @@ export default function ShopifyImportClient() {
     const acc: Stats = { ...ZERO, errors: [] };
 
     try {
-      // Hard-bound the loop. 1000 pages × 250 articles = 250k articles.
       for (let page = 0; page < 1000; page++) {
         if (cancelRef.current) break;
-
         const res = await fetch("/api/shopify/import-posts", {
           method: "POST",
           credentials: "include",
@@ -120,8 +503,7 @@ export default function ShopifyImportClient() {
             ...(defaultStatus === "draft" ? { status: "draft" } : {}),
           }),
         });
-
-        const json = (await res.json()) as ImportPage;
+        const json = (await res.json()) as AppPage;
         if (!res.ok || !json.ok) {
           setFatal(
             json.error ??
@@ -131,16 +513,13 @@ export default function ShopifyImportClient() {
           );
           break;
         }
-
         acc.pages += 1;
         acc.fetched += json.fetched ?? 0;
         acc.inserted += json.inserted ?? 0;
         acc.updated += json.updated ?? 0;
         acc.skipped += json.skipped ?? 0;
         if (json.errors?.length) acc.errors.push(...json.errors);
-
         setStats({ ...acc, errors: [...acc.errors] });
-
         if (!json.nextPageInfo) break;
         pageInfo = json.nextPageInfo;
       }
@@ -156,10 +535,6 @@ export default function ShopifyImportClient() {
     cancelRef.current = true;
   }, []);
 
-  /* ------------------------------------------------------------------ */
-  /* Renders                                                             */
-  /* ------------------------------------------------------------------ */
-
   if (config.state === "loading") {
     return (
       <div className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 font-ui text-[14px] text-[#142e2a]/70">
@@ -171,16 +546,13 @@ export default function ShopifyImportClient() {
   if (config.state === "missing") {
     return (
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 font-ui text-[14px] text-amber-900">
-        <strong className="font-semibold">Shopify isn&apos;t connected yet.</strong>
+        <strong className="font-semibold">Custom app isn&apos;t connected yet.</strong>
         <p className="mt-2">{config.error}</p>
-        <p className="mt-3 text-[13px]">
-          Add <code className="rounded bg-amber-100 px-1">SHOPIFY_STORE_DOMAIN</code>{" "}
-          and{" "}
-          <code className="rounded bg-amber-100 px-1">
-            SHOPIFY_ADMIN_ACCESS_TOKEN
-          </code>{" "}
-          to your Vercel project (Settings → Environment Variables) and
-          redeploy. See instructions below.
+        <p className="mt-3">
+          Most users don&apos;t need this — try the{" "}
+          <strong>① Public feed</strong> tab above instead. The custom-app
+          method is only required if you need to import drafts or unlisted
+          posts.
         </p>
         <SetupInstructions />
       </div>
@@ -193,9 +565,9 @@ export default function ShopifyImportClient() {
         <strong className="font-semibold">Connection failed.</strong>
         <p className="mt-2">{config.error}</p>
         <p className="mt-3 text-[13px]">
-          Most common causes: wrong store domain (must be the
-          .myshopify.com domain, not your custom domain), expired token,
-          or missing <code>read_content</code> scope on the custom app.
+          Most common causes: wrong store domain (use the .myshopify.com
+          domain, not your custom domain), expired token, or missing{" "}
+          <code>read_content</code> scope on the custom app.
         </p>
       </div>
     );
@@ -203,14 +575,13 @@ export default function ShopifyImportClient() {
 
   return (
     <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
-      {/* Left: action card */}
       <section className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 md:p-8">
         <h2 className="font-display text-[20px] font-semibold text-[#142e2a]">
-          Import articles
+          Import via custom app
         </h2>
         <p className="mt-2 font-ui text-[14px] text-[#142e2a]/75">
-          Each batch pulls 50 articles from Shopify and upserts them into
-          your posts table.
+          Uses the Shopify Admin API. Includes drafts and unpublished
+          articles, and gets per-article internal IDs.
         </p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -249,7 +620,7 @@ export default function ShopifyImportClient() {
               <option value="as-shopify">
                 Match Shopify (published if published in Shopify)
               </option>
-              <option value="draft">All as drafts (review before publishing)</option>
+              <option value="draft">All as drafts (review first)</option>
             </select>
           </label>
         </div>
@@ -317,17 +688,11 @@ export default function ShopifyImportClient() {
                   • {e}
                 </li>
               ))}
-              {stats.errors.length > 50 ? (
-                <li className="opacity-70">
-                  …and {stats.errors.length - 50} more (truncated)
-                </li>
-              ) : null}
             </ul>
           </details>
         ) : null}
       </section>
 
-      {/* Right: live stats */}
       <aside className="rounded-2xl border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
         <h2 className="font-ui text-[12px] font-semibold uppercase tracking-[0.06em] text-[#142e2a]/60">
           Progress
@@ -344,7 +709,6 @@ export default function ShopifyImportClient() {
             accent={stats.errors.length ? "red" : undefined}
           />
         </dl>
-
         {done && !fatal ? (
           <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-3 font-ui text-[13px] text-emerald-900">
             ✓ Import complete. {stats.inserted} new, {stats.updated} updated.
@@ -354,6 +718,10 @@ export default function ShopifyImportClient() {
     </div>
   );
 }
+
+/* ================================================================== */
+/* Shared bits                                                         */
+/* ================================================================== */
 
 function Row({
   label,
@@ -404,40 +772,27 @@ function SetupInstructions() {
           (you may need to enable custom app development first).
         </li>
         <li>
-          Click <strong>Create an app</strong>. Name it something like
-          &quot;JoodLife Sync&quot;.
+          Click <strong>Create an app</strong>. Name it &quot;JoodLife Sync&quot;.
         </li>
         <li>
-          Open <strong>Configuration → Admin API integration</strong>.
-          Tick <code className="rounded bg-amber-50 px-1">read_content</code>{" "}
-          (covers blogs &amp; articles). Save.
+          Open <strong>Configuration → Admin API integration</strong>. Tick{" "}
+          <code className="rounded bg-amber-50 px-1">read_content</code>. Save.
         </li>
         <li>
           Open <strong>API credentials</strong> →{" "}
-          <strong>Install app</strong>. Copy the{" "}
-          <strong>Admin API access token</strong> (starts with{" "}
-          <code className="rounded bg-amber-50 px-1">shpat_</code>).
+          <strong>Install app</strong>. Copy the Admin API access token
+          (starts with <code className="rounded bg-amber-50 px-1">shpat_</code>).
         </li>
         <li>
-          In Vercel: Project → Settings → Environment Variables. Add:
-          <ul className="mt-1 list-disc pl-5">
-            <li>
-              <code className="rounded bg-amber-50 px-1">
-                SHOPIFY_STORE_DOMAIN
-              </code>{" "}
-              = e.g.{" "}
-              <code className="rounded bg-amber-50 px-1">
-                yourstore.myshopify.com
-              </code>{" "}
-              (no <code>https://</code>)
-            </li>
-            <li>
-              <code className="rounded bg-amber-50 px-1">
-                SHOPIFY_ADMIN_ACCESS_TOKEN
-              </code>{" "}
-              = the <code>shpat_…</code> token
-            </li>
-          </ul>
+          In Vercel: Project → Settings → Environment Variables. Add{" "}
+          <code className="rounded bg-amber-50 px-1">
+            SHOPIFY_STORE_DOMAIN
+          </code>{" "}
+          (the .myshopify.com domain) and{" "}
+          <code className="rounded bg-amber-50 px-1">
+            SHOPIFY_ADMIN_ACCESS_TOKEN
+          </code>
+          .
         </li>
         <li>Redeploy, then refresh this page.</li>
       </ol>

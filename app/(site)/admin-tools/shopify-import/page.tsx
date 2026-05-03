@@ -33,10 +33,12 @@ export default async function ShopifyImportPage() {
         </h1>
         <p className="mt-3 max-w-[680px] font-ui text-[15px] text-[#142e2a]/75">
           Pull articles from your existing Shopify blog into JoodLife&apos;s
-          posts collection. Imported articles are saved with their original
-          HTML, images, tags and publish dates, and become editable in
-          /admin/collections/posts. Re-running the import updates existing
-          rows in place — no duplicates.
+          posts collection. Two methods:{" "}
+          <strong>Public feed</strong> (no setup, just paste your store URL)
+          or <strong>Custom app</strong> (advanced — needs a Shopify token,
+          but lets you import drafts too). Re-running the import is always
+          safe — articles are matched by their Shopify ID and updated in
+          place.
         </p>
       </div>
 
