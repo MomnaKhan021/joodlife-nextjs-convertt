@@ -87,7 +87,14 @@ export default async function BlogPostPage(props: {
         ) : null}
 
         <div className="mt-10">
-          <RichText data={post.content} />
+          {post.bodyHtml ? (
+            <div
+              className="prose-blog font-ui text-[16px] leading-[1.7] text-[#142e2a]/85 md:text-[17px]"
+              dangerouslySetInnerHTML={{ __html: post.bodyHtml }}
+            />
+          ) : (
+            <RichText data={post.content} />
+          )}
         </div>
 
         {post.tags.length > 0 ? (

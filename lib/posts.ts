@@ -27,6 +27,7 @@ export type StorefrontPost = {
 
 export type FullPost = StorefrontPost & {
   content: unknown; // Lexical JSON tree, rendered client-side
+  bodyHtml: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
 };
@@ -45,6 +46,7 @@ type ListRow = {
 
 type FullRow = ListRow & {
   content: unknown;
+  body_html: string | null;
   meta_title: string | null;
   meta_description: string | null;
 };
@@ -95,7 +97,8 @@ async function fetchTagsByPost(
 }
 
 const LIST_SELECT = `p.id, p.title, p.slug, p.excerpt,
-       m.url AS hero_image_url, m.alt AS hero_image_alt,
+       COALESCE(m.url, p.hero_image_url) AS hero_image_url,
+       COALESCE(m.alt, p.title)          AS hero_image_alt,
        p.category, p.published_at,
        u.name AS author_name`;
 
@@ -139,7 +142,7 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   let rows: FullRow[];
   try {
     rows = await rawQuery<FullRow>(
-      `SELECT ${LIST_SELECT}, p.content, p.meta_title, p.meta_description
+      `SELECT ${LIST_SELECT}, p.content, p.body_html, p.meta_title, p.meta_description
        ${LIST_FROM}
        WHERE p.status = 'published' AND p.slug = '${safe}'
        LIMIT 1`
@@ -154,6 +157,7 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   return {
     ...list,
     content: row.content,
+    bodyHtml: row.body_html,
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
   };

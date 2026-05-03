@@ -59,3 +59,102 @@ html, body {
   flex-shrink: 0;
   min-width: 100%;
 }
+
+/* Imported HTML blog content (e.g. from Shopify). The Lexical-based
+   render uses Tailwind utility classes per node; this block styles the
+   raw-HTML path on /blog/[slug] so imported articles match the brand. */
+.prose-blog p { margin: 1rem 0; }
+.prose-blog h1, .prose-blog h2, .prose-blog h3, .prose-blog h4 {
+  font-family: var(--font-display);
+  color: #142e2a;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.prose-blog h1 { margin: 2.25rem 0 1rem; font-size: 32px; }
+.prose-blog h2 { margin: 2.25rem 0 1rem; font-size: 26px; }
+.prose-blog h3 { margin: 1.75rem 0 0.75rem; font-size: 20px; }
+.prose-blog h4 { margin: 1.5rem 0 0.5rem; font-size: 18px; }
+@media (min-width: 768px) {
+  .prose-blog h1 { font-size: 40px; }
+  .prose-blog h2 { font-size: 32px; }
+  .prose-blog h3 { font-size: 24px; }
+}
+.prose-blog ul, .prose-blog ol { margin: 1rem 0; padding-left: 1.5rem; }
+.prose-blog ul { list-style: disc; }
+.prose-blog ol { list-style: decimal; }
+.prose-blog li { margin: 0.4rem 0; }
+.prose-blog a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(20, 46, 42, 0.3);
+  transition: text-decoration-color 0.2s;
+}
+.prose-blog a:hover { text-decoration-color: rgba(20, 46, 42, 1); }
+.prose-blog blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid rgba(20, 46, 42, 0.3);
+  background: #f7f9f2;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.6;
+}
+.prose-blog img {
+  margin: 1.5rem 0;
+  width: 100%;
+  border-radius: 1rem;
+  height: auto;
+}
+.prose-blog figure { margin: 1.5rem 0; }
+.prose-blog figcaption {
+  margin-top: 0.5rem;
+  font-size: 13px;
+  color: rgba(20, 46, 42, 0.6);
+  text-align: center;
+}
+.prose-blog code {
+  background: rgba(20, 46, 42, 0.08);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-family: var(--font-inter), monospace;
+  font-size: 0.9em;
+}
+.prose-blog pre {
+  margin: 1.25rem 0;
+  background: #142e2a;
+  color: #f7f9f2;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+}
+.prose-blog pre code { background: transparent; padding: 0; color: inherit; }
+.prose-blog hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid rgba(20, 46, 42, 0.15);
+}
+.prose-blog table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 14px;
+}
+.prose-blog th, .prose-blog td {
+  border: 1px solid rgba(20, 46, 42, 0.15);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+}
+.prose-blog th {
+  background: #f7f9f2;
+  font-weight: 600;
+}
+.prose-blog iframe {
+  margin: 1.5rem 0;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 1rem;
+  border: 0;
+}

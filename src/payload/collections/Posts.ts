@@ -107,9 +107,9 @@ export const Posts: CollectionConfig = {
     {
       name: "content",
       type: "richText",
-      required: true,
       admin: {
-        description: "The article body. Supports headings, lists, links, images.",
+        description:
+          "The article body. Supports headings, lists, links, images. Leave empty if you're using imported HTML below.",
       },
     },
     {
@@ -179,6 +179,41 @@ export const Posts: CollectionConfig = {
           "Set automatically when status flips to Published. You can override it here.",
         date: { pickerAppearance: "dayAndTime" },
       },
+    },
+    {
+      type: "collapsible",
+      label: "Imported / external content (advanced)",
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: "bodyHtml",
+          type: "textarea",
+          admin: {
+            rows: 12,
+            description:
+              "Raw HTML body, set by the Shopify importer. When present this is rendered on /blog/[slug] instead of the Lexical content above. To migrate to the Lexical editor, copy the relevant text into Content and clear this field.",
+          },
+        },
+        {
+          name: "heroImageUrl",
+          type: "text",
+          admin: {
+            description:
+              "External hero image URL — used when no Hero image is uploaded above. Set automatically by importers.",
+          },
+        },
+        {
+          name: "shopifyArticleId",
+          type: "text",
+          unique: true,
+          index: true,
+          admin: {
+            readOnly: true,
+            description:
+              "Shopify article ID. Set by the importer to enable upserts on re-import. Don't edit by hand.",
+          },
+        },
+      ],
     },
     {
       type: "collapsible",

@@ -58,6 +58,10 @@ function envSnapshot() {
     PAYLOAD_PUBLIC_SERVER_URL: describe(process.env.PAYLOAD_PUBLIC_SERVER_URL),
     BLOB_READ_WRITE_TOKEN: describe(process.env.BLOB_READ_WRITE_TOKEN),
     HUBSPOT_ACCESS_TOKEN: describe(process.env.HUBSPOT_ACCESS_TOKEN),
+    SHOPIFY_STORE_DOMAIN: describe(process.env.SHOPIFY_STORE_DOMAIN),
+    SHOPIFY_ADMIN_ACCESS_TOKEN: describe(
+      process.env.SHOPIFY_ADMIN_ACCESS_TOKEN
+    ),
     JOOD_REQUIRE_AUTH_FOR_CHECKOUT: describe(
       process.env.JOOD_REQUIRE_AUTH_FOR_CHECKOUT
     ),
@@ -96,7 +100,7 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v22-orders-guest-checkout";
+const VERSION = "diag-v23-shopify-import";
 
 export async function GET(req: NextRequest) {
   // Optional ?probe=media — returns the raw media rows so we can
