@@ -60,34 +60,50 @@ export type FeedResult<T> =
 /* ------------------------------------------------------------------ */
 
 /**
- * Normalise a user-typed value into a candidate feed URL.
+ * Normalise a user-typed value into a Shopify Atom feed URL.
  * Accepts:
- *   "joodlife.com"
- *   "yourstore.myshopify.com"
- *   "https://yourstore.com/blogs/news"
- *   "https://yourstore.com/blogs/news.atom"
- *   "https://yourstore.com/blogs/news.atom?page=2"
+ *   "joodlife.com"                                                 (bare domain → uses blogHandle default)
+ *   "yourstore.myshopify.com"                                      (bare domain)
+ *   "https://yourstore.com"                                        (root URL)
+ *   "https://yourstore.com/blogs/news"                             (blog index)
+ *   "https://yourstore.com/blogs/news.atom"                        (already-feed URL)
+ *   "https://yourstore.com/blogs/news.atom?page=2"                 (paginated feed)
+ *   "https://yourstore.com/blogs/jood-journal/article-slug"        (single-article URL — handle extracted)
  */
 export function buildFeedUrl(input: string, blogHandle = "news"): string {
   let s = input.trim();
   if (!s) return "";
-  // Bare domain → assume https + default blog handle
+
+  // Bare domain (no path, no protocol) → use the default blog handle.
   if (!/^https?:\/\//i.test(s) && !s.includes("/")) {
     return `https://${s}/blogs/${blogHandle}.atom`;
   }
-  // Add protocol if missing
+
+  // Add protocol if missing.
   if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
-  // Strip trailing slash
-  s = s.replace(/\/$/, "");
-  // Ensure .atom suffix on /blogs/<handle> URLs (without one)
-  const u = new URL(s);
-  if (!u.pathname.endsWith(".atom")) {
-    if (/\/blogs\/[^/]+$/.test(u.pathname)) {
-      u.pathname = u.pathname + ".atom";
-    } else if (u.pathname === "" || u.pathname === "/") {
-      u.pathname = `/blogs/${blogHandle}.atom`;
-    }
+
+  let u: URL;
+  try {
+    u = new URL(s);
+  } catch {
+    return s;
   }
+
+  // Already an .atom URL — preserve query (e.g. ?page=2 for pagination).
+  if (u.pathname.endsWith(".atom")) return u.toString();
+
+  // Pull the blog handle out of /blogs/<handle>(/whatever-else)? paths
+  // — this handles single-article URLs as well as bare /blogs/<handle>.
+  const blogMatch = u.pathname.match(/^\/blogs\/([^/]+)/);
+  if (blogMatch) {
+    u.pathname = `/blogs/${blogMatch[1]}.atom`;
+    u.search = "";
+    return u.toString();
+  }
+
+  // No /blogs/<handle> in the path → fall back to the supplied default.
+  u.pathname = `/blogs/${blogHandle}.atom`;
+  u.search = "";
   return u.toString();
 }
 
@@ -112,6 +128,13 @@ export async function fetchFeedPage(
     };
   }
   if (!res.ok) {
+    if (res.status === 404) {
+      return {
+        ok: false,
+        status: 404,
+        error: `Feed not found at ${feedUrl}. The blog handle is wrong — open your Shopify blog in a browser and use the segment after /blogs/ in its URL (common values: news, blog, jood-journal, articles).`,
+      };
+    }
     return {
       ok: false,
       status: res.status,

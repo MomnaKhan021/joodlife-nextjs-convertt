@@ -25,6 +25,7 @@ import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
 import {
+  buildFeedUrl,
   fetchFeedPage,
   sanitiseImportedHtml,
   type FeedEntry,
@@ -87,13 +88,16 @@ export async function POST(req: NextRequest) {
     body = {};
   }
 
-  const feedUrl = (body.feedUrl ?? "").trim();
-  if (!feedUrl) {
+  const rawFeedUrl = (body.feedUrl ?? "").trim();
+  if (!rawFeedUrl) {
     return NextResponse.json(
       { ok: false, error: "Missing feedUrl" },
       { status: 400 }
     );
   }
+  // Normalise: handles bare domains, blog index URLs, and full
+  // single-article URLs (extracts the blog handle from /blogs/<handle>/…).
+  const feedUrl = buildFeedUrl(rawFeedUrl);
 
   const overrideStatus =
     body.status === "draft" || body.status === "published"

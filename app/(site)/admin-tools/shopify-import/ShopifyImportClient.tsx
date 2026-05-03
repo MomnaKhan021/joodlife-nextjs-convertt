@@ -379,8 +379,9 @@ function FeedImportPanel() {
   );
 }
 
-/* Same client-side normalisation as the server's buildFeedUrl().
-   Kept locally so we can show the user a preview URL without a round-trip. */
+/* Mirror of the server's buildFeedUrl() — kept here so we can show
+   the user a preview URL without a round-trip. Handles bare domains,
+   blog index URLs, and full single-article URLs alike. */
 function buildClientFeedUrl(input: string, blogHandle: string): string {
   let s = input.trim();
   if (!s) return "";
@@ -388,20 +389,22 @@ function buildClientFeedUrl(input: string, blogHandle: string): string {
     return `https://${s}/blogs/${blogHandle}.atom`;
   }
   if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
-  s = s.replace(/\/$/, "");
+  let u: URL;
   try {
-    const u = new URL(s);
-    if (!u.pathname.endsWith(".atom")) {
-      if (/\/blogs\/[^/]+$/.test(u.pathname)) {
-        u.pathname = u.pathname + ".atom";
-      } else if (u.pathname === "" || u.pathname === "/") {
-        u.pathname = `/blogs/${blogHandle}.atom`;
-      }
-    }
-    return u.toString();
+    u = new URL(s);
   } catch {
     return s;
   }
+  if (u.pathname.endsWith(".atom")) return u.toString();
+  const blogMatch = u.pathname.match(/^\/blogs\/([^/]+)/);
+  if (blogMatch) {
+    u.pathname = `/blogs/${blogMatch[1]}.atom`;
+    u.search = "";
+    return u.toString();
+  }
+  u.pathname = `/blogs/${blogHandle}.atom`;
+  u.search = "";
+  return u.toString();
 }
 
 /* ================================================================== */
