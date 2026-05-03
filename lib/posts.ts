@@ -106,30 +106,131 @@ const LIST_FROM = `FROM posts p
        LEFT JOIN media m ON m.id = p.hero_image_id
        LEFT JOIN users u ON u.id = p.author_id`;
 
+export type ListOptions = {
+  limit?: number;
+  offset?: number;
+  category?: string | null;
+  /** Exclude these post IDs (used by related-posts query). */
+  excludeIds?: number[];
+};
+
+export type PaginatedPosts = {
+  posts: StorefrontPost[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
 /**
- * List published posts in reverse chronological order. Used by /blog.
+ * List published posts in reverse chronological order.
+ * Convenience wrapper for callers that don't need pagination metadata.
  */
 export async function listPublishedPosts(
-  opts: { limit?: number } = {}
+  opts: ListOptions = {}
 ): Promise<StorefrontPost[]> {
-  const limit = Math.min(Math.max(opts.limit ?? 100, 1), 100);
+  const result = await listPublishedPostsPaginated({ ...opts, limit: opts.limit ?? 100 });
+  return result.posts;
+}
+
+/**
+ * Paginated, optionally category-filtered list of published posts.
+ * Used by /blogs (list page) — returns posts + counts so the page can
+ * render numbered pagination.
+ */
+export async function listPublishedPostsPaginated(
+  opts: ListOptions = {}
+): Promise<PaginatedPosts> {
+  const pageSize = Math.min(Math.max(opts.limit ?? 12, 1), 100);
+  const offset = Math.max(opts.offset ?? 0, 0);
+  const category = opts.category?.trim() || null;
+  const excludeIds = (opts.excludeIds ?? []).filter((n) => Number.isInteger(n));
+
+  const whereClauses: string[] = [`p.status = 'published'`];
+  if (category) {
+    whereClauses.push(`p.category = '${category.replace(/'/g, "''")}'`);
+  }
+  if (excludeIds.length > 0) {
+    whereClauses.push(`p.id NOT IN (${excludeIds.join(",")})`);
+  }
+  const where = `WHERE ${whereClauses.join(" AND ")}`;
+
   let rows: ListRow[];
+  let total = 0;
   try {
     rows = await rawQuery<ListRow>(
       `SELECT ${LIST_SELECT}
        ${LIST_FROM}
-       WHERE p.status = 'published'
+       ${where}
        ORDER BY COALESCE(p.published_at, p.created_at) DESC
-       LIMIT ${limit}`
+       LIMIT ${pageSize} OFFSET ${offset}`
     );
+    const totalRows = await rawQuery<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM posts p ${where}`
+    );
+    total = totalRows[0]?.count ? Number(totalRows[0].count) : 0;
   } catch {
-    // Table might not exist yet on a fresh deploy if `push: true` hasn't
-    // had a chance to sync. Fall back to empty list rather than crashing.
-    return [];
+    // Table might not exist yet on a fresh deploy.
+    return { posts: [], total: 0, page: 1, pageSize, totalPages: 0 };
   }
 
   const tags = await fetchTagsByPost(rows.map((r) => r.id));
-  return rows.map((r) => rowToList(r, tags.get(r.id) ?? []));
+  return {
+    posts: rows.map((r) => rowToList(r, tags.get(r.id) ?? [])),
+    total,
+    page: Math.floor(offset / pageSize) + 1,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
+/**
+ * Counts of published posts grouped by category — used to render the
+ * category-filter pill row at the top of /blogs.
+ */
+export async function getCategoryCounts(): Promise<
+  Array<{ slug: string; label: string; count: number }>
+> {
+  let rows: Array<{ category: string | null; count: string }>;
+  try {
+    rows = await rawQuery<{ category: string | null; count: string }>(
+      `SELECT category, COUNT(*)::text AS count
+       FROM posts
+       WHERE status = 'published' AND category IS NOT NULL
+       GROUP BY category
+       ORDER BY COUNT(*) DESC`
+    );
+  } catch {
+    return [];
+  }
+  return rows.map((r) => ({
+    slug: r.category ?? "other",
+    label: categoryLabel(r.category ?? "other"),
+    count: Number(r.count),
+  }));
+}
+
+/**
+ * Fetch up to N other published posts in the same category as `post`,
+ * excluding `post` itself. Falls back to "any published post" if the
+ * category-bound query returns fewer than `limit` rows.
+ */
+export async function getRelatedPosts(
+  post: StorefrontPost,
+  limit = 3
+): Promise<StorefrontPost[]> {
+  const sameCategory = await listPublishedPostsPaginated({
+    limit,
+    category: post.category,
+    excludeIds: [post.id],
+  });
+  if (sameCategory.posts.length >= limit) return sameCategory.posts;
+  // Top up from the global feed if the category is sparse.
+  const filler = await listPublishedPostsPaginated({
+    limit: limit - sameCategory.posts.length,
+    excludeIds: [post.id, ...sameCategory.posts.map((p) => p.id)],
+  });
+  return [...sameCategory.posts, ...filler.posts];
 }
 
 /**

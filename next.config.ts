@@ -16,11 +16,22 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       // Allow media served from Payload's local uploads folder
       { protocol: "http", hostname: "localhost" },
-      // Allow Shopify CDN (for imported Shopify product images)
+      // Allow Shopify CDN (for imported Shopify product + article images)
       { protocol: "https", hostname: "cdn.shopify.com" },
       // Allow joodlife.com's CDN proxy (where the live store hosts product imagery)
       { protocol: "https", hostname: "joodlife.com" },
+      // Allow Vercel Blob — where Payload's Media collection persists uploads
+      // when BLOB_READ_WRITE_TOKEN is set.
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
+  },
+  async redirects() {
+    return [
+      // Old URL pattern (singular) → new pattern (plural).
+      // 308 = permanent + preserves method.
+      { source: "/blog", destination: "/blogs", permanent: true },
+      { source: "/blog/:slug", destination: "/blogs/:slug", permanent: true },
+    ];
   },
 };
 
