@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
       // Allow Vercel Blob — where Payload's Media collection persists uploads
       // when BLOB_READ_WRITE_TOKEN is set.
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+      // Picsum (lorem-ipsum images) — used by the sample-post seeder
+      // and any other test/preview content. Redirects to fastly.picsum.
+      { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "fastly.picsum.photos" },
     ],
   },
   async redirects() {
