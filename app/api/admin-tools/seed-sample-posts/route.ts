@@ -1,10 +1,15 @@
 /**
- * GET /api/posts/seed-sample
+ * GET /api/admin-tools/seed-sample-posts
+ *
  * Admin-only. Inserts 3 sample blog posts so the operator can see the
  * /blogs layout populated end-to-end. Idempotent — keyed on the stable
  * shopify_article_id "sample:1"…"sample:3", so re-running is a no-op.
  *
  *   Returns: { ok, inserted, skipped }
+ *
+ * Lives under /api/admin-tools/* (not /api/posts/*) deliberately —
+ * Payload's REST API claims the /api/<collection-slug>/* namespace
+ * and would intercept anything under /api/posts/.
  *
  * After running, visit /blogs to see them. Edit/delete in
  * /admin/collections/posts like any other post.
@@ -165,101 +170,139 @@ const SAMPLES: Sample[] = [
 ];
 
 export async function GET() {
-  const payload = await getPayloadInstance();
-  const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!user || (user as unknown as { role?: string }).role !== "admin") {
-    return NextResponse.json(
-      { ok: false, error: "Admin role required" },
-      { status: 403 }
-    );
-  }
-
-  let drizzle: DrizzleLike;
-  let sql: SqlRaw;
+  // Wrap everything so any uncaught throw becomes a clean JSON error
+  // instead of getting captured by Payload's framework-level handler
+  // (which returns its own opaque "Something went wrong" envelope).
   try {
-    const d = await getDrizzle();
-    drizzle = d.drizzle;
-    sql = d.sql;
+    const payload = await getPayloadInstance();
+    let user: { role?: string } | null = null;
+    try {
+      const result = await payload.auth({ headers: await nextHeaders() });
+      user = (result.user as { role?: string }) ?? null;
+    } catch (err) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Auth check failed",
+          detail: err instanceof Error ? err.message : String(err),
+        },
+        { status: 500 }
+      );
+    }
+    if (!user || user.role !== "admin") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Admin role required. Sign in at /admin first, then revisit this URL in the same browser tab.",
+        },
+        { status: 403 }
+      );
+    }
+
+    let drizzle: DrizzleLike;
+    let sql: SqlRaw;
+    try {
+      const d = await getDrizzle();
+      drizzle = d.drizzle;
+      sql = d.sql;
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: "DB init failed", detail: String(err) },
+        { status: 500 }
+      );
+    }
+
+    let inserted = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (const s of SAMPLES) {
+      try {
+        // Idempotency: skip if a row already exists for this sample's stable id.
+        const existing = await drizzle.execute(
+          sql.raw(
+            `SELECT id FROM "posts" WHERE shopify_article_id = ${esc(s.shopifyId)} LIMIT 1`
+          )
+        );
+        if (readRows(existing).length > 0) {
+          skipped++;
+          continue;
+        }
+
+        const publishedIso = new Date(
+          Date.now() - s.publishedAtDaysAgo * 24 * 60 * 60 * 1000
+        ).toISOString();
+
+        const insertStmt = `
+          INSERT INTO "posts"
+            (title, slug, excerpt, body_html, hero_image_url, category, status,
+             published_at, shopify_article_id, updated_at, created_at)
+          VALUES
+            (${esc(s.title)}, ${esc(s.slug)}, ${esc(s.excerpt)},
+             ${esc(s.bodyHtml)}, ${esc(s.heroImageUrl)}, ${esc(s.category)},
+             'published', ${esc(publishedIso)}, ${esc(s.shopifyId)},
+             now(), now())
+          ON CONFLICT (slug) DO NOTHING
+          RETURNING id;
+        `;
+        const res = await drizzle.execute(sql.raw(insertStmt));
+        const rows = readRows(res);
+        if (rows.length === 0) {
+          skipped++;
+          continue;
+        }
+
+        // Tags
+        const postId = rows[0].id;
+        const values = s.tags
+          .map((t, i) => `(${postId}, ${i}, ${esc(t)})`)
+          .join(", ");
+        if (values) {
+          try {
+            await drizzle.execute(
+              sql.raw(
+                `INSERT INTO "posts_tags" (_parent_id, _order, tag) VALUES ${values}`
+              )
+            );
+          } catch {
+            /* tag table not yet created on a very fresh deploy — non-fatal */
+          }
+        }
+
+        inserted++;
+      } catch (err) {
+        errors.push(
+          `${s.slug}: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      inserted,
+      skipped,
+      errors: errors.slice(0, 10),
+      next: "/blogs",
+      hint:
+        inserted > 0
+          ? `Inserted ${inserted} sample post${inserted === 1 ? "" : "s"}. Visit /blogs to see them.`
+          : "All sample posts already exist. Visit /blogs to see them, or delete them in /admin/collections/posts and re-run this endpoint.",
+    });
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[seed-sample-posts] uncaught", err);
     return NextResponse.json(
-      { ok: false, error: "DB init failed", detail: String(err) },
+      {
+        ok: false,
+        error: "Unexpected failure",
+        detail: err instanceof Error ? err.message : String(err),
+        stack:
+          err instanceof Error && err.stack
+            ? err.stack.split("\n").slice(0, 6).join("\n")
+            : undefined,
+      },
       { status: 500 }
     );
   }
-
-  let inserted = 0;
-  let skipped = 0;
-  const errors: string[] = [];
-
-  for (const s of SAMPLES) {
-    try {
-      // ON CONFLICT (slug) DO NOTHING covers the slug-uniqueness path;
-      // we additionally check shopify_article_id manually so re-runs
-      // also no-op on rows that were inserted previously with a
-      // different slug.
-      const existing = await drizzle.execute(
-        sql.raw(
-          `SELECT id FROM "posts" WHERE shopify_article_id = ${esc(s.shopifyId)} LIMIT 1`
-        )
-      );
-      if (readRows(existing).length > 0) {
-        skipped++;
-        continue;
-      }
-
-      const publishedIso = new Date(
-        Date.now() - s.publishedAtDaysAgo * 24 * 60 * 60 * 1000
-      ).toISOString();
-
-      const insertStmt = `
-        INSERT INTO "posts"
-          (title, slug, excerpt, body_html, hero_image_url, category, status,
-           published_at, shopify_article_id, updated_at, created_at)
-        VALUES
-          (${esc(s.title)}, ${esc(s.slug)}, ${esc(s.excerpt)},
-           ${esc(s.bodyHtml)}, ${esc(s.heroImageUrl)}, ${esc(s.category)},
-           'published', ${esc(publishedIso)}, ${esc(s.shopifyId)},
-           now(), now())
-        ON CONFLICT (slug) DO NOTHING
-        RETURNING id;
-      `;
-      const res = await drizzle.execute(sql.raw(insertStmt));
-      const rows = readRows(res);
-      if (rows.length === 0) {
-        skipped++;
-        continue;
-      }
-
-      // Tags
-      const postId = rows[0].id;
-      const values = s.tags
-        .map((t, i) => `(${postId}, ${i}, ${esc(t)})`)
-        .join(", ");
-      if (values) {
-        try {
-          await drizzle.execute(
-            sql.raw(
-              `INSERT INTO "posts_tags" (_parent_id, _order, tag) VALUES ${values}`
-            )
-          );
-        } catch {
-          /* tag table not yet created on a very fresh deploy — non-fatal */
-        }
-      }
-
-      inserted++;
-    } catch (err) {
-      errors.push(
-        `${s.slug}: ${err instanceof Error ? err.message : String(err)}`
-      );
-    }
-  }
-
-  return NextResponse.json({
-    ok: true,
-    inserted,
-    skipped,
-    errors: errors.slice(0, 10),
-    next: "/blogs",
-  });
 }
