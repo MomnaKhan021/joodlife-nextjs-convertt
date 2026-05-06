@@ -12,11 +12,11 @@
  * Re-call with the returned `nextAfter` to fetch the next page.
  */
 import { NextResponse, type NextRequest } from "next/server";
-import { headers as nextHeaders } from "next/headers";
 import crypto from "crypto";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { isHubSpotEnabled, listContacts } from "@/lib/hubspot";
+import { authorizeAdminOrCron } from "@/lib/hubspot-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,12 +57,11 @@ function readRows(result: unknown): Array<{ id: number }> {
 }
 
 export async function POST(req: NextRequest) {
-  const payload = await getPayloadInstance();
-  const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!user || (user as unknown as { role?: string }).role !== "admin") {
+  const auth = await authorizeAdminOrCron(req);
+  if (!auth.ok) {
     return NextResponse.json(
-      { ok: false, error: "Admin role required" },
-      { status: 403 }
+      { ok: false, error: auth.error },
+      { status: auth.status }
     );
   }
   if (!isHubSpotEnabled()) {
