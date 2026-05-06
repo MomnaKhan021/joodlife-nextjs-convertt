@@ -226,11 +226,20 @@ export async function POST(req: NextRequest) {
       const insertRes = await drizzle.execute(sql.raw(insertStmt));
       if (readRows<{ id: number }>(insertRes).length > 0) inserted++;
     } catch (err) {
-      errors.push(
-        `consultation ${objectId}: ${err instanceof Error ? err.message : String(err)}`
+      const message = err instanceof Error ? err.message : String(err);
+      // eslint-disable-next-line no-console
+      console.error(
+        `[hubspot:sync-consultations] record ${objectId} failed:`,
+        message
       );
+      errors.push(`consultation ${objectId}: ${message}`);
     }
   }
+
+  // eslint-disable-next-line no-console
+  console.info(
+    `[hubspot:sync-consultations] fetched=${fetched.data.results.length} inserted=${inserted} updated=${updated} errors=${errors.length}`
+  );
 
   return NextResponse.json({
     ok: true,
