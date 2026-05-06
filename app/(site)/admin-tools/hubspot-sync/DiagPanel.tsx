@@ -65,6 +65,12 @@ export default function DiagPanel() {
   }, []);
 
   useEffect(() => {
+    // Fire the initial load once on mount. We deliberately do this
+    // inside an effect so it runs only on the client (avoiding
+    // hydration/SSR issues) and `load()` schedules its own setState
+    // updates asynchronously — the React 19 set-state-in-effect rule
+    // is overzealous for this idiomatic pattern.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
