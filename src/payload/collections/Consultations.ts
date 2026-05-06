@@ -117,6 +117,17 @@ export const Consultations: CollectionConfig = {
           "Optional — only set if the user was logged in when they completed the quiz.",
       },
     },
+    {
+      name: "hubspotObjectId",
+      type: "text",
+      index: true,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description:
+          "HubSpot custom-object id, populated by /admin-tools/hubspot-sync/consultations. Used to upsert on re-sync.",
+      },
+    },
   ],
 };
 

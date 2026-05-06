@@ -157,6 +157,17 @@ export const Orders: CollectionConfig = {
       type: "textarea",
       admin: { description: "Customer notes added at checkout." },
     },
+    {
+      name: "hubspotDealId",
+      type: "text",
+      index: true,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description:
+          "HubSpot deal id, populated by the /admin-tools/hubspot-sync/orders pull. Used to upsert on re-sync.",
+      },
+    },
   ],
 };
 
