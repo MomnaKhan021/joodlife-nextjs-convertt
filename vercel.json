@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/hubspot/sync-all",
-      "schedule": "0 * * * *"
+      "schedule": "0 6 * * *"
     }
   ],
   "functions": {
