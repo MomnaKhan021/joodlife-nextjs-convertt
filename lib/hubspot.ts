@@ -312,6 +312,226 @@ export async function addNoteToContact(
 }
 
 /* ------------------------------------------------------------------ */
+/* Bulk-pull helpers — admin sync endpoints                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The full set of deal properties we read on the admin Orders sync.
+ * Most of these are the `jood_*` custom properties that
+ * /api/checkout writes when an order is placed; the rest are
+ * standard HubSpot deal columns used as fallbacks.
+ */
+const DEAL_PROPERTIES = [
+  "dealname",
+  "amount",
+  "dealstage",
+  "pipeline",
+  "closedate",
+  "createdate",
+  "hs_lastmodifieddate",
+  "jood_order_number",
+  "jood_order_status",
+  "jood_order_items",
+  "jood_payment_method",
+  "jood_customer_email",
+  "jood_customer_name",
+  "jood_customer_phone",
+  "jood_shipping_address",
+  "jood_order_notes",
+  "jood_discount_amount",
+] as const;
+
+export type HubSpotDealRecord = {
+  id: string;
+  properties: Record<string, string | undefined>;
+  /** Email of the first associated contact, or null. */
+  contactEmail?: string | null;
+  /** First associated contact id, or null. */
+  contactId?: string | null;
+};
+
+/**
+ * Paginated list of deals with their `jood_*` order properties +
+ * the email of the first associated contact (used as the customer
+ * email fallback when the deal lacks `jood_customer_email`).
+ */
+export async function listDeals(
+  after?: string,
+  limit = 100
+): Promise<
+  HubSpotResult<{
+    results: HubSpotDealRecord[];
+    nextAfter: string | null;
+  }>
+> {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    properties: DEAL_PROPERTIES.join(","),
+    associations: "contacts",
+  });
+  if (after) params.set("after", after);
+
+  type RawDeal = {
+    id: string;
+    properties: Record<string, string | undefined>;
+    associations?: {
+      contacts?: { results?: Array<{ id: string }> };
+    };
+  };
+
+  const res = await hsFetch<{
+    results: RawDeal[];
+    paging?: { next?: { after: string } };
+  }>(`/crm/v3/objects/deals?${params.toString()}`, { method: "GET" });
+  if (!res.ok) return res;
+
+  const enriched: HubSpotDealRecord[] = [];
+  for (const d of res.data.results) {
+    const contactId = d.associations?.contacts?.results?.[0]?.id ?? null;
+    let contactEmail: string | null = null;
+    if (contactId) {
+      const c = await hsFetch<HubSpotContact>(
+        `/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,phone`,
+        { method: "GET" }
+      );
+      if (c.ok) contactEmail = c.data.properties.email ?? null;
+    }
+    enriched.push({
+      id: d.id,
+      properties: d.properties,
+      contactId,
+      contactEmail,
+    });
+  }
+
+  return {
+    ok: true,
+    data: {
+      results: enriched,
+      nextAfter: res.data.paging?.next?.after ?? null,
+    },
+  };
+}
+
+/**
+ * Fetch the full contact record for a contact id (used to fall back
+ * to firstname/lastname/phone when the deal lacks `jood_customer_*`
+ * properties).
+ */
+export async function getContactById(
+  contactId: string
+): Promise<HubSpotResult<HubSpotContact | null>> {
+  const res = await hsFetch<HubSpotContact>(
+    `/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,phone`,
+    { method: "GET" }
+  );
+  if (!res.ok) return res;
+  return { ok: true, data: res.data ?? null };
+}
+
+/**
+ * The HubSpot custom-object type slug for consultations. Defaults
+ * to `consultations`; override with HUBSPOT_CONSULTATIONS_OBJECT_TYPE
+ * if you've named the custom object differently.
+ */
+function consultationsObjectType(): string {
+  return process.env.HUBSPOT_CONSULTATIONS_OBJECT_TYPE || "consultations";
+}
+
+/**
+ * Default property names we read off the consultation custom-object.
+ * Falls back to common alternatives (e.g. `fullname` if `full_name`
+ * isn't defined). Customise via env if your HubSpot uses different
+ * property names.
+ */
+const CONSULTATION_PROPERTIES = [
+  "email",
+  "full_name",
+  "fullname",
+  "phone",
+  "date_of_birth",
+  "dob",
+  "product_slug",
+  "dose",
+  "answers",
+  "consultation_status",
+  "status",
+  "createdate",
+  "hs_createdate",
+  "hs_lastmodifieddate",
+] as const;
+
+export type HubSpotConsultationRecord = {
+  id: string;
+  properties: Record<string, string | undefined>;
+  contactEmail?: string | null;
+  contactId?: string | null;
+};
+
+/**
+ * Paginated list of consultation custom-object records, plus the
+ * email of the first associated contact (used to link the
+ * consultation back to a user in our DB).
+ */
+export async function listConsultationRecords(
+  after?: string,
+  limit = 100
+): Promise<
+  HubSpotResult<{
+    results: HubSpotConsultationRecord[];
+    nextAfter: string | null;
+  }>
+> {
+  const objectType = consultationsObjectType();
+  const params = new URLSearchParams({
+    limit: String(limit),
+    properties: CONSULTATION_PROPERTIES.join(","),
+    associations: "contacts",
+  });
+  if (after) params.set("after", after);
+
+  type RawRecord = {
+    id: string;
+    properties: Record<string, string | undefined>;
+    associations?: {
+      contacts?: { results?: Array<{ id: string }> };
+    };
+  };
+
+  const res = await hsFetch<{
+    results: RawRecord[];
+    paging?: { next?: { after: string } };
+  }>(`/crm/v3/objects/${encodeURIComponent(objectType)}?${params.toString()}`, {
+    method: "GET",
+  });
+  if (!res.ok) return res;
+
+  const enriched: HubSpotConsultationRecord[] = [];
+  for (const r of res.data.results) {
+    const contactId = r.associations?.contacts?.results?.[0]?.id ?? null;
+    let contactEmail: string | null = null;
+    if (contactId) {
+      const c = await getContactById(contactId);
+      if (c.ok && c.data) contactEmail = c.data.properties.email ?? null;
+    }
+    enriched.push({
+      id: r.id,
+      properties: r.properties,
+      contactId,
+      contactEmail,
+    });
+  }
+
+  return {
+    ok: true,
+    data: {
+      results: enriched,
+      nextAfter: res.data.paging?.next?.after ?? null,
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* Background-safe wrappers — fire and forget                          */
 /* ------------------------------------------------------------------ */
 

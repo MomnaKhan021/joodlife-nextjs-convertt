@@ -2,6 +2,16 @@
 
 import { useCallback, useRef, useState } from "react";
 
+/**
+ * Shared sync runner for all 3 HubSpot pull endpoints
+ * (sync-contacts, sync-orders, sync-consultations).
+ *
+ * Calls `endpoint` in a loop, paginating with HubSpot's `after`
+ * cursor, and shows live stats (Pages, Fetched, Inserted, Updated,
+ * Errors). Each sync endpoint returns the same shape so we can
+ * reuse the same UI.
+ */
+
 type PageResult = {
   ok: boolean;
   fetched: number;
@@ -29,7 +39,26 @@ const ZERO: Stats = {
   errors: [],
 };
 
-export default function HubSpotSyncClient() {
+export type SyncClientShellProps = {
+  /** API endpoint to POST to (e.g. /api/hubspot/sync-orders). */
+  endpoint: string;
+  /** Action button label, e.g. "Start order sync". */
+  label: string;
+  /** Description shown above the action button. */
+  description: string;
+  /** Where to send the user after a successful sync (e.g. /admin/collections/orders). */
+  cmsLink: string;
+  /** Label for the cms link, e.g. "Open Orders in CMS". */
+  cmsLinkLabel: string;
+};
+
+export default function SyncClientShell({
+  endpoint,
+  label,
+  description,
+  cmsLink,
+  cmsLinkLabel,
+}: SyncClientShellProps) {
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [stats, setStats] = useState<Stats>(ZERO);
@@ -47,13 +76,12 @@ export default function HubSpotSyncClient() {
     const acc: Stats = { ...ZERO, errors: [] };
 
     try {
-      // Bound the loop hard — 1000 pages × 100 contacts = 100k contacts
-      // is a comfortable ceiling that prevents an unbounded HubSpot
-      // pagination bug from spinning forever.
+      // Hard ceiling: 1000 pages × 100 records = 100k. Prevents
+      // an unbounded HubSpot pagination bug from spinning forever.
       for (let page = 0; page < 1000; page++) {
         if (cancelRef.current) break;
 
-        const res = await fetch("/api/hubspot/sync-contacts", {
+        const res = await fetch(endpoint, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -78,7 +106,6 @@ export default function HubSpotSyncClient() {
         acc.updated += json.updated ?? 0;
         if (json.errors?.length) acc.errors.push(...json.errors);
 
-        // Snapshot into state so the UI updates after each page.
         setStats({ ...acc, errors: [...acc.errors] });
 
         if (!json.nextAfter) break;
@@ -90,7 +117,7 @@ export default function HubSpotSyncClient() {
       setRunning(false);
       setDone(true);
     }
-  }, []);
+  }, [endpoint]);
 
   const cancel = useCallback(() => {
     cancelRef.current = true;
@@ -104,9 +131,7 @@ export default function HubSpotSyncClient() {
           Bulk import
         </h2>
         <p className="mt-2 font-ui text-[14px] text-[#142e2a]/75">
-          Each batch pulls 100 contacts from HubSpot and upserts them into
-          your users table. The job continues automatically until every
-          page is processed.
+          {description}
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -123,7 +148,7 @@ export default function HubSpotSyncClient() {
             ) : done ? (
               "Sync again"
             ) : (
-              "Start sync"
+              label
             )}
           </button>
           {running ? (
@@ -137,10 +162,10 @@ export default function HubSpotSyncClient() {
           ) : null}
           {done && !fatal ? (
             <a
-              href="/admin/collections/users"
+              href={cmsLink}
               className="inline-flex items-center rounded-full border border-[#142e2a]/20 px-5 py-3 font-ui text-[14px] font-semibold text-[#142e2a] transition hover:border-[#142e2a]/40"
             >
-              Open Users in CMS →
+              {cmsLinkLabel} →
             </a>
           ) : null}
         </div>
