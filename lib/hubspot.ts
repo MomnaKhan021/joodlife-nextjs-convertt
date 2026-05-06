@@ -385,24 +385,45 @@ export async function listDeals(
   }>(`/crm/v3/objects/deals?${params.toString()}`, { method: "GET" });
   if (!res.ok) return res;
 
-  const enriched: HubSpotDealRecord[] = [];
+  // Collect every distinct contact id across the page so we can resolve
+  // emails in ONE batch read instead of 100 individual GETs (avoids the
+  // HubSpot rate limit and the per-call latency that capped earlier
+  // syncs at the first batch).
+  const contactIds: string[] = [];
   for (const d of res.data.results) {
-    const contactId = d.associations?.contacts?.results?.[0]?.id ?? null;
-    let contactEmail: string | null = null;
-    if (contactId) {
-      const c = await hsFetch<HubSpotContact>(
-        `/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,phone`,
-        { method: "GET" }
-      );
-      if (c.ok) contactEmail = c.data.properties.email ?? null;
+    const cid = d.associations?.contacts?.results?.[0]?.id;
+    if (cid && !contactIds.includes(cid)) contactIds.push(cid);
+  }
+
+  const emailById = new Map<string, string>();
+  if (contactIds.length > 0) {
+    // /batch/read accepts up to 100 ids per call, which matches our
+    // page size. If a future page bump exceeds 100 we'd need to chunk.
+    const batch = await hsFetch<{
+      results: Array<{ id: string; properties: Record<string, string> }>;
+    }>(`/crm/v3/objects/contacts/batch/read`, {
+      method: "POST",
+      body: JSON.stringify({
+        properties: ["email", "firstname", "lastname", "phone"],
+        inputs: contactIds.map((id) => ({ id })),
+      }),
+    });
+    if (batch.ok) {
+      for (const c of batch.data.results) {
+        if (c.properties?.email) emailById.set(c.id, c.properties.email);
+      }
     }
-    enriched.push({
+  }
+
+  const enriched: HubSpotDealRecord[] = res.data.results.map((d) => {
+    const contactId = d.associations?.contacts?.results?.[0]?.id ?? null;
+    return {
       id: d.id,
       properties: d.properties,
       contactId,
-      contactEmail,
-    });
-  }
+      contactEmail: contactId ? (emailById.get(contactId) ?? null) : null,
+    };
+  });
 
   return {
     ok: true,
@@ -580,21 +601,40 @@ export async function listConsultationRecords(
   });
   if (!res.ok) return res;
 
-  const enriched: HubSpotConsultationRecord[] = [];
+  // Batch-resolve contact emails (single round-trip for the whole page).
+  const contactIds: string[] = [];
   for (const r of res.data.results) {
-    const contactId = r.associations?.contacts?.results?.[0]?.id ?? null;
-    let contactEmail: string | null = null;
-    if (contactId) {
-      const c = await getContactById(contactId);
-      if (c.ok && c.data) contactEmail = c.data.properties.email ?? null;
+    const cid = r.associations?.contacts?.results?.[0]?.id;
+    if (cid && !contactIds.includes(cid)) contactIds.push(cid);
+  }
+
+  const emailById = new Map<string, string>();
+  if (contactIds.length > 0) {
+    const batch = await hsFetch<{
+      results: Array<{ id: string; properties: Record<string, string> }>;
+    }>(`/crm/v3/objects/contacts/batch/read`, {
+      method: "POST",
+      body: JSON.stringify({
+        properties: ["email", "firstname", "lastname", "phone"],
+        inputs: contactIds.map((id) => ({ id })),
+      }),
+    });
+    if (batch.ok) {
+      for (const c of batch.data.results) {
+        if (c.properties?.email) emailById.set(c.id, c.properties.email);
+      }
     }
-    enriched.push({
+  }
+
+  const enriched: HubSpotConsultationRecord[] = res.data.results.map((r) => {
+    const contactId = r.associations?.contacts?.results?.[0]?.id ?? null;
+    return {
       id: r.id,
       properties: r.properties,
       contactId,
-      contactEmail,
-    });
-  }
+      contactEmail: contactId ? (emailById.get(contactId) ?? null) : null,
+    };
+  });
 
   return {
     ok: true,
