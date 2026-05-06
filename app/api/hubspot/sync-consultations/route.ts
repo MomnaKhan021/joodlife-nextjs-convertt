@@ -1,36 +1,30 @@
 /**
  * POST /api/hubspot/sync-consultations
- * Admin-only. Pulls consultation custom-object records from HubSpot
- * in pages and upserts them into our `consultations` table.
+ * Admin-or-CRON. Pulls consultation custom-object records from
+ * HubSpot in pages and upserts them into our `consultations` table.
  *
  *   Body (optional): { limit?: number, after?: string }
  *   Returns:        { ok, fetched, inserted, updated, errors, nextAfter }
  *
- * Re-call with the returned `nextAfter` to fetch the next page.
- *
- * Upsert key: `hubspot_object_id`. The custom object's intrinsic
- * HubSpot id is stable across edits, so it's the right anchor for
- * idempotent re-runs.
- *
- * Customer association: email-first (links to existing user_id if
- * one exists; never auto-creates — that's /sync-contacts' job).
+ * Upsert key: `hubspot_object_id`. Ensure-schema adds the column on
+ * the first sync after a deploy if Payload's auto-migrate hasn't yet.
  */
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { isHubSpotEnabled, listConsultationRecords } from "@/lib/hubspot";
 import { authorizeAdminOrCron } from "@/lib/hubspot-auth";
+import {
+  ensureConsultationsSchema,
+  runConsultationsPage,
+  type DrizzleLike,
+  type SqlRaw,
+} from "@/lib/hubspot-sync-runners";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
-type SqlRaw = { raw: (s: string) => unknown };
-
-async function getDrizzle(): Promise<{
-  drizzle: DrizzleLike;
-  sql: SqlRaw;
-}> {
+async function getDrizzle(): Promise<{ drizzle: DrizzleLike; sql: SqlRaw }> {
   const payload = await getPayloadInstance();
   const drizzle = (
     payload.db as unknown as {
@@ -46,37 +40,13 @@ async function getDrizzle(): Promise<{
   return { drizzle: drizzle as DrizzleLike, sql: drizzleSql };
 }
 
-function esc(s: string | null | undefined) {
-  return s === null || s === undefined ? "NULL" : "'" + s.replace(/'/g, "''") + "'";
-}
-
-function escNum(n: number | null | undefined) {
-  if (n === null || n === undefined || !Number.isFinite(n)) return "NULL";
-  return String(n);
-}
-
-function readRows<T>(result: unknown): T[] {
-  if (Array.isArray(result)) return result as T[];
+function readRows(result: unknown): Array<{ id: number }> {
+  if (Array.isArray(result)) return result as Array<{ id: number }>;
   if (result && typeof result === "object" && "rows" in result) {
-    const r = (result as { rows?: T[] }).rows;
+    const r = (result as { rows?: Array<{ id: number }> }).rows;
     return Array.isArray(r) ? r : [];
   }
   return [];
-}
-
-function mapStatus(raw: string | undefined): string {
-  const s = (raw || "").toLowerCase().trim();
-  const allowed = ["draft", "submitted", "reviewed", "approved", "rejected"];
-  return allowed.includes(s) ? s : "submitted";
-}
-
-function parseAnswers(raw: string | undefined): unknown {
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { raw };
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -123,130 +93,50 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // First-deploy guard: Payload auto-migrates the schema on boot,
-  // but if a sync fires before that the new hubspot_object_id column
-  // won't exist yet. When it's missing we fall back to upserting by
-  // (email, created_at-ish) — i.e. always insert as a new row, since
-  // we have no other stable key.
-  let hasObjectIdColumn = false;
-  try {
-    const colCheck = await drizzle.execute(
-      sql.raw(
-        `SELECT 1 FROM information_schema.columns
-         WHERE table_name = 'consultations' AND column_name = 'hubspot_object_id'
-         LIMIT 1;`
-      )
+  const schema = await ensureConsultationsSchema(drizzle, sql);
+  if (schema.error) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[hubspot:sync-consultations] schema-ensure failed:`,
+      schema.error
     );
-    hasObjectIdColumn = readRows(colCheck).length > 0;
-  } catch {
-    hasObjectIdColumn = false;
   }
 
-  let inserted = 0;
-  let updated = 0;
-  const errors: string[] = [];
-
-  for (const r of fetched.data.results) {
-    const p = r.properties;
-    const objectId = r.id;
-
+  let hasObjectIdColumn = schema.alreadyHad || schema.added;
+  if (!hasObjectIdColumn) {
     try {
-      const email = (p.email ?? r.contactEmail ?? "").trim();
-      const fullName = (p.full_name ?? p.fullname ?? "").trim();
-      const phone = (p.phone ?? "").trim();
-      const dateOfBirth = (p.date_of_birth ?? p.dob ?? "").trim();
-      const productSlug = (p.product_slug ?? "").trim();
-      const dose = (p.dose ?? "").trim();
-      const status = mapStatus(p.consultation_status ?? p.status);
-      const answers = parseAnswers(p.answers);
-      const answersLiteral = esc(JSON.stringify(answers));
-
-      // Look up matching user_id (email-based, no auto-create)
-      let userId: number | null = null;
-      if (email) {
-        const userRes = await drizzle.execute(
-          sql.raw(`SELECT id FROM "users" WHERE email = ${esc(email)} LIMIT 1;`)
-        );
-        const ur = readRows<{ id: number }>(userRes);
-        if (ur[0]) userId = ur[0].id;
-      }
-
-      // 1. UPDATE by hubspot_object_id (only if column exists)
-      if (hasObjectIdColumn) {
-        const updateStmt = `
-          UPDATE "consultations"
-          SET email          = COALESCE(${esc(email || null)}, email),
-              full_name      = COALESCE(${esc(fullName || null)}, full_name),
-              phone          = COALESCE(${esc(phone || null)}, phone),
-              date_of_birth  = COALESCE(${esc(dateOfBirth || null)}, date_of_birth),
-              product_slug   = COALESCE(${esc(productSlug || null)}, product_slug),
-              dose           = COALESCE(${esc(dose || null)}, dose),
-              answers        = ${answersLiteral}::jsonb,
-              status         = ${esc(status)},
-              user_id        = COALESCE(${escNum(userId)}, user_id),
-              updated_at     = now()
-          WHERE hubspot_object_id = ${esc(objectId)}
-          RETURNING id;
-        `;
-        const updateRes = await drizzle.execute(sql.raw(updateStmt));
-        if (readRows<{ id: number }>(updateRes).length > 0) {
-          updated++;
-          continue;
-        }
-      }
-
-      // 2. INSERT new row
-      const insertStmt = hasObjectIdColumn
-        ? `
-          INSERT INTO "consultations"
-            (hubspot_object_id, email, full_name, phone, date_of_birth,
-             product_slug, dose, answers, status, user_id,
-             updated_at, created_at)
-          VALUES
-            (${esc(objectId)}, ${esc(email || null)}, ${esc(fullName || null)},
-             ${esc(phone || null)}, ${esc(dateOfBirth || null)},
-             ${esc(productSlug || null)}, ${esc(dose || null)},
-             ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
-             now(), now())
-          RETURNING id;
-        `
-        : `
-          INSERT INTO "consultations"
-            (email, full_name, phone, date_of_birth,
-             product_slug, dose, answers, status, user_id,
-             updated_at, created_at)
-          VALUES
-            (${esc(email || null)}, ${esc(fullName || null)},
-             ${esc(phone || null)}, ${esc(dateOfBirth || null)},
-             ${esc(productSlug || null)}, ${esc(dose || null)},
-             ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
-             now(), now())
-          RETURNING id;
-        `;
-      const insertRes = await drizzle.execute(sql.raw(insertStmt));
-      if (readRows<{ id: number }>(insertRes).length > 0) inserted++;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      // eslint-disable-next-line no-console
-      console.error(
-        `[hubspot:sync-consultations] record ${objectId} failed:`,
-        message
+      const colCheck = await drizzle.execute(
+        sql.raw(
+          `SELECT 1 FROM information_schema.columns
+           WHERE table_name = 'consultations' AND column_name = 'hubspot_object_id'
+           LIMIT 1;`
+        )
       );
-      errors.push(`consultation ${objectId}: ${message}`);
+      hasObjectIdColumn = readRows(colCheck).length > 0;
+    } catch {
+      hasObjectIdColumn = false;
     }
   }
 
+  const stats = await runConsultationsPage(
+    drizzle,
+    sql,
+    fetched.data.results,
+    { hasObjectIdColumn }
+  );
+
   // eslint-disable-next-line no-console
   console.info(
-    `[hubspot:sync-consultations] fetched=${fetched.data.results.length} inserted=${inserted} updated=${updated} errors=${errors.length}`
+    `[hubspot:sync-consultations] fetched=${fetched.data.results.length} inserted=${stats.inserted} updated=${stats.updated} errors=${stats.errors.length}`
   );
 
   return NextResponse.json({
     ok: true,
     fetched: fetched.data.results.length,
-    inserted,
-    updated,
-    errors: errors.slice(0, 10),
+    inserted: stats.inserted,
+    updated: stats.updated,
+    errors: stats.errors.slice(0, 10),
     nextAfter: fetched.data.nextAfter,
+    schemaAdded: schema.added || undefined,
   });
 }
