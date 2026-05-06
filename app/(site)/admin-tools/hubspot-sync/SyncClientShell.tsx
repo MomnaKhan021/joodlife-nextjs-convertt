@@ -178,41 +178,7 @@ export default function SyncClientShell({
         ) : null}
 
         {stats.errors.length > 0 ? (
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 font-ui text-[13px] text-amber-900">
-            <p className="font-semibold">
-              {stats.errors.length} per-row error
-              {stats.errors.length === 1 ? "" : "s"} — first {Math.min(2, stats.errors.length)} shown:
-            </p>
-            <ul className="mt-3 space-y-2 font-mono text-[12px] leading-relaxed">
-              {stats.errors.slice(0, 2).map((e, i) => (
-                <li
-                  key={`preview-${i}`}
-                  className="break-all rounded-md bg-amber-100 p-2"
-                >
-                  {e}
-                </li>
-              ))}
-            </ul>
-            {stats.errors.length > 2 ? (
-              <details open className="mt-3">
-                <summary className="cursor-pointer font-semibold">
-                  Show all {stats.errors.length}
-                </summary>
-                <ul className="mt-3 space-y-1 font-mono text-[12px] leading-relaxed">
-                  {stats.errors.slice(2, 52).map((e, i) => (
-                    <li key={i} className="break-all">
-                      • {e}
-                    </li>
-                  ))}
-                  {stats.errors.length > 52 ? (
-                    <li className="opacity-70">
-                      …and {stats.errors.length - 52} more (truncated)
-                    </li>
-                  ) : null}
-                </ul>
-              </details>
-            ) : null}
-          </div>
+          <ErrorPanel errors={stats.errors} />
         ) : null}
       </section>
 
@@ -276,5 +242,90 @@ function Spinner() {
       aria-hidden
       className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
     />
+  );
+}
+
+/**
+ * Renders the per-row errors with a HUGE prominent "most common
+ * error" summary at the top, then 2 sample errors verbatim, then
+ * the full list in an open <details>.
+ *
+ * The summary buckets errors by the part AFTER the last colon (the
+ * raw exception message) so 124 deals all hitting the same SQL
+ * "column X does not exist" surface as ONE bucket — that's the
+ * actionable diagnostic the operator needs to see.
+ */
+function ErrorPanel({ errors }: { errors: string[] }) {
+  // Group by message tail (everything after the last "]: " — that
+  // strips deal-id and step-tag so identical SQL errors collapse
+  // into one bucket).
+  const buckets = new Map<string, number>();
+  for (const e of errors) {
+    const tail = e.replace(/^.*?\]\s*:\s*/, "").replace(/^.*?:\s*/, "");
+    buckets.set(tail, (buckets.get(tail) ?? 0) + 1);
+  }
+  const sorted = Array.from(buckets.entries()).sort((a, b) => b[1] - a[1]);
+  const topMessage = sorted[0]?.[0] ?? "";
+  const topCount = sorted[0]?.[1] ?? 0;
+
+  const copyAll = async () => {
+    try {
+      await navigator.clipboard.writeText(errors.join("\n"));
+    } catch {
+      // ignore
+    }
+  };
+
+  return (
+    <div className="mt-6 rounded-xl border-2 border-red-300 bg-red-50 p-5 font-ui text-[13px] text-red-900">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-semibold text-[15px]">
+          {errors.length} row
+          {errors.length === 1 ? "" : "s"} failed
+        </p>
+        <button
+          type="button"
+          onClick={copyAll}
+          className="rounded-full border border-red-400 bg-white px-3 py-1 text-[12px] font-semibold text-red-800 hover:bg-red-100"
+        >
+          Copy all errors
+        </button>
+      </div>
+
+      {topMessage ? (
+        <div className="mt-3 rounded-lg border border-red-300 bg-white p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-red-700">
+            Most common error ({topCount}× of {errors.length})
+          </p>
+          <pre className="mt-2 whitespace-pre-wrap break-all font-mono text-[12px] text-red-950">
+            {topMessage}
+          </pre>
+          {sorted.length > 1 ? (
+            <p className="mt-2 text-[11px] text-red-700">
+              + {sorted.length - 1} other distinct error pattern
+              {sorted.length - 1 === 1 ? "" : "s"}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <details open className="mt-3">
+        <summary className="cursor-pointer font-semibold">
+          Show every row error verbatim
+        </summary>
+        <ul className="mt-3 space-y-1 font-mono text-[12px] leading-relaxed">
+          {errors.slice(0, 50).map((e, i) => (
+            <li key={i} className="break-all">
+              • {e}
+            </li>
+          ))}
+          {errors.length > 50 ? (
+            <li className="opacity-70">
+              …and {errors.length - 50} more (truncated)
+            </li>
+          ) : null}
+        </ul>
+      </details>
+    </div>
   );
 }

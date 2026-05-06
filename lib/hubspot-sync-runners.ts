@@ -186,7 +186,7 @@ export async function runContactsPage(
           (${esc(fullName || email.split("@")[0])}, ${esc(email)},
            'customer', ${esc(hash)}, ${esc(salt)}, ${esc(phone)},
            now(), now())
-        ON CONFLICT (email) DO NOTHING
+        ON CONFLICT DO NOTHING
         RETURNING id;
       `;
       const insertRes = await drizzle.execute(sql.raw(insertStmt));
@@ -266,6 +266,10 @@ export async function runDealsPage(
   for (const d of deals) {
     const p = d.properties;
     const dealId = d.id;
+    // Declared outside the try so the catch block can tag the error
+    // with the step that threw.
+    let step: "update-by-deal-id" | "update-by-order-number" | "insert" =
+      "update-by-deal-id";
 
     try {
       let customerEmail = (p.jood_customer_email ?? "").trim();
@@ -344,6 +348,7 @@ export async function runDealsPage(
         }
       }
 
+      step = "update-by-order-number";
       // 2. UPDATE by order_number (legacy / first sync)
       const updateByOrderNumber = hasDealIdColumn
         ? `
@@ -387,6 +392,7 @@ export async function runDealsPage(
         continue;
       }
 
+      step = "insert";
       // 3. INSERT new row
       const insertStmt = hasDealIdColumn
         ? `
@@ -403,7 +409,7 @@ export async function runDealsPage(
              ${escNum(totalAmount)}, ${escNum(discountAmount)},
              ${esc(paymentMethod)}, ${esc(status)},
              ${esc(orderNotes)}, now(), now())
-          ON CONFLICT (order_number) DO NOTHING
+          ON CONFLICT DO NOTHING
           RETURNING id;
         `
         : `
@@ -420,7 +426,7 @@ export async function runDealsPage(
              ${escNum(totalAmount)}, ${escNum(discountAmount)},
              ${esc(paymentMethod)}, ${esc(status)},
              ${esc(orderNotes)}, now(), now())
-          ON CONFLICT (order_number) DO NOTHING
+          ON CONFLICT DO NOTHING
           RETURNING id;
         `;
       const insertRes = await drizzle.execute(sql.raw(insertStmt));
@@ -428,8 +434,11 @@ export async function runDealsPage(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       // eslint-disable-next-line no-console
-      console.error(`[hubspot:orders] deal ${dealId} failed:`, message);
-      out.errors.push(`deal ${dealId}: ${message}`);
+      console.error(
+        `[hubspot:orders] deal ${dealId} (${step}) failed:`,
+        message
+      );
+      out.errors.push(`deal ${dealId} [${step}]: ${message}`);
     }
   }
 
