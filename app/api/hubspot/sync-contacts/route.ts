@@ -1,33 +1,29 @@
 /**
  * POST /api/hubspot/sync-contacts
- * Admin-only. Pulls contacts from HubSpot in pages and upserts them
- * into our `users` table. Existing rows (matched by email) are
- * updated with HubSpot's name/phone; new rows are inserted with
- * role=customer and a random hash (no password — they'll need to
- * use the password-reset flow to claim the account).
+ * Admin-or-CRON. Pulls contacts from HubSpot in pages and upserts
+ * them into our `users` table. Existing rows (matched by email) get
+ * name and phone updated; new rows are inserted as customers with a
+ * random hash (the customer must use the password-reset flow to
+ * claim the account).
  *
  *   Body (optional): { limit?: number, after?: string }
  *   Returns:        { ok, fetched, inserted, updated, errors, nextAfter }
- *
- * Re-call with the returned `nextAfter` to fetch the next page.
  */
 import { NextResponse, type NextRequest } from "next/server";
-import crypto from "crypto";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { isHubSpotEnabled, listContacts } from "@/lib/hubspot";
 import { authorizeAdminOrCron } from "@/lib/hubspot-auth";
+import {
+  runContactsPage,
+  type DrizzleLike,
+  type SqlRaw,
+} from "@/lib/hubspot-sync-runners";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
-type SqlRaw = { raw: (s: string) => unknown };
-
-async function getDrizzle(): Promise<{
-  drizzle: DrizzleLike;
-  sql: SqlRaw;
-}> {
+async function getDrizzle(): Promise<{ drizzle: DrizzleLike; sql: SqlRaw }> {
   const payload = await getPayloadInstance();
   const drizzle = (
     payload.db as unknown as {
@@ -41,19 +37,6 @@ async function getDrizzle(): Promise<{
     sql: SqlRaw;
   };
   return { drizzle: drizzle as DrizzleLike, sql: drizzleSql };
-}
-
-function esc(s: string | null | undefined) {
-  return s === null || s === undefined ? "NULL" : "'" + s.replace(/'/g, "''") + "'";
-}
-
-function readRows(result: unknown): Array<{ id: number }> {
-  if (Array.isArray(result)) return result as Array<{ id: number }>;
-  if (result && typeof result === "object" && "rows" in result) {
-    const r = (result as { rows?: Array<{ id: number }> }).rows;
-    return Array.isArray(r) ? r : [];
-  }
-  return [];
 }
 
 export async function POST(req: NextRequest) {
@@ -100,64 +83,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let inserted = 0;
-  let updated = 0;
-  const errors: string[] = [];
+  const stats = await runContactsPage(drizzle, sql, fetched.data.results);
 
-  for (const c of fetched.data.results) {
-    const email = c.properties.email;
-    if (!email) continue;
-    const firstName = c.properties.firstname ?? "";
-    const lastName = c.properties.lastname ?? "";
-    const phone = c.properties.phone ?? null;
-    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
-
-    try {
-      // Try UPDATE first; if no rows updated, fall through to INSERT.
-      const updateStmt = `
-        UPDATE "users"
-        SET name = ${esc(fullName || email.split("@")[0])},
-            phone = COALESCE(${esc(phone)}, phone),
-            updated_at = now()
-        WHERE email = ${esc(email)}
-        RETURNING id;
-      `;
-      const updateRes = await drizzle.execute(sql.raw(updateStmt));
-      if (readRows(updateRes).length > 0) {
-        updated++;
-        continue;
-      }
-
-      // Random hash — Payload uses pbkdf2 internally so this is just
-      // a placeholder. The customer must use the password-reset flow
-      // to set a real one.
-      const hash = crypto.randomBytes(32).toString("hex");
-      const salt = crypto.randomBytes(16).toString("hex");
-      const insertStmt = `
-        INSERT INTO "users"
-          (name, email, role, hash, salt, phone, updated_at, created_at)
-        VALUES
-          (${esc(fullName || email.split("@")[0])}, ${esc(email)},
-           'customer', ${esc(hash)}, ${esc(salt)}, ${esc(phone)},
-           now(), now())
-        ON CONFLICT (email) DO NOTHING
-        RETURNING id;
-      `;
-      const insertRes = await drizzle.execute(sql.raw(insertStmt));
-      if (readRows(insertRes).length > 0) inserted++;
-    } catch (err) {
-      errors.push(
-        `${email}: ${err instanceof Error ? err.message : String(err)}`
-      );
-    }
-  }
+  // eslint-disable-next-line no-console
+  console.info(
+    `[hubspot:sync-contacts] fetched=${fetched.data.results.length} inserted=${stats.inserted} updated=${stats.updated} errors=${stats.errors.length}`
+  );
 
   return NextResponse.json({
     ok: true,
     fetched: fetched.data.results.length,
-    inserted,
-    updated,
-    errors: errors.slice(0, 10),
+    inserted: stats.inserted,
+    updated: stats.updated,
+    errors: stats.errors.slice(0, 10),
     nextAfter: fetched.data.nextAfter,
   });
 }

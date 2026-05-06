@@ -1,6 +1,6 @@
 /**
  * POST /api/hubspot/sync-orders
- * Admin-only. Pulls Deals (= orders, in our HubSpot model) from
+ * Admin-or-CRON. Pulls Deals (= orders, in our HubSpot model) from
  * HubSpot in pages and upserts them into our `orders` table.
  *
  *   Body (optional): { limit?: number, after?: string }
@@ -8,29 +8,23 @@
  *
  * Re-call with the returned `nextAfter` to fetch the next page.
  *
- * Upsert strategy:
- *   1. Match by `hubspot_deal_id` (set on previous syncs)
- *   2. Else match by `order_number` (extracted from
- *      jood_order_number, falling back to dealname)
- *   3. Else INSERT a new row
- *
- * Customer association:
- *   - We keep customer info on the order itself (customerName/Email)
- *   - We also try to attach a `user_id` FK by looking up the email
- *     in the users table (no auto-create — that's what
- *     /sync-contacts is for)
+ * The actual upsert work lives in lib/hubspot-sync-runners — this
+ * route handler is only responsible for auth + HubSpot pagination.
  */
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { isHubSpotEnabled, listDeals, getContactById } from "@/lib/hubspot";
+import { isHubSpotEnabled, listDeals } from "@/lib/hubspot";
 import { authorizeAdminOrCron } from "@/lib/hubspot-auth";
+import {
+  ensureOrdersSchema,
+  runDealsPage,
+  type DrizzleLike,
+  type SqlRaw,
+} from "@/lib/hubspot-sync-runners";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
-type SqlRaw = { raw: (s: string) => unknown };
 
 async function getDrizzle(): Promise<{
   drizzle: DrizzleLike;
@@ -51,81 +45,13 @@ async function getDrizzle(): Promise<{
   return { drizzle: drizzle as DrizzleLike, sql: drizzleSql };
 }
 
-function esc(s: string | null | undefined) {
-  return s === null || s === undefined ? "NULL" : "'" + s.replace(/'/g, "''") + "'";
-}
-
-function escNum(n: number | null | undefined) {
-  if (n === null || n === undefined || !Number.isFinite(n)) return "NULL";
-  return String(n);
-}
-
-function readRows<T>(result: unknown): T[] {
-  if (Array.isArray(result)) return result as T[];
+function readRows(result: unknown): Array<{ id: number }> {
+  if (Array.isArray(result)) return result as Array<{ id: number }>;
   if (result && typeof result === "object" && "rows" in result) {
-    const r = (result as { rows?: T[] }).rows;
+    const r = (result as { rows?: Array<{ id: number }> }).rows;
     return Array.isArray(r) ? r : [];
   }
   return [];
-}
-
-/**
- * Map HubSpot deal stage strings to our internal order status enum.
- * The right-hand side must match the values declared on the
- * Orders collection (`pending`/`paid`/`shipped`/`delivered`/`cancelled`).
- */
-function mapStatus(rawStatus: string | undefined, dealStage: string | undefined): string {
-  const s = (rawStatus || "").toLowerCase().trim();
-  if (
-    s === "pending" ||
-    s === "paid" ||
-    s === "shipped" ||
-    s === "delivered" ||
-    s === "cancelled"
-  ) {
-    return s;
-  }
-  // Common HubSpot deal-stage names we map onto our enum
-  const stage = (dealStage || "").toLowerCase();
-  if (stage.includes("closedwon") || stage.includes("won")) return "paid";
-  if (stage.includes("closedlost") || stage.includes("lost")) return "cancelled";
-  if (stage.includes("ship")) return "shipped";
-  if (stage.includes("deliver")) return "delivered";
-  return "pending";
-}
-
-/**
- * Map HubSpot payment-method strings to our internal enum.
- */
-function mapPaymentMethod(raw: string | undefined): string {
-  const v = (raw || "").toLowerCase().trim();
-  const allowed = [
-    "test",
-    "card",
-    "paypal",
-    "apple_pay",
-    "google_pay",
-    "bank_transfer",
-  ];
-  if (allowed.includes(v)) return v;
-  if (v === "applepay") return "apple_pay";
-  if (v === "googlepay") return "google_pay";
-  if (v === "bank") return "bank_transfer";
-  return "test";
-}
-
-/**
- * Try to parse the items_json — HubSpot stores it as a string. If it
- * isn't valid JSON we keep the raw text under a single-item shape so
- * nothing blows up downstream.
- */
-function parseItemsJson(raw: string | undefined): unknown {
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [{ note: "raw", body: raw }];
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -172,219 +98,47 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // First-deploy guard: Payload auto-migrates the schema on boot, but
-  // if a sync fires before that finishes the new hubspot_deal_id
-  // column won't exist yet. Skip the deal-id branch in that case so
-  // we still upsert by order_number rather than 500'ing every row.
-  let hasDealIdColumn = false;
-  try {
-    const colCheck = await drizzle.execute(
-      sql.raw(
-        `SELECT 1 FROM information_schema.columns
-         WHERE table_name = 'orders' AND column_name = 'hubspot_deal_id'
-         LIMIT 1;`
-      )
-    );
-    hasDealIdColumn = readRows(colCheck).length > 0;
-  } catch {
-    hasDealIdColumn = false;
+  // Add hubspot_deal_id column if Payload's auto-migrate hasn't yet.
+  const schema = await ensureOrdersSchema(drizzle, sql);
+  if (schema.error) {
+    // eslint-disable-next-line no-console
+    console.warn(`[hubspot:sync-orders] schema-ensure failed:`, schema.error);
   }
 
-  let inserted = 0;
-  let updated = 0;
-  const errors: string[] = [];
-
-  for (const d of fetched.data.results) {
-    const p = d.properties;
-    const dealId = d.id;
-
+  // After ensure, the column should exist; verify so the INSERT/UPDATE
+  // path can branch correctly.
+  let hasDealIdColumn = schema.alreadyHad || schema.added;
+  if (!hasDealIdColumn) {
     try {
-      // ------------------------------------------------------------
-      // 1. Resolve customer info (deal-level jood_* > associated contact > "")
-      // ------------------------------------------------------------
-      let customerEmail = (p.jood_customer_email ?? "").trim();
-      let customerName = (p.jood_customer_name ?? "").trim();
-      let customerPhone = (p.jood_customer_phone ?? "").trim();
-
-      if (!customerEmail && d.contactEmail) customerEmail = d.contactEmail.trim();
-
-      if ((!customerName || !customerPhone) && d.contactId) {
-        const c = await getContactById(d.contactId);
-        if (c.ok && c.data) {
-          if (!customerName) {
-            const fn = (c.data.properties.firstname ?? "").trim();
-            const ln = (c.data.properties.lastname ?? "").trim();
-            customerName = [fn, ln].filter(Boolean).join(" ").trim();
-          }
-          if (!customerPhone) {
-            customerPhone = (c.data.properties.phone ?? "").trim();
-          }
-          if (!customerEmail) {
-            customerEmail = (c.data.properties.email ?? "").trim();
-          }
-        }
-      }
-
-      const orderNumber =
-        (p.jood_order_number ?? "").trim() ||
-        (p.dealname ?? "").trim() ||
-        `HS-${dealId}`;
-
-      const totalAmount = Number(p.amount ?? 0) || 0;
-      const discountAmount = Number(p.jood_discount_amount ?? 0) || 0;
-      const status = mapStatus(p.jood_order_status, p.dealstage);
-      const paymentMethod = mapPaymentMethod(p.jood_payment_method);
-      const itemsJson = parseItemsJson(p.jood_order_items);
-      const shippingAddress = p.jood_shipping_address ?? null;
-      const orderNotes = p.jood_order_notes ?? null;
-
-      // ------------------------------------------------------------
-      // 2. Look up the matching user_id (email-based, no auto-create)
-      // ------------------------------------------------------------
-      let userId: number | null = null;
-      if (customerEmail) {
-        const userRes = await drizzle.execute(
-          sql.raw(`SELECT id FROM "users" WHERE email = ${esc(customerEmail)} LIMIT 1;`)
-        );
-        const ur = readRows<{ id: number }>(userRes);
-        if (ur[0]) userId = ur[0].id;
-      }
-
-      const itemsLiteral = esc(JSON.stringify(itemsJson));
-
-      // ------------------------------------------------------------
-      // 3. Try UPDATE by hubspot_deal_id (only if column exists)
-      // ------------------------------------------------------------
-      if (hasDealIdColumn) {
-        const updateByDealId = `
-          UPDATE "orders"
-          SET order_number     = ${esc(orderNumber)},
-              customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
-              customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
-              customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
-              shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
-              items_json       = ${itemsLiteral}::jsonb,
-              total_amount     = ${escNum(totalAmount)},
-              discount_amount  = ${escNum(discountAmount)},
-              payment_method   = ${esc(paymentMethod)},
-              status           = ${esc(status)},
-              notes            = COALESCE(${esc(orderNotes)}, notes),
-              user_id          = COALESCE(${escNum(userId)}, user_id),
-              updated_at       = now()
-          WHERE hubspot_deal_id = ${esc(dealId)}
-          RETURNING id;
-        `;
-        const updateRes = await drizzle.execute(sql.raw(updateByDealId));
-        if (readRows<{ id: number }>(updateRes).length > 0) {
-          updated++;
-          continue;
-        }
-      }
-
-      // ------------------------------------------------------------
-      // 4. UPDATE by order_number (legacy rows synced before deal id)
-      // ------------------------------------------------------------
-      const updateByOrderNumber = hasDealIdColumn
-        ? `
-          UPDATE "orders"
-          SET hubspot_deal_id  = ${esc(dealId)},
-              customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
-              customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
-              customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
-              shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
-              items_json       = ${itemsLiteral}::jsonb,
-              total_amount     = ${escNum(totalAmount)},
-              discount_amount  = ${escNum(discountAmount)},
-              payment_method   = ${esc(paymentMethod)},
-              status           = ${esc(status)},
-              notes            = COALESCE(${esc(orderNotes)}, notes),
-              user_id          = COALESCE(${escNum(userId)}, user_id),
-              updated_at       = now()
-          WHERE order_number = ${esc(orderNumber)}
-          RETURNING id;
-        `
-        : `
-          UPDATE "orders"
-          SET customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
-              customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
-              customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
-              shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
-              items_json       = ${itemsLiteral}::jsonb,
-              total_amount     = ${escNum(totalAmount)},
-              discount_amount  = ${escNum(discountAmount)},
-              payment_method   = ${esc(paymentMethod)},
-              status           = ${esc(status)},
-              notes            = COALESCE(${esc(orderNotes)}, notes),
-              user_id          = COALESCE(${escNum(userId)}, user_id),
-              updated_at       = now()
-          WHERE order_number = ${esc(orderNumber)}
-          RETURNING id;
-        `;
-      const updateRes2 = await drizzle.execute(sql.raw(updateByOrderNumber));
-      if (readRows<{ id: number }>(updateRes2).length > 0) {
-        updated++;
-        continue;
-      }
-
-      // ------------------------------------------------------------
-      // 5. INSERT new row
-      // ------------------------------------------------------------
-      const insertStmt = hasDealIdColumn
-        ? `
-          INSERT INTO "orders"
-            (order_number, hubspot_deal_id, customer_name, customer_email,
-             customer_phone, user_id, shipping_address, items_json,
-             total_amount, discount_amount, payment_method, status,
-             notes, updated_at, created_at)
-          VALUES
-            (${esc(orderNumber)}, ${esc(dealId)},
-             ${esc(customerName || null)}, ${esc(customerEmail || null)},
-             ${esc(customerPhone || null)}, ${escNum(userId)},
-             ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
-             ${escNum(totalAmount)}, ${escNum(discountAmount)},
-             ${esc(paymentMethod)}, ${esc(status)},
-             ${esc(orderNotes)}, now(), now())
-          ON CONFLICT (order_number) DO NOTHING
-          RETURNING id;
-        `
-        : `
-          INSERT INTO "orders"
-            (order_number, customer_name, customer_email,
-             customer_phone, user_id, shipping_address, items_json,
-             total_amount, discount_amount, payment_method, status,
-             notes, updated_at, created_at)
-          VALUES
-            (${esc(orderNumber)},
-             ${esc(customerName || null)}, ${esc(customerEmail || null)},
-             ${esc(customerPhone || null)}, ${escNum(userId)},
-             ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
-             ${escNum(totalAmount)}, ${escNum(discountAmount)},
-             ${esc(paymentMethod)}, ${esc(status)},
-             ${esc(orderNotes)}, now(), now())
-          ON CONFLICT (order_number) DO NOTHING
-          RETURNING id;
-        `;
-      const insertRes = await drizzle.execute(sql.raw(insertStmt));
-      if (readRows<{ id: number }>(insertRes).length > 0) inserted++;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      // eslint-disable-next-line no-console
-      console.error(`[hubspot:sync-orders] deal ${dealId} failed:`, message);
-      errors.push(`deal ${dealId}: ${message}`);
+      const colCheck = await drizzle.execute(
+        sql.raw(
+          `SELECT 1 FROM information_schema.columns
+           WHERE table_name = 'orders' AND column_name = 'hubspot_deal_id'
+           LIMIT 1;`
+        )
+      );
+      hasDealIdColumn = readRows(colCheck).length > 0;
+    } catch {
+      hasDealIdColumn = false;
     }
   }
 
+  const stats = await runDealsPage(drizzle, sql, fetched.data.results, {
+    hasDealIdColumn,
+  });
+
   // eslint-disable-next-line no-console
   console.info(
-    `[hubspot:sync-orders] fetched=${fetched.data.results.length} inserted=${inserted} updated=${updated} errors=${errors.length}`
+    `[hubspot:sync-orders] fetched=${fetched.data.results.length} inserted=${stats.inserted} updated=${stats.updated} errors=${stats.errors.length}`
   );
 
   return NextResponse.json({
     ok: true,
     fetched: fetched.data.results.length,
-    inserted,
-    updated,
-    errors: errors.slice(0, 10),
+    inserted: stats.inserted,
+    updated: stats.updated,
+    errors: stats.errors.slice(0, 10),
     nextAfter: fetched.data.nextAfter,
+    schemaAdded: schema.added || undefined,
   });
 }
