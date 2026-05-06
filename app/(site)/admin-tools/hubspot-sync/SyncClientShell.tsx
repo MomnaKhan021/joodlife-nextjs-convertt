@@ -178,24 +178,41 @@ export default function SyncClientShell({
         ) : null}
 
         {stats.errors.length > 0 ? (
-          <details className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 font-ui text-[13px] text-amber-900">
-            <summary className="cursor-pointer font-semibold">
+          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 font-ui text-[13px] text-amber-900">
+            <p className="font-semibold">
               {stats.errors.length} per-row error
-              {stats.errors.length === 1 ? "" : "s"}
-            </summary>
-            <ul className="mt-3 space-y-1 font-mono text-[12px] leading-relaxed">
-              {stats.errors.slice(0, 50).map((e, i) => (
-                <li key={i} className="break-all">
-                  • {e}
+              {stats.errors.length === 1 ? "" : "s"} — first {Math.min(2, stats.errors.length)} shown:
+            </p>
+            <ul className="mt-3 space-y-2 font-mono text-[12px] leading-relaxed">
+              {stats.errors.slice(0, 2).map((e, i) => (
+                <li
+                  key={`preview-${i}`}
+                  className="break-all rounded-md bg-amber-100 p-2"
+                >
+                  {e}
                 </li>
               ))}
-              {stats.errors.length > 50 ? (
-                <li className="opacity-70">
-                  …and {stats.errors.length - 50} more (truncated)
-                </li>
-              ) : null}
             </ul>
-          </details>
+            {stats.errors.length > 2 ? (
+              <details open className="mt-3">
+                <summary className="cursor-pointer font-semibold">
+                  Show all {stats.errors.length}
+                </summary>
+                <ul className="mt-3 space-y-1 font-mono text-[12px] leading-relaxed">
+                  {stats.errors.slice(2, 52).map((e, i) => (
+                    <li key={i} className="break-all">
+                      • {e}
+                    </li>
+                  ))}
+                  {stats.errors.length > 52 ? (
+                    <li className="opacity-70">
+                      …and {stats.errors.length - 52} more (truncated)
+                    </li>
+                  ) : null}
+                </ul>
+              </details>
+            ) : null}
+          </div>
         ) : null}
       </section>
 
