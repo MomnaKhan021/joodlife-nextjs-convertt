@@ -173,6 +173,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // First-deploy guard: Payload auto-migrates the schema on boot, but
+  // if a sync fires before that finishes the new hubspot_deal_id
+  // column won't exist yet. Skip the deal-id branch in that case so
+  // we still upsert by order_number rather than 500'ing every row.
+  let hasDealIdColumn = false;
+  try {
+    const colCheck = await drizzle.execute(
+      sql.raw(
+        `SELECT 1 FROM information_schema.columns
+         WHERE table_name = 'orders' AND column_name = 'hubspot_deal_id'
+         LIMIT 1;`
+      )
+    );
+    hasDealIdColumn = readRows(colCheck).length > 0;
+  } catch {
+    hasDealIdColumn = false;
+  }
+
   let inserted = 0;
   let updated = 0;
   const errors: string[] = [];
@@ -236,53 +254,73 @@ export async function POST(req: NextRequest) {
       const itemsLiteral = esc(JSON.stringify(itemsJson));
 
       // ------------------------------------------------------------
-      // 3. Try UPDATE by hubspot_deal_id
+      // 3. Try UPDATE by hubspot_deal_id (only if column exists)
       // ------------------------------------------------------------
-      const updateByDealId = `
-        UPDATE "orders"
-        SET order_number     = ${esc(orderNumber)},
-            customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
-            customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
-            customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
-            shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
-            items_json       = ${itemsLiteral}::jsonb,
-            total_amount     = ${escNum(totalAmount)},
-            discount_amount  = ${escNum(discountAmount)},
-            payment_method   = ${esc(paymentMethod)},
-            status           = ${esc(status)},
-            notes            = COALESCE(${esc(orderNotes)}, notes),
-            user_id          = COALESCE(${escNum(userId)}, user_id),
-            updated_at       = now()
-        WHERE hubspot_deal_id = ${esc(dealId)}
-        RETURNING id;
-      `;
-      const updateRes = await drizzle.execute(sql.raw(updateByDealId));
-      if (readRows<{ id: number }>(updateRes).length > 0) {
-        updated++;
-        continue;
+      if (hasDealIdColumn) {
+        const updateByDealId = `
+          UPDATE "orders"
+          SET order_number     = ${esc(orderNumber)},
+              customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
+              customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
+              customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
+              shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
+              items_json       = ${itemsLiteral}::jsonb,
+              total_amount     = ${escNum(totalAmount)},
+              discount_amount  = ${escNum(discountAmount)},
+              payment_method   = ${esc(paymentMethod)},
+              status           = ${esc(status)},
+              notes            = COALESCE(${esc(orderNotes)}, notes),
+              user_id          = COALESCE(${escNum(userId)}, user_id),
+              updated_at       = now()
+          WHERE hubspot_deal_id = ${esc(dealId)}
+          RETURNING id;
+        `;
+        const updateRes = await drizzle.execute(sql.raw(updateByDealId));
+        if (readRows<{ id: number }>(updateRes).length > 0) {
+          updated++;
+          continue;
+        }
       }
 
       // ------------------------------------------------------------
       // 4. UPDATE by order_number (legacy rows synced before deal id)
       // ------------------------------------------------------------
-      const updateByOrderNumber = `
-        UPDATE "orders"
-        SET hubspot_deal_id  = ${esc(dealId)},
-            customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
-            customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
-            customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
-            shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
-            items_json       = ${itemsLiteral}::jsonb,
-            total_amount     = ${escNum(totalAmount)},
-            discount_amount  = ${escNum(discountAmount)},
-            payment_method   = ${esc(paymentMethod)},
-            status           = ${esc(status)},
-            notes            = COALESCE(${esc(orderNotes)}, notes),
-            user_id          = COALESCE(${escNum(userId)}, user_id),
-            updated_at       = now()
-        WHERE order_number = ${esc(orderNumber)}
-        RETURNING id;
-      `;
+      const updateByOrderNumber = hasDealIdColumn
+        ? `
+          UPDATE "orders"
+          SET hubspot_deal_id  = ${esc(dealId)},
+              customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
+              customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
+              customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
+              shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
+              items_json       = ${itemsLiteral}::jsonb,
+              total_amount     = ${escNum(totalAmount)},
+              discount_amount  = ${escNum(discountAmount)},
+              payment_method   = ${esc(paymentMethod)},
+              status           = ${esc(status)},
+              notes            = COALESCE(${esc(orderNotes)}, notes),
+              user_id          = COALESCE(${escNum(userId)}, user_id),
+              updated_at       = now()
+          WHERE order_number = ${esc(orderNumber)}
+          RETURNING id;
+        `
+        : `
+          UPDATE "orders"
+          SET customer_name    = COALESCE(${esc(customerName || null)}, customer_name),
+              customer_email   = COALESCE(${esc(customerEmail || null)}, customer_email),
+              customer_phone   = COALESCE(${esc(customerPhone || null)}, customer_phone),
+              shipping_address = COALESCE(${esc(shippingAddress)}, shipping_address),
+              items_json       = ${itemsLiteral}::jsonb,
+              total_amount     = ${escNum(totalAmount)},
+              discount_amount  = ${escNum(discountAmount)},
+              payment_method   = ${esc(paymentMethod)},
+              status           = ${esc(status)},
+              notes            = COALESCE(${esc(orderNotes)}, notes),
+              user_id          = COALESCE(${escNum(userId)}, user_id),
+              updated_at       = now()
+          WHERE order_number = ${esc(orderNumber)}
+          RETURNING id;
+        `;
       const updateRes2 = await drizzle.execute(sql.raw(updateByOrderNumber));
       if (readRows<{ id: number }>(updateRes2).length > 0) {
         updated++;
@@ -292,23 +330,41 @@ export async function POST(req: NextRequest) {
       // ------------------------------------------------------------
       // 5. INSERT new row
       // ------------------------------------------------------------
-      const insertStmt = `
-        INSERT INTO "orders"
-          (order_number, hubspot_deal_id, customer_name, customer_email,
-           customer_phone, user_id, shipping_address, items_json,
-           total_amount, discount_amount, payment_method, status,
-           notes, updated_at, created_at)
-        VALUES
-          (${esc(orderNumber)}, ${esc(dealId)},
-           ${esc(customerName || null)}, ${esc(customerEmail || null)},
-           ${esc(customerPhone || null)}, ${escNum(userId)},
-           ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
-           ${escNum(totalAmount)}, ${escNum(discountAmount)},
-           ${esc(paymentMethod)}, ${esc(status)},
-           ${esc(orderNotes)}, now(), now())
-        ON CONFLICT (order_number) DO NOTHING
-        RETURNING id;
-      `;
+      const insertStmt = hasDealIdColumn
+        ? `
+          INSERT INTO "orders"
+            (order_number, hubspot_deal_id, customer_name, customer_email,
+             customer_phone, user_id, shipping_address, items_json,
+             total_amount, discount_amount, payment_method, status,
+             notes, updated_at, created_at)
+          VALUES
+            (${esc(orderNumber)}, ${esc(dealId)},
+             ${esc(customerName || null)}, ${esc(customerEmail || null)},
+             ${esc(customerPhone || null)}, ${escNum(userId)},
+             ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
+             ${escNum(totalAmount)}, ${escNum(discountAmount)},
+             ${esc(paymentMethod)}, ${esc(status)},
+             ${esc(orderNotes)}, now(), now())
+          ON CONFLICT (order_number) DO NOTHING
+          RETURNING id;
+        `
+        : `
+          INSERT INTO "orders"
+            (order_number, customer_name, customer_email,
+             customer_phone, user_id, shipping_address, items_json,
+             total_amount, discount_amount, payment_method, status,
+             notes, updated_at, created_at)
+          VALUES
+            (${esc(orderNumber)},
+             ${esc(customerName || null)}, ${esc(customerEmail || null)},
+             ${esc(customerPhone || null)}, ${escNum(userId)},
+             ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
+             ${escNum(totalAmount)}, ${escNum(discountAmount)},
+             ${esc(paymentMethod)}, ${esc(status)},
+             ${esc(orderNotes)}, now(), now())
+          ON CONFLICT (order_number) DO NOTHING
+          RETURNING id;
+        `;
       const insertRes = await drizzle.execute(sql.raw(insertStmt));
       if (readRows<{ id: number }>(insertRes).length > 0) inserted++;
     } catch (err) {

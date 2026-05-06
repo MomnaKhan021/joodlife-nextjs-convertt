@@ -124,6 +124,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // First-deploy guard: Payload auto-migrates the schema on boot,
+  // but if a sync fires before that the new hubspot_object_id column
+  // won't exist yet. When it's missing we fall back to upserting by
+  // (email, created_at-ish) — i.e. always insert as a new row, since
+  // we have no other stable key.
+  let hasObjectIdColumn = false;
+  try {
+    const colCheck = await drizzle.execute(
+      sql.raw(
+        `SELECT 1 FROM information_schema.columns
+         WHERE table_name = 'consultations' AND column_name = 'hubspot_object_id'
+         LIMIT 1;`
+      )
+    );
+    hasObjectIdColumn = readRows(colCheck).length > 0;
+  } catch {
+    hasObjectIdColumn = false;
+  }
+
   let inserted = 0;
   let updated = 0;
   const errors: string[] = [];
@@ -153,42 +172,58 @@ export async function POST(req: NextRequest) {
         if (ur[0]) userId = ur[0].id;
       }
 
-      // 1. UPDATE by hubspot_object_id
-      const updateStmt = `
-        UPDATE "consultations"
-        SET email          = COALESCE(${esc(email || null)}, email),
-            full_name      = COALESCE(${esc(fullName || null)}, full_name),
-            phone          = COALESCE(${esc(phone || null)}, phone),
-            date_of_birth  = COALESCE(${esc(dateOfBirth || null)}, date_of_birth),
-            product_slug   = COALESCE(${esc(productSlug || null)}, product_slug),
-            dose           = COALESCE(${esc(dose || null)}, dose),
-            answers        = ${answersLiteral}::jsonb,
-            status         = ${esc(status)},
-            user_id        = COALESCE(${escNum(userId)}, user_id),
-            updated_at     = now()
-        WHERE hubspot_object_id = ${esc(objectId)}
-        RETURNING id;
-      `;
-      const updateRes = await drizzle.execute(sql.raw(updateStmt));
-      if (readRows<{ id: number }>(updateRes).length > 0) {
-        updated++;
-        continue;
+      // 1. UPDATE by hubspot_object_id (only if column exists)
+      if (hasObjectIdColumn) {
+        const updateStmt = `
+          UPDATE "consultations"
+          SET email          = COALESCE(${esc(email || null)}, email),
+              full_name      = COALESCE(${esc(fullName || null)}, full_name),
+              phone          = COALESCE(${esc(phone || null)}, phone),
+              date_of_birth  = COALESCE(${esc(dateOfBirth || null)}, date_of_birth),
+              product_slug   = COALESCE(${esc(productSlug || null)}, product_slug),
+              dose           = COALESCE(${esc(dose || null)}, dose),
+              answers        = ${answersLiteral}::jsonb,
+              status         = ${esc(status)},
+              user_id        = COALESCE(${escNum(userId)}, user_id),
+              updated_at     = now()
+          WHERE hubspot_object_id = ${esc(objectId)}
+          RETURNING id;
+        `;
+        const updateRes = await drizzle.execute(sql.raw(updateStmt));
+        if (readRows<{ id: number }>(updateRes).length > 0) {
+          updated++;
+          continue;
+        }
       }
 
       // 2. INSERT new row
-      const insertStmt = `
-        INSERT INTO "consultations"
-          (hubspot_object_id, email, full_name, phone, date_of_birth,
-           product_slug, dose, answers, status, user_id,
-           updated_at, created_at)
-        VALUES
-          (${esc(objectId)}, ${esc(email || null)}, ${esc(fullName || null)},
-           ${esc(phone || null)}, ${esc(dateOfBirth || null)},
-           ${esc(productSlug || null)}, ${esc(dose || null)},
-           ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
-           now(), now())
-        RETURNING id;
-      `;
+      const insertStmt = hasObjectIdColumn
+        ? `
+          INSERT INTO "consultations"
+            (hubspot_object_id, email, full_name, phone, date_of_birth,
+             product_slug, dose, answers, status, user_id,
+             updated_at, created_at)
+          VALUES
+            (${esc(objectId)}, ${esc(email || null)}, ${esc(fullName || null)},
+             ${esc(phone || null)}, ${esc(dateOfBirth || null)},
+             ${esc(productSlug || null)}, ${esc(dose || null)},
+             ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
+             now(), now())
+          RETURNING id;
+        `
+        : `
+          INSERT INTO "consultations"
+            (email, full_name, phone, date_of_birth,
+             product_slug, dose, answers, status, user_id,
+             updated_at, created_at)
+          VALUES
+            (${esc(email || null)}, ${esc(fullName || null)},
+             ${esc(phone || null)}, ${esc(dateOfBirth || null)},
+             ${esc(productSlug || null)}, ${esc(dose || null)},
+             ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
+             now(), now())
+          RETURNING id;
+        `;
       const insertRes = await drizzle.execute(sql.raw(insertStmt));
       if (readRows<{ id: number }>(insertRes).length > 0) inserted++;
     } catch (err) {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
+import DiagPanel from "./DiagPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,8 @@ export default async function HubSpotSyncHubPage() {
           description="HubSpot consultation custom-object → consultations table. Answers JSON is parsed in; status normalised to draft/submitted/reviewed/approved/rejected."
         />
       </div>
+
+      <DiagPanel />
     </main>
   );
 }

@@ -430,12 +430,85 @@ export async function getContactById(
 }
 
 /**
- * The HubSpot custom-object type slug for consultations. Defaults
- * to `consultations`; override with HUBSPOT_CONSULTATIONS_OBJECT_TYPE
- * if you've named the custom object differently.
+ * Lists all HubSpot custom-object schemas the token can see. Used
+ * by the diag endpoint and by the consultations slug auto-detect.
  */
-function consultationsObjectType(): string {
-  return process.env.HUBSPOT_CONSULTATIONS_OBJECT_TYPE || "consultations";
+export async function listObjectSchemas(): Promise<
+  HubSpotResult<
+    Array<{
+      name: string;
+      objectTypeId: string;
+      labels?: { singular?: string; plural?: string };
+    }>
+  >
+> {
+  const res = await hsFetch<{
+    results: Array<{
+      name: string;
+      objectTypeId: string;
+      labels?: { singular?: string; plural?: string };
+    }>;
+  }>(`/crm/v3/schemas`, { method: "GET" });
+  if (!res.ok) return res;
+  return { ok: true, data: res.data.results ?? [] };
+}
+
+/**
+ * Resolve the HubSpot custom-object slug for consultations.
+ *
+ *  1. If `HUBSPOT_CONSULTATIONS_OBJECT_TYPE` is set, use it verbatim.
+ *  2. Otherwise list all custom-object schemas and pick the first
+ *     one whose name/labels look like "consultation*".
+ *  3. Fall back to the literal string "consultations".
+ *
+ * The result is cached for the lifetime of the request module.
+ */
+let _cachedConsultationsObjectType: string | null = null;
+export async function resolveConsultationsObjectType(): Promise<string> {
+  if (process.env.HUBSPOT_CONSULTATIONS_OBJECT_TYPE) {
+    return process.env.HUBSPOT_CONSULTATIONS_OBJECT_TYPE;
+  }
+  if (_cachedConsultationsObjectType) return _cachedConsultationsObjectType;
+  const schemas = await listObjectSchemas();
+  if (schemas.ok) {
+    const match = schemas.data.find((s) => {
+      const blob = [
+        s.name,
+        s.labels?.singular,
+        s.labels?.plural,
+        s.objectTypeId,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return /consult/.test(blob);
+    });
+    if (match) {
+      _cachedConsultationsObjectType = match.objectTypeId || match.name;
+      return _cachedConsultationsObjectType;
+    }
+  }
+  _cachedConsultationsObjectType = "consultations";
+  return _cachedConsultationsObjectType;
+}
+
+/**
+ * Total record count for a HubSpot object type (used by the diag
+ * endpoint). Returns 0 if the type isn't accessible or the search
+ * endpoint fails.
+ */
+export async function countObjectRecords(
+  objectType: string
+): Promise<HubSpotResult<number>> {
+  const res = await hsFetch<{ total?: number }>(
+    `/crm/v3/objects/${encodeURIComponent(objectType)}/search`,
+    {
+      method: "POST",
+      body: JSON.stringify({ filterGroups: [], limit: 1 }),
+    }
+  );
+  if (!res.ok) return res;
+  return { ok: true, data: Number(res.data.total ?? 0) || 0 };
 }
 
 /**
@@ -480,9 +553,10 @@ export async function listConsultationRecords(
   HubSpotResult<{
     results: HubSpotConsultationRecord[];
     nextAfter: string | null;
+    objectType: string;
   }>
 > {
-  const objectType = consultationsObjectType();
+  const objectType = await resolveConsultationsObjectType();
   const params = new URLSearchParams({
     limit: String(limit),
     properties: CONSULTATION_PROPERTIES.join(","),
@@ -527,6 +601,7 @@ export async function listConsultationRecords(
     data: {
       results: enriched,
       nextAfter: res.data.paging?.next?.after ?? null,
+      objectType,
     },
   };
 }
