@@ -833,15 +833,70 @@ a:hover {
   font-size: 15px;
   line-height: 22px;
   color: var(--jood-muted);
-  margin: 0;
+  margin: 0 0 16px;
+}
+
+/* Header CTA row (Sync HubSpot, view orders, view consultations) */
+.jood-dashboard__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.jood-dashboard__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--jood-border);
+  background: #ffffff;
+  color: var(--jood-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.jood-dashboard__cta:hover {
+  background: var(--jood-cream);
+  border-color: var(--jood-green);
+  color: var(--jood-green);
+  transform: translateY(-1px);
+}
+
+.jood-dashboard__cta--primary {
+  background: var(--jood-green);
+  border-color: var(--jood-green);
+  color: #ffffff;
+}
+
+.jood-dashboard__cta--primary:hover {
+  background: var(--jood-green-700);
+  border-color: var(--jood-green-700);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(20, 46, 42, 0.18);
 }
 
 /* Stat-card grid */
 .jood-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-bottom: 28px;
+}
+
+@media (max-width: 640px) {
+  .jood-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
 }
 
 .jood-stat-card {
@@ -979,6 +1034,11 @@ a:hover {
   letter-spacing: -0.005em;
 }
 
+.jood-panel__row-amount {
+  color: var(--jood-green);
+  font-weight: 700;
+}
+
 .jood-panel__row-meta {
   font-size: 12px;
   color: var(--jood-muted);
@@ -1021,6 +1081,7 @@ a:hover {
   color: var(--jood-muted);
 }
 
+/* Stack panels on small screens, two-up from 900px */
 @media (max-width: 640px) {
   .jood-dashboard {
     padding: 18px 16px 24px;
@@ -1030,7 +1091,57 @@ a:hover {
     font-size: 24px;
   }
 
+  .jood-dashboard__subtitle {
+    font-size: 14px;
+  }
+
+  .jood-stat-card {
+    padding: 14px 16px 16px;
+  }
+
   .jood-stat-card__value {
-    font-size: 32px;
+    font-size: 26px;
+  }
+
+  .jood-stat-card__label {
+    font-size: 11px;
+  }
+
+  .jood-stat-card__subtitle {
+    font-size: 12px;
+  }
+
+  .jood-panel {
+    padding: 14px 16px 8px;
+  }
+
+  .jood-panel__row-link {
+    padding: 10px 2px;
+  }
+
+  .jood-panel__row-title {
+    font-size: 13px;
+  }
+
+  .jood-panel__row-meta {
+    font-size: 11px;
+  }
+}
+
+/* Reduce sidebar visual weight on tablet/phone so the dashboard
+   gets the room it needs. Payload's Drawer behaviour kicks in
+   below the existing 768px breakpoint already. */
+@media (max-width: 768px) {
+  .jood-dashboard {
+    padding: 16px 14px 20px;
+  }
+
+  .jood-dashboard__cta-row {
+    gap: 8px;
+  }
+
+  .jood-dashboard__cta {
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }

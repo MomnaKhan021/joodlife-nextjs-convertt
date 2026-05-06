@@ -40,22 +40,41 @@ type Stats = {
   usersAdmins: number;
   ordersTotal: number;
   ordersRevenue: number;
+  ordersPaid: number;
+  consultationsTotal: number;
+  consultationsSubmitted: number;
+  postsTotal: number;
+  postsPublished: number;
   mediaCount: number;
 };
 
 async function fetchStats(): Promise<Stats> {
-  const [products, users, orders, media] = await Promise.all([
-    rawQuery<{ total: string; active: string }>(
-      `SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE is_active = true)::int AS active FROM products`
-    ),
-    rawQuery<{ total: string; admins: string }>(
-      `SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE role = 'admin')::int AS admins FROM users`
-    ),
-    rawQuery<{ total: string; revenue: string | null }>(
-      `SELECT COUNT(*)::int AS total, COALESCE(SUM(total_amount), 0)::numeric AS revenue FROM orders`
-    ),
-    rawQuery<{ total: string }>(`SELECT COUNT(*)::int AS total FROM media`),
-  ]);
+  const [products, users, orders, consultations, posts, media] =
+    await Promise.all([
+      rawQuery<{ total: string; active: string }>(
+        `SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE is_active = true)::int AS active FROM products`
+      ),
+      rawQuery<{ total: string; admins: string }>(
+        `SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE role = 'admin')::int AS admins FROM users`
+      ),
+      rawQuery<{ total: string; revenue: string | null; paid: string }>(
+        `SELECT COUNT(*)::int AS total,
+                COALESCE(SUM(total_amount), 0)::numeric AS revenue,
+                COUNT(*) FILTER (WHERE status IN ('paid','shipped','delivered'))::int AS paid
+         FROM orders`
+      ),
+      rawQuery<{ total: string; submitted: string }>(
+        `SELECT COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE status IN ('submitted','reviewed','approved'))::int AS submitted
+         FROM consultations`
+      ),
+      rawQuery<{ total: string; published: string }>(
+        `SELECT COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE status = 'published')::int AS published
+         FROM posts`
+      ),
+      rawQuery<{ total: string }>(`SELECT COUNT(*)::int AS total FROM media`),
+    ]);
   return {
     productsTotal: Number(products[0]?.total ?? 0),
     productsActive: Number(products[0]?.active ?? 0),
@@ -63,6 +82,11 @@ async function fetchStats(): Promise<Stats> {
     usersAdmins: Number(users[0]?.admins ?? 0),
     ordersTotal: Number(orders[0]?.total ?? 0),
     ordersRevenue: Number(orders[0]?.revenue ?? 0),
+    ordersPaid: Number(orders[0]?.paid ?? 0),
+    consultationsTotal: Number(consultations[0]?.total ?? 0),
+    consultationsSubmitted: Number(consultations[0]?.submitted ?? 0),
+    postsTotal: Number(posts[0]?.total ?? 0),
+    postsPublished: Number(posts[0]?.published ?? 0),
     mediaCount: Number(media[0]?.total ?? 0),
   };
 }
@@ -85,6 +109,25 @@ type UserRow = {
   created_at: string;
 };
 
+type OrderRow = {
+  id: number;
+  order_number: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  total_amount: string | null;
+  status: string;
+  created_at: string;
+};
+
+type ConsultationRow = {
+  id: number;
+  email: string | null;
+  full_name: string | null;
+  product_slug: string | null;
+  status: string;
+  created_at: string;
+};
+
 async function fetchRecentProducts(): Promise<ProductRow[]> {
   return rawQuery<ProductRow>(
     `SELECT id, title, slug, from_price, category, is_active, display_order
@@ -103,6 +146,53 @@ async function fetchRecentUsers(): Promise<UserRow[]> {
   );
 }
 
+async function fetchRecentOrders(): Promise<OrderRow[]> {
+  return rawQuery<OrderRow>(
+    `SELECT id, order_number, customer_name, customer_email,
+            total_amount, status, created_at
+     FROM orders
+     ORDER BY created_at DESC NULLS LAST
+     LIMIT 6`
+  );
+}
+
+async function fetchRecentConsultations(): Promise<ConsultationRow[]> {
+  return rawQuery<ConsultationRow>(
+    `SELECT id, email, full_name, product_slug, status, created_at
+     FROM consultations
+     ORDER BY created_at DESC NULLS LAST
+     LIMIT 6`
+  );
+}
+
+function fmtRelative(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const diffMs = Date.now() - d.getTime();
+  const sec = Math.round(diffMs / 1000);
+  if (sec < 60) return "just now";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.round(hr / 24);
+  if (day < 30) return `${day}d ago`;
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function fmtCurrency(value: string | null): string {
+  const n = Number(value ?? 0);
+  return `£${n.toLocaleString("en-GB", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export async function Dashboard() {
   // Belt-and-braces: any SQL exception bubbling out of these helpers
   // would unmount the whole widget under Payload's error boundary,
@@ -115,16 +205,26 @@ export async function Dashboard() {
     usersAdmins: 0,
     ordersTotal: 0,
     ordersRevenue: 0,
+    ordersPaid: 0,
+    consultationsTotal: 0,
+    consultationsSubmitted: 0,
+    postsTotal: 0,
+    postsPublished: 0,
     mediaCount: 0,
   };
   let recentProducts: ProductRow[] = [];
   let recentUsers: UserRow[] = [];
+  let recentOrders: OrderRow[] = [];
+  let recentConsultations: ConsultationRow[] = [];
   try {
-    [stats, recentProducts, recentUsers] = await Promise.all([
-      fetchStats(),
-      fetchRecentProducts(),
-      fetchRecentUsers(),
-    ]);
+    [stats, recentProducts, recentUsers, recentOrders, recentConsultations] =
+      await Promise.all([
+        fetchStats(),
+        fetchRecentProducts(),
+        fetchRecentUsers(),
+        fetchRecentOrders(),
+        fetchRecentConsultations(),
+      ]);
   } catch (err) {
     console.warn("[dashboard] data fetch failed:", err);
   }
@@ -135,19 +235,45 @@ export async function Dashboard() {
         <p className="jood-dashboard__eyebrow">Overview</p>
         <h1 className="jood-dashboard__title">Welcome to JoodLife CMS</h1>
         <p className="jood-dashboard__subtitle">
-          Manage products, customers and orders for the storefront.
+          Manage products, customers, orders and consultations — and pull
+          fresh data from HubSpot.
         </p>
+        <div className="jood-dashboard__cta-row">
+          <Link
+            href="/admin-tools/hubspot-sync"
+            className="jood-dashboard__cta jood-dashboard__cta--primary"
+          >
+            Sync HubSpot now →
+          </Link>
+          <Link
+            href="/admin/collections/orders"
+            className="jood-dashboard__cta"
+          >
+            View all orders
+          </Link>
+          <Link
+            href="/admin/collections/consultations"
+            className="jood-dashboard__cta"
+          >
+            View consultations
+          </Link>
+        </div>
       </header>
 
       <div className="jood-stats">
         <StatCard
-          label="Products"
-          value={stats.productsActive}
-          subtitle={`${stats.productsTotal} total · ${
-            stats.productsTotal - stats.productsActive
-          } inactive`}
+          label="Orders"
+          value={stats.ordersTotal}
+          subtitle={`${fmtCurrency(String(stats.ordersRevenue))} · ${stats.ordersPaid} paid`}
           accent="green"
-          href="/admin/collections/products"
+          href="/admin/collections/orders"
+        />
+        <StatCard
+          label="Consultations"
+          value={stats.consultationsTotal}
+          subtitle={`${stats.consultationsSubmitted} submitted`}
+          accent="leaf"
+          href="/admin/collections/consultations"
         />
         <StatCard
           label="Users"
@@ -157,18 +283,24 @@ export async function Dashboard() {
           } · ${stats.usersTotal - stats.usersAdmins} customer${
             stats.usersTotal - stats.usersAdmins === 1 ? "" : "s"
           }`}
-          accent="leaf"
+          accent="green"
           href="/admin/collections/users"
         />
         <StatCard
-          label="Orders"
-          value={stats.ordersTotal}
-          subtitle={`£${stats.ordersRevenue.toLocaleString("en-GB", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })} revenue`}
+          label="Products"
+          value={stats.productsActive}
+          subtitle={`${stats.productsTotal} total · ${
+            stats.productsTotal - stats.productsActive
+          } inactive`}
+          accent="leaf"
+          href="/admin/collections/products"
+        />
+        <StatCard
+          label="Posts"
+          value={stats.postsTotal}
+          subtitle={`${stats.postsPublished} published`}
           accent="green"
-          href="/admin/collections/orders"
+          href="/admin/collections/posts"
         />
         <StatCard
           label="Media files"
@@ -179,6 +311,123 @@ export async function Dashboard() {
         />
       </div>
 
+      {/* Recent orders + consultations row */}
+      <div className="jood-panels">
+        <section className="jood-panel">
+          <header className="jood-panel__header">
+            <h2 className="jood-panel__title">Recent orders</h2>
+            <Link
+              href="/admin/collections/orders"
+              className="jood-panel__link"
+            >
+              Manage all →
+            </Link>
+          </header>
+          {recentOrders.length === 0 ? (
+            <p className="jood-panel__empty">
+              No orders yet.{" "}
+              <Link href="/admin-tools/hubspot-sync/orders">
+                Pull from HubSpot →
+              </Link>
+            </p>
+          ) : (
+            <ul className="jood-panel__list">
+              {recentOrders.map((o) => (
+                <li key={o.id} className="jood-panel__row">
+                  <Link
+                    href={`/admin/collections/orders/${o.id}`}
+                    className="jood-panel__row-link"
+                  >
+                    <span className="jood-panel__row-title">
+                      {o.order_number}
+                      {" · "}
+                      <span className="jood-panel__row-amount">
+                        {fmtCurrency(o.total_amount)}
+                      </span>
+                    </span>
+                    <span className="jood-panel__row-meta">
+                      {o.customer_name || o.customer_email || "guest"}
+                      {" · "}
+                      <span
+                        className={`jood-panel__pill jood-panel__pill--${
+                          o.status === "paid" ||
+                          o.status === "delivered" ||
+                          o.status === "shipped"
+                            ? "ok"
+                            : o.status === "cancelled"
+                              ? "off"
+                              : "neutral"
+                        }`}
+                      >
+                        {o.status}
+                      </span>
+                      {" · "}
+                      {fmtRelative(o.created_at)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="jood-panel">
+          <header className="jood-panel__header">
+            <h2 className="jood-panel__title">Recent consultations</h2>
+            <Link
+              href="/admin/collections/consultations"
+              className="jood-panel__link"
+            >
+              Manage all →
+            </Link>
+          </header>
+          {recentConsultations.length === 0 ? (
+            <p className="jood-panel__empty">
+              No consultations yet.{" "}
+              <Link href="/admin-tools/hubspot-sync/consultations">
+                Pull from HubSpot →
+              </Link>
+            </p>
+          ) : (
+            <ul className="jood-panel__list">
+              {recentConsultations.map((c) => (
+                <li key={c.id} className="jood-panel__row">
+                  <Link
+                    href={`/admin/collections/consultations/${c.id}`}
+                    className="jood-panel__row-link"
+                  >
+                    <span className="jood-panel__row-title">
+                      {c.full_name || c.email || `#${c.id}`}
+                    </span>
+                    <span className="jood-panel__row-meta">
+                      {c.email ?? "—"}
+                      {c.product_slug ? ` · ${c.product_slug}` : ""}
+                      {" · "}
+                      <span
+                        className={`jood-panel__pill jood-panel__pill--${
+                          c.status === "approved" ||
+                          c.status === "submitted" ||
+                          c.status === "reviewed"
+                            ? "ok"
+                            : c.status === "rejected"
+                              ? "off"
+                              : "neutral"
+                        }`}
+                      >
+                        {c.status}
+                      </span>
+                      {" · "}
+                      {fmtRelative(c.created_at)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* Latest products + recent users row */}
       <div className="jood-panels">
         <section className="jood-panel">
           <header className="jood-panel__header">
