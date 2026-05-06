@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/hubspot/sync-all",
+      "schedule": "0 * * * *"
+    }
+  ],
+  "functions": {
+    "app/api/hubspot/sync-all/route.ts": { "maxDuration": 300 }
+  }
+}

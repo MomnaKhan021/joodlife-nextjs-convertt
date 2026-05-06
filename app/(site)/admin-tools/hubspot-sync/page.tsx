@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
 import DiagPanel from "./DiagPanel";
+import SyncAllButton from "./SyncAllButton";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +35,15 @@ export default async function HubSpotSyncHubPage() {
           HubSpot sync
         </h1>
         <p className="mt-3 max-w-[720px] font-ui text-[15px] text-[#142e2a]/75">
-          Pull data from your HubSpot account into JoodLife. Each tool runs an
-          idempotent paginated sync — re-running it updates existing records
-          rather than duplicating them.
+          Pull data from your HubSpot account into JoodLife. The hourly
+          Vercel cron pulls automatically; use the button below if you
+          need an immediate sync, or open an individual tool for a
+          single object type.
         </p>
+      </div>
+
+      <div className="mb-8">
+        <SyncAllButton />
       </div>
 
       <div className="grid gap-5 md:grid-cols-3">
