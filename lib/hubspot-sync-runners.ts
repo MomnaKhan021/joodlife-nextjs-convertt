@@ -478,14 +478,48 @@ export async function runConsultationsPage(
     const objectId = r.id;
 
     try {
+      // Email / name / phone come from EITHER the object's own
+      // properties (custom-object case) OR the associated contact
+      // (HubSpot Appointments don't carry these directly).
       const email = (p.email ?? r.contactEmail ?? "").trim();
-      const fullName = (p.full_name ?? p.fullname ?? "").trim();
+      const fullName = (
+        p.full_name ??
+        p.fullname ??
+        p.name ??
+        p.title ??
+        ""
+      ).trim();
       const phone = (p.phone ?? "").trim();
       const dateOfBirth = (p.date_of_birth ?? p.dob ?? "").trim();
       const productSlug = (p.product_slug ?? "").trim();
       const dose = (p.dose ?? "").trim();
-      const status = mapConsultationStatus(p.consultation_status ?? p.status);
-      const answers = parseAnswers(p.answers);
+
+      // Status mapping prefers explicit consultation_status/status,
+      // then falls back to the Appointments outcome / status fields.
+      const rawStatus =
+        p.consultation_status ??
+        p.status ??
+        p.hs_meeting_outcome ??
+        p.hs_appointment_status;
+      const status = mapConsultationStatus(rawStatus);
+
+      // Answers: try a JSON `answers` property first; otherwise
+      // build a minimal payload from the appointment metadata so
+      // the consultation row carries SOMETHING useful.
+      let answers: unknown;
+      if (p.answers) {
+        answers = parseAnswers(p.answers);
+      } else if (p.hs_appointment_start || p.hs_appointment_name || p.notes) {
+        answers = {
+          appointment_name: p.hs_appointment_name ?? p.name ?? null,
+          start: p.hs_appointment_start ?? null,
+          end: p.hs_appointment_end ?? null,
+          duration: p.hs_duration ?? null,
+          notes: p.notes ?? null,
+        };
+      } else {
+        answers = {};
+      }
       const answersLiteral = esc(JSON.stringify(answers));
 
       let userId: number | null = null;

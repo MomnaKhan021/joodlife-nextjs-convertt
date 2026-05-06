@@ -132,18 +132,84 @@ export async function GET() {
   const consultationsObjectType = await resolveConsultationsObjectType();
   out.consultationsObjectType = consultationsObjectType;
 
-  // 3. Live counts in HubSpot
-  const [contactsCount, dealsCount, consultationsCount] = await Promise.all([
-    countObjectRecords("contacts"),
-    countObjectRecords("deals"),
-    countObjectRecords(consultationsObjectType),
-  ]);
+  // 3. Live counts in HubSpot. The consultation count tries the
+  // custom-object first, then falls back to a search of Notes
+  // tagged with the JoodLife consultation marker — matching the
+  // logic in lib/hubspot.ts:listConsultationRecords.
+  const [contactsCount, dealsCount, consultationsCustomCount] =
+    await Promise.all([
+      countObjectRecords("contacts"),
+      countObjectRecords("deals"),
+      countObjectRecords(consultationsObjectType),
+    ]);
+
+  let consultationsCount: number | { error: string } = consultationsCustomCount.ok
+    ? consultationsCustomCount.data
+    : { error: consultationsCustomCount.error };
+  let consultationsSource:
+    | "appointments"
+    | "custom_object"
+    | "notes"
+    | "none" =
+    consultationsObjectType === "appointments" ? "appointments" : "custom_object";
+
+  // If the custom object lookup failed, count consultation Notes
+  // instead so the diag still shows a real number.
+  if (
+    !consultationsCustomCount.ok &&
+    (/unable to infer object type/i.test(consultationsCustomCount.error) ||
+      /unknown object type/i.test(consultationsCustomCount.error) ||
+      consultationsCustomCount.status === 404)
+  ) {
+    consultationsSource = "notes";
+    try {
+      const notesSearch = await fetch(
+        "https://api.hubapi.com/crm/v3/objects/notes/search",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN ?? ""}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filterGroups: [
+              {
+                filters: [
+                  {
+                    propertyName: "hs_note_body",
+                    operator: "CONTAINS_TOKEN",
+                    value: "JoodLife",
+                  },
+                ],
+              },
+            ],
+            properties: ["hs_note_body"],
+            limit: 1,
+          }),
+        }
+      );
+      if (notesSearch.ok) {
+        const j = (await notesSearch.json()) as { total?: number };
+        consultationsCount = Number(j.total ?? 0) || 0;
+      } else {
+        consultationsCount = {
+          error: `notes search HTTP ${notesSearch.status}`,
+        };
+      }
+    } catch (err) {
+      consultationsCount = {
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
+  out.consultationsSource = consultationsSource;
   out.hubspotCounts = {
-    contacts: contactsCount.ok ? contactsCount.data : { error: contactsCount.error },
+    contacts: contactsCount.ok
+      ? contactsCount.data
+      : { error: contactsCount.error },
     deals: dealsCount.ok ? dealsCount.data : { error: dealsCount.error },
-    consultations: consultationsCount.ok
-      ? consultationsCount.data
-      : { error: consultationsCount.error },
+    consultations: consultationsCount,
   };
 
   // 4. Local DB

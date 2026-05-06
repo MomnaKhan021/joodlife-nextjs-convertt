@@ -475,21 +475,49 @@ export async function listObjectSchemas(): Promise<
 }
 
 /**
- * Resolve the HubSpot custom-object slug for consultations.
+ * Resolve the HubSpot object slug we should pull consultations from.
  *
  *  1. If `HUBSPOT_CONSULTATIONS_OBJECT_TYPE` is set, use it verbatim.
- *  2. Otherwise list all custom-object schemas and pick the first
- *     one whose name/labels look like "consultation*".
- *  3. Fall back to the literal string "consultations".
+ *  2. Try HubSpot's standard `appointments` object — JoodLife stores
+ *     consultation bookings there (we observed 473 records in the
+ *     CRM under CRM > Appointments). This is the most common path.
+ *  3. List all custom-object schemas and pick the first one whose
+ *     name/labels look like "appointment*" or "consult*".
+ *  4. Fall back to the literal string "consultations" (which will
+ *     fail the lookup and trigger the Notes-based fallback in
+ *     listConsultationRecords).
  *
  * The result is cached for the lifetime of the request module.
  */
 let _cachedConsultationsObjectType: string | null = null;
+
+async function objectTypeExists(slug: string): Promise<boolean> {
+  // A 0-result search is `ok`. A 400/404 with "Unable to infer
+  // object type" tells us the slug isn't installed for this account.
+  const res = await hsFetch<{ total?: number }>(
+    `/crm/v3/objects/${encodeURIComponent(slug)}/search`,
+    {
+      method: "POST",
+      body: JSON.stringify({ filterGroups: [], limit: 1 }),
+    }
+  );
+  return res.ok;
+}
+
 export async function resolveConsultationsObjectType(): Promise<string> {
   if (process.env.HUBSPOT_CONSULTATIONS_OBJECT_TYPE) {
     return process.env.HUBSPOT_CONSULTATIONS_OBJECT_TYPE;
   }
   if (_cachedConsultationsObjectType) return _cachedConsultationsObjectType;
+
+  // Try the most common slug first — HubSpot's built-in
+  // `appointments` object — without listing schemas. Cheaper and
+  // matches the observed JoodLife CRM layout.
+  if (await objectTypeExists("appointments")) {
+    _cachedConsultationsObjectType = "appointments";
+    return _cachedConsultationsObjectType;
+  }
+
   const schemas = await listObjectSchemas();
   if (schemas.ok) {
     const match = schemas.data.find((s) => {
@@ -502,13 +530,14 @@ export async function resolveConsultationsObjectType(): Promise<string> {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      return /consult/.test(blob);
+      return /appointment|consult|booking|quiz/.test(blob);
     });
     if (match) {
       _cachedConsultationsObjectType = match.objectTypeId || match.name;
       return _cachedConsultationsObjectType;
     }
   }
+
   _cachedConsultationsObjectType = "consultations";
   return _cachedConsultationsObjectType;
 }
@@ -533,12 +562,19 @@ export async function countObjectRecords(
 }
 
 /**
- * Default property names we read off the consultation custom-object.
- * Falls back to common alternatives (e.g. `fullname` if `full_name`
- * isn't defined). Customise via env if your HubSpot uses different
- * property names.
+ * Property names we read off the consultations source object —
+ * a generous superset covering both:
+ *
+ *   - HubSpot's standard `appointments` object: hs_appointment_*,
+ *     hs_object_id, hs_appointment_name, hs_duration, etc.
+ *   - Custom consultation/quiz objects: email, full_name, dose,
+ *     product_slug, answers, status, ...
+ *
+ * HubSpot ignores unknown property names, so listing both flavours
+ * is cheap. Customise via env if your HubSpot uses different ones.
  */
 const CONSULTATION_PROPERTIES = [
+  // Custom-object / quiz-style
   "email",
   "full_name",
   "fullname",
@@ -550,6 +586,18 @@ const CONSULTATION_PROPERTIES = [
   "answers",
   "consultation_status",
   "status",
+  // Standard HubSpot Appointments object
+  "hs_appointment_name",
+  "hs_appointment_start",
+  "hs_appointment_end",
+  "hs_duration",
+  "hs_meeting_outcome",
+  "hs_appointment_status",
+  "hubspot_owner_id",
+  "name",
+  "title",
+  "notes",
+  // Common timestamps (used as the consultation's created_at fallback)
   "createdate",
   "hs_createdate",
   "hs_lastmodifieddate",
@@ -563,9 +611,195 @@ export type HubSpotConsultationRecord = {
 };
 
 /**
+ * Parse a JoodLife consultation note body (HTML) into the same
+ * properties shape we get from a custom-object record. The
+ * checkout flow writes this exact format via
+ * /api/consultations -> addNoteToContact, so the marker
+ * "JoodLife consultation submitted" is reliable.
+ *
+ * Format:
+ *   <p><b>JoodLife consultation submitted</b><br/>
+ *   Reference: #12 · Product: mounjaro · Dose: 5mg</p>
+ *   <hr/><p><b>question1</b>: answer1<br/><b>question2</b>: a2</p>
+ */
+export function parseConsultationNoteBody(html: string): {
+  reference: string | null;
+  productSlug: string | null;
+  dose: string | null;
+  answers: Record<string, string>;
+} {
+  const refMatch = html.match(
+    /Reference:\s*#?(\d+)\s*·\s*Product:\s*([^·<]+?)\s*·\s*Dose:\s*([^<]+?)\s*(?:<|$)/i
+  );
+  const reference = refMatch ? refMatch[1].trim() : null;
+  const productSlug = refMatch ? refMatch[2].trim() : null;
+  const dose = refMatch ? refMatch[3].trim() : null;
+
+  const answers: Record<string, string> = {};
+  // <b>key</b>: value, terminated by <br/>, </p>, or end of string
+  const re = /<b>([^<]+?)<\/b>\s*:\s*([\s\S]*?)(?=<br\s*\/?>|<\/p>|$)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const key = m[1].trim();
+    if (!key || key === "JoodLife consultation submitted") continue;
+    const value = m[2]
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    answers[key] = value;
+  }
+  return { reference, productSlug, dose, answers };
+}
+
+const CONSULTATION_NOTE_MARKER = "JoodLife consultation submitted";
+
+/**
+ * Paginated list of HubSpot Notes that look like JoodLife
+ * consultation submissions. Each note's HTML body is parsed back
+ * into the same `properties` shape a custom-object record would
+ * carry, so the upsert runner can stay agnostic of the source.
+ *
+ * The associated contact is resolved via the v4 associations
+ * endpoint (notes don't return associations in the search payload),
+ * then contact emails are batched in one /batch/read call.
+ */
+async function listConsultationNotesAsRecords(
+  after?: string,
+  limit = 100
+): Promise<
+  HubSpotResult<{
+    results: HubSpotConsultationRecord[];
+    nextAfter: string | null;
+    objectType: string;
+  }>
+> {
+  const search = await hsFetch<{
+    results: Array<{
+      id: string;
+      properties: { hs_note_body?: string; hs_timestamp?: string };
+    }>;
+    paging?: { next?: { after: string } };
+  }>(`/crm/v3/objects/notes/search`, {
+    method: "POST",
+    body: JSON.stringify({
+      filterGroups: [
+        {
+          filters: [
+            {
+              propertyName: "hs_note_body",
+              operator: "CONTAINS_TOKEN",
+              value: "JoodLife",
+            },
+          ],
+        },
+      ],
+      properties: ["hs_note_body", "hs_timestamp"],
+      sorts: [
+        { propertyName: "hs_timestamp", direction: "DESCENDING" },
+      ],
+      limit,
+      after: after ?? "0",
+    }),
+  });
+  if (!search.ok) return search;
+
+  // Filter to notes that actually carry the consultation marker
+  // (CONTAINS_TOKEN matches loosely on whole tokens, so non-
+  // consultation notes mentioning "JoodLife" can leak through).
+  const matched = search.data.results.filter((n) =>
+    (n.properties.hs_note_body ?? "").includes(CONSULTATION_NOTE_MARKER)
+  );
+
+  // Resolve associated contacts for each note via v4 associations.
+  const noteToContact = new Map<string, string>();
+  for (const n of matched) {
+    const assocRes = await hsFetch<{
+      results?: Array<{ toObjectId: string; id?: string }>;
+    }>(`/crm/v4/objects/notes/${n.id}/associations/contacts`, {
+      method: "GET",
+    });
+    if (assocRes.ok) {
+      const cid =
+        assocRes.data.results?.[0]?.toObjectId ??
+        assocRes.data.results?.[0]?.id ??
+        null;
+      if (cid) noteToContact.set(n.id, cid);
+    }
+  }
+
+  const contactIds = Array.from(new Set(noteToContact.values()));
+  const contactById = new Map<
+    string,
+    { email?: string; firstname?: string; lastname?: string; phone?: string }
+  >();
+  if (contactIds.length > 0) {
+    const batch = await hsFetch<{
+      results: Array<{ id: string; properties: Record<string, string> }>;
+    }>(`/crm/v3/objects/contacts/batch/read`, {
+      method: "POST",
+      body: JSON.stringify({
+        properties: ["email", "firstname", "lastname", "phone"],
+        inputs: contactIds.map((id) => ({ id })),
+      }),
+    });
+    if (batch.ok) {
+      for (const c of batch.data.results) {
+        contactById.set(c.id, {
+          email: c.properties.email,
+          firstname: c.properties.firstname,
+          lastname: c.properties.lastname,
+          phone: c.properties.phone,
+        });
+      }
+    }
+  }
+
+  const enriched: HubSpotConsultationRecord[] = matched.map((n) => {
+    const body = n.properties.hs_note_body ?? "";
+    const parsed = parseConsultationNoteBody(body);
+    const contactId = noteToContact.get(n.id) ?? null;
+    const contact = contactId ? contactById.get(contactId) : undefined;
+    const fullName =
+      contact?.firstname || contact?.lastname
+        ? [contact?.firstname, contact?.lastname].filter(Boolean).join(" ").trim()
+        : "";
+    return {
+      id: n.id, // HubSpot note id — stable upsert key
+      properties: {
+        email: contact?.email ?? "",
+        full_name: fullName,
+        phone: contact?.phone ?? "",
+        product_slug: parsed.productSlug ?? "",
+        dose: parsed.dose ?? "",
+        answers: JSON.stringify(parsed.answers),
+        status: "submitted",
+        // Pass through the timestamp so the runner gets a real created_at
+        hs_createdate: n.properties.hs_timestamp ?? "",
+      },
+      contactId,
+      contactEmail: contact?.email ?? null,
+    };
+  });
+
+  return {
+    ok: true,
+    data: {
+      results: enriched,
+      nextAfter: search.data.paging?.next?.after ?? null,
+      objectType: "notes",
+    },
+  };
+}
+
+/**
  * Paginated list of consultation custom-object records, plus the
  * email of the first associated contact (used to link the
  * consultation back to a user in our DB).
+ *
+ * Auto-falls-back to the Notes-based source when the operator's
+ * HubSpot doesn't have a custom object configured (the common case
+ * — checkout writes consultations as Notes attached to contacts).
+ * The fallback returns the same shape so callers don't branch.
  */
 export async function listConsultationRecords(
   after?: string,
@@ -577,6 +811,12 @@ export async function listConsultationRecords(
     objectType: string;
   }>
 > {
+  // If the operator has explicitly disabled the custom-object path,
+  // skip the schema lookup entirely and go straight to notes.
+  if (process.env.HUBSPOT_CONSULTATIONS_SOURCE === "notes") {
+    return listConsultationNotesAsRecords(after, limit);
+  }
+
   const objectType = await resolveConsultationsObjectType();
   const params = new URLSearchParams({
     limit: String(limit),
@@ -599,6 +839,23 @@ export async function listConsultationRecords(
   }>(`/crm/v3/objects/${encodeURIComponent(objectType)}?${params.toString()}`, {
     method: "GET",
   });
+
+  // Auto-fallback: if HubSpot reports the object type doesn't exist
+  // (the common case — checkout writes consultations as Notes, not
+  // a custom object), retry against the Notes source so the sync
+  // still produces rows.
+  if (
+    !res.ok &&
+    (/unable to infer object type/i.test(res.error) ||
+      /unknown object type/i.test(res.error) ||
+      res.status === 404)
+  ) {
+    // eslint-disable-next-line no-console
+    console.info(
+      `[hubspot:consultations] custom-object "${objectType}" not found — falling back to Notes`
+    );
+    return listConsultationNotesAsRecords(after, limit);
+  }
   if (!res.ok) return res;
 
   // Batch-resolve contact emails (single round-trip for the whole page).
