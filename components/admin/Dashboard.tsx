@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { getPayloadInstance } from "@/lib/payload";
+import DashboardActions from "./DashboardActions";
 
 /**
  * Custom JoodLife dashboard. Mounts via admin.components.beforeDashboard
@@ -216,18 +217,24 @@ export async function Dashboard() {
   let recentUsers: UserRow[] = [];
   let recentOrders: OrderRow[] = [];
   let recentConsultations: ConsultationRow[] = [];
-  try {
-    [stats, recentProducts, recentUsers, recentOrders, recentConsultations] =
-      await Promise.all([
-        fetchStats(),
-        fetchRecentProducts(),
-        fetchRecentUsers(),
-        fetchRecentOrders(),
-        fetchRecentConsultations(),
-      ]);
-  } catch (err) {
-    console.warn("[dashboard] data fetch failed:", err);
-  }
+
+  // Independent try/catch per-fetch so one missing table (e.g. posts
+  // or consultations not yet auto-migrated on a fresh deploy) doesn't
+  // zero out the others. Promise.allSettled gives us per-promise
+  // success/fail visibility.
+  const settled = await Promise.allSettled([
+    fetchStats(),
+    fetchRecentProducts(),
+    fetchRecentUsers(),
+    fetchRecentOrders(),
+    fetchRecentConsultations(),
+  ]);
+  if (settled[0].status === "fulfilled") stats = settled[0].value;
+  else console.warn("[dashboard] stats failed:", settled[0].reason);
+  if (settled[1].status === "fulfilled") recentProducts = settled[1].value;
+  if (settled[2].status === "fulfilled") recentUsers = settled[2].value;
+  if (settled[3].status === "fulfilled") recentOrders = settled[3].value;
+  if (settled[4].status === "fulfilled") recentConsultations = settled[4].value;
 
   return (
     <section className="jood-dashboard">
@@ -259,6 +266,8 @@ export async function Dashboard() {
           </Link>
         </div>
       </header>
+
+      <DashboardActions />
 
       <div className="jood-stats">
         <StatCard
