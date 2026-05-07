@@ -695,6 +695,14 @@ type RawSubmission = {
 };
 
 /**
+ * HubSpot's legacy form-integrations endpoint hard-caps `limit` at
+ * 50 per page (it returns HTTP 400 "Limit on query too large.
+ * Maximum is 50" for anything higher). Anything passed through
+ * fetchFormSubmissionsPage above this is silently clamped down.
+ */
+const FORM_SUBMISSIONS_PAGE_LIMIT = 50;
+
+/**
  * Fetch one page of submissions for a given Marketing Form. The
  * legacy form-integrations endpoint stays the most reliable surface
  * for this — newer GraphQL flavours need extra scopes some accounts
@@ -703,9 +711,10 @@ type RawSubmission = {
 async function fetchFormSubmissionsPage(
   formId: string,
   after?: string,
-  limit = 50
+  limit = FORM_SUBMISSIONS_PAGE_LIMIT
 ): Promise<HubSpotResult<{ results: RawSubmission[]; nextAfter: string | null }>> {
-  const params = new URLSearchParams({ limit: String(limit) });
+  const safeLimit = Math.min(Math.max(limit, 1), FORM_SUBMISSIONS_PAGE_LIMIT);
+  const params = new URLSearchParams({ limit: String(safeLimit) });
   if (after) params.set("after", after);
   const res = await hsFetch<{
     results?: RawSubmission[];
