@@ -210,6 +210,18 @@
   width: 100%;
 }
 
+.db-btn--primary {
+  background: #142e2a;
+  color: #ffffff;
+  border-color: #142e2a;
+}
+
+.db-btn--primary:hover:not(:disabled) {
+  background: #1d3a35;
+  border-color: #1d3a35;
+  color: #ffffff;
+}
+
 /* ----- Error banner ----- */
 .db-error {
   margin: 16px 18px 0;

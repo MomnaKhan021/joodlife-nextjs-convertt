@@ -370,6 +370,12 @@ export default function DataBrowser() {
           >
             {loading ? "Loading…" : "Refresh"}
           </button>
+          <Link
+            href={`/admin-tools/edit/${tab.key}/new`}
+            className="db-btn db-btn--primary"
+          >
+            + New
+          </Link>
         </div>
       </div>
 
@@ -418,7 +424,7 @@ export default function DataBrowser() {
                     ))}
                     <td className="db-table__edit">
                       <Link
-                        href={`/admin/collections/${tab.payloadCollectionSlug}/${row.id}`}
+                        href={`/admin-tools/edit/${tab.key}/${row.id}`}
                         className="db-btn db-btn--ghost"
                       >
                         Edit
@@ -456,7 +462,7 @@ export default function DataBrowser() {
                   ))}
                 </dl>
                 <Link
-                  href={`/admin/collections/${tab.payloadCollectionSlug}/${row.id}`}
+                  href={`/admin-tools/edit/${tab.key}/${row.id}`}
                   className="db-btn db-btn--block"
                 >
                   Edit →
