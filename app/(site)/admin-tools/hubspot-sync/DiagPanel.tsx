@@ -20,7 +20,14 @@ type DiagPayload = {
   hubspotEnabled: boolean;
   envObjectType: string | null;
   consultationsObjectType?: string;
-  consultationsSource?: "appointments" | "custom_object" | "notes" | "none";
+  consultationsSource?:
+    | "forms"
+    | "appointments"
+    | "custom_object"
+    | "notes"
+    | "none";
+  consultationFormIds?: string[];
+  matchedForms?: Array<{ id: string; name: string }>;
   schemas?: SchemaEntry[] | { error: string; status: number };
   hubspotCounts?: {
     contacts: number | { error: string };
@@ -111,15 +118,25 @@ export default function DiagPanel() {
           <Row
             label="Consultations source"
             value={
-              data.consultationsSource === "appointments"
-                ? "HubSpot Appointments (standard object)"
-                : data.consultationsSource === "notes"
-                  ? "HubSpot Notes (fallback)"
-                  : data.consultationsSource === "custom_object"
-                    ? "HubSpot custom object"
-                    : data.consultationsSource ?? "—"
+              data.consultationsSource === "forms"
+                ? "HubSpot Marketing Forms"
+                : data.consultationsSource === "appointments"
+                  ? "HubSpot Appointments (standard object)"
+                  : data.consultationsSource === "notes"
+                    ? "HubSpot Notes (fallback)"
+                    : data.consultationsSource === "custom_object"
+                      ? "HubSpot custom object"
+                      : data.consultationsSource ?? "—"
             }
           />
+          {Array.isArray(data.matchedForms) && data.matchedForms.length > 0 ? (
+            <Row
+              label="Matched form(s)"
+              value={data.matchedForms
+                .map((f) => `${f.name} (${f.id.slice(0, 8)}…)`)
+                .join(", ")}
+            />
+          ) : null}
 
           {data.hubspotCounts ? (
             <Group title="HubSpot record counts">

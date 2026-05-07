@@ -20,7 +20,9 @@ import { headers as nextHeaders } from "next/headers";
 import { getPayloadInstance } from "@/lib/payload";
 import {
   isHubSpotEnabled,
+  listMarketingForms,
   listObjectSchemas,
+  resolveConsultationFormIds,
   resolveConsultationsObjectType,
   countObjectRecords,
 } from "@/lib/hubspot";
@@ -128,14 +130,16 @@ export async function GET() {
       }))
     : { error: schemas.error, status: schemas.status };
 
-  // 2. Resolve consultations object type
+  // 2. Resolve which surface we'll use for consultations. Forms
+  // wins when present (matches lib/hubspot.ts:listConsultationRecords).
   const consultationsObjectType = await resolveConsultationsObjectType();
+  const consultationFormIds = await resolveConsultationFormIds();
   out.consultationsObjectType = consultationsObjectType;
+  out.consultationFormIds = consultationFormIds;
 
-  // 3. Live counts in HubSpot. The consultation count tries the
-  // custom-object first, then falls back to a search of Notes
-  // tagged with the JoodLife consultation marker — matching the
-  // logic in lib/hubspot.ts:listConsultationRecords.
+  // 3. Live counts in HubSpot. Source order: Forms -> Appointments/
+  // custom-object -> Notes. The diag mirrors that so the operator
+  // can see at a glance which source the sync will actually use.
   const [contactsCount, dealsCount, consultationsCustomCount] =
     await Promise.all([
       countObjectRecords("contacts"),
@@ -147,11 +151,75 @@ export async function GET() {
     ? consultationsCustomCount.data
     : { error: consultationsCustomCount.error };
   let consultationsSource:
+    | "forms"
     | "appointments"
     | "custom_object"
     | "notes"
     | "none" =
-    consultationsObjectType === "appointments" ? "appointments" : "custom_object";
+    consultationFormIds.length > 0
+      ? "forms"
+      : consultationsObjectType === "appointments"
+        ? "appointments"
+        : "custom_object";
+
+  // If forms is the source, surface the matching form names + total
+  // submission count by paging through each form once. For accuracy
+  // and not blowing up the API budget, just sum a HEAD-style page
+  // (limit 1, drained by paging) per form.
+  if (consultationsSource === "forms") {
+    try {
+      const allForms = await listMarketingForms();
+      out.matchedForms = allForms.ok
+        ? allForms.data
+            .filter((f) => consultationFormIds.includes(f.id))
+            .map((f) => ({ id: f.id, name: f.name }))
+        : [];
+      // Best-effort: count submissions per form by fetching the
+      // first page with limit=1 and reading paging.next.after to
+      // detect whether more exist. We don't try to count exactly
+      // (HubSpot's legacy submissions endpoint doesn't return a
+      // total) — but at least confirm the form returns submissions.
+      const perForm = await Promise.all(
+        consultationFormIds.map(async (fid) => {
+          const r = await fetch(
+            `https://api.hubapi.com/form-integrations/v1/submissions/forms/${encodeURIComponent(fid)}?limit=1`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN ?? ""}`,
+              },
+            }
+          );
+          if (!r.ok) return { id: fid, error: `HTTP ${r.status}` };
+          const j = (await r.json()) as {
+            results?: unknown[];
+            paging?: { next?: { after?: string } };
+          };
+          return {
+            id: fid,
+            firstPage: (j.results ?? []).length,
+            hasMore: !!j.paging?.next?.after,
+          };
+        })
+      );
+      out.formSubmissionsProbe = perForm;
+      // Summarise count: sum of firstPage values is at least N. The
+      // sync will paginate fully — this is just a "hey it returned
+      // SOMETHING" indicator.
+      const total = perForm.reduce(
+        (acc: number, x) =>
+          acc +
+          (x && typeof x === "object" && "firstPage" in x
+            ? Number(x.firstPage ?? 0)
+            : 0),
+        0
+      );
+      consultationsCount = total > 0 ? total : { error: "no submissions on first page" };
+    } catch (err) {
+      consultationsCount = {
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
 
   // If the custom object lookup failed, count consultation Notes
   // instead so the diag still shows a real number.
