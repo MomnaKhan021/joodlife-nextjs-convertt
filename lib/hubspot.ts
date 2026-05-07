@@ -610,6 +610,262 @@ export type HubSpotConsultationRecord = {
   contactId?: string | null;
 };
 
+/* ------------------------------------------------------------------ */
+/* HubSpot Marketing Forms — `JOOD Consultation Form` lives here       */
+/* ------------------------------------------------------------------ */
+
+export type HubSpotFormSummary = {
+  id: string;
+  name: string;
+  archived?: boolean;
+};
+
+/**
+ * List Marketing Forms via /marketing/v3/forms. Used to auto-detect
+ * the consultation form when `HUBSPOT_CONSULTATION_FORM_ID` isn't
+ * set explicitly. Filters out archived forms.
+ */
+export async function listMarketingForms(): Promise<
+  HubSpotResult<HubSpotFormSummary[]>
+> {
+  const res = await hsFetch<{ results: HubSpotFormSummary[] }>(
+    `/marketing/v3/forms?limit=200`,
+    { method: "GET" }
+  );
+  if (!res.ok) return res;
+  return {
+    ok: true,
+    data: (res.data.results ?? []).filter((f) => !f.archived),
+  };
+}
+
+/**
+ * Resolve which Marketing Form id(s) to pull consultation
+ * submissions from. Order:
+ *   1. HUBSPOT_CONSULTATION_FORM_ID (single id, comma-separated for many)
+ *   2. Auto-detect: every non-archived form with `consultation` in
+ *      its name.
+ * Cached for the lifetime of the module.
+ */
+let _cachedConsultationFormIds: string[] | null = null;
+export async function resolveConsultationFormIds(): Promise<string[]> {
+  if (process.env.HUBSPOT_CONSULTATION_FORM_ID) {
+    return process.env.HUBSPOT_CONSULTATION_FORM_ID.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  if (_cachedConsultationFormIds) return _cachedConsultationFormIds;
+  const forms = await listMarketingForms();
+  if (!forms.ok) {
+    _cachedConsultationFormIds = [];
+    return [];
+  }
+  const matches = forms.data
+    .filter((f) =>
+      /(consult|jood|quiz|booking|questionnaire)/i.test(f.name ?? "")
+    )
+    .map((f) => f.id);
+  _cachedConsultationFormIds = matches;
+  return matches;
+}
+
+type RawSubmission = {
+  submittedAt?: number;
+  conversionId?: string;
+  pageUrl?: string;
+  values?: Array<{
+    name: string;
+    value: string;
+    objectTypeId?: string;
+  }>;
+};
+
+/**
+ * Fetch one page of submissions for a given Marketing Form. The
+ * legacy form-integrations endpoint stays the most reliable surface
+ * for this — newer GraphQL flavours need extra scopes some accounts
+ * don't have.
+ */
+async function fetchFormSubmissionsPage(
+  formId: string,
+  after?: string,
+  limit = 50
+): Promise<HubSpotResult<{ results: RawSubmission[]; nextAfter: string | null }>> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (after) params.set("after", after);
+  const res = await hsFetch<{
+    results?: RawSubmission[];
+    paging?: { next?: { after?: string } };
+  }>(
+    `/form-integrations/v1/submissions/forms/${encodeURIComponent(formId)}?${params.toString()}`,
+    { method: "GET" }
+  );
+  if (!res.ok) return res;
+  return {
+    ok: true,
+    data: {
+      results: res.data.results ?? [],
+      nextAfter: res.data.paging?.next?.after ?? null,
+    },
+  };
+}
+
+/** Find a value in a submission's flat values array, case-insensitive. */
+function pickValue(
+  values: NonNullable<RawSubmission["values"]>,
+  ...names: string[]
+): string {
+  for (const n of names) {
+    const hit = values.find(
+      (v) => (v.name ?? "").toLowerCase() === n.toLowerCase()
+    );
+    if (hit?.value) return hit.value;
+  }
+  return "";
+}
+
+/**
+ * Treat HubSpot Marketing Form submissions as consultation records.
+ * Each submission becomes one HubSpotConsultationRecord, with the
+ * synthetic id `form:{formId}:{submittedAtEpoch}:{email-hash}` so
+ * idempotent re-runs match correctly via hubspot_object_id.
+ *
+ * Returns the same shape as listConsultationRecords so the upstream
+ * runner stays source-agnostic.
+ *
+ * Cursor encoding:  `formId:after` for the active form, switching to
+ * the next form when we've drained the current one. So a single
+ * monotonic `after` cursor walks every consultation form.
+ */
+export async function listConsultationFormSubmissionsAsRecords(
+  after?: string,
+  limit = 100
+): Promise<
+  HubSpotResult<{
+    results: HubSpotConsultationRecord[];
+    nextAfter: string | null;
+    objectType: string;
+  }>
+> {
+  const formIds = await resolveConsultationFormIds();
+  if (formIds.length === 0) {
+    return {
+      ok: false,
+      status: 404,
+      error:
+        "No HubSpot Marketing Form id found. Set HUBSPOT_CONSULTATION_FORM_ID or rename a form so it contains 'Consultation'.",
+    };
+  }
+
+  // Decode the incoming cursor: "formIdx:innerCursor" — formIdx is
+  // an index into formIds so we can advance to the next form when
+  // the current one's pagination is exhausted.
+  let formIdx = 0;
+  let innerAfter: string | undefined;
+  if (after) {
+    const idx = after.indexOf(":");
+    if (idx > 0) {
+      formIdx = Number(after.slice(0, idx)) || 0;
+      const tail = after.slice(idx + 1);
+      innerAfter = tail || undefined;
+    }
+  }
+  if (formIdx < 0 || formIdx >= formIds.length) {
+    return { ok: true, data: { results: [], nextAfter: null, objectType: "forms" } };
+  }
+
+  const currentFormId = formIds[formIdx];
+  const page = await fetchFormSubmissionsPage(currentFormId, innerAfter, limit);
+  if (!page.ok) return page;
+
+  const enriched: HubSpotConsultationRecord[] = page.data.results.map((s) => {
+    const values = s.values ?? [];
+    const email = pickValue(values, "email", "contact_email");
+    const firstName = pickValue(values, "firstname", "first_name");
+    const lastName = pickValue(values, "lastname", "last_name");
+    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+    const phone = pickValue(values, "phone", "mobilephone", "phone_number");
+    const dateOfBirth = pickValue(
+      values,
+      "date_of_birth",
+      "dob",
+      "birthdate"
+    );
+    const productSlug = pickValue(
+      values,
+      "product_slug",
+      "product",
+      "selected_product",
+      "treatment"
+    );
+    const dose = pickValue(values, "dose", "dosage", "selected_dose");
+
+    // Everything that isn't a header field becomes part of `answers`
+    const skip = new Set([
+      "email",
+      "contact_email",
+      "firstname",
+      "first_name",
+      "lastname",
+      "last_name",
+      "phone",
+      "mobilephone",
+      "phone_number",
+      "date_of_birth",
+      "dob",
+      "birthdate",
+      "product_slug",
+      "product",
+      "selected_product",
+      "treatment",
+      "dose",
+      "dosage",
+      "selected_dose",
+    ]);
+    const answers: Record<string, string> = {};
+    for (const v of values) {
+      const key = (v.name ?? "").trim();
+      if (!key || skip.has(key.toLowerCase())) continue;
+      answers[key] = v.value ?? "";
+    }
+    if (s.pageUrl) answers["__pageUrl"] = s.pageUrl;
+    if (s.submittedAt) answers["__submittedAt"] = String(s.submittedAt);
+
+    const stableId = `form:${currentFormId}:${s.submittedAt ?? 0}:${email || s.conversionId || ""}`;
+
+    return {
+      id: stableId,
+      properties: {
+        email,
+        full_name: fullName,
+        phone,
+        date_of_birth: dateOfBirth,
+        product_slug: productSlug,
+        dose,
+        answers: JSON.stringify(answers),
+        status: "submitted",
+        hs_createdate: s.submittedAt ? String(s.submittedAt) : "",
+      },
+      contactId: null,
+      contactEmail: email || null,
+    };
+  });
+
+  // Build the nextAfter cursor. If this form has more pages, stay on
+  // it; otherwise advance to the next form (with no inner cursor).
+  let nextAfter: string | null = null;
+  if (page.data.nextAfter) {
+    nextAfter = `${formIdx}:${page.data.nextAfter}`;
+  } else if (formIdx + 1 < formIds.length) {
+    nextAfter = `${formIdx + 1}:`;
+  }
+
+  return {
+    ok: true,
+    data: { results: enriched, nextAfter, objectType: "forms" },
+  };
+}
+
 /**
  * Parse a JoodLife consultation note body (HTML) into the same
  * properties shape we get from a custom-object record. The
@@ -811,10 +1067,23 @@ export async function listConsultationRecords(
     objectType: string;
   }>
 > {
-  // If the operator has explicitly disabled the custom-object path,
-  // skip the schema lookup entirely and go straight to notes.
+  // Explicit overrides win.
+  if (process.env.HUBSPOT_CONSULTATIONS_SOURCE === "forms") {
+    return listConsultationFormSubmissionsAsRecords(after, limit);
+  }
   if (process.env.HUBSPOT_CONSULTATIONS_SOURCE === "notes") {
     return listConsultationNotesAsRecords(after, limit);
+  }
+
+  // Default order: Marketing Forms (where JOOD Consultation Form
+  // lives) -> standard Appointments object -> Notes fallback.
+  // Try forms first because the operator confirmed that's the
+  // surface holding the live submission data. If no consultation
+  // form is found in the account we fall through to the
+  // custom-object / appointments path.
+  const formIds = await resolveConsultationFormIds();
+  if (formIds.length > 0) {
+    return listConsultationFormSubmissionsAsRecords(after, limit);
   }
 
   const objectType = await resolveConsultationsObjectType();
