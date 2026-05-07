@@ -253,13 +253,13 @@ export async function Dashboard() {
             Sync HubSpot now →
           </Link>
           <Link
-            href="/admin/collections/orders"
+            href="/admin-tools/data-browser?type=orders"
             className="jood-dashboard__cta"
           >
             View all orders
           </Link>
           <Link
-            href="/admin/collections/consultations"
+            href="/admin-tools/data-browser?type=consultations"
             className="jood-dashboard__cta"
           >
             View consultations
@@ -275,14 +275,14 @@ export async function Dashboard() {
           value={stats.ordersTotal}
           subtitle={`${fmtCurrency(String(stats.ordersRevenue))} · ${stats.ordersPaid} paid`}
           accent="green"
-          href="/admin/collections/orders"
+          href="/admin-tools/data-browser?type=orders"
         />
         <StatCard
           label="Consultations"
           value={stats.consultationsTotal}
           subtitle={`${stats.consultationsSubmitted} submitted`}
           accent="leaf"
-          href="/admin/collections/consultations"
+          href="/admin-tools/data-browser?type=consultations"
         />
         <StatCard
           label="Users"
@@ -293,7 +293,7 @@ export async function Dashboard() {
             stats.usersTotal - stats.usersAdmins === 1 ? "" : "s"
           }`}
           accent="green"
-          href="/admin/collections/users"
+          href="/admin-tools/data-browser?type=users"
         />
         <StatCard
           label="Products"
@@ -302,21 +302,21 @@ export async function Dashboard() {
             stats.productsTotal - stats.productsActive
           } inactive`}
           accent="leaf"
-          href="/admin/collections/products"
+          href="/admin-tools/data-browser?type=products"
         />
         <StatCard
           label="Posts"
           value={stats.postsTotal}
           subtitle={`${stats.postsPublished} published`}
           accent="green"
-          href="/admin/collections/posts"
+          href="/admin-tools/data-browser?type=posts"
         />
         <StatCard
           label="Media files"
           value={stats.mediaCount}
           subtitle="uploaded assets"
           accent="leaf"
-          href="/admin/collections/media"
+          href="/admin-tools/data-browser?type=media"
         />
       </div>
 
@@ -326,7 +326,7 @@ export async function Dashboard() {
           <header className="jood-panel__header">
             <h2 className="jood-panel__title">Recent orders</h2>
             <Link
-              href="/admin/collections/orders"
+              href="/admin-tools/data-browser?type=orders"
               className="jood-panel__link"
             >
               Manage all →
@@ -384,7 +384,7 @@ export async function Dashboard() {
           <header className="jood-panel__header">
             <h2 className="jood-panel__title">Recent consultations</h2>
             <Link
-              href="/admin/collections/consultations"
+              href="/admin-tools/data-browser?type=consultations"
               className="jood-panel__link"
             >
               Manage all →
@@ -442,7 +442,7 @@ export async function Dashboard() {
           <header className="jood-panel__header">
             <h2 className="jood-panel__title">Latest products</h2>
             <Link
-              href="/admin/collections/products"
+              href="/admin-tools/data-browser?type=products"
               className="jood-panel__link"
             >
               Manage all →
@@ -485,7 +485,7 @@ export async function Dashboard() {
           <header className="jood-panel__header">
             <h2 className="jood-panel__title">Recent users</h2>
             <Link
-              href="/admin/collections/users"
+              href="/admin-tools/data-browser?type=users"
               className="jood-panel__link"
             >
               Manage all →

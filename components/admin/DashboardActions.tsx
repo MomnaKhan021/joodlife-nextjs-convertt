@@ -125,6 +125,9 @@ export default function DashboardActions() {
           <a href="/admin/account" className="jood-actions__link">
             My account
           </a>
+          <a href="/admin-tools/data-browser" className="jood-actions__link">
+            Data browser
+          </a>
           <a href="/admin-tools/hubspot-sync" className="jood-actions__link">
             HubSpot sync
           </a>
