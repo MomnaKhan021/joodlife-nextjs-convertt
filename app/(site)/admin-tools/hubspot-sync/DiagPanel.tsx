@@ -54,6 +54,11 @@ export default function DiagPanel() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
+  // Forms-specific test (separate state so the main diag isn't blocked)
+  const [formsTest, setFormsTest] = useState<unknown | null>(null);
+  const [formsLoading, setFormsLoading] = useState(false);
+  const [formsErr, setFormsErr] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
@@ -69,6 +74,27 @@ export default function DiagPanel() {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const testForms = useCallback(async () => {
+    setFormsLoading(true);
+    setFormsErr(null);
+    setFormsTest(null);
+    try {
+      const res = await fetch("/api/hubspot/test-forms", {
+        credentials: "include",
+      });
+      const j = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) {
+        setFormsErr(j.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      setFormsTest(j);
+    } catch (e) {
+      setFormsErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setFormsLoading(false);
     }
   }, []);
 
@@ -168,6 +194,43 @@ export default function DiagPanel() {
               />
             </Group>
           ) : null}
+
+          {/* Forms test — runs on demand */}
+          <div className="mt-6 rounded-xl border-2 border-[#142e2a]/20 bg-[#f7f9f2] p-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h3 className="font-display text-[15px] font-semibold text-[#142e2a]">
+                  Marketing Forms test
+                </h3>
+                <p className="mt-1 font-ui text-[12px] text-[#142e2a]/70">
+                  Pulls /marketing/v3/forms + a sample of 3
+                  submissions per matched form. Confirms the
+                  &quot;forms&quot; scope on your token and surfaces
+                  exactly which form id we&apos;d sync.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={testForms}
+                disabled={formsLoading}
+                className="rounded-full border border-[#142e2a]/20 bg-white px-4 py-2 font-ui text-[12px] font-semibold text-[#142e2a] hover:border-[#142e2a]/40 disabled:opacity-50"
+              >
+                {formsLoading ? "Testing…" : "Test Forms API"}
+              </button>
+            </div>
+
+            {formsErr ? (
+              <p className="mt-3 rounded-md border border-red-200 bg-red-50 p-2 font-ui text-[12px] text-red-800">
+                {formsErr}
+              </p>
+            ) : null}
+
+            {formsTest ? (
+              <pre className="mt-3 max-h-[420px] overflow-auto rounded-md border border-[#142e2a]/10 bg-white p-3 font-mono text-[11px] leading-relaxed text-[#142e2a]/85">
+                {JSON.stringify(formsTest, null, 2)}
+              </pre>
+            ) : null}
+          </div>
 
           {Array.isArray(data.schemas) && data.schemas.length > 0 ? (
             <details className="mt-6 rounded-xl border border-[#142e2a]/10 bg-[#f7f9f2] p-4 font-ui text-[13px]">

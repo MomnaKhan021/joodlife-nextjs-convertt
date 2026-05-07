@@ -657,6 +657,13 @@ export async function resolveConsultationFormIds(): Promise<string[]> {
   if (_cachedConsultationFormIds) return _cachedConsultationFormIds;
   const forms = await listMarketingForms();
   if (!forms.ok) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[hubspot:resolveConsultationFormIds] listMarketingForms failed (${forms.status}): ${forms.error}` +
+        (forms.status === 403
+          ? " — your HubSpot Private App needs the `forms` scope."
+          : "")
+    );
     _cachedConsultationFormIds = [];
     return [];
   }
@@ -665,6 +672,13 @@ export async function resolveConsultationFormIds(): Promise<string[]> {
       /(consult|jood|quiz|booking|questionnaire)/i.test(f.name ?? "")
     )
     .map((f) => f.id);
+  if (matches.length === 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[hubspot:resolveConsultationFormIds] no form name matched the consult/jood/quiz/booking/questionnaire heuristic. ` +
+        `Available forms: ${forms.data.map((f) => `${f.name} (${f.id})`).join(", ")}`
+    );
+  }
   _cachedConsultationFormIds = matches;
   return matches;
 }
