@@ -122,11 +122,29 @@ export default function DashboardActions() {
       {/* Account row */}
       <div className="jood-actions__bar">
         <div className="jood-actions__left">
-          <a href="/admin/account" className="jood-actions__link">
-            My account
+          <a
+            href="/admin-tools/data-browser?type=users"
+            className="jood-actions__link"
+          >
+            Users
           </a>
-          <a href="/admin-tools/data-browser" className="jood-actions__link">
-            Data browser
+          <a
+            href="/admin-tools/data-browser?type=orders"
+            className="jood-actions__link"
+          >
+            Orders
+          </a>
+          <a
+            href="/admin-tools/data-browser?type=consultations"
+            className="jood-actions__link"
+          >
+            Consultations
+          </a>
+          <a
+            href="/admin-tools/data-browser?type=posts"
+            className="jood-actions__link"
+          >
+            Posts
           </a>
           <a href="/admin-tools/hubspot-sync" className="jood-actions__link">
             HubSpot sync

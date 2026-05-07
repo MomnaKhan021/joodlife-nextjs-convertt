@@ -344,7 +344,7 @@ export async function Dashboard() {
               {recentOrders.map((o) => (
                 <li key={o.id} className="jood-panel__row">
                   <Link
-                    href={`/admin/collections/orders/${o.id}`}
+                    href={`/admin-tools/edit/orders/${o.id}`}
                     className="jood-panel__row-link"
                   >
                     <span className="jood-panel__row-title">
@@ -402,7 +402,7 @@ export async function Dashboard() {
               {recentConsultations.map((c) => (
                 <li key={c.id} className="jood-panel__row">
                   <Link
-                    href={`/admin/collections/consultations/${c.id}`}
+                    href={`/admin-tools/edit/consultations/${c.id}`}
                     className="jood-panel__row-link"
                   >
                     <span className="jood-panel__row-title">
@@ -455,7 +455,7 @@ export async function Dashboard() {
               {recentProducts.map((p) => (
                 <li key={p.id} className="jood-panel__row">
                   <Link
-                    href={`/admin/collections/products/${p.id}`}
+                    href={`/admin-tools/edit/products/${p.id}`}
                     className="jood-panel__row-link"
                   >
                     <span className="jood-panel__row-title">{p.title}</span>
@@ -498,7 +498,7 @@ export async function Dashboard() {
               {recentUsers.map((u) => (
                 <li key={u.id} className="jood-panel__row">
                   <Link
-                    href={`/admin/collections/users/${u.id}`}
+                    href={`/admin-tools/edit/users/${u.id}`}
                     className="jood-panel__row-link"
                   >
                     <span className="jood-panel__row-title">
