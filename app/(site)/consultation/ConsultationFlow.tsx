@@ -107,7 +107,10 @@ export default function ConsultationFlow({
 
   // ---- per-step persistence ----
   async function persist(status: "draft" | "submitted") {
-    setSaving(true);
+    // Only flip the global `saving` state for the FINAL submission —
+    // background draft saves shouldn't disable the Continue button on
+    // the slide the user has already advanced to.
+    if (status === "submitted") setSaving(true);
     setError(null);
     try {
       const fullName = (() => {
@@ -164,7 +167,7 @@ export default function ConsultationFlow({
       setError(err instanceof Error ? err.message : String(err));
       throw err;
     } finally {
-      setSaving(false);
+      if (status === "submitted") setSaving(false);
     }
   }
 
@@ -175,17 +178,28 @@ export default function ConsultationFlow({
     const targetSlide = getSlide(targetId);
     if (!targetSlide) return;
 
-    // Block screens are terminal — submit as 'draft' so admin still sees the row
-    const status = targetSlide.type === "block" || targetSlide.type === "success"
-      ? targetSlide.type === "success"
-        ? "submitted"
-        : "draft"
-      : "draft";
+    // Block screens are terminal — submit as 'draft' so admin still
+    // sees the row. The success slide is the only one we mark as
+    // "submitted".
+    const status: "draft" | "submitted" =
+      targetSlide.type === "success" ? "submitted" : "draft";
 
-    try {
-      await persist(status);
-    } catch {
-      return;
+    // Final submission MUST succeed so we know the row is in the
+    // database before we show the success screen. For every
+    // intermediate (draft) save we fire-and-forget — the answers
+    // are already in localStorage so a transient API failure can't
+    // strand the user mid-quiz like it did before.
+    if (status === "submitted") {
+      try {
+        await persist("submitted");
+      } catch {
+        return;
+      }
+    } else {
+      // Non-blocking save. Errors are still surfaced via setError
+      // inside persist(), so the user sees a banner if something
+      // goes wrong, but they can keep moving.
+      void persist("draft").catch(() => {});
     }
 
     setHistory((prev) => [...prev, slide.id]);
