@@ -33,7 +33,13 @@ const REVIEWS: Review[] = [
 
 function ReviewCard({ review }: { review: Review }) {
   return (
-    <article className="flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg border border-[#142E2A]/20 bg-[#f7f9f2] px-4 py-6 transition-[transform,box-shadow] duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(20,46,42,0.12)] md:h-[301.8px]">
+    <article
+      className="review-card flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg border border-[#142E2A]/20 bg-[#f7f9f2] px-4 py-6 md:h-[301.8px]"
+      style={{
+        transition:
+          "border-color 320ms ease-out, background-color 320ms ease-out, box-shadow 320ms ease-out",
+      }}
+    >
       <div className="flex flex-col gap-4">
         <Image
           src="/assets/figma/stars-5.svg"
@@ -88,15 +94,21 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function Reviews() {
   return (
-    <section aria-label="Reviews" className="w-full bg-white py-16 md:py-0 md:pb-[100px]">
+    <section
+      aria-label="Reviews"
+      className="w-full bg-white py-16 md:py-0 md:pb-[100px]"
+    >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
-        <Reveal as="div" className="flex flex-col items-center gap-3 pb-10 text-center">
+        <Reveal
+          as="div"
+          className="flex flex-col items-center gap-3 pb-10 text-center"
+        >
           <a
             href="https://www.trustpilot.com/review/joodlife.com"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="View Jood Life reviews on Trustpilot"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-md transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
           >
             <Image
               src="/assets/icons/trustpilot-logo-dark.svg"
@@ -117,7 +129,8 @@ export default function Reviews() {
             </span>
           </a>
           <h2 className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            3000+ happy <em className="font-serif italic font-normal">customers</em>
+            3000+ happy{" "}
+            <em className="font-serif italic font-normal">customers</em>
           </h2>
           <p className="max-w-[780px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             Thousands have trusted Jood for safe, clinically guided weight-loss
@@ -126,7 +139,14 @@ export default function Reviews() {
           </p>
         </Reveal>
 
-        <Reveal delay={150} className="no-scrollbar -mx-6 flex gap-5 overflow-x-auto px-6 pb-4 md:mx-0 md:px-0">
+        {/* Outer wrapper adds vertical padding so the card box-shadow is
+            never clipped by the overflow-x-auto track. We also extend
+            the horizontal padding to keep the first/last card's border
+            from being cropped on the edges. */}
+        <Reveal
+          delay={150}
+          className="no-scrollbar -mx-6 flex gap-5 overflow-x-auto overflow-y-visible px-6 pb-8 pt-3 md:mx-0 md:px-1 md:py-4"
+        >
           {REVIEWS.map((r, i) => (
             <ReviewCard key={i} review={r} />
           ))}

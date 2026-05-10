@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import AnimatedLbsBadge from "./AnimatedLbsBadge";
+import HeroProgressIndicator from "./HeroProgressIndicator";
 
 /**
  * Hero banner — matches the Figma "Home page - Desktop 2025, Dec 15"
@@ -154,6 +155,14 @@ export default function HeroBanner() {
             <div className="absolute bottom-14 right-[82px] z-10">
               <AnimatedLbsBadge size="desktop" />
             </div>
+
+            {/* Vertical bar/slider — animates top→bottom on a slow,
+                premium loop. Sits between the left text column and the
+                portrait, mirroring the Figma's accent line. */}
+            <HeroProgressIndicator
+              size="desktop"
+              className="left-[640px] top-[80px] h-[540px] hidden lg:block"
+            />
           </Reveal>
         </div>
       </div>

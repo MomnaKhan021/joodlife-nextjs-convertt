@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
+import { useRef } from "react";
 import Reveal from "@/components/ui/Reveal";
 import JourneyDivider from "@/components/home/JourneyDivider";
+import TimelineProgressBar from "@/components/home/TimelineProgressBar";
 
 /**
  * Journey + Transformation — Figma Component 94.
@@ -270,13 +274,23 @@ function ExpertGuidanceCard() {
 }
 
 export default function JourneyPlan() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+
   return (
     <section
+      ref={sectionRef}
       aria-label="Journey and personalized plan"
       className="relative w-full bg-white pb-12 md:pb-20"
     >
       <div className="mx-auto w-full max-w-[1440px] px-4 md:px-20">
         <div className="relative overflow-hidden rounded-[20px] md:rounded-3xl">
+          {/* Vertical progress bar — animates from top to bottom as the
+              user scrolls through the section. Lives in the background
+              so it doesn't interfere with content layout. */}
+          <TimelineProgressBar
+            sectionRef={sectionRef}
+            className="z-0 hidden h-full md:block"
+          />
           {/* DARK zone (contains timeline) */}
           <div className="relative bg-[#142e2a] px-5 pt-12 pb-24 md:px-20 md:pt-[100px] md:pb-[180px]">
             {/* faint dot pattern */}

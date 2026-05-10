@@ -16,50 +16,57 @@ const ITEMS: Item[] = [
   { icon: "/assets/figma/usp-support.svg", label: "Ongoing medical support" },
 ];
 
-function Row() {
+/**
+ * A single inline row of USP items. Rendered multiple times back-to-back
+ * so the marquee can loop seamlessly without a perceived jump.
+ */
+function MarqueeRow({ aria = false }: { aria?: boolean }) {
   return (
-    <>
+    <ul
+      aria-hidden={aria}
+      className="flex shrink-0 items-center"
+    >
       {ITEMS.map((item, i) => (
-        <li key={i} className="flex shrink-0 items-center gap-3 pr-14">
+        <li
+          key={i}
+          className="flex shrink-0 items-center gap-3 pr-12 md:pr-16"
+        >
           <Image
             src={item.icon}
             alt=""
             width={32}
             height={32}
-            className="h-8 w-8 shrink-0"
+            className="h-7 w-7 shrink-0 md:h-8 md:w-8"
             aria-hidden
           />
-          <span className="whitespace-nowrap font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a]">
+          <span className="whitespace-nowrap font-ui text-[14.5px] font-semibold leading-[18px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px] md:leading-[19.5px]">
             {item.label}
           </span>
         </li>
       ))}
-    </>
+    </ul>
   );
 }
 
 export default function UspStrip() {
   return (
     <section
-      aria-label="USP marquee"
-      className="w-full overflow-hidden border-b border-[#142e2a]/10 bg-white py-4"
+      aria-label="Why customers choose Jood Life"
+      className="w-full overflow-hidden border-b border-[#142e2a]/10 bg-white py-4 md:py-5"
     >
-      <div className="group relative flex">
-        <ul
-          className="flex animate-marquee items-center"
-          style={{ animationDuration: "30s" }}
+      {/* The track is twice as wide as the viewport (two copies of the
+          row side-by-side). We slide it -50% over the configured duration
+          so the second copy lands exactly where the first started — the
+          loop is invisible. group-hover pauses the marquee for
+          interaction. */}
+      <div className="group flex w-full overflow-hidden">
+        <div
+          className="flex shrink-0 animate-marquee items-center group-hover:[animation-play-state:paused]"
+          style={{ animationDuration: "32s" }}
         >
-          <Row />
-          <Row />
-        </ul>
-        <ul
-          aria-hidden
-          className="flex animate-marquee items-center"
-          style={{ animationDuration: "30s" }}
-        >
-          <Row />
-          <Row />
-        </ul>
+          <MarqueeRow />
+          <MarqueeRow aria />
+        </div>
       </div>
     </section>
   );

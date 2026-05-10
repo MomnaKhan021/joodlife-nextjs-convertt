@@ -359,8 +359,11 @@ export default function BmiCalculator() {
               <div className="relative mt-3 w-full px-1">
                 <div className="relative h-2 w-full rounded-full bg-[#142e2a]/15">
                   <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-[#142e2a] transition-[width] duration-150 ease-out"
-                    style={{ width: `${sliderPct}%` }}
+                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#142e2a] to-[#1e4a44]"
+                    style={{
+                      width: `${sliderPct}%`,
+                      transition: "width 120ms ease-out",
+                    }}
                   />
                 </div>
                 <input
@@ -371,11 +374,14 @@ export default function BmiCalculator() {
                   value={sliderWeight}
                   onChange={(e) => setSliderWeight(Number(e.target.value))}
                   aria-label="Adjust starting weight"
+                  aria-valuemin={WEIGHT_MIN}
+                  aria-valuemax={WEIGHT_MAX}
+                  aria-valuenow={sliderWeight}
                   className="bmi-slider absolute inset-0 w-full cursor-grab appearance-none bg-transparent active:cursor-grabbing"
                 />
                 <div className="mt-2 flex justify-between font-ui text-[11px] font-semibold tracking-[0.02em] text-[#142e2a]/55">
-                  <span>{WEIGHT_MIN}</span>
-                  <span>{WEIGHT_MAX}</span>
+                  <span>{WEIGHT_MIN} lbs</span>
+                  <span>{WEIGHT_MAX} lbs</span>
                 </div>
               </div>
             </div>
@@ -401,33 +407,57 @@ export default function BmiCalculator() {
         .bmi-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           border-radius: 9999px;
           background: #ffffff;
           border: 2px solid #142e2a;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.15),
+            0 0 0 4px rgba(20, 46, 42, 0);
           cursor: grab;
-          margin-top: -7px;
-          transition: transform 0.15s ease;
+          margin-top: -8px;
+          transition:
+            box-shadow 0.2s ease,
+            transform 0.15s ease;
+        }
+        .bmi-slider:hover::-webkit-slider-thumb {
+          box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.18),
+            0 0 0 6px rgba(20, 46, 42, 0.08);
         }
         .bmi-slider:active::-webkit-slider-thumb {
           cursor: grabbing;
-          transform: scale(1.1);
+          transform: scale(1.08);
+          box-shadow:
+            0 4px 10px rgba(0, 0, 0, 0.22),
+            0 0 0 8px rgba(20, 46, 42, 0.12);
         }
         .bmi-slider::-moz-range-thumb {
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           border-radius: 9999px;
           background: #ffffff;
           border: 2px solid #142e2a;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.15),
+            0 0 0 4px rgba(20, 46, 42, 0);
           cursor: grab;
-          transition: transform 0.15s ease;
+          transition:
+            box-shadow 0.2s ease,
+            transform 0.15s ease;
+        }
+        .bmi-slider:hover::-moz-range-thumb {
+          box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.18),
+            0 0 0 6px rgba(20, 46, 42, 0.08);
         }
         .bmi-slider:active::-moz-range-thumb {
           cursor: grabbing;
-          transform: scale(1.1);
+          transform: scale(1.08);
+          box-shadow:
+            0 4px 10px rgba(0, 0, 0, 0.22),
+            0 0 0 8px rgba(20, 46, 42, 0.12);
         }
         .bmi-slider:focus-visible::-webkit-slider-thumb {
           outline: 2px solid #142e2a;

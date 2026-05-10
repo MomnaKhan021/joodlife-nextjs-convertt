@@ -50,14 +50,31 @@ html, body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Reviews hover — no transform so the card never visually shifts.
+   Border colour, background and a soft shadow change instead. The
+   parent uses overflow-y-visible + py padding so the shadow draws
+   fully without being clipped at the edge of the scroll track. */
+.review-card:hover {
+  border-color: #142e2a;
+  background-color: #ffffff;
+  box-shadow:
+    0 14px 32px -12px rgba(20, 46, 42, 0.18),
+    0 4px 10px -4px rgba(20, 46, 42, 0.08);
+}
+.review-card:focus-within {
+  border-color: #142e2a;
+}
+
+/* Marquee: track contains two copies of the row, so a -50% translate
+   lands the second copy exactly where the first started — looping
+   appears continuous. */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 .animate-marquee {
   animation: marquee linear infinite;
-  flex-shrink: 0;
-  min-width: 100%;
+  will-change: transform;
 }
 
 /* Imported HTML blog content (e.g. from Shopify). The Lexical-based
