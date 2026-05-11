@@ -115,7 +115,7 @@ function TransformationCard() {
         href="#get-personalized"
         className="mx-auto inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/90 bg-white/[0.063] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white backdrop-blur-[10px] transition-colors hover:bg-white/15"
       >
-        Get personalised plan
+        Get personalized plan
       </a>
     </div>
   );
@@ -206,11 +206,10 @@ export default function JourneyPlan() {
           {/* CURVE DIVIDER — full-width with animated dots */}
           <JourneyDivider />
 
-          {/* LOWER zone — same dark-green base as the upper zone, with
-              a subtle teal overlay on the gradient stripe above the
-              cards. The curve divider above is the visual transition;
-              the bg colour itself stays continuous per the Figma. */}
-          <div className="relative bg-[#1f4540] px-5 pt-0 pb-12 md:px-20 md:pb-[100px]">
+          {/* Lower zone — same dark green throughout per Figma. The
+              wavy curve above is purely decorative; the colour does
+              NOT change between top and bottom. */}
+          <div className="relative bg-[#142e2a] px-5 pt-0 pb-12 md:px-20 md:pb-[80px]">
             {/* Hero portrait straddles the divider above */}
             <div className="relative -mt-[160px] mb-10 flex justify-center md:-mt-[280px] md:mb-16">
               <Image
@@ -223,13 +222,22 @@ export default function JourneyPlan() {
               />
             </div>
 
+            {/* Card order: on desktop Transformation is on the left and
+                Expert Guidance is on the right; on mobile the order is
+                flipped so Expert Guidance appears first (per Figma
+                mobile frame 141:1235). The CSS `order` utilities below
+                handle the flip without duplicating markup. */}
             <Reveal
               as="div"
               delay={150}
               className="relative z-10 grid gap-5 md:grid-cols-2 md:gap-6"
             >
-              <TransformationCard />
-              <ExpertGuidanceCard />
+              <div className="order-2 md:order-1">
+                <TransformationCard />
+              </div>
+              <div className="order-1 md:order-2">
+                <ExpertGuidanceCard />
+              </div>
             </Reveal>
           </div>
         </div>

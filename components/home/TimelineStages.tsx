@@ -3,39 +3,39 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Timeline section header + stages — Figma node 141:2349 (Component 289).
+ * Timeline section header + stages — Figma node 141:2349.
  *
- * Exact Figma specs applied:
- *   - "Timeline" pill: 91×35, bg=white at 30% opacity, radius 55
- *     (NOT a dashed-border pill — that was the previous bug)
- *   - Heading "What to expect in / your journey" — 48px Gilroy-SemiBold,
- *     italic serif on the second line, wraps at the comma
- *   - Stages row width 1200px with 3 columns of 380px each
- *   - Stage pills: bg=white at 10% opacity, radius 24, padding 10/16,
- *     14px Saans Regular, solid (no dashed border)
- *   - Stage titles: 24px Saans Bold (weight 790), line-height 26
- *   - Stage descriptions: 16px Saans Regular, line-height 20,
- *     white at 90% opacity
- *
- * Animation: dots illuminate left → right (600ms stagger), with the
- * matching column's content rising into view a beat later.
+ * Critical Figma details:
+ *   - "TIMELINE" badge: white at 30%, radius 55, uppercase text
+ *   - Desktop heading: "What to expect in / your journey"
+ *   - Mobile heading:  "What to expect in your first month with Jood"
+ *     (different copy on mobile per the Figma mobile frame)
+ *   - Stage pills: white-at-10%, radius 24, padding 10/16, uppercase
+ *     letter-spacing, 14px Saans medium
+ *   - Stage titles: 24px bold (desktop) / 20px bold (mobile)
+ *   - Stage descriptions: 16px Saans regular / line-height 20
  */
 
 const STAGES = [
   {
     pill: "Today",
     title: "Simple assessment",
-    copy: "Quick online consultation with prescription and delivery if eligible.",
+    copyDesktop:
+      "Quick online consultation with prescription and delivery if eligible.",
+    copyMobile:
+      "Quick online consultation with prescription and delivery if eligible and coaches through the app.",
   },
   {
     pill: "1 - 6 Months",
     title: "Healthy weight loss",
-    copy: "Steady weight loss with ongoing clinical support.",
+    copyDesktop: "Steady weight loss with ongoing clinical support.",
+    copyMobile: "Steady weight loss with ongoing clinical support.",
   },
   {
     pill: "6 - 12 Months",
     title: "Lasting change",
-    copy: "Maintain results with continued guidance and care.",
+    copyDesktop: "Maintain results with continued guidance and care.",
+    copyMobile: "Maintain results with continued guidance and care.",
   },
 ];
 
@@ -76,33 +76,37 @@ export default function TimelineStages() {
     };
   }, []);
 
-  // Active rail fill: 0 → first dot (0%), then to second (50%), then to last (100%)
   const railPct = lit === 0 ? 0 : lit === 1 ? 0 : lit === 2 ? 50 : 100;
 
   return (
     <div
       ref={rootRef}
-      className="flex flex-col items-center gap-8 md:items-start md:gap-12"
+      className="flex flex-col items-start gap-8 md:gap-12"
     >
       {/* Heading block */}
-      <div className="flex flex-col items-center gap-5 text-center md:items-start md:gap-6 md:text-left">
-        {/* Timeline pill — solid white at 30%, NOT dashed */}
-        <span
-          className="inline-flex h-[35px] items-center justify-center rounded-full bg-white/30 px-5 font-ui text-[14px] font-medium leading-[18px] tracking-[-0.02em] text-white"
-        >
+      <div className="flex flex-col items-start gap-5 text-left md:gap-6">
+        {/* TIMELINE pill — solid white at 30% */}
+        <span className="inline-flex h-[35px] items-center justify-center rounded-full bg-white/30 px-5 font-ui text-[12px] font-medium uppercase leading-[16px] tracking-[0.08em] text-white">
           Timeline
         </span>
 
-        {/* Heading — line 1 plain, line 2 italic serif */}
-        <h2 className="font-display text-[32px] font-semibold leading-[38px] tracking-[-0.025em] text-white md:text-[48px] md:leading-[52px]">
+        {/* Desktop heading */}
+        <h2 className="hidden font-display text-[48px] font-semibold leading-[52px] tracking-[-0.025em] text-white md:block">
           What to expect in
           <br />
           <em className="font-serif italic font-normal">your journey</em>
         </h2>
+
+        {/* Mobile heading — different copy per Figma mobile frame */}
+        <h2 className="font-display text-[28px] font-semibold leading-[34px] tracking-[-0.025em] text-white md:hidden">
+          What to expect{" "}
+          <em className="font-serif italic font-normal">in your first month</em>{" "}
+          with Jood
+        </h2>
       </div>
 
       <div className="w-full">
-        {/* Desktop rail — dashed connector + 3 dots that light up */}
+        {/* Desktop rail */}
         <div className="hidden md:block">
           <div aria-hidden className="relative mb-10 h-3 w-full">
             {/* Inactive dashed line */}
@@ -133,7 +137,7 @@ export default function TimelineStages() {
                 }}
               />
             </div>
-            {/* 3 dots at 0% / 50% / 100% */}
+            {/* 3 dots */}
             {STAGES.map((_, i) => {
               const active = i < lit;
               const left = (i * 100) / 2;
@@ -161,7 +165,6 @@ export default function TimelineStages() {
             })}
           </div>
 
-          {/* 3 columns of text */}
           <div className="grid grid-cols-3 gap-10">
             {STAGES.map((s, i) => {
               const active = i < lit;
@@ -179,17 +182,15 @@ export default function TimelineStages() {
                     transitionDelay: active ? `${i * 80}ms` : "0ms",
                   }}
                 >
-                  {/* Stage pill — solid white/10%, radius 24, padding 10/16 */}
-                  <span
-                    className="inline-flex items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[14px] font-medium leading-[18px] tracking-[-0.02em] text-white"
-                  >
+                  {/* Stage pill — white/10%, uppercase, tracking */}
+                  <span className="inline-flex items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[12px] font-medium uppercase leading-[14px] tracking-[0.08em] text-white">
                     {s.pill}
                   </span>
                   <h3 className="font-ui text-[24px] font-bold leading-[26px] tracking-[-0.02em] text-white">
                     {s.title}
                   </h3>
                   <p className="max-w-[380px] font-ui text-[16px] font-normal leading-[20px] tracking-[-0.02em] text-white/90">
-                    {s.copy}
+                    {s.copyDesktop}
                   </p>
                 </div>
               );
@@ -197,14 +198,14 @@ export default function TimelineStages() {
           </div>
         </div>
 
-        {/* Mobile vertical list */}
+        {/* Mobile vertical list — each stage stacked */}
         <ul className="flex flex-col gap-7 md:hidden">
           {STAGES.map((s, i) => {
             const active = i < lit;
             return (
               <li
                 key={s.pill}
-                className="flex flex-col gap-3"
+                className="flex flex-col items-start gap-3"
                 style={{
                   opacity: active ? 1 : 0,
                   transform: active
@@ -215,14 +216,14 @@ export default function TimelineStages() {
                   transitionDelay: active ? `${i * 80}ms` : "0ms",
                 }}
               >
-                <span className="inline-flex w-fit items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[14px] font-medium leading-[18px] tracking-[-0.02em] text-white">
+                <span className="inline-flex w-fit items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[12px] font-medium uppercase leading-[14px] tracking-[0.08em] text-white">
                   {s.pill}
                 </span>
-                <h3 className="font-ui text-[20px] font-bold leading-[24px] tracking-[-0.02em] text-white">
+                <h3 className="font-ui text-[22px] font-bold leading-[26px] tracking-[-0.02em] text-white">
                   {s.title}
                 </h3>
                 <p className="font-ui text-[15px] font-normal leading-[20px] tracking-[-0.02em] text-white/90">
-                  {s.copy}
+                  {s.copyMobile}
                 </p>
               </li>
             );
