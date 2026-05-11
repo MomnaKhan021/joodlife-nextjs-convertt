@@ -153,39 +153,40 @@ export default function BmiCalculator() {
       className="w-full bg-white"
       ref={sectionRef}
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px] py-14 md:py-20">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8 pb-10">
-          <h2 className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-[60px] py-14 md:py-20">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-12 pb-10 md:pb-12">
+          <h2 className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
             Everyone&rsquo;s talking about{" "}
             <em className="font-serif italic font-normal">jood life</em> because
             it works.
           </h2>
-          <p className="max-w-[530px] font-ui text-[15px] leading-[22px] tracking-[-0.005em] text-[#142e2a]/80 md:text-[16px] md:leading-[24px]">
+          <p className="max-w-[530px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#0c2421]/85 md:text-[16.3px] md:leading-[20px]">
             Clinically proven treatments, medically supervised guidance, and
             thousand of real transformation all one powerful program.
           </p>
         </div>
 
         <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
-          <div className="flex h-full flex-col justify-between gap-6 rounded-3xl bg-[#e7ecd7] p-8 md:min-h-[580px]">
+          <div className="flex h-full flex-col justify-between gap-6 rounded-[24px] bg-[#f7f9f2] p-8 md:min-h-[503px]">
             <div className="flex flex-col items-center gap-1.5 text-center">
-              <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[26px] md:leading-[32px]">
+              <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
                 Check your
               </p>
-              <p className="font-ui text-[14px] leading-[20px] tracking-[-0.005em] text-[#142e2a]/75 md:text-[15px] md:leading-[22px]">
+              <p className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-[#142e2a]/80 md:text-[16.3px] md:leading-[20px]">
                 Enter your height and weight below
               </p>
             </div>
 
             <div
-              className="flex flex-col items-center gap-2"
+              className="flex flex-col items-center gap-3"
               aria-live="polite"
             >
-              <span className="inline-flex items-baseline gap-2">
-                <span className="font-display text-[48px] leading-none font-semibold tracking-[-0.02em] tabular-nums text-[#142e2a] md:text-[56px]">
+              {/* BMI pill — 243×43 in Figma, white bg, radius 120 */}
+              <span className="inline-flex h-[43px] items-center justify-center gap-2 rounded-full bg-white px-6">
+                <span className="font-display text-[40px] leading-[43px] font-semibold tracking-[-0.02em] tabular-nums text-[#142e2a] md:text-[44px]">
                   {bmiDisplay}
                 </span>
-                <span className="font-ui text-[16px] font-bold uppercase tracking-[0.04em] text-[#142e2a]/65 md:text-[18px]">
+                <span className="font-ui text-[20px] font-semibold uppercase tracking-[0.02em] text-[#142e2a] md:text-[24px]">
                   BMI
                 </span>
               </span>
@@ -266,12 +267,13 @@ export default function BmiCalculator() {
             </form>
           </div>
 
-          <div className="relative h-full overflow-hidden rounded-3xl bg-[#e7ecd7] md:min-h-[580px]">
+          <div className="relative h-full overflow-hidden rounded-[24px] md:min-h-[503px]">
             <Image
               src="/assets/figma/happy-woman-2.png"
               alt="Happy customer showing results"
               fill
               sizes="(max-width: 768px) 100vw, 440px"
+              quality={95}
               className="object-cover object-[center_30%]"
               priority
             />
@@ -309,16 +311,16 @@ export default function BmiCalculator() {
             </div>
           </div>
 
-          <div className="flex h-full flex-col justify-between gap-6 rounded-3xl bg-[#f7f9f2] p-8 md:min-h-[580px]">
-            <div className="flex flex-col items-center gap-1.5">
-              <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[26px] md:leading-[32px]">
+          <div className="flex h-full flex-col justify-between gap-6 rounded-[23px] bg-[#f7f9f2] p-8 md:min-h-[503px]">
+            <div className="flex flex-col items-center gap-1.5 text-center">
+              <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[26px]">
                 You could lose:
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-[48px] leading-none font-semibold tracking-[-0.02em] tabular-nums text-[#142e2a] md:text-[56px]">
+                <span className="font-display text-[48px] leading-[69px] font-semibold tracking-[-0.02em] tabular-nums text-[#0c2421] md:text-[56px]">
                   {Math.round(animatedCouldLose)}
                 </span>
-                <span className="font-ui text-[16px] font-bold uppercase tracking-[0.04em] text-[#142e2a]/65 md:text-[18px]">
+                <span className="font-ui text-[20px] font-semibold tracking-[-0.02em] text-[#171717] md:text-[23px]">
                   lbs
                 </span>
               </div>
@@ -347,11 +349,11 @@ export default function BmiCalculator() {
             </div>
 
             <div className="mt-auto flex flex-col items-center gap-3">
-              <p className="font-display text-[20px] leading-[26px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[30px]">
+              <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
                 Starting weight:
               </p>
               <div className="rounded-md bg-white px-4 py-2 shadow-sm">
-                <p className="font-display text-[22px] leading-[28px] font-bold tracking-[-0.01em] tabular-nums text-[#142e2a] md:text-[26px] md:leading-[32px]">
+                <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] tabular-nums text-[#142e2a] md:text-[25px] md:leading-[26px]">
                   {Math.round(animatedStartingWeight)} lbs
                 </p>
               </div>

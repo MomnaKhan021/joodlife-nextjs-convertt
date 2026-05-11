@@ -1,20 +1,21 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import AnimatedLbsBadge from "./AnimatedLbsBadge";
-import HeroProgressIndicator from "./HeroProgressIndicator";
 
 /**
- * Hero banner — matches the Figma "Home page - Desktop 2025, Dec 15"
- * (1440x842 / card 1400x720) and "Home page - Mobile 2025, Dec 12 V02"
- * (390x771) frames, pulled via the Figma REST API.
+ * Hero banner — matches Figma node 141:1688 (Updated Home Page,
+ * 2026 Apr 22). Card: 1400×720, #142e2a, radius 24. Left text column
+ * is 580 wide (NOT 720 — that was producing a wider, off-design
+ * layout). Headline wraps naturally at 580px instead of being forced
+ * onto one line; Figma renders it as two lines: "Innovative weight
+ * loss," / "made just for you."
  *
- * Desktop layout (exact Figma geometry):
- *  - Card: 1400 × 720, #142e2a, radius 24
- *  - Left column (text):   starts 40px from left, vertically centered
- *  - Right column (image): 616 wide, image is 817 wide (bleeds left),
- *                          bottom-aligned to the card
- *  - 27 lbs badge:         82px from right, 56px from bottom
+ * Order of bullet rows per Figma (top-to-bottom):
+ *   1. Lose up to 27% body weight
+ *   2. Plans tailored to you
+ *   3. Guidance for lasting results
  */
+
 const BULLETS_DESKTOP = [
   "Lose up to 27% body weight",
   "Plans tailored to you",
@@ -34,7 +35,7 @@ function TrustpilotRow({ textClass = "text-white" }: { textClass?: string }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="View Jood Life reviews on Trustpilot"
-      className="inline-flex cursor-pointer items-center gap-2 rounded-md transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+      className="inline-flex cursor-pointer items-center gap-2 rounded-md transition-opacity duration-200 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
     >
       <Image
         src="/assets/icons/trustpilot-logo-only.svg"
@@ -70,7 +71,7 @@ function TickBullet({ children }: { children: React.ReactNode }) {
         className="h-6 w-6 shrink-0"
         aria-hidden
       />
-      <span className="font-ui text-[16.3px] font-medium leading-[19.5px] tracking-[-0.02em] text-[#d3dabe]">
+      <span className="font-ui text-[16.3px] font-medium leading-[20px] tracking-[-0.02em] text-[#d3dabe]">
         {children}
       </span>
     </li>
@@ -84,23 +85,23 @@ export default function HeroBanner() {
       id="top"
       className="w-full bg-white px-0 pt-0 md:px-5 md:pt-5"
     >
-      {/* Desktop */}
+      {/* Desktop — 1400×720 card */}
       <div className="hidden md:block">
-        <div className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-3xl bg-[#142e2a]">
+        <div className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-[24px] bg-[#142e2a]">
           <Reveal
             delay={0}
             as="div"
-            className="relative flex h-full items-center pl-10 pr-[85px]"
+            className="relative flex h-full items-center pl-[60px] pr-[60px]"
           >
-            {/* Left column: copy. max-width is generous enough to let
-               the headline's first line (which we force to one line
-               via whitespace-nowrap) fit in our fallback Plus Jakarta
-               Sans face, which is slightly wider than Gilroy-SemiBold
-               used in the Figma. */}
-            <div className="relative z-10 flex max-w-[720px] flex-col items-start gap-7">
+            {/* Left column — 580 wide per Figma */}
+            <div className="relative z-10 flex w-[580px] max-w-[580px] flex-col items-start gap-7">
               <TrustpilotRow />
 
               <h1 className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
+                {/* Figma wraps at two lines exactly. We force the first
+                   line onto one line with whitespace-nowrap so the
+                   slightly-wider PJS fallback (Gilroy-SemiBold is the
+                   Figma face) doesn't push "loss," onto a third row. */}
                 <span className="block whitespace-nowrap">
                   Innovative{" "}
                   <em className="font-serif italic font-normal tracking-[-0.02em]">
@@ -117,52 +118,42 @@ export default function HeroBanner() {
               </ul>
 
               <div className="mt-2 flex flex-wrap items-center gap-4">
-                {/* Button widths from Figma: primary 200×50, secondary 279×50 */}
+                {/* Figma: primary 200×50, secondary 279×50 */}
                 <a
                   href="#get-started"
-                  className="inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+                  className="inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
                 >
                   Get started
                 </a>
                 <a
                   href="#eligibility"
-                  className="inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-white transition-colors duration-200 hover:bg-white/10"
+                  className="inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white transition-colors duration-200 hover:bg-white/10"
                 >
                   See if you are eligible
                 </a>
               </div>
             </div>
 
-            {/* Right column: portrait. Figma places the image at
-               x=5033, width 817, bottom-aligned to the card — i.e.
-               about 23px from the card's right edge, extending 817px
-               to the left. Absolute positioning so it can bleed
-               into the left column area. */}
+            {/* Right column — portrait bleeds in from the right */}
             <div
               aria-hidden
-              className="pointer-events-none absolute bottom-0 right-[23px] h-[634px] w-[817px]"
+              className="pointer-events-none absolute bottom-0 right-[23px] h-[635px] w-[817px]"
             >
               <Image
                 src="/assets/figma/hero-two-women-desktop.png"
                 alt=""
                 fill
                 sizes="817px"
+                quality={95}
                 className="object-contain object-bottom"
                 priority
               />
             </div>
 
+            {/* Weight loss badge — 240×138, positioned per Figma */}
             <div className="absolute bottom-14 right-[82px] z-10">
               <AnimatedLbsBadge size="desktop" />
             </div>
-
-            {/* Vertical bar/slider — animates top→bottom on a slow,
-                premium loop. Sits between the left text column and the
-                portrait, mirroring the Figma's accent line. */}
-            <HeroProgressIndicator
-              size="desktop"
-              className="left-[640px] top-[80px] h-[540px] hidden lg:block"
-            />
           </Reveal>
         </div>
       </div>
@@ -176,7 +167,7 @@ export default function HeroBanner() {
           <div className="flex flex-col gap-5 px-4 pt-6 pb-3">
             <TrustpilotRow />
 
-            <h1 className="font-sofia text-[36px] font-medium leading-[38px] tracking-[-0.033em] text-white">
+            <h1 className="font-sofia text-[36px] font-medium leading-[40px] tracking-[-0.033em] text-white">
               Innovative{" "}
               <em className="font-serif italic font-normal">weight loss,</em>
               <br />
@@ -189,10 +180,9 @@ export default function HeroBanner() {
               ))}
             </ul>
 
-            {/* Mobile button from Figma: 239×50 */}
             <a
               href="#get-started"
-              className="mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+              className="mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
             >
               Get started
             </a>
@@ -204,6 +194,7 @@ export default function HeroBanner() {
               alt=""
               fill
               sizes="100vw"
+              quality={95}
               className="object-contain object-bottom"
               priority
             />

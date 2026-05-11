@@ -26,10 +26,13 @@ import Reveal from "@/components/ui/Reveal";
  */
 
 const PROGRESS_TARGET = 0.52; // 302/578 from Figma
-const DURATION_MS = 1800;
+// Premium, deliberate feel — the bar slowly fills as if it were
+// charting the user's weight loss over months, not whipping across
+// the card in a split second.
+const DURATION_MS = 3800;
 
-function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
+function easeOutQuart(t: number) {
+  return 1 - Math.pow(1 - t, 4);
 }
 
 function useAnimatedProgress(target: number, isActive: boolean, ms = DURATION_MS) {
@@ -45,7 +48,7 @@ function useAnimatedProgress(target: number, isActive: boolean, ms = DURATION_MS
     const tick = (now: number) => {
       const elapsed = now - start;
       const t = Math.min(1, elapsed / ms);
-      setValue(target * easeOutCubic(t));
+      setValue(target * easeOutQuart(t));
       if (t < 1) rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -110,7 +113,7 @@ function FeelEnergeticOverlay({ active }: { active: boolean }) {
             className="absolute inset-y-0 left-0 rounded-full bg-[#142e2a]"
             style={{
               width: `${pct}%`,
-              transition: "width 80ms linear",
+              transition: "width 160ms linear",
             }}
           />
           {/* Marker ellipse — sits on the track edge of the fill */}
@@ -118,7 +121,7 @@ function FeelEnergeticOverlay({ active }: { active: boolean }) {
             className="absolute top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[#d9d9d9] ring-1 ring-black/5 shadow-[0_2px_6px_rgba(0,0,0,0.18)]"
             style={{
               left: `calc(${pct}% - 12px)`,
-              transition: "left 80ms linear",
+              transition: "left 160ms linear",
               opacity: progress > 0 ? 1 : 0,
             }}
           />
