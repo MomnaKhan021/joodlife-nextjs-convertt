@@ -206,8 +206,11 @@ export default function JourneyPlan() {
           {/* CURVE DIVIDER — full-width with animated dots */}
           <JourneyDivider />
 
-          {/* LIGHT zone (contains hero photo overlapping divider + two cards) */}
-          <div className="relative bg-[#87af73] px-5 pt-0 pb-12 md:px-20 md:pb-[100px]">
+          {/* LOWER zone — same dark-green base as the upper zone, with
+              a subtle teal overlay on the gradient stripe above the
+              cards. The curve divider above is the visual transition;
+              the bg colour itself stays continuous per the Figma. */}
+          <div className="relative bg-[#1f4540] px-5 pt-0 pb-12 md:px-20 md:pb-[100px]">
             {/* Hero portrait straddles the divider above */}
             <div className="relative -mt-[160px] mb-10 flex justify-center md:-mt-[280px] md:mb-16">
               <Image

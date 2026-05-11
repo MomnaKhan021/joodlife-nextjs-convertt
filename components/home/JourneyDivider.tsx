@@ -99,7 +99,7 @@ export default function JourneyDivider() {
     <div
       ref={ref}
       aria-hidden
-      className="relative -mb-px -mt-px h-[180px] w-full bg-[#87af73] md:h-[260px]"
+      className="relative -mb-px -mt-px h-[180px] w-full bg-[#1f4540] md:h-[260px]"
     >
       <svg
         viewBox="0 0 1453 400"
