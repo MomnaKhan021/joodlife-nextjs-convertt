@@ -1,10 +1,7 @@
-"use client";
-
 import Image from "next/image";
-import { useRef } from "react";
 import Reveal from "@/components/ui/Reveal";
 import JourneyDivider from "@/components/home/JourneyDivider";
-import TimelineProgressBar from "@/components/home/TimelineProgressBar";
+import TimelineStages from "@/components/home/TimelineStages";
 
 /**
  * Journey + Transformation — Figma Component 94.
@@ -29,24 +26,6 @@ import TimelineProgressBar from "@/components/home/TimelineProgressBar";
  *  └─────────────────────────────────┘
  */
 
-const STAGES = [
-  {
-    pill: "Today",
-    title: "Simple assessment",
-    copy: "Quick online consultation with prescription and delivery if eligible.",
-  },
-  {
-    pill: "1 - 6 Months",
-    title: "Healthy weight loss",
-    copy: "Steady weight loss with ongoing clinical support.",
-  },
-  {
-    pill: "6 - 12 Months",
-    title: "Lasting change",
-    copy: "Maintain results with continued guidance and care.",
-  },
-];
-
 const CHIPS: Array<{ label: string; side: "left" | "right"; y: number }> = [
   { label: "Medication", side: "left",  y: 10 },
   { label: "Support",    side: "left",  y: 45 },
@@ -55,81 +34,6 @@ const CHIPS: Array<{ label: string; side: "left" | "right"; y: number }> = [
   { label: "Guidance",   side: "right", y: 45 },
   { label: "Whatsapp",   side: "right", y: 80 },
 ];
-
-function TimelineBlock() {
-  return (
-    <div className="flex flex-col items-center gap-8 md:items-start md:gap-10">
-      <div className="flex flex-col items-center gap-4 text-center md:items-start md:gap-5 md:text-left">
-        <span className="inline-flex items-center rounded-full border border-dashed border-white/60 px-5 py-1.5 font-ui text-[13px] font-medium tracking-[-0.02em] text-white">
-          Timeline
-        </span>
-        <h2 className="font-display text-[32px] font-semibold leading-[38px] tracking-[-0.025em] text-white md:text-[48px] md:leading-[52px]">
-          What to expect in{" "}
-          <em className="font-serif italic font-normal">your journey</em>
-        </h2>
-      </div>
-
-      <div className="w-full">
-        {/* Desktop rail */}
-        <div className="hidden md:block">
-          <div
-            aria-hidden
-            className="relative mb-8 h-[2px] w-full"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgba(255,255,255,0.4) 50%, transparent 50%)",
-              backgroundSize: "12px 2px",
-              backgroundRepeat: "repeat-x",
-            }}
-          >
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[#dff49f]"
-                style={{ left: `calc(${(i * 100) / 2}% - 6px)` }}
-              />
-            ))}
-          </div>
-          <div className="grid grid-cols-3 gap-8">
-            {STAGES.map((s) => (
-              <div
-                key={s.pill}
-                className="flex flex-col items-start gap-3 text-left"
-              >
-                <span className="inline-flex items-center rounded-full border border-dashed border-white/60 px-4 py-1.5 font-ui text-[12px] font-medium tracking-[-0.02em] text-white">
-                  {s.pill}
-                </span>
-                <h3 className="font-ui text-[22px] font-bold leading-[26px] tracking-[-0.02em] text-white">
-                  {s.title}
-                </h3>
-                <p className="max-w-[300px] font-ui text-[14px] font-medium leading-[20px] tracking-[-0.02em] text-white/85">
-                  {s.copy}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Mobile vertical list */}
-        <ul className="flex flex-col gap-6 md:hidden">
-          {STAGES.map((s) => (
-            <li key={s.pill} className="flex flex-col gap-2">
-              <span className="inline-flex w-fit items-center rounded-full border border-dashed border-white/60 px-4 py-1.5 font-ui text-[12px] font-medium tracking-[-0.02em] text-white">
-                {s.pill}
-              </span>
-              <h3 className="font-ui text-[18px] font-bold leading-[22px] tracking-[-0.02em] text-white">
-                {s.title}
-              </h3>
-              <p className="font-ui text-[14px] font-medium leading-[20px] tracking-[-0.02em] text-white/80">
-                {s.copy}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
 
 function TransformationCard() {
   return (
@@ -274,23 +178,13 @@ function ExpertGuidanceCard() {
 }
 
 export default function JourneyPlan() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-
   return (
     <section
-      ref={sectionRef}
       aria-label="Journey and personalized plan"
       className="relative w-full bg-white pb-12 md:pb-20"
     >
       <div className="mx-auto w-full max-w-[1440px] px-4 md:px-20">
         <div className="relative overflow-hidden rounded-[20px] md:rounded-3xl">
-          {/* Vertical progress bar — animates from top to bottom as the
-              user scrolls through the section. Lives in the background
-              so it doesn't interfere with content layout. */}
-          <TimelineProgressBar
-            sectionRef={sectionRef}
-            className="z-0 hidden h-full md:block"
-          />
           {/* DARK zone (contains timeline) */}
           <div className="relative bg-[#142e2a] px-5 pt-12 pb-24 md:px-20 md:pt-[100px] md:pb-[180px]">
             {/* faint dot pattern */}
@@ -305,7 +199,7 @@ export default function JourneyPlan() {
             />
 
             <Reveal as="div" className="relative z-10">
-              <TimelineBlock />
+              <TimelineStages />
             </Reveal>
           </div>
 

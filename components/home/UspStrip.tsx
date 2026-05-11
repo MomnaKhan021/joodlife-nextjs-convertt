@@ -45,19 +45,18 @@ export default function UspStrip() {
   return (
     <section
       aria-label="Why customers choose Jood Life"
-      className="w-full overflow-hidden bg-white"
+      className="group w-full overflow-hidden border-y border-[#142e2a]/10 bg-white py-4 md:py-[14px]"
     >
-      <div className="mx-auto w-full max-w-[1400px] px-0 md:px-5">
+      {/* Full-bleed track — no max-width or padding. The marquee runs
+          edge-to-edge across the viewport, matching the Figma's full-
+          width USP bar. */}
+      <div className="flex w-full overflow-hidden">
         <div
-          className="group flex w-full overflow-hidden border-y border-[#142e2a]/10 py-4 md:py-[14px]"
+          className="flex shrink-0 animate-marquee items-center group-hover:[animation-play-state:paused]"
+          style={{ animationDuration: "40s" }}
         >
-          <div
-            className="flex shrink-0 animate-marquee items-center group-hover:[animation-play-state:paused]"
-            style={{ animationDuration: "40s" }}
-          >
-            <MarqueeRow />
-            <MarqueeRow aria />
-          </div>
+          <MarqueeRow />
+          <MarqueeRow aria />
         </div>
       </div>
     </section>
