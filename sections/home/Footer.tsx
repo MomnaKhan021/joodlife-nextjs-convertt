@@ -2,19 +2,26 @@
 
 import Image from "next/image";
 import { useState, type FormEvent } from "react";
+import PaymentBadges from "@/components/footer/PaymentBadges";
 
-const JOOD_LINKS = ["Log in", "Treatments", "How it work", "Library", "Support"];
+/**
+ * Footer — Figma node 141:2887.
+ *
+ * 1440×592 wrapper, inner card 1400×572, bg #142e2a, radius 20.
+ * Three stacked rows separated by hairline white dividers:
+ *   1. Logo + 4 link columns + "Have a question?" card (cream)
+ *   2. Sign-up-for-newsletter + email pill input
+ *   3. Copyright text + payment / trust badges
+ *
+ * Mobile collapses each link column into an accordion.
+ */
+
+const JOOD_LINKS = ["Log in", "Treatments", "How it work", "About us", "Library", "Support"];
 const TREATMENTS = ["Mounjaro", "Wegovy", "Saxenda"];
 const POLICY = [
   "Terms & conditions",
   "Refund & Complaints Procedure",
   "Cookies policy",
-];
-
-const SOCIALS = [
-  { icon: "/assets/figma/social-tiktok.svg", label: "TikTok", href: "#" },
-  { icon: "/assets/figma/social-facebook.svg", label: "Facebook", href: "#" },
-  { icon: "/assets/figma/social-instagram.svg", label: "Instagram", href: "#" },
 ];
 
 const STORAGE_KEY = "jood:newsletter-subscribers";
@@ -58,12 +65,12 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 function FooterLinks({ items }: { items: string[] }) {
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="flex flex-col gap-3 md:gap-[14px]">
       {items.map((l) => (
         <li key={l}>
           <a
             href="#"
-            className="font-ui text-[15px] leading-[22px] text-white/85 transition-colors hover:text-white md:text-[16px]"
+            className="inline-block font-ui text-[15px] leading-[20px] tracking-[-0.02em] text-white/85 transition-colors duration-200 hover:text-white md:text-[16.3px]"
           >
             {l}
           </a>
@@ -97,7 +104,7 @@ function AccordionColumn({
         </span>
       </button>
       <div
-        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-6 ${
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-5 ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
@@ -108,6 +115,33 @@ function AccordionColumn({
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Social icon — 35×35 cream-coloured circle with the dark-green
+ * brand mark inside. Hover lifts the icon a few pixels using
+ * translate3d, then settles back when the cursor leaves.
+ */
+function SocialButton({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      aria-label={label}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-[#f7f9f2] text-[#142e2a] transition-[transform,box-shadow,background-color] duration-300 ease-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_8px_20px_-6px_rgba(0,0,0,0.45)]"
+    >
+      <span className="block h-[15px] w-[15px]">{children}</span>
+    </a>
   );
 }
 
@@ -129,29 +163,27 @@ function SocialColumn() {
         </span>
       </button>
       <div
-        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-6 ${
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-5 ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="overflow-hidden">
           <div className="flex items-center gap-3 pb-5 md:pb-0">
-            {SOCIALS.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                aria-label={s.label}
-                className="transition-transform duration-200 hover:scale-105"
-              >
-                <Image
-                  src={s.icon}
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="h-9 w-9"
-                  aria-hidden
-                />
-              </a>
-            ))}
+            <SocialButton href="#" label="TikTok">
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4 0H8.6v10.7c0 1.3-1 2.3-2.3 2.3a2.3 2.3 0 0 1-2.3-2.3A2.3 2.3 0 0 1 6.3 8.4V5.6A5.1 5.1 0 0 0 1.2 10.7 5.1 5.1 0 0 0 6.3 15.8a5.1 5.1 0 0 0 5.1-5.1V5.3c.9.6 2 1 3.2 1V3.5a3.6 3.6 0 0 1-3.2-3.5z" />
+              </svg>
+            </SocialButton>
+            <SocialButton href="#" label="Facebook">
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 8a8 8 0 1 0-9.25 7.9V10.3H4.72V8h2.03V6.24c0-2 1.2-3.1 3-3.1.87 0 1.78.15 1.78.15v1.96h-1c-.99 0-1.3.61-1.3 1.25V8h2.2l-.35 2.3H9.23v5.6A8 8 0 0 0 16 8z" />
+              </svg>
+            </SocialButton>
+            <SocialButton href="#" label="Instagram">
+              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 1.4c2.13 0 2.39 0 3.23.05.78.04 1.2.17 1.49.28.37.14.64.32.92.6.28.27.46.54.6.91.11.29.24.71.28 1.5.04.84.05 1.1.05 3.22 0 2.14 0 2.39-.05 3.23-.04.78-.17 1.2-.28 1.49-.14.37-.32.64-.6.92a2.48 2.48 0 0 1-.92.6c-.29.11-.71.24-1.49.28-.84.04-1.1.05-3.23.05-2.14 0-2.39 0-3.23-.05-.78-.04-1.2-.17-1.49-.28-.37-.14-.64-.32-.92-.6a2.48 2.48 0 0 1-.6-.92c-.11-.29-.24-.71-.28-1.49C1.4 10.4 1.4 10.13 1.4 8c0-2.14 0-2.39.05-3.23.04-.78.17-1.2.28-1.49.14-.37.32-.64.6-.92.27-.28.54-.46.91-.6.29-.11.71-.24 1.5-.28C5.6 1.4 5.86 1.4 8 1.4M8 0C5.83 0 5.55 0 4.7.05c-.85.04-1.43.17-1.94.37-.53.2-.97.48-1.42.92-.44.45-.72.9-.92 1.42-.2.51-.33 1.09-.37 1.94C0 5.55 0 5.83 0 8c0 2.17 0 2.45.05 3.3.04.85.17 1.43.37 1.94.2.53.48.97.92 1.42.45.44.9.72 1.42.92.51.2 1.09.33 1.94.37C5.55 16 5.83 16 8 16c2.17 0 2.45 0 3.3-.05.85-.04 1.43-.17 1.94-.37.53-.2.97-.48 1.42-.92.44-.45.72-.9.92-1.42.2-.51.33-1.09.37-1.94.05-.85.05-1.13.05-3.3 0-2.17 0-2.45-.05-3.3-.04-.85-.17-1.43-.37-1.94a3.88 3.88 0 0 0-.92-1.42 3.88 3.88 0 0 0-1.42-.92c-.51-.2-1.09-.33-1.94-.37C10.45 0 10.17 0 8 0zM8 3.9a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2zm0 6.77a2.67 2.67 0 1 1 0-5.34 2.67 2.67 0 0 1 0 5.34zm5.22-6.93a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z" />
+              </svg>
+            </SocialButton>
           </div>
         </div>
       </div>
@@ -180,30 +212,33 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-white px-4 pb-5 md:px-5 lg:px-5">
+    <footer className="w-full bg-white px-4 pb-5 md:px-5">
       <div className="mx-auto w-full max-w-[1400px]">
         <div className="rounded-[20px] bg-[#142e2a] text-white">
-          <div className="flex flex-col gap-8 border-b border-white/10 px-6 py-10 md:flex-row md:items-start md:gap-10 md:px-10 md:py-12">
+          {/* ───── ROW 1 — logo + columns + Have-a-question card ───── */}
+          <div className="flex flex-col gap-8 px-6 py-10 md:flex-row md:items-start md:gap-10 md:px-10 md:py-12 lg:px-[60px] lg:py-[60px]">
             <div className="flex-shrink-0">
               <Image
                 src="/assets/figma/footer-logo-2.png"
                 alt="Jood"
-                width={130}
-                height={50}
-                className="h-[44px] w-auto md:h-[50px]"
+                width={165}
+                height={69}
+                quality={95}
+                className="h-[50px] w-auto md:h-[69px]"
                 priority={false}
               />
             </div>
 
-            <div className="flex flex-1 flex-col md:grid md:grid-cols-4 md:gap-10 md:pl-6">
+            <div className="flex flex-1 flex-col md:grid md:grid-cols-4 md:gap-8 md:pl-6 lg:gap-10">
               <AccordionColumn title="Jood" items={JOOD_LINKS} />
               <AccordionColumn title="Treatments" items={TREATMENTS} />
               <AccordionColumn title="Policy" items={POLICY} />
               <SocialColumn />
             </div>
 
-            <div className="flex flex-col gap-3 rounded-[14px] bg-white/8 px-5 py-5 md:w-[260px]">
-              <h3 className="font-ui text-[18px] font-extrabold leading-[24px] text-white md:text-[20px]">
+            {/* Have-a-question card — cream bg per Figma */}
+            <div className="flex flex-col gap-3 rounded-[10px] bg-[#f7f9f2] px-5 py-4 md:w-[228px]">
+              <h3 className="font-display text-[20px] font-semibold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:text-[25px]">
                 Have a question?
               </h3>
               <div className="flex items-start gap-2">
@@ -212,16 +247,16 @@ export default function Footer() {
                   alt=""
                   width={20}
                   height={20}
-                  className="mt-0.5 h-5 w-5 brightness-0 invert"
+                  className="mt-0.5 h-5 w-5"
                   aria-hidden
                 />
                 <div className="flex flex-col">
-                  <span className="font-ui text-[14px] font-semibold leading-[20px] text-white">
+                  <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
                     Email
                   </span>
                   <a
                     href="mailto:Joodlife@info.com"
-                    className="font-ui text-[14px] leading-[20px] text-white/85 transition-colors hover:text-white"
+                    className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80 transition-colors duration-200 hover:text-[#142e2a]"
                   >
                     Joodlife@info.com
                   </a>
@@ -230,72 +265,77 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 border-b border-white/10 px-6 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 md:py-10">
-            <div className="flex flex-col gap-1.5">
-              <h3 className="font-ui text-[20px] font-extrabold leading-[26px] text-white md:text-[24px] md:leading-[30px]">
-                Sign Up For Our Newsletter
-              </h3>
-              <p className="font-ui text-[14px] leading-[20px] text-white/80 md:text-[15.5px] md:leading-[22px]">
-                Stay up to date on our news, education and offers
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 md:w-[520px]">
-              <form
-                onSubmit={handleSubscribe}
-                className="flex h-[54px] w-full items-center gap-2 rounded-full bg-white/5 pl-5 pr-1.5 ring-1 ring-white/15 focus-within:ring-white/40 transition-shadow md:h-[58px]"
-                aria-label="Subscribe to newsletter"
-              >
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (status !== "idle") setStatus("idle");
-                  }}
-                  placeholder="Your email here"
-                  aria-label="Your email"
-                  className="h-full flex-1 bg-transparent font-ui text-[14px] text-white placeholder:text-white/65 outline-none md:text-[16px]"
-                />
-                <button
-                  type="submit"
-                  className="grid h-[42px] w-[42px] cursor-pointer place-items-center rounded-full bg-white transition-colors hover:bg-[#d3dabe] md:h-[46px] md:w-[46px]"
-                  aria-label="Subscribe"
-                >
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden
-                  >
-                    <path
-                      d="M1 6h14m0 0L10 1m5 5l-5 5"
-                      stroke="#142e2a"
-                      strokeWidth="1.75"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </form>
-              {status !== "idle" && (
-                <p
-                  role="status"
-                  aria-live="polite"
-                  className={`px-2 font-ui text-[13px] ${
-                    status === "ok" ? "text-[#b5e6b5]" : "text-[#fca5a5]"
-                  }`}
-                >
-                  {message}
+          {/* ───── ROW 2 — newsletter ───── */}
+          <div className="border-t border-white/10 px-6 py-8 md:px-10 md:py-10 lg:px-[60px] lg:py-[40px]">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">
+              <div className="flex flex-col gap-1.5">
+                <h3 className="font-display text-[22px] font-semibold leading-[28px] tracking-[-0.01em] text-white md:text-[28px] md:leading-[34px]">
+                  Sign Up For Our Newsletter
+                </h3>
+                <p className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-white/70 md:text-[16.3px] md:leading-[20px]">
+                  Stay up to date on our news, education and offers
                 </p>
-              )}
+              </div>
+
+              <div className="flex flex-col gap-2 md:w-[659px]">
+                <form
+                  onSubmit={handleSubscribe}
+                  className="group flex h-[54px] w-full items-center gap-2 rounded-full border border-white/60 bg-transparent pl-6 pr-1.5 transition-colors duration-200 focus-within:border-white md:h-[58px]"
+                  aria-label="Subscribe to newsletter"
+                >
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (status !== "idle") setStatus("idle");
+                    }}
+                    placeholder="Your email here"
+                    aria-label="Your email"
+                    className="h-full flex-1 bg-transparent font-ui text-[14px] tracking-[-0.02em] text-white placeholder:text-white/70 outline-none md:text-[16.3px]"
+                  />
+                  <button
+                    type="submit"
+                    className="grid h-[42px] w-[42px] cursor-pointer place-items-center rounded-full bg-[#d3dabe] text-[#142e2a] transition-[transform,background-color] duration-200 hover:-translate-x-0.5 hover:bg-white md:h-[44px] md:w-[44px]"
+                    aria-label="Subscribe"
+                  >
+                    <svg
+                      width="18"
+                      height="14"
+                      viewBox="0 0 18 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden
+                    >
+                      <path
+                        d="M1 7h15m0 0l-5-5m5 5l-5 5"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </form>
+                {status !== "idle" && (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className={`px-2 font-ui text-[13px] ${
+                      status === "ok" ? "text-[#b5e6b5]" : "text-[#fca5a5]"
+                    }`}
+                  >
+                    {message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 px-6 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 md:py-8">
-            <p className="max-w-[620px] font-ui text-[11.5px] leading-[17px] text-white/70 md:text-[12.5px] md:leading-[18px]">
+          {/* ───── ROW 3 — copyright + payment badges ───── */}
+          <div className="flex flex-col gap-6 border-t border-white/10 px-6 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 md:py-8 lg:px-[60px]">
+            <p className="max-w-[620px] font-ui text-[12px] leading-[18px] tracking-[-0.01em] text-white/65 md:text-[13px] md:leading-[18px]">
               © 2025 Jood. All rights reserved. Superintendent Pharmacist:
               Zahhaad Khalil (2228969) Powered by Jood Pharmacy, a
               GPhC-registered pharmacy (9012990) operating under Jood Ltd.
@@ -305,58 +345,7 @@ export default function Footer() {
               operations are temporarily taking place at Weaverham Pharmacy
               (1029683).
             </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative h-[60px] w-[70px]">
-                <Image
-                  src="/assets/figma/footer-badge-1.png"
-                  alt="LegitScript Certified"
-                  fill
-                  sizes="70px"
-                  className="object-contain"
-                />
-              </div>
-              <div className="relative h-[50px] w-[110px]">
-                <Image
-                  src="/assets/figma/footer-badge-2.png"
-                  alt="Registered Pharmacy"
-                  fill
-                  sizes="110px"
-                  className="object-contain"
-                />
-              </div>
-              <div className="flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                >
-                  <path
-                    d="M10.8 6.4c0-.4-.1-.8-.2-1.2H7v2.3h2.1c-.1.6-.4 1.1-.9 1.4v1.1h1.4c.8-.7 1.2-1.8 1.2-3.6z"
-                    fill="#000"
-                  />
-                </svg>
-                <span className="font-ui text-[11px] font-semibold text-black">
-                  Pay
-                </span>
-              </div>
-              <div className="flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5">
-                <span className="font-ui text-[11px] font-bold" style={{ color: "#4285F4" }}>G</span>
-                <span className="font-ui text-[11px] font-bold" style={{ color: "#EA4335" }}>P</span>
-                <span className="font-ui text-[11px] font-bold" style={{ color: "#FBBC04" }}>a</span>
-                <span className="font-ui text-[11px] font-bold" style={{ color: "#34A853" }}>y</span>
-              </div>
-              <div className="rounded-md bg-white px-2.5 py-1.5">
-                <span
-                  className="font-ui text-[11px] font-bold italic"
-                  style={{ color: "#635BFF" }}
-                >
-                  stripe
-                </span>
-              </div>
-            </div>
+            <PaymentBadges />
           </div>
         </div>
       </div>
