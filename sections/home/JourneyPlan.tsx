@@ -181,9 +181,9 @@ export default function JourneyPlan() {
   return (
     <section
       aria-label="Journey and personalized plan"
-      className="relative w-full bg-white pb-12 md:pb-20"
+      className="relative w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-4 md:px-20">
+      <div className="mx-auto w-full max-w-[1400px] px-4 md:px-10 lg:px-[60px]">
         <div className="relative overflow-hidden rounded-[20px] md:rounded-3xl">
           {/* DARK zone (contains timeline) */}
           <div className="relative bg-[#142e2a] px-5 pt-12 pb-24 md:px-20 md:pt-[100px] md:pb-[180px]">

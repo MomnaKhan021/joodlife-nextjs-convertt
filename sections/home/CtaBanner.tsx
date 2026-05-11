@@ -16,9 +16,9 @@ export default function CtaBanner() {
   return (
     <section
       aria-label="Call to action"
-      className="w-full bg-white py-10 md:py-16"
+      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-[60px]">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal
           as="div"
           className="relative overflow-hidden rounded-[24px] bg-[#f7f9f2] md:h-[430px]"

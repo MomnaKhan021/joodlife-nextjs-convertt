@@ -75,9 +75,9 @@ export default function FeatureGrid() {
   return (
     <section
       aria-label="Treatment plan features"
-      className="w-full bg-white py-12 md:py-[80px]"
+      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         {/* Heading — different copy on desktop vs mobile, per Figma */}
         <Reveal as="div" className="pb-10 text-center md:pb-12">
           <h2 className="mx-auto hidden max-w-[720px] font-display text-[48px] font-semibold leading-[52px] tracking-[-0.02em] text-[#142e2a] md:block">

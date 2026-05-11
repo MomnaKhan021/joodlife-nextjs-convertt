@@ -44,9 +44,9 @@ export default function Blog() {
   return (
     <section
       aria-label="Recent blog posts"
-      className="w-full bg-white py-14 md:py-[100px]"
+      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <div className="flex items-center justify-between gap-4 pb-8 md:pb-10">
           <h2 className="font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Recent{" "}

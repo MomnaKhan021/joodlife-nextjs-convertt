@@ -96,9 +96,9 @@ export default function Reviews() {
   return (
     <section
       aria-label="Reviews"
-      className="w-full bg-white py-16 md:py-0 md:pb-[100px]"
+      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[60px]">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal
           as="div"
           className="flex flex-col items-center gap-3 pb-10 text-center"
