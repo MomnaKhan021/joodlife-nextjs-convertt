@@ -205,18 +205,35 @@ function StripeBadge() {
   );
 }
 
+/**
+ * Responsive layout strategy:
+ *   - Mobile: 5 badges arranged in a wrapping row, each badge gets a
+ *     fixed size and centred alignment. The trust badges (LegitScript /
+ *     Registered Pharmacy) come first; the payment chips (Apple Pay /
+ *     Google Pay / Stripe) wrap onto a second row if needed.
+ *   - Tablet+ : everything on one row.
+ *
+ * We also drop the inner div wrappers and use a single flex container
+ * with `flex-wrap`, `gap-y-3 gap-x-3` so wrapping doesn't introduce
+ * uneven gaps. Each badge sets its own fixed pixel dimensions, so they
+ * never get squashed when the row wraps.
+ */
 export default function PaymentBadges() {
   return (
-    <div className="flex flex-wrap items-center justify-start gap-3 md:gap-4">
-      <div className="flex h-[60px] items-center">
+    <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-3 md:flex-nowrap md:gap-x-4">
+      <div className="inline-flex h-[54px] items-center md:h-[60px]">
         <LegitScriptBadge />
       </div>
-      <div className="flex h-[50px] items-center">
+      <div className="inline-flex h-[44px] items-center md:h-[50px]">
         <RegisteredPharmacyBadge />
       </div>
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="inline-flex h-[28px] items-center">
         <ApplePayBadge />
+      </div>
+      <div className="inline-flex h-[28px] items-center">
         <GooglePayBadge />
+      </div>
+      <div className="inline-flex h-[28px] items-center">
         <StripeBadge />
       </div>
     </div>
