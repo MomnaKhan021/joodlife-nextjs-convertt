@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     "drizzle-kit",
   ],
   images: {
+    // We use quality={95} on hero/portrait imagery for sharpness; the
+    // default 75 stays available for everything else.
+    qualities: [75, 90, 95],
     remotePatterns: [
       // Allow media served from Payload's local uploads folder
       { protocol: "http", hostname: "localhost" },

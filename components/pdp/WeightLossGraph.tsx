@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { GraphPoint } from "@/lib/pdp-products";
 
 interface WeightLossGraphProps {
@@ -8,24 +8,17 @@ interface WeightLossGraphProps {
   yLabels: number[];
   xLabels: string[];
   callout: string;
-  /** A label suffix for the y-axis, e.g. "(kg)" */
   yUnit?: string;
 }
 
 /**
  * Animated weight-loss graph — Figma 3:1976.
  *
- * Smooth Bezier line tracing weight over months with a light-purple
- * area-fill underneath. The line draws on top → bottom (visually it
- * starts at the upper-left and descends to the lower-right, which is
- * the user's mental "top-down" through the data).
- *
- * On scroll-into-view we tween:
- *   - `progress` 0 → 1 which feeds stroke-dashoffset (line draw)
- *   - the area-fill clip-path width grows in sync
- *   - the -27% callout marker fades in once the curve is mostly drawn
- *
- * The animation only plays once.
+ * Animates with direct DOM manipulation + requestAnimationFrame so it
+ * doesn't depend on React state synchronisation. The line "draws on"
+ * via stroke-dashoffset, the purple area-fill grows underneath via a
+ * clipPath rect that expands left → right, and the marker + callout
+ * fade in once the curve is mostly drawn.
  */
 export default function WeightLossGraph({
   points,
@@ -36,12 +29,10 @@ export default function WeightLossGraph({
 }: WeightLossGraphProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
-  const [pathLen, setPathLen] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const clipRectRef = useRef<SVGRectElement | null>(null);
+  const markerGroupRef = useRef<SVGGElement | null>(null);
 
-  // Inner chart area (excluding y-axis labels + padding)
-  // Coordinate system: 800 × 400 viewBox.
-  // Plot area uses x ∈ [70, 780], y ∈ [40, 360].
+  // Plot geometry — coordinate system 800 × 400
   const PLOT = { left: 70, right: 780, top: 40, bottom: 360 };
   const minY = Math.min(...yLabels);
   const maxY = Math.max(...yLabels);
@@ -56,9 +47,9 @@ export default function WeightLossGraph({
         ((p.weight - minY) / (maxY - minY)) * (PLOT.bottom - PLOT.top);
       return { x, y, weight: p.weight };
     });
-  }, [points, PLOT.left, PLOT.right, PLOT.top, PLOT.bottom, minY, maxY]);
+  }, [points, minY, maxY]);
 
-  /** Build a smooth Catmull-Rom-style path through the points. */
+  /** Smooth Catmull-Rom-style Bezier path through the points. */
   const linePath = useMemo(() => {
     if (plotPoints.length === 0) return "";
     const path: string[] = [];
@@ -77,58 +68,89 @@ export default function WeightLossGraph({
     return path.join(" ");
   }, [plotPoints]);
 
-  /** Closed area path: line + drop to baseline + close. */
   const areaPath = useMemo(() => {
     if (plotPoints.length === 0 || !linePath) return "";
     return `${linePath} L${plotPoints[plotPoints.length - 1].x},${PLOT.bottom} L${plotPoints[0].x},${PLOT.bottom} Z`;
-  }, [linePath, plotPoints, PLOT.bottom]);
+  }, [linePath, plotPoints]);
 
-  // Measure the line length once mounted
-  useEffect(() => {
-    if (pathRef.current) {
-      setPathLen(pathRef.current.getTotalLength());
-    }
-  }, [linePath]);
-
-  // Trigger the animation on intersection
-  useEffect(() => {
-    if (!rootRef.current) return;
-    const el = rootRef.current;
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setProgress(1);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            const DURATION = 2400; // 2.4s
-            const start = performance.now();
-            const tick = (now: number) => {
-              const t = Math.min(1, (now - start) / DURATION);
-              // ease-out-cubic
-              const eased = 1 - Math.pow(1 - t, 3);
-              setProgress(eased);
-              if (t < 1) requestAnimationFrame(tick);
-            };
-            requestAnimationFrame(tick);
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  const dashOffset = pathLen * (1 - progress);
-  // The marker only appears once the curve is nearly complete
-  const markerOpacity = progress < 0.85 ? 0 : (progress - 0.85) / 0.15;
   const lastPoint = plotPoints[plotPoints.length - 1];
+
+  useEffect(() => {
+    const path = pathRef.current;
+    const clipRect = clipRectRef.current;
+    const marker = markerGroupRef.current;
+    const root = rootRef.current;
+    if (!path || !root) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const totalLen = path.getTotalLength();
+    const plotWidth = PLOT.right - PLOT.left;
+
+    // Initialize the line in a fully-undrawn state
+    path.style.strokeDasharray = `${totalLen}`;
+    path.style.strokeDashoffset = `${reduce ? 0 : totalLen}`;
+    if (clipRect) clipRect.setAttribute("width", `${reduce ? plotWidth : 0}`);
+    if (marker) marker.style.opacity = reduce ? "1" : "0";
+
+    if (reduce) return;
+
+    let rafId = 0;
+    let started = false;
+    let startTs = 0;
+    const DURATION = 2400;
+
+    const tick = (now: number) => {
+      if (!startTs) startTs = now;
+      const t = Math.min(1, (now - startTs) / DURATION);
+      const eased = 1 - Math.pow(1 - t, 3);
+      path.style.strokeDashoffset = `${totalLen * (1 - eased)}`;
+      if (clipRect) clipRect.setAttribute("width", `${plotWidth * eased}`);
+      if (marker) {
+        const op = eased < 0.85 ? 0 : (eased - 0.85) / 0.15;
+        marker.style.opacity = `${op}`;
+      }
+      if (t < 1) rafId = requestAnimationFrame(tick);
+    };
+
+    const isInView = () => {
+      const r = root.getBoundingClientRect();
+      const visible =
+        Math.max(0, Math.min(window.innerHeight, r.bottom) - Math.max(0, r.top));
+      return visible / Math.max(1, r.height) > 0.2;
+    };
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      rafId = requestAnimationFrame(tick);
+    };
+
+    if (isInView()) {
+      start();
+    } else {
+      const onScroll = () => {
+        if (isInView()) {
+          start();
+          window.removeEventListener("scroll", onScroll);
+        }
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      // Also try after a short delay as a safety net for embedded
+      // browsers that don't fire scroll on initial mount.
+      const safety = setTimeout(() => {
+        if (!started && isInView()) start();
+      }, 600);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        clearTimeout(safety);
+        if (rafId) cancelAnimationFrame(rafId);
+      };
+    }
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [linePath]);
 
   return (
     <div
@@ -147,15 +169,15 @@ export default function WeightLossGraph({
       >
         <defs>
           <linearGradient id="weight-area-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#b89cb7" stopOpacity="0.85" />
+            <stop offset="0%" stopColor="#b89cb7" stopOpacity="0.9" />
             <stop offset="100%" stopColor="#b89cb7" stopOpacity="0.35" />
           </linearGradient>
-          {/* Clip the area fill so it appears with the line draw */}
           <clipPath id="weight-area-clip">
             <rect
+              ref={clipRectRef}
               x={PLOT.left}
               y={PLOT.top - 5}
-              width={(PLOT.right - PLOT.left) * progress}
+              width="0"
               height={PLOT.bottom - PLOT.top + 10}
             />
           </clipPath>
@@ -208,14 +230,14 @@ export default function WeightLossGraph({
           </text>
         ))}
 
-        {/* Area fill — clipped so it grows with the line */}
+        {/* Area fill */}
         <path
           d={areaPath}
           fill="url(#weight-area-fill)"
           clipPath="url(#weight-area-clip)"
         />
 
-        {/* The animated line itself */}
+        {/* Animated line */}
         <path
           ref={pathRef}
           d={linePath}
@@ -224,16 +246,11 @@ export default function WeightLossGraph({
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeDasharray={pathLen}
-          strokeDashoffset={dashOffset}
-          style={{
-            transition: pathLen ? "stroke-dashoffset 60ms linear" : "none",
-          }}
         />
 
-        {/* End-of-line marker */}
+        {/* End-of-line marker + callout */}
         {lastPoint ? (
-          <g style={{ opacity: markerOpacity, transition: "opacity 240ms ease-out" }}>
+          <g ref={markerGroupRef} style={{ opacity: 0 }}>
             <circle
               cx={lastPoint.x}
               cy={lastPoint.y}
@@ -242,7 +259,6 @@ export default function WeightLossGraph({
               stroke="#142e2a"
               strokeWidth="2"
             />
-            {/* Vertical connector to the callout */}
             <line
               x1={lastPoint.x}
               y1={lastPoint.y - 8}
@@ -252,16 +268,8 @@ export default function WeightLossGraph({
               strokeWidth="1.5"
               strokeDasharray="3 3"
             />
-            {/* Callout pill */}
             <g transform={`translate(${lastPoint.x - 32}, ${lastPoint.y - 60})`}>
-              <rect
-                x="0"
-                y="0"
-                width="64"
-                height="28"
-                rx="6"
-                fill="#142e2a"
-              />
+              <rect x="0" y="0" width="64" height="28" rx="6" fill="#142e2a" />
               <text
                 x="32"
                 y="19"
