@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
 
@@ -27,6 +27,28 @@ export default function CheckoutClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
+
+  // Stripe configuration probe — flips the Payment section between
+  // "Pay securely with card via Stripe" and "Test mode" depending on
+  // whether the server has its keys set up. Polled once on mount.
+  const [stripeReady, setStripeReady] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/stripe/status", {
+          credentials: "include",
+        });
+        const json = await res.json();
+        if (!cancelled) setStripeReady(Boolean(json?.configured));
+      } catch {
+        if (!cancelled) setStripeReady(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const canPlaceOrder =
     items.length > 0 &&
@@ -232,36 +254,14 @@ export default function CheckoutClient() {
           </FormSection>
 
           <FormSection
-            title="Payment"
-            subtitle="Test mode — no card required. Your order will be placed for review."
+            title="Payment method"
+            subtitle={
+              stripeReady
+                ? "Secure card payment powered by Stripe — we never store or see your card details."
+                : "Test mode is active. Real card processing is configured but waiting for Stripe credentials."
+            }
           >
-            <div className="flex items-start gap-3 rounded-xl border border-[#142e2a]/10 bg-[#f7f9f2] px-4 py-4">
-              <span
-                aria-hidden
-                className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#142e2a] text-[#dff49f]"
-              >
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M3 8.5l3.2 3.2L13 5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <div className="flex flex-col gap-1">
-                <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                  Test checkout · no payment taken
-                </p>
-                <p className="font-ui text-[13px] leading-[20px] text-[#142e2a]/70">
-                  Your order will be saved with a <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[12px]">test</code>{" "}
-                  payment method and{" "}
-                  <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[12px]">pending</code>{" "}
-                  status. Real card processing will be wired in later.
-                </p>
-              </div>
-            </div>
+            <StripePaymentCard ready={stripeReady} />
           </FormSection>
 
           {/* Mobile: place button under the form */}
@@ -270,6 +270,8 @@ export default function CheckoutClient() {
               busy={busy}
               canPlaceOrder={Boolean(canPlaceOrder)}
               onClick={handlePlaceOrder}
+              stripeReady={stripeReady}
+              total={subtotal}
             />
             {error ? <ErrorBox message={error} /> : null}
           </div>
@@ -340,6 +342,8 @@ export default function CheckoutClient() {
               busy={busy}
               canPlaceOrder={Boolean(canPlaceOrder)}
               onClick={handlePlaceOrder}
+              stripeReady={stripeReady}
+              total={subtotal}
             />
             {error ? <ErrorBox message={error} /> : null}
             <p className="mt-3 text-center font-ui text-[12px] text-[#142e2a]/55">
@@ -422,11 +426,28 @@ function PlaceOrderButton({
   busy,
   canPlaceOrder,
   onClick,
+  stripeReady,
+  total,
 }: {
   busy: boolean;
   canPlaceOrder: boolean;
   onClick: () => void;
+  stripeReady?: boolean | null;
+  total?: number;
 }) {
+  const totalLabel =
+    typeof total === "number"
+      ? total.toLocaleString("en-GB", {
+          style: "currency",
+          currency: "GBP",
+          minimumFractionDigits: 2,
+        })
+      : null;
+  const idleLabel = stripeReady
+    ? totalLabel
+      ? `Pay ${totalLabel} securely`
+      : "Pay securely with Stripe"
+    : "Place test order";
   return (
     <button
       type="button"
@@ -440,12 +461,110 @@ function PlaceOrderButton({
             aria-hidden
             className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"
           />
-          Placing order…
+          {stripeReady ? "Redirecting to Stripe…" : "Placing order…"}
         </>
       ) : (
-        "Place test order"
+        <>
+          {stripeReady ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.7" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+          ) : null}
+          {idleLabel}
+        </>
       )}
     </button>
+  );
+}
+
+/**
+ * Visible payment-method card shown inside the "Payment method" form
+ * section. Renders a brand-recognisable Stripe-card UI even before
+ * the customer kicks off the Stripe redirect, so they know exactly
+ * what to expect on submit.
+ */
+function StripePaymentCard({ ready }: { ready: boolean | null }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <label
+        className={[
+          "flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-4 transition-colors",
+          ready
+            ? "border-[#142e2a] bg-white"
+            : "border-[#142e2a]/15 bg-[#f7f9f2]",
+        ].join(" ")}
+      >
+        <span
+          aria-hidden
+          className={[
+            "mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2",
+            ready ? "border-[#142e2a]" : "border-[#142e2a]/30",
+          ].join(" ")}
+        >
+          <span
+            className={[
+              "h-2.5 w-2.5 rounded-full",
+              ready ? "bg-[#142e2a]" : "bg-transparent",
+            ].join(" ")}
+          />
+        </span>
+
+        <div className="flex flex-1 flex-col gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+              Credit or debit card
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-[#635bff]/10 px-2 py-0.5 font-ui text-[11px] font-bold italic text-[#635bff]">
+              stripe
+            </span>
+          </div>
+          <p className="font-ui text-[12.5px] leading-[18px] text-[#142e2a]/70">
+            {ready
+              ? "You'll be redirected to Stripe's secure payment page to enter your card details. We never see or store your card."
+              : "Stripe is wired up but the server is missing keys. Test orders will be saved without payment until the operator adds STRIPE_SECRET_KEY."}
+          </p>
+
+          {/* Card brand glyphs — Visa / Mastercard / Amex / Apple Pay /
+              Google Pay — so customers know which methods Stripe will
+              accept once they click through. */}
+          <div className="mt-1 flex items-center gap-2">
+            {[
+              { label: "Visa",        bg: "#1A1F71" },
+              { label: "MC",          bg: "#000000" },
+              { label: "Amex",        bg: "#2E77BB" },
+              { label: "Apple Pay",   bg: "#000000" },
+              { label: "G Pay",       bg: "#FFFFFF", color: "#5f6368", border: true },
+            ].map((b) => (
+              <span
+                key={b.label}
+                className="inline-flex h-6 items-center rounded-[4px] px-1.5 font-ui text-[10px] font-bold"
+                style={{
+                  backgroundColor: b.bg,
+                  color: b.color ?? "#ffffff",
+                  border: b.border ? "1px solid #142e2a1f" : "none",
+                }}
+              >
+                {b.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </label>
+
+      <p className="flex items-start gap-2 font-ui text-[12px] leading-[18px] text-[#142e2a]/55">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+          <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Encrypted in transit. PCI DSS Level 1 processor. 3-D Secure where required.
+      </p>
+    </div>
   );
 }
 
