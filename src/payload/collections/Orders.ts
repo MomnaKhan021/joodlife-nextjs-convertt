@@ -168,6 +168,75 @@ export const Orders: CollectionConfig = {
           "HubSpot deal id, populated by the /admin-tools/hubspot-sync/orders pull. Used to upsert on re-sync.",
       },
     },
+    /* ──────────────  Stripe linkage  ────────────── */
+    {
+      name: "stripePaymentIntentId",
+      type: "text",
+      index: true,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description:
+          "Stripe PaymentIntent (pi_…) — set after a Stripe Checkout completes successfully.",
+      },
+    },
+    {
+      name: "stripeSessionId",
+      type: "text",
+      index: true,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description:
+          "Stripe Checkout Session (cs_…) — set when an order is sent to Stripe.",
+      },
+    },
+    {
+      name: "stripeCustomerId",
+      type: "text",
+      index: true,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: "Stripe customer (cus_…), if one was created.",
+      },
+    },
+    {
+      name: "paymentStatus",
+      type: "select",
+      defaultValue: "unpaid",
+      options: [
+        { label: "Unpaid", value: "unpaid" },
+        { label: "Awaiting payment", value: "awaiting" },
+        { label: "Paid", value: "paid" },
+        { label: "Refunded", value: "refunded" },
+        { label: "Failed", value: "failed" },
+      ],
+      admin: {
+        position: "sidebar",
+        description:
+          "Live payment state independent of fulfilment status. Webhook-driven.",
+      },
+    },
+    /* ──────────────  Audit (read-only) ────────────── */
+    {
+      name: "ipAddress",
+      type: "text",
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: "Client IP at checkout — audit only.",
+      },
+    },
+    {
+      name: "userAgent",
+      type: "text",
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: "Client User-Agent at checkout — audit only.",
+      },
+    },
   ],
 };
 

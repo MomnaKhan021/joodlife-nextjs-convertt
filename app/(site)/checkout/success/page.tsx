@@ -12,12 +12,18 @@ export const metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ order?: string | string[] }>;
+  searchParams: Promise<{
+    order?: string | string[];
+    orderNumber?: string | string[];
+  }>;
 };
 
 export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const orderRaw = Array.isArray(sp.order) ? sp.order[0] : sp.order;
+  // Accept both `?order=` (legacy) and `?orderNumber=` (Stripe).
+  const orderRaw =
+    (Array.isArray(sp.orderNumber) ? sp.orderNumber[0] : sp.orderNumber) ??
+    (Array.isArray(sp.order) ? sp.order[0] : sp.order);
   const orderNumber = orderRaw && /^[A-Za-z0-9-]+$/.test(orderRaw) ? orderRaw : null;
 
   return (

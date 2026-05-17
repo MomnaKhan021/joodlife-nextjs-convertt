@@ -21,6 +21,12 @@ import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
+import {
+  sanitizeText,
+  sanitizeMultiline,
+  sanitizeEmail,
+  sanitizePhone,
+} from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -300,7 +306,24 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  const { items, customer } = parsed.data;
+  // 3b. Sanitise customer fields. Zod validates shape; sanitisation
+  //     normalises whitespace, strips HTML/control chars, and clamps
+  //     length so we never store hostile or oversized strings.
+  const rawCustomer = parsed.data.customer;
+  const customer = {
+    name: sanitizeText(rawCustomer.name, 120),
+    email: sanitizeEmail(rawCustomer.email),
+    phone: sanitizePhone(rawCustomer.phone ?? ""),
+    address: sanitizeMultiline(rawCustomer.address, 2000),
+    notes: sanitizeMultiline(rawCustomer.notes ?? "", 2000),
+  };
+  if (!customer.name || !customer.email || !customer.address) {
+    return NextResponse.json(
+      { ok: false, error: "Required customer field missing after sanitisation" },
+      { status: 400 }
+    );
+  }
+  const items = parsed.data.items;
 
   // 4. Idempotency-Key replay protection
   const idempotencyKey = req.headers.get("idempotency-key");
@@ -376,19 +399,25 @@ export async function POST(req: NextRequest) {
     .slice(2, 7)
     .toUpperCase()}`;
 
+  // Audit fields — recorded with every order
+  const userAgent = sanitizeText(req.headers.get("user-agent") ?? "", 500);
+  const ipForAudit = ip; // already clientIp(req)
+
   try {
     const stmt = `
       INSERT INTO "orders"
         (order_number, user_id, customer_name, customer_email, customer_phone,
          shipping_address, items_json, total_amount, discount_amount,
-         status, payment_method, notes, updated_at, created_at)
+         status, payment_method, payment_status, ip_address, user_agent,
+         notes, updated_at, created_at)
       VALUES
         (${esc(orderNumber)}, ${userId ?? "NULL"},
          ${esc(customer.name)}, ${esc(customer.email)}, ${esc(customer.phone)},
          ${esc(customer.address)},
          ${esc(JSON.stringify(repriced.items))}::jsonb,
          ${repriced.total}, 0,
-         'pending', 'test',
+         'pending', 'card', 'unpaid',
+         ${esc(ipForAudit)}, ${esc(userAgent)},
          ${esc(customer.notes)},
          now(), now())
       RETURNING id;

@@ -105,9 +105,41 @@ export default function CheckoutClient() {
       if (!res.ok || !json.ok) {
         throw new Error(json?.error ?? `HTTP ${res.status}`);
       }
-      // Clear cart and redirect to success
+
+      // If Stripe is configured, ask the server to create a Checkout
+      // Session for this newly-created order and redirect the user to
+      // Stripe's hosted payment page. Stripe handles all card capture
+      // and 3-D Secure on their own domain — we never see card data.
+      //
+      // If Stripe is NOT configured yet (503 response), fall through
+      // to the legacy success page so the test-mode flow keeps working.
+      const stripeRes = await fetch("/api/stripe/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderNumber: json.orderNumber }),
+      });
+
+      if (stripeRes.status === 503) {
+        // Stripe not configured — go straight to success (test mode)
+        clear();
+        router.replace(
+          `/checkout/success?order=${encodeURIComponent(json.orderNumber)}`
+        );
+        return;
+      }
+
+      const stripeJson = await stripeRes.json();
+      if (!stripeRes.ok || !stripeJson.ok || !stripeJson.url) {
+        throw new Error(stripeJson?.error ?? `Stripe HTTP ${stripeRes.status}`);
+      }
+
+      // Clear cart only after we've successfully kicked off Stripe. If
+      // the user cancels on Stripe's page we land back at
+      // /checkout?orderNumber=… and the order is still in `awaiting`
+      // payment state, so they can retry without losing line items.
       clear();
-      router.replace(`/checkout/success?order=${encodeURIComponent(json.orderNumber)}`);
+      window.location.href = stripeJson.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setBusy(false);

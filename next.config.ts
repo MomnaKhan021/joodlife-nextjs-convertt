@@ -40,6 +40,74 @@ const nextConfig: NextConfig = {
       { source: "/blog/:slug", destination: "/blogs/:slug", permanent: true },
     ];
   },
+  /**
+   * Security headers applied site-wide.
+   *
+   * - HSTS keeps every future request on HTTPS (production only)
+   * - X-Frame-Options DENY blocks clickjacking via iframes
+   * - X-Content-Type-Options nosniff blocks MIME confusion
+   * - Referrer-Policy strict-origin-when-cross-origin avoids leaking
+   *   full URLs to third-party sites
+   * - Permissions-Policy denies sensors/camera/mic/payment APIs that
+   *   we don't use, so a compromised third-party script can't pop them
+   * - CSP is enforced everywhere. Stripe and Trustpilot are the only
+   *   third-parties allowed. `script-src` allows 'unsafe-inline' for
+   *   Next.js's hydration tags; 'strict-dynamic' would be cleaner but
+   *   requires a nonce middleware refactor. Frame-src for Stripe is
+   *   needed for 3D-Secure challenge iframes.
+   */
+  async headers() {
+    const stripeOrigins = [
+      "https://api.stripe.com",
+      "https://js.stripe.com",
+      "https://m.stripe.network",
+      "https://q.stripe.com",
+    ];
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network`,
+      `connect-src 'self' ${stripeOrigins.join(" ")} https://*.public.blob.vercel-storage.com`,
+      `frame-src 'self' https://js.stripe.com https://hooks.stripe.com`,
+      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com`,
+      `style-src 'self' 'unsafe-inline'`,
+      `font-src 'self' data: https://fonts.gstatic.com`,
+      `form-action 'self'`,
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
+
+    const securityHeaders = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      {
+        key: "Permissions-Policy",
+        value:
+          "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(self \"https://js.stripe.com\"), usb=()",
+      },
+      // HSTS only in production where the site is served over HTTPS
+      ...(process.env.NODE_ENV === "production"
+        ? [
+            {
+              key: "Strict-Transport-Security",
+              value: "max-age=63072000; includeSubDomains; preload",
+            },
+          ]
+        : []),
+      { key: "Content-Security-Policy", value: csp },
+    ];
+
+    return [
+      {
+        // Apply to every public route. Payload admin is exempt because
+        // its bundled UI needs broader script/style rules.
+        source: "/((?!admin|api/admin|_next/static).*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
 };
 
 // Apply Payload's Next.js wrapper when the package is installed.
