@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import DosagePicker from "./DosagePicker";
 import {
@@ -8,10 +9,29 @@ import {
   ICON_MAP,
   PlusIcon,
 } from "./PdpIcons";
-import type { PDPProduct } from "@/lib/pdp-products";
+import { useCart } from "@/components/cart/CartContext";
+import type { Dosage, PDPProduct } from "@/lib/pdp-products";
 
 interface ProductInfoProps {
   product: PDPProduct;
+}
+
+/**
+ * Stable numeric IDs for the static PDP catalog so cart-item dedup
+ * (which keys on productId+dose) works the same way it does for
+ * Payload-backed products. Picked deterministically per slug.
+ */
+const PRODUCT_ID_BY_SLUG: Record<PDPProduct["slug"], number> = {
+  mounjaro: 1001,
+  wegovy: 1002,
+  saxenda: 1003,
+};
+
+/** "£90.00" → 90, "From £112" → 112, falls back to 0 on garbage. */
+function parsePrice(formatted: string): number {
+  const match = formatted.match(/(\d[\d,]*\.?\d*)/);
+  if (!match) return 0;
+  return Number.parseFloat(match[1].replace(/,/g, "")) || 0;
 }
 
 /**
@@ -28,6 +48,28 @@ interface ProductInfoProps {
  */
 export default function ProductInfo({ product }: ProductInfoProps) {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
+  const router = useRouter();
+  const { addItem, openDrawer } = useCart();
+
+  const handleAddToCart = (dosage: Dosage) => {
+    addItem({
+      productId: PRODUCT_ID_BY_SLUG[product.slug],
+      slug: product.slug,
+      title: product.title,
+      dose: dosage.label,
+      price: parsePrice(dosage.perPack),
+      imageUrl: product.gallery[0]?.src ?? null,
+    });
+    openDrawer();
+  };
+
+  const handleEligibility = (dosage: Dosage) => {
+    const params = new URLSearchParams({
+      product: product.slug,
+      dose: dosage.label,
+    });
+    router.push(`/consultation?${params.toString()}`);
+  };
 
   return (
     <div className="flex flex-col gap-6 md:gap-7">
@@ -92,6 +134,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <DosagePicker
         dosages={product.dosages}
         fromPrice={product.fromPrice}
+        onAddToCart={handleAddToCart}
+        onEligibilityCheck={handleEligibility}
       />
 
       {/* 3 service chips */}
