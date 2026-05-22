@@ -304,7 +304,7 @@ export default function ConsultationFlow({
       <SuccessScreen
         productSlug={productSlug}
         consultationId={consultationId}
-        onShop={() => router.push("/shop")}
+        onShop={() => router.push("/final-product-page")}
       />
     );
   }
@@ -1319,7 +1319,7 @@ function SuccessScreen({
         onClick={onShop}
         className="mt-8 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
       >
-        Back to shop
+        Choose your treatment →
       </button>
     </section>
   );
