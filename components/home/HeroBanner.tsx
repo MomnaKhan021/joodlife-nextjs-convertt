@@ -140,7 +140,7 @@ export default function HeroBanner() {
               className="pointer-events-none absolute bottom-0 right-[23px] h-[635px] w-[817px]"
             >
               <Image
-                src="/assets/figma/hero-two-women-desktop.png"
+                src="/assets/hero/hero-desktop.png"
                 alt=""
                 fill
                 sizes="817px"
@@ -190,7 +190,7 @@ export default function HeroBanner() {
 
           <div className="relative h-[320px] w-full">
             <Image
-              src="/assets/figma/hero-two-women-mobile.png"
+              src="/assets/hero/hero-mobile.png"
               alt=""
               fill
               sizes="100vw"
