@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 
 import { CartProvider } from "@/components/cart/CartContext";
+import SitePreloader from "@/components/SitePreloader";
 
 import "../globals.css";
 
@@ -62,6 +63,7 @@ export default function SiteLayout({
         className="min-h-screen bg-white text-[#142e2a] font-ui antialiased"
         suppressHydrationWarning
       >
+        <SitePreloader />
         <CartProvider>{children}</CartProvider>
       </body>
     </html>
