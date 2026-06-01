@@ -8,12 +8,12 @@ import { useEffect, useState } from "react";
  * - Centers the JoodLife logo mark inside a circular dotted ring.
  * - Ring rotates and uses a sage→dark gradient so the dots appear to fade
  *   into a trail, matching the brand reference.
- * - Always displays for ~5 seconds (deliberate brand moment), then fades
+ * - Always displays for ~3 seconds (deliberate brand moment), then fades
  *   out over 300ms and unmounts so it never blocks interaction.
  * - Server-renders into the initial HTML so users see it during FOUC too;
  *   the client effect then dismisses it after hydration.
  */
-const PRELOADER_VISIBLE_MS = 5_000;
+const PRELOADER_VISIBLE_MS = 3_000;
 const PRELOADER_FADE_MS = 300;
 
 export default function SitePreloader() {
