@@ -167,7 +167,7 @@ export default function FeatureGrid() {
            side-by-side on desktop with Figma widths 200×50 / 279×50 */}
         <div className="mt-8 flex flex-col items-center justify-center gap-3 md:mt-10 md:flex-row md:gap-4">
           <a
-            href="#get-started"
+            href="/consultation"
             className="inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421] md:w-[200px]"
           >
             Get started

@@ -86,7 +86,7 @@ export default function CtaBanner() {
             {/* RIGHT — outlined Get Started button */}
             <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-0 md:py-0">
               <a
-                href="#get-started"
+                href="/consultation"
                 className="inline-flex h-[50px] w-full max-w-[200px] cursor-pointer items-center justify-center rounded-lg border border-[#142e2a]/40 bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] transition-colors duration-200 hover:border-[#142e2a] hover:bg-[#142e2a] hover:text-white md:text-[14px]"
               >
                 Get started

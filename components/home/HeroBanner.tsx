@@ -120,7 +120,7 @@ export default function HeroBanner() {
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 {/* Figma: primary 200×50, secondary 279×50 */}
                 <a
-                  href="#get-started"
+                  href="/consultation"
                   className="inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
                 >
                   Get started
@@ -181,7 +181,7 @@ export default function HeroBanner() {
             </ul>
 
             <a
-              href="#get-started"
+              href="/consultation"
               className="mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
             >
               Get started

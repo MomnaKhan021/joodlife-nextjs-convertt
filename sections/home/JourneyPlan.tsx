@@ -362,7 +362,7 @@ function ExpertGuidanceCard() {
       </p>
 
       <a
-        href="#get-started"
+        href="/consultation"
         className="mx-auto mt-2 inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md transition-colors duration-200 hover:bg-black/35"
       >
         Get started

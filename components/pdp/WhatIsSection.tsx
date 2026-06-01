@@ -56,7 +56,7 @@ export default function WhatIsSection({ product }: WhatIsSectionProps) {
         </ul>
 
         <a
-          href="#get-started"
+          href="/consultation"
           className="inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
         >
           Get started

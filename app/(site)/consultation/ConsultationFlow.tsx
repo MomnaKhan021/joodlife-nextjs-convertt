@@ -43,80 +43,22 @@ export default function ConsultationFlow({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Hydrate from localStorage on mount — but ONLY when it's safe.
-  // The eligibility CTA from a product page lands here with
-  // ?product=...&dose=... so we use those query params as the
-  // identity of "the current consultation". If the stored state
-  // belongs to a different product / dose, or to a quiz the user
-  // already finished, we start fresh instead of reviving zombies.
+  // Always start the questionnaire from the very beginning.
   //
-  // Cases this guards against:
-  //  1. User completed a quiz, then clicked Check Eligibility on
-  //     another product — without the reset they'd land back on
-  //     the success screen.
-  //  2. User switched product (or dose) on a product page, then
-  //     clicked the CTA — they'd see the previous product's
-  //     answers pre-filled.
-  //  3. We renamed a slide id in flow.ts on deploy — the stored
-  //     id no longer exists in SLIDES, so getSlide() returns
-  //     undefined and the page renders blank.
-  //  4. The JSON in localStorage is corrupt — JSON.parse throws.
+  // Every time someone enters the consultation — whether they are
+  // logged in or not, and whether or not they have a half-finished
+  // draft saved from a previous visit — they should begin at the
+  // first step (s0). So on mount we clear any previously-stored
+  // progress instead of reviving it. This guarantees a fresh start
+  // on every visit and on page reload, matching the reference flow.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    let parsed: LocalState | null = null;
     try {
-      const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (!raw) return;
-      parsed = JSON.parse(raw) as LocalState;
+      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
     } catch {
-      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-      return;
+      /* ignore */
     }
-    if (!parsed) return;
-
-    // Don't revive a finished quiz — start fresh on the consent slide.
-    if (parsed.currentSlideId === "s_success") {
-      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-      return;
-    }
-
-    // Don't revive a stored state that points at a slide id we no
-    // longer ship.
-    if (
-      parsed.currentSlideId &&
-      !getSlide(parsed.currentSlideId)
-    ) {
-      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-      return;
-    }
-
-    // Reset when the user lands here for a different product or dose
-    // than the one whose state is stored. We compare against the
-    // answers blob (which records productSlug / dose) and the
-    // incoming URL props.
-    const storedProduct =
-      (parsed.answers?.["__productSlug"] as string | undefined) ?? null;
-    const storedDose =
-      (parsed.answers?.["__dose"] as string | undefined) ?? null;
-    if (
-      productSlug &&
-      storedProduct &&
-      storedProduct !== productSlug
-    ) {
-      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-      return;
-    }
-    if (dose && storedDose && storedDose !== dose) {
-      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
-      return;
-    }
-
-    // Safe to hydrate.
-    if (parsed.id) setConsultationId(parsed.id);
-    if (parsed.currentSlideId) setCurrentSlideId(parsed.currentSlideId);
-    if (parsed.history) setHistory(parsed.history);
-    if (parsed.answers) setAnswers(parsed.answers);
-  }, [productSlug, dose]);
+  }, []);
 
   // Stamp the incoming product/dose into answers so the
   // hydration logic above can detect a switch on subsequent
