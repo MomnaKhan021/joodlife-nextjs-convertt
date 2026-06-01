@@ -66,6 +66,10 @@ export type PDPProduct = {
   /** Comparison table — the table itself is shared but the active
    * column ("highlighted") differs per product. */
   comparisonActive: "mounjaro" | "wegovy" | "saxenda";
+  /** Final-product-page card: a headline efficacy stat and a short
+   * list of benefits, shown on the "Choose your treatment" cards. */
+  cardStat?: { percent: string; text: string };
+  cardBenefits?: string[];
 };
 
 const SHARED_COMPARISON: ComparisonRow[] = [
@@ -164,6 +168,16 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       "The most common side effects are nausea, reduced appetite, vomiting, diarrhoea, or constipation, particularly when starting or increasing the dose. These are usually mild and temporary. Your clinician will guide you on managing side effects and adjusting treatment if needed.",
     accordions: SHARED_ACCORDIONS,
     comparisonActive: "mounjaro",
+    cardStat: {
+      percent: "90%",
+      text: "of patients experience reduced appetite and early weight loss within the first few months.",
+    },
+    cardBenefits: [
+      "Reduced appetite and cravings",
+      "Supports long-term weight management",
+      "May improve metabolic health",
+      "Clinician-led, medically supervised treatment",
+    ],
   },
 
   wegovy: {
@@ -222,6 +236,16 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       "Side effects can include nausea, vomiting, diarrhoea, constipation, and abdominal discomfort, usually mild and short-lived. Your clinician will help you manage these and adjust the dose if needed.",
     accordions: SHARED_ACCORDIONS,
     comparisonActive: "wegovy",
+    cardStat: {
+      percent: "80%",
+      text: "of patients experience reduced appetite and early weight loss with once-weekly treatment.",
+    },
+    cardBenefits: [
+      "Reduced appetite and cravings",
+      "Supports long-term weight management",
+      "Encourages healthier eating habits",
+      "Clinician-led, medically supervised care",
+    ],
   },
 
   saxenda: {
@@ -280,6 +304,16 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       "Side effects can include nausea, low blood sugar, headache, diarrhoea, and tiredness. Your clinician will support you in managing these and adjusting the dose where needed.",
     accordions: SHARED_ACCORDIONS,
     comparisonActive: "saxenda",
+    cardStat: {
+      percent: "8–10%",
+      text: "typical weight loss over a year for daily users who stay consistent with treatment.",
+    },
+    cardBenefits: [
+      "Reduced appetite and cravings",
+      "Flexible daily dosing routine",
+      "Supports gradual, steady weight loss",
+      "Clinician-led, medically supervised care",
+    ],
   },
 };
 

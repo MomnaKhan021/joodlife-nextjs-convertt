@@ -106,6 +106,44 @@ export default function FinalProductPage() {
                   </p>
                 </div>
 
+                {/* Key efficacy stat */}
+                {product.cardStat ? (
+                  <div className="flex items-start gap-3 rounded-[14px] bg-[#f7f9f2] p-3.5">
+                    <span className="font-display text-[26px] font-bold leading-none tracking-[-0.02em] text-[#142e2a]">
+                      {product.cardStat.percent}
+                    </span>
+                    <span className="font-ui text-[12px] leading-[17px] text-[#142e2a]/70">
+                      {product.cardStat.text}
+                    </span>
+                  </div>
+                ) : null}
+
+                {/* Benefits */}
+                {product.cardBenefits?.length ? (
+                  <ul className="flex flex-col gap-2">
+                    {product.cardBenefits.map((benefit) => (
+                      <li
+                        key={benefit}
+                        className="flex items-start gap-2 font-ui text-[13px] leading-[19px] text-[#142e2a]/80"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 20 20"
+                          className="mt-0.5 h-4 w-4 shrink-0 text-[#142e2a]"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.7-9.3a1 1 0 0 0-1.4-1.4L9 10.58l-1.3-1.3a1 1 0 0 0-1.4 1.42l2 2a1 1 0 0 0 1.4 0l4-4Z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {benefit}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="font-ui text-[13px] text-[#142e2a]/70">
                     From
