@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
+import CategoryCurve from "@/components/home/CategoryCurve";
 import type { Category } from "@/lib/categories";
 
 /**
@@ -50,31 +51,21 @@ export default function CategoryPreview({
             color: theme.onBase,
           }}
         >
-          {/* Decorative wave line echoing the Figma sections */}
-          <svg
-            aria-hidden
-            viewBox="0 0 1200 120"
-            preserveAspectRatio="none"
-            className="pointer-events-none absolute left-0 top-[28%] hidden h-[120px] w-full opacity-30 md:block"
-          >
-            <path
-              d="M0 60 C 200 10, 400 110, 600 60 S 1000 10, 1200 60"
-              fill="none"
-              stroke={theme.onBase}
-              strokeWidth="1.5"
-            />
-            {[120, 360, 600, 840, 1080].map((cx) => (
-              <circle key={cx} cx={cx} cy="60" r="4" fill={theme.onBase} />
-            ))}
-          </svg>
+          {/* Decorative wavy connector — draws on top→bottom on scroll */}
+          <CategoryCurve
+            color={theme.onBase}
+            className="pointer-events-none absolute inset-x-0 top-6 z-0 hidden aspect-[1444/372] w-full opacity-30 md:block lg:top-10"
+          />
 
           <div className="relative z-10 flex flex-col items-center text-center">
             {isHero && (
-              <span className="mb-3 inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 font-ui text-[13px] font-medium tracking-tight">
-                {category.eyebrow}
-              </span>
+              <Reveal as="div" direction="down">
+                <span className="mb-3 inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 font-ui text-[13px] font-medium tracking-tight">
+                  {category.eyebrow}
+                </span>
+              </Reveal>
             )}
-            <Reveal as="div">
+            <Reveal as="div" delay={60}>
               <h2 className="max-w-[18ch] font-display text-[30px] font-semibold leading-[1.08] tracking-[-0.025em] md:text-[48px] md:leading-[1.08]">
                 {category.title}{" "}
                 <em className="font-serif font-normal italic">{category.titleAccent}</em>
@@ -82,7 +73,11 @@ export default function CategoryPreview({
             </Reveal>
 
             {/* Portrait */}
-            <div className="relative mt-8 h-[260px] w-full max-w-[420px] md:mt-10 md:h-[340px]">
+            <Reveal
+              as="div"
+              delay={160}
+              className="relative mt-8 h-[260px] w-full max-w-[420px] md:mt-10 md:h-[340px]"
+            >
               <Image
                 src={category.heroImage}
                 alt={category.imageAlt}
@@ -92,10 +87,14 @@ export default function CategoryPreview({
                 sizes="(max-width: 768px) 90vw, 420px"
                 className="object-contain object-bottom"
               />
-            </div>
+            </Reveal>
 
             {/* Dual CTA */}
-            <div className="z-10 -mt-2 flex flex-wrap items-center justify-center gap-3">
+            <Reveal
+              as="div"
+              delay={280}
+              className="z-10 -mt-2 flex flex-wrap items-center justify-center gap-3"
+            >
               <Link
                 href={`${category.href}#assessment`}
                 className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] transition-transform duration-200 hover:-translate-y-0.5"
@@ -108,11 +107,15 @@ export default function CategoryPreview({
               >
                 Learn More
               </Link>
-            </div>
+            </Reveal>
           </div>
 
           {/* Blurb + proof points */}
-          <div className="relative z-10 mt-10 grid gap-4 md:mt-12 md:grid-cols-[1.4fr_1fr] md:items-center">
+          <Reveal
+            as="div"
+            delay={120}
+            className="relative z-10 mt-10 grid gap-4 md:mt-12 md:grid-cols-[1.4fr_1fr] md:items-center"
+          >
             <p className="max-w-[52ch] font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
               {category.blurb}
             </p>
@@ -135,7 +138,7 @@ export default function CategoryPreview({
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>
