@@ -1,31 +1,40 @@
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
-import HeroBanner from "@/components/home/HeroBanner";
+import HeroGateway from "@/components/home/HeroGateway";
 import UspStrip from "@/components/home/UspStrip";
-import BmiCalculator from "@/components/home/BmiCalculator";
+import CategoryPreview from "@/components/home/CategoryPreview";
 import Reviews from "@/sections/home/Reviews";
-import JourneyPlan from "@/sections/home/JourneyPlan";
 import FeatureGrid from "@/sections/home/FeatureGrid";
 import HowItWorks from "@/sections/home/HowItWorks";
-import QuizBanner from "@/sections/home/QuizBanner";
 import Faq from "@/sections/home/Faq";
 import Blog from "@/sections/home/Blog";
 import CtaBanner from "@/sections/home/CtaBanner";
 import Footer from "@/sections/home/Footer";
 
+import { CATEGORIES } from "@/lib/categories";
+
+/**
+ * Home — a gateway page. The hero presents the three care categories as
+ * cards that route to dedicated sub-pages; below, each category gets a
+ * themed preview that links through to the same place. Shared trust /
+ * how-it-works / reviews / CTA sections close the page out.
+ */
 export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
-      <HeroBanner />
+
+      <HeroGateway />
       <UspStrip />
-      <BmiCalculator />
+
+      <CategoryPreview category={CATEGORIES["weight-loss"]} priority />
+      <CategoryPreview category={CATEGORIES["erectile-dysfunction"]} />
+      <CategoryPreview category={CATEGORIES["period-delay"]} />
+
       <Reviews />
-      <JourneyPlan />
       <FeatureGrid />
       <HowItWorks />
-      <QuizBanner />
       <Faq />
       <Blog />
       <CtaBanner />

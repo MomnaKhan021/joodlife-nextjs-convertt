@@ -10,9 +10,8 @@ import { useCart } from "@/components/cart/CartContext";
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
-  { label: "Journal", href: "/blogs" },
-  { label: "FAQs", href: "#faq" },
-  { label: "Reviews", href: "#reviews" },
+  { label: "FAQs", href: "/#faq" },
+  { label: "Reviews", href: "/#reviews" },
 ];
 
 export default function Header() {

@@ -8,6 +8,20 @@
   --color-text-default: #3d3838;
   --color-trustpilot-green: #00b67a;
   --color-navy: #21346e;
+  --color-cream: #f7f9f2;
+  --color-accent-lime: #b4ff9f;
+
+  /* Category accent palettes — sampled from the new Figma landing page.
+     Weight loss = brand green, Men's health = clinical blue,
+     Women's health = warm pink. Used by the gateway cards and the
+     category preview sections so each topic owns a consistent hue. */
+  --color-mens: #1a8ec1;
+  --color-mens-soft: #4eabd2;
+  --color-mens-tint: #c7eeff;
+  --color-womens: #ec1f63;
+  --color-womens-soft: #e5abc0;
+  --color-womens-tint: #ffeaf2;
+
   --background: #ffffff;
   --foreground: #142e2a;
 }
@@ -19,11 +33,19 @@
   --color-brand-dark-2: var(--color-brand-dark-2);
   --color-brand-muted: var(--color-brand-muted);
   --color-trustpilot-green: var(--color-trustpilot-green);
+  --color-cream: var(--color-cream);
+  --color-mens: var(--color-mens);
+  --color-mens-soft: var(--color-mens-soft);
+  --color-mens-tint: var(--color-mens-tint);
+  --color-womens: var(--color-womens);
+  --color-womens-soft: var(--color-womens-soft);
+  --color-womens-tint: var(--color-womens-tint);
   --font-display: var(--font-gilroy), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   --font-ui: var(--font-saans), "Inter", system-ui, sans-serif;
   --font-outfit: var(--font-outfit), "Outfit", system-ui, sans-serif;
   --font-inter: var(--font-inter), "Inter", system-ui, sans-serif;
   --font-sofia: var(--font-sofia), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), "ITC Clearface Std", Georgia, "Times New Roman", serif;
 }
 
 html {
