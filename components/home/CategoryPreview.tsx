@@ -75,7 +75,7 @@ export default function CategoryPreview({
               </span>
             )}
             <Reveal as="div">
-              <h2 className="max-w-[18ch] font-display text-[30px] font-semibold leading-[1.08] tracking-[-0.02em] md:text-[44px]">
+              <h2 className="max-w-[18ch] font-display text-[30px] font-semibold leading-[1.08] tracking-[-0.025em] md:text-[48px] md:leading-[1.08]">
                 {category.title}{" "}
                 <em className="font-serif font-normal italic">{category.titleAccent}</em>
               </h2>

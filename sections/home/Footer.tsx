@@ -212,11 +212,11 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-white px-4 pb-5 md:px-5">
-      <div className="mx-auto w-full max-w-[1400px]">
-        <div className="rounded-[20px] bg-[#142e2a] text-white">
+    <footer className="w-full bg-[#142e2a] text-white">
+      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
+        <div>
           {/* ───── ROW 1 — logo + columns + Have-a-question card ───── */}
-          <div className="flex flex-col gap-8 px-6 py-10 md:flex-row md:items-start md:gap-10 md:px-10 md:py-12 lg:px-[60px] lg:py-[60px]">
+          <div className="flex flex-col gap-8 py-10 md:flex-row md:items-start md:gap-10 md:py-12 lg:py-[60px]">
             <div className="flex-shrink-0">
               <Image
                 src="/assets/figma/footer-logo-2.png"
@@ -266,7 +266,7 @@ export default function Footer() {
           </div>
 
           {/* ───── ROW 2 — newsletter ───── */}
-          <div className="border-t border-white/10 px-6 py-8 md:px-10 md:py-10 lg:px-[60px] lg:py-[40px]">
+          <div className="border-t border-white/10 py-8 md:py-10 lg:py-[40px]">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">
               <div className="flex flex-col gap-1.5">
                 <h3 className="font-display text-[22px] font-semibold leading-[28px] tracking-[-0.01em] text-white md:text-[28px] md:leading-[34px]">
@@ -334,7 +334,7 @@ export default function Footer() {
           </div>
 
           {/* ───── ROW 3 — copyright + payment badges ───── */}
-          <div className="flex flex-col gap-6 border-t border-white/10 px-6 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 md:py-8 lg:px-[60px]">
+          <div className="flex flex-col gap-6 border-t border-white/10 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-8">
             <p className="max-w-[620px] font-ui text-[12px] leading-[18px] tracking-[-0.01em] text-white/65 md:text-[13px] md:leading-[18px]">
               © 2025 Jood. All rights reserved. Superintendent Pharmacist:
               Zahhaad Khalil (2228969) Powered by Jood Pharmacy, a

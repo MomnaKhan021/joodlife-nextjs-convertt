@@ -49,13 +49,13 @@ function CircleArrow({
 
 function TrustpilotRow() {
   return (
-    <span className="inline-flex items-center gap-2 rounded-md bg-white/95 px-2.5 py-1.5 text-[#142e2a]">
+    <span className="inline-flex items-center gap-2 text-white">
       <Image
-        src="/assets/icons/trustpilot-logo-only.svg"
+        src="/assets/icons/trustpilot-logo-dark.svg"
         alt="Trustpilot"
-        width={72}
-        height={18}
-        className="h-[18px] w-auto"
+        width={88}
+        height={20}
+        className="h-[20px] w-auto"
       />
       <Image
         src="/assets/figma/trustpilot-stars.svg"
@@ -65,8 +65,9 @@ function TrustpilotRow() {
         className="h-4 w-auto"
         aria-hidden
       />
-      <span className="font-ui text-[13px] font-semibold leading-none">4.4</span>
-      <span className="font-ui text-[12px] leading-none text-[#142e2a]/70">(50+) Reviews</span>
+      <span className="font-inter text-[14px] leading-none text-white">
+        4.4 <span className="text-white/85">(50+) Reviews</span>
+      </span>
     </span>
   );
 }
@@ -85,7 +86,7 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
           />
         </svg>
       </span>
-      <span className="font-ui text-[14px] leading-snug text-white/90 md:text-[15px]">
+      <span className="font-ui text-[15px] leading-snug text-[#d3dabe] md:text-[16px]">
         {children}
       </span>
     </li>
@@ -121,7 +122,7 @@ function PrimaryCard({ category }: { category: Category }) {
 
       <div className="relative z-10 flex flex-col gap-5">
         <TrustpilotRow />
-        <h2 className="max-w-[15ch] font-display text-[34px] font-semibold leading-[1.04] tracking-[-0.02em] text-white md:text-[44px]">
+        <h2 className="max-w-[15ch] font-display text-[36px] font-medium leading-[1.04] tracking-[-0.03em] text-white md:text-[50px] md:leading-[1.08]">
           {line1}
           <br />
           <em className="font-serif font-normal italic">{line2}</em>
@@ -133,10 +134,7 @@ function PrimaryCard({ category }: { category: Category }) {
         </ul>
       </div>
 
-      <div className="relative z-10 mt-8 flex items-center justify-between">
-        <span className="font-ui text-[14px] font-semibold text-white/90">
-          Start your assessment
-        </span>
+      <div className="relative z-10 mt-8 flex items-center justify-end">
         <CircleArrow tone="dark" />
       </div>
     </Link>
@@ -166,11 +164,11 @@ function SecondaryCard({ category }: { category: Category }) {
         />
       </div>
 
-      <div className="relative z-10 max-w-[60%]">
-        <p className="font-ui text-[13px] font-medium text-[#142e2a]/70">
+      <div className="relative z-10 max-w-[62%]">
+        <p className="font-ui text-[14px] font-normal text-[#142e2a] md:text-[16px]">
           {category.eyebrow}
         </p>
-        <h3 className="mt-1 whitespace-pre-line font-display text-[24px] font-semibold leading-[1.08] tracking-[-0.01em] text-[#142e2a] md:text-[26px]">
+        <h3 className="mt-1.5 whitespace-pre-line font-display text-[24px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#0a140f] md:text-[28px]">
           {category.cardTitle}
         </h3>
       </div>

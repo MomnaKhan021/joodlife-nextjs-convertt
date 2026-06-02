@@ -63,11 +63,11 @@ export default function Header() {
               className="grid h-[41px] w-[36.9px] cursor-pointer place-items-center transition-opacity hover:opacity-70"
             >
               <Image
-                src="/assets/icons/icon-cart.svg"
+                src="/assets/icons/icon-user.svg"
                 alt=""
-                width={26}
-                height={28}
-                className="h-7 w-auto"
+                width={24}
+                height={24}
+                className="h-[22px] w-auto"
                 aria-hidden
               />
             </Link>
