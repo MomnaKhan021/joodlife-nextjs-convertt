@@ -3,6 +3,9 @@ import Header from "@/components/layout/Header";
 import HeroGateway from "@/components/home/HeroGateway";
 import UspStrip from "@/components/home/UspStrip";
 import CategoryPreview from "@/components/home/CategoryPreview";
+import WeightLossDetail from "@/components/category/WeightLossDetail";
+import EdDetail from "@/components/category/EdDetail";
+import PeriodDetail from "@/components/category/PeriodDetail";
 import Reviews from "@/sections/home/Reviews";
 import FeatureGrid from "@/sections/home/FeatureGrid";
 import HowItWorks from "@/sections/home/HowItWorks";
@@ -28,9 +31,15 @@ export default function HomePage() {
       <HeroGateway />
       <UspStrip />
 
-      <CategoryPreview category={CATEGORIES["weight-loss"]} priority />
-      <CategoryPreview category={CATEGORIES["erectile-dysfunction"]} />
-      <CategoryPreview category={CATEGORIES["period-delay"]} />
+      <CategoryPreview category={CATEGORIES["weight-loss"]} priority>
+        <WeightLossDetail />
+      </CategoryPreview>
+      <CategoryPreview category={CATEGORIES["erectile-dysfunction"]}>
+        <EdDetail />
+      </CategoryPreview>
+      <CategoryPreview category={CATEGORIES["period-delay"]}>
+        <PeriodDetail />
+      </CategoryPreview>
 
       <Reviews />
       <FeatureGrid />

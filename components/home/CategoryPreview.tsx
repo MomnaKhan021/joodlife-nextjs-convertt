@@ -23,10 +23,12 @@ export default function CategoryPreview({
   category,
   variant = "preview",
   priority = false,
+  children,
 }: {
   category: Category;
   variant?: "preview" | "hero";
   priority?: boolean;
+  children?: React.ReactNode;
 }) {
   const { theme } = category;
   const isHero = variant === "hero";
@@ -110,35 +112,14 @@ export default function CategoryPreview({
             </Reveal>
           </div>
 
-          {/* Blurb + proof points */}
-          <Reveal
-            as="div"
-            delay={120}
-            className="relative z-10 mt-10 grid gap-4 md:mt-12 md:grid-cols-[1.4fr_1fr] md:items-center"
-          >
-            <p className="max-w-[52ch] font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
+          {/* Section content cards (per-category, passed as children) */}
+          {children ? (
+            <div className="relative z-10 mt-10 md:mt-14">{children}</div>
+          ) : (
+            <p className="relative z-10 mx-auto mt-8 max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
               {category.blurb}
             </p>
-            <ul className="flex flex-wrap gap-2 md:justify-end">
-              {category.bullets.map((b) => (
-                <li
-                  key={b}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3.5 py-2 font-ui text-[13px] font-medium text-white"
-                >
-                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none" aria-hidden>
-                    <path
-                      d="M1 5L4.2 8.2L11 1.4"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
+          )}
         </div>
       </div>
     </section>
