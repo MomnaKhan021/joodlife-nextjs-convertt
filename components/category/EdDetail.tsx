@@ -22,7 +22,7 @@ export default function EdDetail() {
       {/* Treatment card */}
       <Reveal
         as="div"
-        className="grid items-center gap-6 rounded-[20px] border border-white/15 bg-white/10 p-6 md:grid-cols-[1.3fr_auto_auto] md:p-8"
+        className="grid items-center gap-6 rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
       >
         <p className="max-w-[46ch] font-ui text-[15px] leading-relaxed text-white/90">
           Take control of erectile health safely and discreetly. Clinically approved treatments are
@@ -48,7 +48,7 @@ export default function EdDetail() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Goals card */}
-        <Reveal as="div" className="relative min-h-[300px] overflow-hidden rounded-[20px]">
+        <Reveal as="div" className="relative min-h-[300px] overflow-hidden rounded-[24px]">
           <Image
             src="/assets/category/ed-goals.png"
             alt="Man considering his treatment goals"
@@ -79,7 +79,7 @@ export default function EdDetail() {
         <Reveal
           as="div"
           delay={120}
-          className="flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-[20px] border border-white/15 bg-white/10 p-8 text-center"
+          className="flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-[24px] bg-black/12 p-8 text-center backdrop-blur-[20px]"
         >
           <p className="max-w-[34ch] font-serif text-[20px] font-normal italic leading-snug text-white md:text-[22px]">
             &ldquo;This treatment completely restored my confidence. I no longer worry about

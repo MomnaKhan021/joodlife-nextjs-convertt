@@ -50,7 +50,7 @@ export default function WeightLossDetail() {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       {/* Card A — transformation */}
-      <Reveal as="div" className="flex flex-col rounded-[20px] border border-white/10 bg-black/15 p-6 md:p-8">
+      <Reveal as="div" className="flex flex-col rounded-[24px] bg-black/20 p-6 backdrop-blur-[20px] md:p-8">
         <h3 className="font-display text-[24px] font-semibold leading-[1.15] tracking-[-0.01em] text-white md:text-[28px]">
           It&rsquo;s more than treatment,{" "}
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
@@ -84,7 +84,7 @@ export default function WeightLossDetail() {
       </Reveal>
 
       {/* Card B — continuous expert guidance */}
-      <Reveal as="div" delay={120} className="flex flex-col rounded-[20px] border border-white/10 bg-black/15 p-6 md:p-8">
+      <Reveal as="div" delay={120} className="flex flex-col rounded-[24px] bg-black/20 p-6 backdrop-blur-[20px] md:p-8">
         <h3 className="font-display text-[24px] font-semibold leading-[1.15] tracking-[-0.01em] text-white md:text-[28px]">
           Continuous, expert guidance
         </h3>

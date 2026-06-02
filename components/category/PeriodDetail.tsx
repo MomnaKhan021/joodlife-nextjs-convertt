@@ -29,7 +29,7 @@ export default function PeriodDetail() {
       {/* Norethisterone treatment card */}
       <Reveal
         as="div"
-        className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[20px] border border-white/15 bg-white/10 p-6 md:p-8"
+        className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:p-8"
       >
         <p className="max-w-[42ch] font-ui text-[15px] leading-relaxed text-white/90">
           Take control of your period safely and reliably. Whether it&rsquo;s for holidays,
@@ -52,7 +52,7 @@ export default function PeriodDetail() {
       <Reveal
         as="div"
         delay={120}
-        className="relative flex min-h-[320px] flex-col overflow-hidden rounded-[20px] border border-white/15 bg-black/15 p-6 md:p-8"
+        className="relative flex min-h-[320px] flex-col overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:p-8"
       >
         <h3 className="relative z-10 max-w-[18ch] font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
           Understand Your Cycle and Hormone Health
