@@ -52,7 +52,17 @@ function buildPath(pts: ReadonlyArray<readonly [number, number]>): string {
   return d.join(" ");
 }
 
-const PATH = buildPath(DOTS);
+// The visible line runs edge-to-edge: anchor points just outside the
+// viewBox on each side (extrapolated from the end dots) make the stroke
+// reach the very left and right of the section. The dots themselves stay
+// at the sampled positions.
+const LINE_POINTS: ReadonlyArray<readonly [number, number]> = [
+  [-60, -12],
+  ...DOTS,
+  [VB_W + 60, 366],
+];
+
+const PATH = buildPath(LINE_POINTS);
 const DRAW_MS = 1800;
 
 export default function CategoryCurve({
