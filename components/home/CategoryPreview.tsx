@@ -36,7 +36,7 @@ export default function CategoryPreview({
   return (
     <section
       aria-label={`${category.eyebrow} — ${category.title} ${category.titleAccent}`}
-      className="w-full bg-white"
+      className="w-full bg-white px-2 py-5 md:px-3"
       style={
         {
           "--cat-base": theme.base,
@@ -45,21 +45,22 @@ export default function CategoryPreview({
         } as React.CSSProperties
       }
     >
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-5 md:px-10 lg:px-[60px]">
-        <div
-          className="relative overflow-hidden rounded-[28px] px-6 pb-8 pt-12 md:px-10 md:pb-12 md:pt-16 lg:px-16 lg:pt-20"
-          style={{
-            background: `linear-gradient(165deg, ${theme.base} 0%, ${theme.soft} 100%)`,
-            color: theme.onBase,
-          }}
-        >
-          {/* Decorative wavy connector — draws on top→bottom on scroll */}
-          <CategoryCurve
-            color={theme.onBase}
-            className="pointer-events-none absolute inset-x-0 top-6 z-0 hidden aspect-[1444/372] w-full opacity-30 md:block lg:top-10"
-          />
+      {/* Full-width gradient block with rounded corners (Figma 289/290/291) */}
+      <div
+        className="relative overflow-hidden rounded-[24px] pb-10 pt-12 md:pb-14 md:pt-16 lg:pt-20"
+        style={{
+          background: `linear-gradient(165deg, ${theme.base} 0%, ${theme.soft} 100%)`,
+          color: theme.onBase,
+        }}
+      >
+        {/* Decorative wavy connector — spans full width, draws on scroll */}
+        <CategoryCurve
+          color={theme.onBase}
+          className="pointer-events-none absolute inset-x-0 top-6 z-0 hidden aspect-[1444/372] w-full opacity-60 md:block lg:top-10"
+        />
 
-          <div className="relative z-10 flex flex-col items-center text-center">
+        <div className="relative z-10 mx-auto w-full max-w-[1320px] px-6 md:px-10 lg:px-16">
+          <div className="flex flex-col items-center text-center">
             {isHero && (
               <Reveal as="div" direction="down">
                 <span className="mb-3 inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 font-ui text-[13px] font-medium tracking-tight">

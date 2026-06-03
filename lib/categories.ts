@@ -64,8 +64,8 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       "Guidance for lasting results",
     ],
     cardImage: "/assets/figma/hero-two-women-desktop.png",
-    heroImage: "/assets/figma/hero-two-women-desktop.png",
-    imageAlt: "Two women smiling after a successful weight-loss journey",
+    heroImage: "/assets/category/wl-hero.png",
+    imageAlt: "A woman laughing after a successful weight-loss journey",
     theme: {
       base: "#142e2a",
       soft: "#20413c",

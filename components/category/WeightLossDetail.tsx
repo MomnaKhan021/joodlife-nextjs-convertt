@@ -44,8 +44,8 @@ function renderChip(c: Chip) {
         </svg>
       </span>
       <span className="flex flex-col leading-tight">
-        <span className="font-ui text-[14px] font-semibold text-white">{c.label}</span>
-        <span className="font-ui text-[12px] text-white/65">{c.sub}</span>
+        <span className="font-ui text-[15px] font-semibold text-[#b4ff9f]">{c.label}</span>
+        <span className="font-ui text-[12px] text-white/75">{c.sub}</span>
       </span>
     </li>
   );
@@ -131,8 +131,8 @@ export default function WeightLossDetail() {
 
         <p className="mt-6 font-serif text-[22px] font-normal italic text-[#b4ff9f]">at Every Step</p>
         <p className="mt-2 max-w-[44ch] font-ui text-[14px] leading-relaxed text-white/80">
-          Get access to qualified medical professionals who are here to support you throughout
-          your journey whenever you need advice.
+          Get access to qualified medical professionals who are here to support you{" "}
+          <span className="text-[#b4ff9f]">throughout your journey</span> whenever you need advice.
         </p>
 
         <div className="mt-6">
