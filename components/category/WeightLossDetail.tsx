@@ -26,26 +26,37 @@ const I = {
   chat: <path d="M3 4h10v7H7l-3 3v-3H3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />,
 };
 
-const CHIPS: Chip[] = [
+// Column split + exact Figma copy. Left column sits higher, right column
+// is staggered ~64px lower around the portrait (Figma 289).
+const LEFT_CHIPS: Chip[] = [
   { label: "Medication", sub: "Licensed treatment", icon: I.pill },
-  { label: "Delivery", sub: "Next day", icon: I.delivery },
-  { label: "Support", sub: "On-going", icon: I.support },
-  { label: "Guidance", sub: "For lasting results", icon: I.guidance },
-  { label: "Result", sub: "Loss up to 26%", icon: I.result },
-  { label: "WhatsApp", sub: "24/7 support", icon: I.chat },
+  { label: "Support", sub: "On going", icon: I.support },
+  { label: "Result", sub: "Loss upto 26 %", icon: I.result },
+];
+const RIGHT_CHIPS: Chip[] = [
+  { label: "Delivery", sub: "Next Day", icon: I.delivery },
+  { label: "Guidance", sub: "For lasting result", icon: I.guidance },
+  { label: "Whatapp", sub: "24/7 support", icon: I.chat },
 ];
 
 function renderChip(c: Chip) {
   return (
-    <li key={c.label} className="flex items-center gap-2.5 text-left">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[#142e2a]">
+    <li
+      key={c.label}
+      className="flex w-[140px] items-center gap-2 rounded-[10px] bg-[#142e2a] px-2.5 py-2 text-left md:w-[188px] md:gap-2.5 md:px-3 md:py-2.5"
+    >
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#142e2a] md:h-10 md:w-10">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
           {c.icon}
         </svg>
       </span>
-      <span className="flex flex-col leading-tight">
-        <span className="font-ui text-[20px] font-medium leading-[23px] text-[#b4ff9f]">{c.label}</span>
-        <span className="font-ui text-[14px] leading-[19px] text-white/75">{c.sub}</span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="font-ui text-[16px] font-medium leading-[20px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
+          {c.label}
+        </span>
+        <span className="truncate font-ui text-[12px] leading-[16px] text-white/75 md:text-[14px] md:leading-[19px]">
+          {c.sub}
+        </span>
       </span>
     </li>
   );
@@ -65,8 +76,8 @@ function GhostButton({ href, children }: { href: string; children: React.ReactNo
 export default function WeightLossDetail() {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      {/* Card A — transformation */}
-      <Reveal as="div" className="flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8">
+      {/* Card A — transformation (second on mobile per Figma) */}
+      <Reveal as="div" className="order-2 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
         <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           It&rsquo;s more than treatment,{" "}
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
@@ -76,44 +87,34 @@ export default function WeightLossDetail() {
           <span className="text-[#b4ff9f]">design a plan</span> around your body&rsquo;s needs.
         </p>
 
-        {/* Desktop: chips flank the portrait (3 left / 3 right) */}
-        <div className="mt-6 hidden flex-1 items-end justify-center gap-3 md:flex">
-          <ul className="flex flex-col gap-5">{CHIPS.slice(0, 3).map(renderChip)}</ul>
-          <div className="relative mx-1 h-[230px] w-[150px] shrink-0 self-end">
+        {/* Chips flank the portrait — left column high, right staggered
+            lower; portrait sits behind (absolute) so it stays responsive. */}
+        <div className="relative mt-6 h-[330px] w-full shrink-0 md:h-[350px]">
+          <div className="absolute bottom-0 left-1/2 z-0 h-[280px] w-[130px] -translate-x-1/2 md:h-[330px] md:w-[180px]">
             <Image
               src="/assets/category/wl-man.png"
               alt="A member supported through his weight-loss journey"
               fill
               quality={90}
-              sizes="150px"
+              sizes="(max-width: 768px) 130px, 180px"
               className="object-contain object-bottom"
             />
           </div>
-          <ul className="flex flex-col gap-5">{CHIPS.slice(3, 6).map(renderChip)}</ul>
+          <ul className="absolute left-0 top-0 z-10 flex flex-col gap-3 md:gap-3.5">
+            {LEFT_CHIPS.map(renderChip)}
+          </ul>
+          <ul className="absolute right-0 top-[58px] z-10 flex flex-col gap-3 md:top-[64px] md:gap-3.5">
+            {RIGHT_CHIPS.map(renderChip)}
+          </ul>
         </div>
 
-        {/* Mobile: portrait above a 2-column chip grid */}
-        <div className="mt-6 flex flex-col items-center gap-5 md:hidden">
-          <div className="relative h-[200px] w-[140px]">
-            <Image
-              src="/assets/category/wl-man.png"
-              alt="A member supported through his weight-loss journey"
-              fill
-              quality={90}
-              sizes="140px"
-              className="object-contain object-bottom"
-            />
-          </div>
-          <ul className="grid w-full grid-cols-2 gap-4">{CHIPS.map(renderChip)}</ul>
-        </div>
-
-        <div className="mt-7 w-full">
+        <div className="mt-auto w-full pt-7">
           <GhostButton href="/weight-loss#assessment">Get Personalized Plan</GhostButton>
         </div>
       </Reveal>
 
-      {/* Card B — continuous expert guidance */}
-      <Reveal as="div" delay={120} className="flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8">
+      {/* Card B — continuous expert guidance (first on mobile per Figma) */}
+      <Reveal as="div" delay={120} className="order-1 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-2">
         <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           Continuous, expert guidance
         </h3>
