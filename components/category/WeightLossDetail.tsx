@@ -35,6 +35,22 @@ const CHIPS: Chip[] = [
   { label: "WhatsApp", sub: "24/7 support", icon: I.chat },
 ];
 
+function renderChip(c: Chip) {
+  return (
+    <li key={c.label} className="flex items-center gap-2.5">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/12 text-white">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+          {c.icon}
+        </svg>
+      </span>
+      <span className="flex flex-col leading-tight">
+        <span className="font-ui text-[14px] font-semibold text-white">{c.label}</span>
+        <span className="font-ui text-[12px] text-white/65">{c.sub}</span>
+      </span>
+    </li>
+  );
+}
+
 function GhostButton({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
@@ -60,22 +76,35 @@ export default function WeightLossDetail() {
           <span className="text-[#b4ff9f]">design a plan</span> around your body&rsquo;s needs.
         </p>
 
-        <div className="mt-6 flex flex-1 items-end gap-4">
-          <ul className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-            {CHIPS.map((c) => (
-              <li key={c.label} className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/12 text-white">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                    {c.icon}
-                  </svg>
-                </span>
-                <span className="flex flex-col leading-tight">
-                  <span className="font-ui text-[14px] font-semibold text-white">{c.label}</span>
-                  <span className="font-ui text-[12px] text-white/65">{c.sub}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
+        {/* Desktop: chips flank the portrait (3 left / 3 right) */}
+        <div className="mt-6 hidden flex-1 items-end justify-center gap-3 md:flex">
+          <ul className="flex flex-col gap-5">{CHIPS.slice(0, 3).map(renderChip)}</ul>
+          <div className="relative mx-1 h-[230px] w-[150px] shrink-0 self-end">
+            <Image
+              src="/assets/category/wl-man.png"
+              alt="A member supported through his weight-loss journey"
+              fill
+              quality={90}
+              sizes="150px"
+              className="object-contain object-bottom"
+            />
+          </div>
+          <ul className="flex flex-col gap-5">{CHIPS.slice(3, 6).map(renderChip)}</ul>
+        </div>
+
+        {/* Mobile: portrait above a 2-column chip grid */}
+        <div className="mt-6 flex flex-col items-center gap-5 md:hidden">
+          <div className="relative h-[200px] w-[140px]">
+            <Image
+              src="/assets/category/wl-man.png"
+              alt="A member supported through his weight-loss journey"
+              fill
+              quality={90}
+              sizes="140px"
+              className="object-contain object-bottom"
+            />
+          </div>
+          <ul className="grid w-full grid-cols-2 gap-4">{CHIPS.map(renderChip)}</ul>
         </div>
 
         <div className="mt-7">
