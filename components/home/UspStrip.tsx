@@ -45,7 +45,7 @@ export default function UspStrip() {
   return (
     <section
       aria-label="Why customers choose Jood Life"
-      className="group w-full overflow-hidden border-y border-[#142e2a]/10 bg-white py-4 md:py-[14px]"
+      className="group w-full overflow-hidden border-b border-[#142e2a]/10 bg-white py-4 md:py-[14px]"
     >
       {/* Full-bleed track — no max-width or padding. The marquee runs
           edge-to-edge across the viewport, matching the Figma's full-

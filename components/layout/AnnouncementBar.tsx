@@ -15,7 +15,7 @@ export default function AnnouncementBar() {
             aria-hidden
           />
           <p className="font-outfit text-sm leading-snug text-white">
-            Limited-Time Offer: Buy 1 Month, Get 1 Month FREE!
+            <span className="font-semibold">Limited-Time Offer:</span> Buy 1 Month, Get 1 Month FREE!
           </p>
         </div>
       </div>
@@ -32,7 +32,7 @@ export default function AnnouncementBar() {
             aria-hidden
           />
           <p className="font-outfit text-sm leading-snug text-white">
-            Limited-Time Offer: Buy 1 Month, Get 1 Month FREE!
+            <span className="font-semibold">Limited-Time Offer:</span> Buy 1 Month, Get 1 Month FREE!
           </p>
         </div>
       </div>

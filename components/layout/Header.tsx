@@ -7,12 +7,59 @@ import { useState } from "react";
 import CartDrawer from "@/components/layout/CartDrawer";
 import { useCart } from "@/components/cart/CartContext";
 
-const NAV_LINKS = [
+type NavLink = {
+  label: string;
+  href: string;
+  dropdown?: { label: string; href: string }[];
+};
+
+const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/" },
-  { label: "Shop", href: "/shop" },
+  {
+    label: "Treatment",
+    href: "/weight-loss",
+    dropdown: [
+      { label: "Weight loss", href: "/weight-loss" },
+      { label: "Erectile dysfunction", href: "/erectile-dysfunction" },
+      { label: "Period delay", href: "/period-delay" },
+    ],
+  },
   { label: "FAQs", href: "/#faq" },
   { label: "Reviews", href: "/#reviews" },
 ];
+
+function PersonIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="8" r="3.4" stroke="#142e2a" strokeWidth="1.7" />
+      <path
+        d="M5.5 19.5c0-3.3 2.9-5.8 6.5-5.8s6.5 2.5 6.5 5.8"
+        stroke="#142e2a"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M6 7h12l1 13H5L6 7z"
+        stroke="#142e2a"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 9V6.5a3 3 0 0 1 6 0V9"
+        stroke="#142e2a"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,46 +81,56 @@ export default function Header() {
         </Link>
 
         <nav aria-label="Primary" className="flex items-center">
-          <ul className="flex items-center">
-            {NAV_LINKS.map((link) => (
-              <li key={link.label}>
-                <Link
-                  href={link.href}
-                  className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+          <ul className="flex items-center gap-2">
+            {NAV_LINKS.map((link) =>
+              link.dropdown ? (
+                <li key={link.label} className="group/nav relative">
+                  <Link
+                    href={link.href}
+                    className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                  >
+                    {link.label}
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden className="mt-0.5">
+                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                  <div className="invisible absolute left-1/2 top-[68px] z-50 w-56 -translate-x-1/2 translate-y-1 rounded-xl border border-[#142e2a]/10 bg-white p-2 opacity-0 shadow-[0_12px_30px_-10px_rgba(20,46,42,0.25)] transition-all duration-200 group-hover/nav:visible group-hover/nav:translate-y-0 group-hover/nav:opacity-100">
+                    {link.dropdown.map((d) => (
+                      <Link
+                        key={d.href}
+                        href={d.href}
+                        className="block rounded-lg px-3 py-2.5 font-ui text-[15px] font-medium text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
+                      >
+                        {d.label}
+                      </Link>
+                    ))}
+                  </div>
+                </li>
+              ) : (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ),
+            )}
           </ul>
         </nav>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3">
+          {/* Account */}
           <Link
-            href="/consultation"
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a] bg-white px-8 font-ui text-xs font-semibold uppercase tracking-tight text-[#142f2b] transition-colors hover:bg-[#142e2a] hover:text-white"
+            href="/profile"
+            aria-label="Account"
+            className="grid h-10 w-10 cursor-pointer place-items-center transition-opacity hover:opacity-70"
           >
-            Get started
+            <PersonIcon />
           </Link>
-          <div className="flex items-center gap-[5px]">
-            {/* Account */}
-            <Link
-              href="/profile"
-              aria-label="Account"
-              className="grid h-[41px] w-[36.9px] cursor-pointer place-items-center transition-opacity hover:opacity-70"
-            >
-              <Image
-                src="/assets/icons/icon-user.svg"
-                alt=""
-                width={24}
-                height={24}
-                className="h-[22px] w-auto"
-                aria-hidden
-              />
-            </Link>
-            {/* Cart trigger */}
-            <CartButton onClick={openDrawer} count={itemCount} />
-          </div>
+          {/* Cart trigger */}
+          <CartButton onClick={openDrawer} count={itemCount} />
         </div>
       </div>
 
@@ -166,6 +223,21 @@ export default function Header() {
               >
                 {link.label}
               </Link>
+              {link.dropdown ? (
+                <ul className="mb-1 ml-3 flex flex-col border-l border-[#142e2a]/10 pl-3">
+                  {link.dropdown.map((d) => (
+                    <li key={d.href}>
+                      <Link
+                        href={d.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="block py-2 font-ui text-[15px] text-[#142e2a]/80 transition-colors hover:text-[#142e2a]"
+                      >
+                        {d.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </li>
           ))}
           <li>
@@ -225,24 +297,7 @@ function CartButton({
       onClick={onClick}
       className="relative grid h-10 w-10 cursor-pointer place-items-center transition-opacity hover:opacity-70"
     >
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden
-      >
-        <path
-          d="M6 6h15l-1.5 9h-12L4 3H2"
-          stroke="#142e2a"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="9" cy="20" r="1.5" stroke="#142e2a" strokeWidth="1.7" />
-        <circle cx="18" cy="20" r="1.5" stroke="#142e2a" strokeWidth="1.7" />
-      </svg>
+      <BagIcon />
       {count > 0 ? (
         <span className="absolute -right-0.5 -top-0.5 grid min-w-[18px] place-items-center rounded-full bg-[#142e2a] px-1 font-ui text-[10px] font-semibold leading-[18px] text-white">
           {count > 99 ? "99+" : count}

@@ -49,24 +49,27 @@ function CircleArrow({
 
 function TrustpilotRow() {
   return (
-    <span className="inline-flex items-center gap-2 text-white">
-      <Image
-        src="/assets/icons/trustpilot-logo-dark.svg"
-        alt="Trustpilot"
-        width={88}
-        height={20}
-        className="h-[20px] w-auto"
-      />
+    <span className="inline-flex items-center gap-1.5 text-white">
+      {/* Trustpilot star + wordmark (built in markup so the wordmark
+          stays white/visible on the dark card) */}
+      <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <path
+          d="M10 0l2.45 6.18L19 6.7l-4.97 4.06L15.6 17 10 13.4 4.4 17l1.57-6.24L1 6.7l6.55-.52L10 0z"
+          fill="#00b67a"
+        />
+      </svg>
+      <span className="font-ui text-[15px] font-semibold leading-none text-white">
+        Trustpilot
+      </span>
       <Image
         src="/assets/figma/trustpilot-stars.svg"
-        alt=""
+        alt="Rated 4.4 out of 5"
         width={84}
         height={16}
-        className="h-4 w-auto"
-        aria-hidden
+        className="ml-1 h-4 w-auto"
       />
-      <span className="font-inter text-[14px] leading-none text-white">
-        4.4 <span className="text-white/85">(50+) Reviews</span>
+      <span className="font-inter text-[13px] leading-none text-white">
+        4.4 <span className="text-white/80">(50+) Reviews</span>
       </span>
     </span>
   );
