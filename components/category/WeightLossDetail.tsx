@@ -37,15 +37,15 @@ const CHIPS: Chip[] = [
 
 function renderChip(c: Chip) {
   return (
-    <li key={c.label} className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/12 text-white">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+    <li key={c.label} className="flex items-center gap-2.5 text-left">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[#142e2a]">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
           {c.icon}
         </svg>
       </span>
       <span className="flex flex-col leading-tight">
-        <span className="font-ui text-[15px] font-semibold text-[#b4ff9f]">{c.label}</span>
-        <span className="font-ui text-[12px] text-white/75">{c.sub}</span>
+        <span className="font-ui text-[20px] font-medium leading-[23px] text-[#b4ff9f]">{c.label}</span>
+        <span className="font-ui text-[14px] leading-[19px] text-white/75">{c.sub}</span>
       </span>
     </li>
   );
@@ -55,7 +55,7 @@ function GhostButton({ href, children }: { href: string; children: React.ReactNo
   return (
     <Link
       href={href}
-      className="inline-flex h-12 items-center justify-center rounded-lg border border-white/40 bg-white/5 px-6 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-white/15"
+      className="inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white transition-colors duration-200 hover:bg-white/15"
     >
       {children}
     </Link>
@@ -66,12 +66,12 @@ export default function WeightLossDetail() {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       {/* Card A — transformation */}
-      <Reveal as="div" className="flex flex-col rounded-[24px] bg-black/20 p-6 backdrop-blur-[20px] md:p-8">
-        <h3 className="font-display text-[24px] font-semibold leading-[1.15] tracking-[-0.01em] text-white md:text-[28px]">
+      <Reveal as="div" className="flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8">
+        <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           It&rsquo;s more than treatment,{" "}
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
         </h3>
-        <p className="mt-3 max-w-[42ch] font-ui text-[14px] leading-relaxed text-white/80">
+        <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
           A provider licensed in your state will review your information, so they can{" "}
           <span className="text-[#b4ff9f]">design a plan</span> around your body&rsquo;s needs.
         </p>
@@ -107,18 +107,18 @@ export default function WeightLossDetail() {
           <ul className="grid w-full grid-cols-2 gap-4">{CHIPS.map(renderChip)}</ul>
         </div>
 
-        <div className="mt-7">
+        <div className="mt-7 w-full">
           <GhostButton href="/weight-loss#assessment">Get Personalized Plan</GhostButton>
         </div>
       </Reveal>
 
       {/* Card B — continuous expert guidance */}
-      <Reveal as="div" delay={120} className="flex flex-col rounded-[24px] bg-black/20 p-6 backdrop-blur-[20px] md:p-8">
-        <h3 className="font-display text-[24px] font-semibold leading-[1.15] tracking-[-0.01em] text-white md:text-[28px]">
+      <Reveal as="div" delay={120} className="flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8">
+        <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           Continuous, expert guidance
         </h3>
 
-        <div className="relative mt-6 h-[300px] w-full overflow-hidden rounded-[16px]">
+        <div className="relative mt-6 h-[320px] w-full flex-1 overflow-hidden rounded-[16px]">
           <Image
             src="/assets/category/wl-checkin.png"
             alt="Monthly video check-in with a licensed clinician"
@@ -129,13 +129,15 @@ export default function WeightLossDetail() {
           />
         </div>
 
-        <p className="mt-6 font-serif text-[22px] font-normal italic text-[#b4ff9f]">at Every Step</p>
-        <p className="mt-2 max-w-[44ch] font-ui text-[14px] leading-relaxed text-white/80">
+        <p className="mt-6 font-serif text-[28px] font-normal italic text-[#b4ff9f] md:text-[34px]">
+          at Every Step
+        </p>
+        <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
           Get access to qualified medical professionals who are here to support you{" "}
           <span className="text-[#b4ff9f]">throughout your journey</span> whenever you need advice.
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 w-full">
           <GhostButton href="/weight-loss#assessment">Get started</GhostButton>
         </div>
       </Reveal>

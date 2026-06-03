@@ -59,7 +59,7 @@ export default function CategoryPreview({
           className="pointer-events-none absolute inset-x-0 top-6 z-0 hidden aspect-[1444/372] w-full opacity-60 md:block lg:top-10"
         />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1320px] px-6 md:px-10 lg:px-16">
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 md:px-8">
           <div className="flex flex-col items-center text-center">
             {isHero && (
               <Reveal as="div" direction="down">
@@ -79,7 +79,7 @@ export default function CategoryPreview({
             <Reveal
               as="div"
               delay={160}
-              className="relative mt-8 h-[260px] w-full max-w-[420px] md:mt-10 md:h-[340px]"
+              className="relative mt-8 h-[300px] w-full max-w-[520px] md:mt-10 md:h-[440px] md:max-w-[600px]"
             >
               <Image
                 src={category.heroImage}
