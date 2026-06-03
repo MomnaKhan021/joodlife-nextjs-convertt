@@ -186,7 +186,7 @@ function SecondaryCard({ category }: { category: Category }) {
 export default function HeroGateway() {
   return (
     <section aria-label="Explore our treatments" className="w-full bg-white">
-      <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 md:px-10 md:pt-6 lg:px-[60px]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
           <PrimaryCard category={CATEGORIES["weight-loss"]} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">

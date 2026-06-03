@@ -45,7 +45,7 @@ export default function CategoryPreview({
         } as React.CSSProperties
       }
     >
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-4 md:px-10 md:py-6 lg:px-[60px]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-5 md:px-10 lg:px-[60px]">
         <div
           className="relative overflow-hidden rounded-[28px] px-6 pb-8 pt-12 md:px-10 md:pb-12 md:pt-16 lg:px-16 lg:pt-20"
           style={{

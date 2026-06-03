@@ -1,7 +1,6 @@
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import HeroGateway from "@/components/home/HeroGateway";
-import UspStrip from "@/components/home/UspStrip";
 import CategoryPreview from "@/components/home/CategoryPreview";
 import WeightLossDetail from "@/components/category/WeightLossDetail";
 import EdDetail from "@/components/category/EdDetail";
@@ -29,7 +28,6 @@ export default function HomePage() {
       <Header />
 
       <HeroGateway />
-      <UspStrip />
 
       <CategoryPreview category={CATEGORIES["weight-loss"]} priority>
         <WeightLossDetail />
