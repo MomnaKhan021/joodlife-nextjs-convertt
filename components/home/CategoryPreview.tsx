@@ -62,7 +62,7 @@ export default function CategoryPreview({
         />
 
         <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 md:px-8">
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-start text-left md:items-center md:text-center">
             {isHero && (
               <Reveal as="div" direction="down">
                 <span className="mb-3 inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 font-ui text-[13px] font-medium tracking-tight">
@@ -84,7 +84,7 @@ export default function CategoryPreview({
             <Reveal
               as="div"
               delay={160}
-              className="relative mt-6 h-[380px] w-full max-w-[460px] md:mt-8 md:h-[540px] md:max-w-[520px]"
+              className="relative mx-auto mt-6 h-[380px] w-full max-w-[460px] md:mt-8 md:h-[540px] md:max-w-[520px]"
             >
               <Image
                 src={category.heroImage}
@@ -97,7 +97,7 @@ export default function CategoryPreview({
               />
 
               {/* Dual CTA — overlays the lower torso, sits above the cards */}
-              <div className="absolute bottom-[42%] left-1/2 z-20 flex w-full -translate-x-1/2 flex-wrap items-center justify-center gap-3">
+              <div className="absolute bottom-[42%] left-0 z-20 flex w-full flex-wrap items-center justify-start gap-3 md:left-1/2 md:-translate-x-1/2 md:justify-center">
                 <Link
                   href={`${category.href}#assessment`}
                   className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5"
