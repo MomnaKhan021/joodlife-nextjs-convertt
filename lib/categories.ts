@@ -70,7 +70,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     imageAlt: "A woman laughing after a successful weight-loss journey",
     theme: {
       base: "#142e2a",
-      soft: "#20413c",
+      soft: "#2d544c",
       tint: "#d3dabe",
       onBase: "#ffffff",
       glow: "radial-gradient(closest-side, rgba(150,40,52,0.55), rgba(150,40,52,0))",

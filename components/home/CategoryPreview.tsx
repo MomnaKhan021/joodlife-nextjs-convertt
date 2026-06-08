@@ -49,14 +49,16 @@ export default function CategoryPreview({
       <div
         className="relative overflow-hidden rounded-[24px] pb-10 pt-12 md:pb-14 md:pt-16 lg:pt-20"
         style={{
-          background: `linear-gradient(165deg, ${theme.base} 0%, ${theme.soft} 100%)`,
+          // Figma: lighter hue at the top fading to the solid base toward
+          // the bottom (vertical gradient), not a diagonal.
+          background: `linear-gradient(180deg, ${theme.soft} 0%, ${theme.base} 62%)`,
           color: theme.onBase,
         }}
       >
         {/* Decorative wavy connector — spans full width, draws on scroll */}
         <CategoryCurve
           color={theme.onBase}
-          className="pointer-events-none absolute inset-x-0 top-4 z-0 aspect-[1444/372] w-full opacity-50 md:top-6 md:opacity-60 lg:top-10"
+          className="pointer-events-none absolute inset-x-0 top-4 z-0 aspect-[1444/372] w-full opacity-60 md:top-6 md:opacity-75 lg:top-10"
         />
 
         <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 md:px-8">
@@ -84,11 +86,6 @@ export default function CategoryPreview({
               delay={160}
               className="relative mt-6 h-[380px] w-full max-w-[460px] md:mt-8 md:h-[540px] md:max-w-[520px]"
             >
-              <div
-                aria-hidden
-                className="absolute left-1/2 top-[18%] h-[68%] w-[88%] -translate-x-1/2 blur-2xl"
-                style={{ background: theme.glow }}
-              />
               <Image
                 src={category.heroImage}
                 alt={category.imageAlt}
