@@ -84,6 +84,37 @@ export default function ProfileClient({ user }: { user: AuthedUser }) {
           </a>
         </div>
 
+        {/* Weight logs entry point */}
+        <a
+          href="/profile/weight-logs"
+          className="group flex items-center justify-between gap-4 rounded-xl border border-[#142e2a]/15 bg-[#142e2a] p-5 text-white transition-colors hover:bg-[#0c2421]"
+        >
+          <span className="flex items-center gap-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4 15l4-4 3 3 5-6 4 4" stroke="#b4ff9f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M4 20h16" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="flex flex-col">
+              <span className="font-ui text-[15px] font-semibold">Check your weight logs</span>
+              <span className="font-ui text-[13px] text-white/70">
+                Track your recorded weights and progress over time
+              </span>
+            </span>
+          </span>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden
+            className="shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+          >
+            <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+
         {user.role === "admin" ? (
           <div className="rounded-xl bg-[#f7f9f2] p-5">
             <p className="font-ui text-[13px] font-semibold text-[#142e2a]">

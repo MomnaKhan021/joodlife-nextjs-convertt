@@ -121,6 +121,13 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* Get started — begins the consultation */}
+          <Link
+            href="/consultation"
+            className="inline-flex h-11 items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+          >
+            Get Started
+          </Link>
           {/* Account */}
           <Link
             href="/profile"
@@ -147,7 +154,14 @@ export default function Header() {
           />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Get started (mobile) — begins the consultation */}
+          <Link
+            href="/consultation"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-[#142e2a] px-3.5 font-ui text-[12px] font-semibold text-white"
+          >
+            Get Started
+          </Link>
           {/* Cart trigger (mobile) */}
           <CartButton onClick={openDrawer} count={itemCount} />
 
