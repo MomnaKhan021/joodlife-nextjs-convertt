@@ -75,47 +75,52 @@ export default function CategoryPreview({
               </h2>
             </Reveal>
 
-            {/* Portrait */}
+            {/* Portrait — shown from the waist up; the content cards
+                below overlap its lower half (their frosted blur shows the
+                figure softened behind them, as in Figma). A soft glow
+                sits behind for depth. The CTA overlays the lower torso. */}
             <Reveal
               as="div"
               delay={160}
-              className="relative mt-8 h-[300px] w-full max-w-[520px] md:mt-10 md:h-[440px] md:max-w-[600px]"
+              className="relative mt-6 h-[380px] w-full max-w-[460px] md:mt-8 md:h-[540px] md:max-w-[520px]"
             >
+              <div
+                aria-hidden
+                className="absolute left-1/2 top-[18%] h-[68%] w-[88%] -translate-x-1/2 blur-2xl"
+                style={{ background: theme.glow }}
+              />
               <Image
                 src={category.heroImage}
                 alt={category.imageAlt}
                 fill
                 priority={priority}
                 quality={90}
-                sizes="(max-width: 768px) 90vw, 420px"
-                className="object-contain object-bottom"
+                sizes="(max-width: 768px) 80vw, 520px"
+                className="object-contain object-top"
               />
-            </Reveal>
 
-            {/* Dual CTA */}
-            <Reveal
-              as="div"
-              delay={280}
-              className="z-10 -mt-2 flex flex-wrap items-center justify-center gap-3"
-            >
-              <Link
-                href={`${category.href}#assessment`}
-                className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] transition-transform duration-200 hover:-translate-y-0.5"
-              >
-                Get Started
-              </Link>
-              <Link
-                href={category.href}
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-white/70 px-7 font-ui text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-white/10"
-              >
-                Learn More
-              </Link>
+              {/* Dual CTA — overlays the lower torso, sits above the cards */}
+              <div className="absolute bottom-[42%] left-1/2 z-20 flex w-full -translate-x-1/2 flex-wrap items-center justify-center gap-3">
+                <Link
+                  href={`${category.href}#assessment`}
+                  className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  href={category.href}
+                  className="inline-flex h-12 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-7 font-ui text-[15px] font-semibold text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/10"
+                >
+                  Learn More
+                </Link>
+              </div>
             </Reveal>
           </div>
 
-          {/* Section content cards (per-category, passed as children) */}
+          {/* Section content cards — pulled up to overlap the portrait's
+              lower half; their backdrop-blur softens the figure behind. */}
           {children ? (
-            <div className="relative z-10 mt-10 md:mt-14">{children}</div>
+            <div className="relative z-10 -mt-[120px] md:-mt-[185px]">{children}</div>
           ) : (
             <p className="relative z-10 mx-auto mt-8 max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
               {category.blurb}

@@ -19,6 +19,8 @@ export type CategoryTheme = {
   tint: string;
   /** Foreground colour that reads on top of `base`. */
   onBase: string;
+  /** Soft radial glow rendered behind the hero portrait (CSS background). */
+  glow: string;
 };
 
 export type CategoryKey = "weight-loss" | "erectile-dysfunction" | "period-delay";
@@ -71,6 +73,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       soft: "#20413c",
       tint: "#d3dabe",
       onBase: "#ffffff",
+      glow: "radial-gradient(closest-side, rgba(150,40,52,0.55), rgba(150,40,52,0))",
     },
   },
   "erectile-dysfunction": {
@@ -95,6 +98,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       soft: "#4eabd2",
       tint: "#c7eeff",
       onBase: "#ffffff",
+      glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
     },
   },
   "period-delay": {
@@ -119,6 +123,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       soft: "#e5abc0",
       tint: "#ffeaf2",
       onBase: "#ffffff",
+      glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
     },
   },
 };
