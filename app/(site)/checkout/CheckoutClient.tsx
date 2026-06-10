@@ -47,13 +47,21 @@ export default function CheckoutClient() {
   const [stripeReady, setStripeReady] = useState<boolean | null>(null);
   useEffect(() => {
     let cancelled = false;
+    // The embedded card form needs BOTH halves: the server secret key
+    // (to create the PaymentIntent) and the browser publishable key (to
+    // load Stripe.js). If the publishable key is missing we stay in
+    // test mode rather than render a broken card form.
+    const hasPublishableKey = Boolean(
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    );
     (async () => {
       try {
         const res = await fetch("/api/stripe/status", {
           credentials: "include",
         });
         const json = await res.json();
-        if (!cancelled) setStripeReady(Boolean(json?.configured));
+        if (!cancelled)
+          setStripeReady(Boolean(json?.configured) && hasPublishableKey);
       } catch {
         if (!cancelled) setStripeReady(false);
       }
