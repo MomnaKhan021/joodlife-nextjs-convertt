@@ -3,9 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Elements } from "@stripe/react-stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
+import { getStripeClient } from "@/lib/stripeClient";
+import EmbeddedPayment from "@/components/checkout/EmbeddedPayment";
 
 const formatPrice = (n: number) =>
   n.toLocaleString("en-GB", {
@@ -27,6 +30,16 @@ export default function CheckoutClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
+
+  // Embedded Stripe Payment Element flow. `phase` is "form" until the
+  // customer's details are valid and they continue to payment; then we
+  // create the order + PaymentIntent and switch to "pay", rendering the
+  // card form. The Place-Order button (inside EmbeddedPayment) stays
+  // disabled until the card is valid.
+  const [phase, setPhase] = useState<"form" | "pay">("form");
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const orderNumberRef = useRef<string | null>(null);
+  const stripePromise = useMemo(() => getStripeClient(), []);
 
   // Stripe configuration probe — flips the Payment section between
   // "Pay securely with card via Stripe" and "Test mode" depending on
@@ -128,21 +141,19 @@ export default function CheckoutClient() {
         throw new Error(json?.error ?? `HTTP ${res.status}`);
       }
 
-      // If Stripe is configured, ask the server to create a Checkout
-      // Session for this newly-created order and redirect the user to
-      // Stripe's hosted payment page. Stripe handles all card capture
-      // and 3-D Secure on their own domain — we never see card data.
-      //
-      // If Stripe is NOT configured yet (503 response), fall through
-      // to the legacy success page so the test-mode flow keeps working.
-      const stripeRes = await fetch("/api/stripe/session", {
+      orderNumberRef.current = json.orderNumber;
+
+      // Ask the server to create a PaymentIntent for this order (amount
+      // re-read from the DB). We then render the embedded card form. If
+      // Stripe is NOT configured (503) fall back to the test success.
+      const piRes = await fetch("/api/stripe/payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ orderNumber: json.orderNumber }),
       });
 
-      if (stripeRes.status === 503) {
+      if (piRes.status === 503) {
         // Stripe not configured — go straight to success (test mode)
         clear();
         router.replace(
@@ -151,21 +162,31 @@ export default function CheckoutClient() {
         return;
       }
 
-      const stripeJson = await stripeRes.json();
-      if (!stripeRes.ok || !stripeJson.ok || !stripeJson.url) {
-        throw new Error(stripeJson?.error ?? `Stripe HTTP ${stripeRes.status}`);
+      const piJson = await piRes.json();
+      if (!piRes.ok || !piJson.ok || !piJson.clientSecret) {
+        throw new Error(piJson?.error ?? `Stripe HTTP ${piRes.status}`);
       }
 
-      // Clear cart only after we've successfully kicked off Stripe. If
-      // the user cancels on Stripe's page we land back at
-      // /checkout?orderNumber=… and the order is still in `awaiting`
-      // payment state, so they can retry without losing line items.
-      clear();
-      window.location.href = stripeJson.url;
+      // Reveal the embedded card form. Cart is cleared only after a
+      // successful charge (in onPaid), so a failed/abandoned payment
+      // keeps the line items for a retry.
+      setClientSecret(piJson.clientSecret);
+      setPhase("pay");
+      setBusy(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setBusy(false);
     }
+  }
+
+  // Called by EmbeddedPayment when the charge succeeds without a
+  // redirect. (3-D Secure flows redirect to the success page directly.)
+  function handlePaid() {
+    const orderNumber = orderNumberRef.current;
+    clear();
+    router.replace(
+      `/checkout/success?order=${encodeURIComponent(orderNumber ?? "")}`
+    );
   }
 
   return (
@@ -256,25 +277,58 @@ export default function CheckoutClient() {
           <FormSection
             title="Payment method"
             subtitle={
-              stripeReady
-                ? "Secure card payment powered by Stripe — we never store or see your card details."
-                : "Test mode is active. Real card processing is configured but waiting for Stripe credentials."
+              !stripeReady
+                ? "Test mode is active. Real card processing is configured but waiting for Stripe credentials."
+                : phase === "pay"
+                  ? "Enter your card details below. We never store or see your full card number."
+                  : "Secure card payment powered by Stripe — your card is entered on the next step."
             }
           >
-            <StripePaymentCard ready={stripeReady} />
+            {phase === "pay" && clientSecret ? (
+              <Elements
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  appearance: {
+                    theme: "stripe",
+                    variables: {
+                      colorPrimary: "#142e2a",
+                      borderRadius: "10px",
+                      fontFamily: "system-ui, sans-serif",
+                    },
+                  },
+                }}
+              >
+                <EmbeddedPayment
+                  total={subtotal}
+                  returnUrl={
+                    typeof window !== "undefined"
+                      ? `${window.location.origin}/checkout/success?order=${encodeURIComponent(
+                          orderNumberRef.current ?? "",
+                        )}`
+                      : "/checkout/success"
+                  }
+                  onPaid={handlePaid}
+                />
+              </Elements>
+            ) : (
+              <StripePaymentCard ready={stripeReady} />
+            )}
           </FormSection>
 
-          {/* Mobile: place button under the form */}
-          <div className="md:hidden">
-            <PlaceOrderButton
-              busy={busy}
-              canPlaceOrder={Boolean(canPlaceOrder)}
-              onClick={handlePlaceOrder}
-              stripeReady={stripeReady}
-              total={subtotal}
-            />
-            {error ? <ErrorBox message={error} /> : null}
-          </div>
+          {/* Mobile: continue button under the form (hidden once paying) */}
+          {phase === "form" ? (
+            <div className="md:hidden">
+              <PlaceOrderButton
+                busy={busy}
+                canPlaceOrder={Boolean(canPlaceOrder)}
+                onClick={handlePlaceOrder}
+                stripeReady={stripeReady}
+                total={subtotal}
+              />
+              {error ? <ErrorBox message={error} /> : null}
+            </div>
+          ) : null}
         </div>
 
         {/* ─────────── RIGHT: summary (sticky on desktop) ─────────── */}
@@ -336,19 +390,29 @@ export default function CheckoutClient() {
             </div>
           </div>
 
-          {/* Desktop: place button below the summary */}
+          {/* Desktop: continue button below the summary. Once we're in the
+              pay phase the Place-Order button lives inside the card form. */}
           <div className="mt-5 hidden md:block">
-            <PlaceOrderButton
-              busy={busy}
-              canPlaceOrder={Boolean(canPlaceOrder)}
-              onClick={handlePlaceOrder}
-              stripeReady={stripeReady}
-              total={subtotal}
-            />
-            {error ? <ErrorBox message={error} /> : null}
-            <p className="mt-3 text-center font-ui text-[12px] text-[#142e2a]/55">
-              By placing this test order you agree to our Terms.
-            </p>
+            {phase === "form" ? (
+              <>
+                <PlaceOrderButton
+                  busy={busy}
+                  canPlaceOrder={Boolean(canPlaceOrder)}
+                  onClick={handlePlaceOrder}
+                  stripeReady={stripeReady}
+                  total={subtotal}
+                />
+                {error ? <ErrorBox message={error} /> : null}
+                <p className="mt-3 text-center font-ui text-[12px] text-[#142e2a]/55">
+                  By continuing you agree to our Terms.
+                </p>
+              </>
+            ) : (
+              <p className="rounded-lg bg-[#f7f9f2] px-4 py-3 text-center font-ui text-[12px] text-[#142e2a]/65">
+                Complete your card details in the Payment section to place your
+                order.
+              </p>
+            )}
           </div>
         </aside>
       </div>
@@ -444,10 +508,10 @@ function PlaceOrderButton({
         })
       : null;
   const idleLabel = stripeReady
-    ? totalLabel
-      ? `Pay ${totalLabel} securely`
-      : "Pay securely with Stripe"
-    : "Place test order";
+    ? "Continue to payment"
+    : totalLabel
+      ? `Place test order · ${totalLabel}`
+      : "Place test order";
   return (
     <button
       type="button"
@@ -461,7 +525,7 @@ function PlaceOrderButton({
             aria-hidden
             className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"
           />
-          {stripeReady ? "Redirecting to Stripe…" : "Placing order…"}
+          {stripeReady ? "Loading payment…" : "Placing order…"}
         </>
       ) : (
         <>

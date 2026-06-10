@@ -199,6 +199,55 @@ export async function POST(req: NextRequest) {
         );
         break;
       }
+      // Embedded Payment Element flow — the PaymentIntent is the source
+      // of truth (no Checkout Session exists).
+      case "payment_intent.succeeded": {
+        const pi = event.data.object as {
+          id: string;
+          customer?: string | null;
+          metadata?: Record<string, string>;
+        };
+        const orderNumber = pi.metadata?.orderNumber ?? null;
+        await drizzle.execute(
+          sql.raw(
+            `UPDATE "orders"
+             SET status = 'paid',
+                 payment_status = 'paid',
+                 payment_method = 'card',
+                 stripe_payment_intent_id = ${esc(pi.id)},
+                 stripe_customer_id = ${esc(
+                   typeof pi.customer === "string" ? pi.customer : null
+                 )},
+                 updated_at = now()
+             WHERE ${
+               orderNumber
+                 ? `order_number = ${esc(orderNumber)}`
+                 : `stripe_payment_intent_id = ${esc(pi.id)}`
+             }`
+          )
+        );
+        break;
+      }
+      case "payment_intent.payment_failed": {
+        const pi = event.data.object as {
+          id: string;
+          metadata?: Record<string, string>;
+        };
+        const orderNumber = pi.metadata?.orderNumber ?? null;
+        await drizzle.execute(
+          sql.raw(
+            `UPDATE "orders"
+             SET payment_status = 'failed',
+                 updated_at = now()
+             WHERE ${
+               orderNumber
+                 ? `order_number = ${esc(orderNumber)}`
+                 : `stripe_payment_intent_id = ${esc(pi.id)}`
+             }`
+          )
+        );
+        break;
+      }
       case "charge.refunded": {
         const charge = event.data.object as { payment_intent?: string | null };
         if (!charge.payment_intent) break;
