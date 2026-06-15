@@ -47,10 +47,21 @@ export const Users: CollectionConfig = {
           args?.req?.payload?.config?.serverURL ||
           process.env.NEXT_PUBLIC_SERVER_URL ||
           "https://joodlife.com";
-        const name =
-          (args?.user as { name?: string | null } | undefined)?.name ?? null;
-        const { resetPasswordEmailHTML } = await import("@/lib/account-email");
-        return resetPasswordEmailHTML({ siteUrl, token, name });
+        const resetUrl = `${siteUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(
+          token
+        )}`;
+        // Never throw: a failure building the HTML would otherwise propagate up
+        // through Payload's forgot-password operation and fail the request.
+        try {
+          const name =
+            (args?.user as { name?: string | null } | undefined)?.name ?? null;
+          const { resetPasswordEmailHTML } = await import(
+            "@/lib/account-email"
+          );
+          return resetPasswordEmailHTML({ siteUrl, token, name });
+        } catch {
+          return `<p>Reset your JoodLife password using the link below (expires in 1 hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`;
+        }
       },
     },
   },

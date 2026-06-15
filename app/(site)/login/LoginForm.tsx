@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { describeRequestError } from "@/lib/auth-errors";
+
 const schema = z.object({
   // Normalise before validating so a stray trailing space / odd casing from
   // autofill doesn't read as "invalid", and so the value matches the
@@ -79,7 +81,8 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
       router.replace(redirectTo);
       router.refresh();
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Something went wrong");
+      console.error("Login failed:", err);
+      setServerError(describeRequestError(err, "Invalid email or password"));
     }
   });
 
