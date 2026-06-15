@@ -102,10 +102,11 @@ function resolveServerURL(): string {
  *   EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME   (sender identity)
  *   SMTP_SECURE=true                      (optional; for port 465 / TLS-on-connect)
  */
+// Only call this when SMTP_HOST is set (see the guarded `email:` below). It
+// always resolves to an adapter — never `undefined` — so the resolved type
+// stays assignable to Payload's `Promise<EmailAdapter>`.
 async function resolveEmailAdapter() {
   const host = process.env.SMTP_HOST;
-  if (!host) return undefined; // → Payload console adapter (logs only)
-
   const port = Number(process.env.SMTP_PORT ?? 587);
   const base = await nodemailerAdapter({
     defaultFromAddress:
