@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { describeRequestError } from "@/lib/auth-errors";
+
 const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(60),
   lastName: z.string().min(1, "Last name is required").max(60),
@@ -160,9 +162,8 @@ export default function SignupForm() {
         router.replace("/profile");
         router.refresh();
       } catch (err) {
-        setServerError(
-          err instanceof Error ? err.message : "Something went wrong"
-        );
+        console.error("Signup failed:", err);
+        setServerError(describeRequestError(err, "Could not create account"));
       }
     }
   );

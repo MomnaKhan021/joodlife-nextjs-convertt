@@ -102,15 +102,18 @@ function resolveServerURL(): string {
  *   EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME   (sender identity)
  *   SMTP_SECURE=true                      (optional; for port 465 / TLS-on-connect)
  */
-function resolveEmailAdapter() {
+async function resolveEmailAdapter() {
   const host = process.env.SMTP_HOST;
   if (!host) return undefined; // → Payload console adapter (logs only)
 
   const port = Number(process.env.SMTP_PORT ?? 587);
-  return nodemailerAdapter({
+  const base = await nodemailerAdapter({
     defaultFromAddress:
       process.env.EMAIL_FROM_ADDRESS || "no-reply@joodlife.com",
     defaultFromName: process.env.EMAIL_FROM_NAME || "JoodLife",
+    // Don't verify the transport at boot — on serverless a verify against an
+    // unreachable SMTP host hangs the cold start.
+    skipVerify: true,
     transportOptions: {
       host,
       port,
@@ -119,8 +122,45 @@ function resolveEmailAdapter() {
       auth: process.env.SMTP_USER
         ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
         : undefined,
+      // Fail fast instead of hanging the (time-limited) serverless function
+      // when SMTP is misconfigured or unreachable. Kept well under Vercel's
+      // default 10s function limit.
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000,
     },
   });
+
+  // Make sending fault-tolerant. Payload's forgot-password operation `await`s
+  // `sendEmail` inline with NO try/catch, so a slow or failing SMTP would
+  // otherwise time out / 500 the whole request (this is exactly the
+  // "Something went wrong" on the forgot-password page). We bound it with a
+  // hard timeout and swallow errors: the reset token is already generated and
+  // stored, so the flow should succeed regardless of email delivery, and we
+  // never reveal whether an address is registered. Delivery failures are
+  // logged for diagnostics.
+  const wrapped: typeof base = (deps) => {
+    const instance = base(deps);
+    return {
+      ...instance,
+      sendEmail: async (message) => {
+        try {
+          await Promise.race([
+            instance.sendEmail(message),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("sendEmail timed out")), 7000)
+            ),
+          ]);
+        } catch (err) {
+          deps?.payload?.logger?.error?.({
+            msg: "Email send failed (non-fatal)",
+            err,
+          });
+        }
+      },
+    };
+  };
+  return wrapped;
 }
 
 /**
@@ -167,7 +207,10 @@ function resolveSecret(): string {
 
 export default buildConfig({
   serverURL: resolveServerURL(),
-  email: resolveEmailAdapter(),
+  // Only pass a (Promise) adapter when SMTP is configured. Payload calls the
+  // awaited value as a function, so resolving to `undefined` would crash init;
+  // passing literal `undefined` correctly falls back to the console adapter.
+  email: process.env.SMTP_HOST ? resolveEmailAdapter() : undefined,
   admin: {
     user: Users.slug,
     theme: "light",

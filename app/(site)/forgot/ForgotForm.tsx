@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { describeRequestError } from "@/lib/auth-errors";
+
 const schema = z.object({
   // Mirror the signup/login normalisation so the address matches the stored
   // (lowercased + trimmed) email and a stray space doesn't read as invalid.
@@ -54,8 +56,12 @@ export default function ForgotForm() {
       }
       setSentTo(email);
     } catch (err) {
+      console.error("Forgot-password request failed:", err);
       setServerError(
-        err instanceof Error ? err.message : "Something went wrong"
+        describeRequestError(
+          err,
+          "Could not send the reset email. Please try again."
+        )
       );
     }
   });
