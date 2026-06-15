@@ -7,50 +7,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-const schema = z.object({
-  // Normalise before validating so a stray trailing space / odd casing from
-  // autofill doesn't read as "invalid", and so the value matches the
-  // lowercased+trimmed email Payload stored at signup (login is case- and
-  // whitespace-insensitive server-side; we mirror that here).
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(1, "Email is required")
-    .email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+const schema = z
+  .object({
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type FormValues = z.infer<typeof schema>;
 
-/**
- * Pull the most specific message out of a Payload error body. Payload nests
- * the real per-field reason inside `errors[0].data.errors[]`; the top-level
- * `errors[0].message` is only a generic wrapper ("The following field is
- * invalid: email") that misleadingly reads as a bad-format error. See the
- * matching helper in the signup form.
- */
-function messageFromPayloadError(body: unknown): string {
-  const b = body as
-    | {
-        errors?: Array<{
-          message?: string;
-          data?: { errors?: Array<{ message?: string }> };
-        }>;
-        message?: string;
-      }
-    | undefined;
-
-  const top = b?.errors?.[0];
-  return (
-    top?.data?.errors?.[0]?.message ??
-    top?.message ??
-    b?.message ??
-    "Invalid email or password"
-  );
-}
-
-export default function LoginForm({ redirectTo }: { redirectTo: string }) {
+export default function ResetPasswordForm({ token }: { token: string }) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -63,58 +32,65 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
     mode: "onTouched",
   });
 
-  const onSubmit = handleSubmit(async (values) => {
+  const onSubmit = handleSubmit(async ({ password }) => {
     setServerError(null);
     try {
-      const res = await fetch("/api/users/login", {
+      const res = await fetch("/api/users/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(values),
+        body: JSON.stringify({ token, password }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(messageFromPayloadError(body));
+        throw new Error(
+          body?.errors?.[0]?.message ??
+            body?.message ??
+            "This reset link is invalid or has expired. Please request a new one."
+        );
       }
-      router.replace(redirectTo);
+      // reset-password sets the auth cookie, i.e. logs the user straight in.
+      router.replace("/profile");
       router.refresh();
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Something went wrong");
+      setServerError(
+        err instanceof Error ? err.message : "Something went wrong"
+      );
     }
   });
+
+  // No token in the link → can't reset. Steer the user back to /forgot.
+  if (!token) {
+    return (
+      <div className="w-full">
+        <p
+          role="alert"
+          className="rounded-md bg-red-50 px-3 py-2 font-ui text-[13px] text-red-700"
+        >
+          This reset link is missing its token or is invalid. Please request a
+          new password reset.
+        </p>
+        <p className="mt-6 w-full text-center font-ui text-[14px] text-[#142e2a]/75 md:text-left">
+          <Link
+            href="/forgot"
+            className="font-semibold text-[#142e2a] underline underline-offset-2 decoration-[1px] hover:text-[#0c2421]"
+          >
+            Request a new link
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex w-full flex-col gap-5">
       <label className="flex flex-col gap-2">
         <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-          Email
-        </span>
-        <input
-          type="email"
-          autoComplete="email"
-          placeholder="mail@abc.com"
-          aria-invalid={Boolean(errors.email) || undefined}
-          {...register("email")}
-          className={`h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] placeholder:text-[#142e2a]/35 outline-none ring-1 transition-shadow focus:ring-2 ${
-            errors.email
-              ? "ring-red-500/60 focus:ring-red-500/70"
-              : "ring-[#142e2a]/15 focus:ring-[#142e2a]/40"
-          }`}
-        />
-        {errors.email ? (
-          <span role="alert" className="font-ui text-[12px] text-red-700">
-            {errors.email.message}
-          </span>
-        ) : null}
-      </label>
-
-      <label className="flex flex-col gap-2">
-        <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-          password
+          New password
         </span>
         <input
           type="password"
-          autoComplete="current-password"
+          autoComplete="new-password"
           placeholder="••••••••••"
           aria-invalid={Boolean(errors.password) || undefined}
           {...register("password")}
@@ -131,14 +107,28 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         ) : null}
       </label>
 
-      <div className="flex justify-end">
-        <Link
-          href="/forgot"
-          className="font-ui text-[13px] font-medium text-[#142e2a] underline underline-offset-2 decoration-[1px] hover:text-[#0c2421]"
-        >
-          Forgot your password?
-        </Link>
-      </div>
+      <label className="flex flex-col gap-2">
+        <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
+          Confirm new password
+        </span>
+        <input
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••••"
+          aria-invalid={Boolean(errors.confirmPassword) || undefined}
+          {...register("confirmPassword")}
+          className={`h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] placeholder:text-[#142e2a]/35 outline-none ring-1 transition-shadow focus:ring-2 ${
+            errors.confirmPassword
+              ? "ring-red-500/60 focus:ring-red-500/70"
+              : "ring-[#142e2a]/15 focus:ring-[#142e2a]/40"
+          }`}
+        />
+        {errors.confirmPassword ? (
+          <span role="alert" className="font-ui text-[12px] text-red-700">
+            {errors.confirmPassword.message}
+          </span>
+        ) : null}
+      </label>
 
       {serverError ? (
         <p
@@ -160,10 +150,10 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
               aria-hidden
               className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"
             />
-            Signing in…
+            Updating…
           </>
         ) : (
-          "Log Into Your Account"
+          "Set new password"
         )}
       </button>
     </form>

@@ -9,7 +9,19 @@ import { z } from "zod";
 const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(60),
   lastName: z.string().min(1, "Last name is required").max(60),
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  // Normalise before validating: browsers, password managers and mobile
+  // autofill routinely append a trailing space (and inconsistent casing) to
+  // the value. `.email()` runs *after* these transforms, so a perfectly
+  // valid address like "user@gmail.com " no longer fails as "invalid".
+  // trim()+toLowerCase() also mirrors exactly how Payload stores the email
+  // (auth email field beforeChange) and how it matches on login, so the
+  // account we create here is always findable at sign-in.
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(1, "Email is required")
+    .email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -60,6 +72,43 @@ function Field({
   );
 }
 
+/**
+ * Pull the most specific, human-readable message out of a Payload error body.
+ *
+ * Payload wraps field errors in a generic envelope:
+ *
+ *   { errors: [ {
+ *       name: "ValidationError",
+ *       message: "The following field is invalid: email",   // generic wrapper
+ *       data: { errors: [ { path: "email",
+ *               message: "A user with the given email is already registered." } ] }
+ *   } ] }
+ *
+ * Surfacing only the top-level wrapper makes a valid-but-already-registered
+ * address read as "your email is invalid", which is exactly the confusing
+ * behaviour users reported. Prefer the nested per-field message so the user
+ * sees the real reason (and knows to log in instead).
+ */
+function messageFromPayloadError(body: unknown): string {
+  const b = body as
+    | {
+        errors?: Array<{
+          message?: string;
+          data?: { errors?: Array<{ message?: string }> };
+        }>;
+        message?: string;
+      }
+    | undefined;
+
+  const top = b?.errors?.[0];
+  return (
+    top?.data?.errors?.[0]?.message ??
+    top?.message ??
+    b?.message ??
+    "Could not create account"
+  );
+}
+
 export default function SignupForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -93,11 +142,7 @@ export default function SignupForm() {
         });
         if (!createRes.ok) {
           const body = await createRes.json().catch(() => ({}));
-          throw new Error(
-            body?.errors?.[0]?.message ??
-              body?.message ??
-              "Could not create account"
-          );
+          throw new Error(messageFromPayloadError(body));
         }
 
         // 2) Auto-login
