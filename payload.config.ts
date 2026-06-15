@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { nodemailerAdapter } from "@payloadcms/email-nodemailer";
 
 import { Users } from "./src/payload/collections/Users";
 import { Products } from "./src/payload/collections/Products";
@@ -63,6 +64,66 @@ function resolveDatabaseUrl(): string {
 const DATABASE_URL = resolveDatabaseUrl();
 
 /**
+ * Resolve the canonical public URL for this deployment. Payload uses
+ * `serverURL` to build absolute links in account emails (verify-email /
+ * reset-password) and elsewhere, so it must point at the real site — not a
+ * per-deploy Vercel preview host. Order of preference:
+ *   1. NEXT_PUBLIC_SERVER_URL / PAYLOAD_PUBLIC_SERVER_URL (explicit, stable)
+ *   2. VERCEL_PROJECT_PRODUCTION_URL (stable production host on Vercel)
+ *   3. VERCEL_URL (per-deploy host — last resort)
+ *   4. localhost for dev
+ */
+function resolveServerURL(): string {
+  if (process.env.NEXT_PUBLIC_SERVER_URL) return process.env.NEXT_PUBLIC_SERVER_URL;
+  if (process.env.PAYLOAD_PUBLIC_SERVER_URL)
+    return process.env.PAYLOAD_PUBLIC_SERVER_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+}
+
+/**
+ * Configure how Payload sends transactional email (welcome / account-creation,
+ * password reset, etc).
+ *
+ * IMPORTANT: when no email adapter is configured, Payload silently falls back
+ * to a "console" adapter that only logs "Email attempted without being
+ * configured" and sends nothing — which is why account-creation emails were
+ * never actually arriving. We wire up nodemailer/SMTP here so mail really goes
+ * out once SMTP credentials are present.
+ *
+ * Gated on SMTP_HOST so local/dev/test boots stay offline-safe: without SMTP
+ * env vars we return `undefined`, leaving Payload's console adapter in place
+ * (mail is logged, never sent) instead of forcing a network connection at boot.
+ *
+ * Required env to actually send:
+ *   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+ *   EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME   (sender identity)
+ *   SMTP_SECURE=true                      (optional; for port 465 / TLS-on-connect)
+ */
+function resolveEmailAdapter() {
+  const host = process.env.SMTP_HOST;
+  if (!host) return undefined; // → Payload console adapter (logs only)
+
+  const port = Number(process.env.SMTP_PORT ?? 587);
+  return nodemailerAdapter({
+    defaultFromAddress:
+      process.env.EMAIL_FROM_ADDRESS || "no-reply@joodlife.com",
+    defaultFromName: process.env.EMAIL_FROM_NAME || "JoodLife",
+    transportOptions: {
+      host,
+      port,
+      // 465 uses implicit TLS; 587/25 upgrade via STARTTLS.
+      secure: process.env.SMTP_SECURE === "true" || port === 465,
+      auth: process.env.SMTP_USER
+        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+        : undefined,
+    },
+  });
+}
+
+/**
  * Resolve a non-empty Payload secret. Order:
  *  1. PAYLOAD_SECRET (explicit, recommended)
  *  2. Any common alternative auth-secret name (NEXTAUTH_SECRET, JWT_SECRET, AUTH_SECRET)
@@ -105,6 +166,8 @@ function resolveSecret(): string {
 }
 
 export default buildConfig({
+  serverURL: resolveServerURL(),
+  email: resolveEmailAdapter(),
   admin: {
     user: Users.slug,
     theme: "light",

@@ -36,6 +36,23 @@ export const Users: CollectionConfig = {
       sameSite: "Lax",
       secure: process.env.NODE_ENV === "production",
     },
+    forgotPassword: {
+      // Point the reset link at the STOREFRONT reset page rather than
+      // Payload's default `/admin/reset/:token` route, so customers (who
+      // never see the admin panel) land on a branded page.
+      generateEmailSubject: () => "Reset your JoodLife password",
+      generateEmailHTML: async (args) => {
+        const token = args?.token ?? "";
+        const siteUrl =
+          args?.req?.payload?.config?.serverURL ||
+          process.env.NEXT_PUBLIC_SERVER_URL ||
+          "https://joodlife.com";
+        const name =
+          (args?.user as { name?: string | null } | undefined)?.name ?? null;
+        const { resetPasswordEmailHTML } = await import("@/lib/account-email");
+        return resetPasswordEmailHTML({ siteUrl, token, name });
+      },
+    },
   },
   admin: {
     useAsTitle: "email",
@@ -73,6 +90,31 @@ export const Users: CollectionConfig = {
           );
         } catch {
           // Never let HubSpot failures break user create/update
+        }
+        return doc;
+      },
+      // Send the account-creation ("welcome") email exactly once, on create.
+      // Fire-and-forget: a mail failure must never break signup. Actual
+      // delivery depends on the configured email adapter (SMTP in prod;
+      // console-only in dev when SMTP env vars are absent).
+      async ({ doc, operation, req }) => {
+        if (operation !== "create" || !doc?.email) return doc;
+        try {
+          const { sendWelcomeEmail } = await import("@/lib/account-email");
+          void sendWelcomeEmail(req.payload, {
+            email: String(doc.email),
+            name: doc.name ?? null,
+          }).catch((err) => {
+            req.payload.logger.error({
+              msg: "Welcome email failed to send",
+              err,
+            });
+          });
+        } catch (err) {
+          req.payload.logger.error({
+            msg: "Welcome email could not be dispatched",
+            err,
+          });
         }
         return doc;
       },
