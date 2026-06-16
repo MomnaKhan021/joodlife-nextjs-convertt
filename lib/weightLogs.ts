@@ -23,8 +23,19 @@ export type WeightLogEntry = {
   heightCm: number | null;
   /** BMI derived from weight + height, rounded to 1 dp. */
   bmi: number | null;
-  /** "draft" | "submitted". */
+  /** "draft" | "submitted" | "logged". */
   status: string | null;
+  /** Where this point came from: a consultation or a manual weight log. */
+  source?: "consultation" | "log";
+};
+
+/** A single change-vs-previous indicator. */
+export type WeightChange = {
+  /** kg difference vs the previous entry (positive = gain, negative = loss). */
+  deltaKg: number;
+  direction: "gained" | "lost" | "same";
+  /** Human label e.g. "+2 kg gained", "-1.5 kg lost", "No change". */
+  label: string;
 };
 
 export type WeightLogSummary = {
@@ -37,7 +48,25 @@ export type WeightLogSummary = {
   /** latest − start (negative = loss). */
   changeKg: number | null;
   latestBmi: number | null;
+  /** Change of the latest entry vs the one immediately before it. */
+  latestChange: WeightChange | null;
 };
+
+/** Build a human-readable change indicator from a kg delta. */
+export function describeChange(deltaKg: number): WeightChange {
+  const rounded = Math.round(deltaKg * 10) / 10;
+  if (rounded > 0) {
+    return { deltaKg: rounded, direction: "gained", label: `+${rounded} kg gained` };
+  }
+  if (rounded < 0) {
+    return {
+      deltaKg: rounded,
+      direction: "lost",
+      label: `${rounded} kg lost`,
+    };
+  }
+  return { deltaKg: 0, direction: "same", label: "No change" };
+}
 
 function num(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
@@ -57,14 +86,7 @@ type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
 export async function getWeightLogsForEmail(
   email: string,
 ): Promise<WeightLogSummary> {
-  const empty: WeightLogSummary = {
-    email,
-    entries: [],
-    startWeightKg: null,
-    latestWeightKg: null,
-    changeKg: null,
-    latestBmi: null,
-  };
+  const empty: WeightLogSummary = emptySummary(email);
   const clean = email?.trim().toLowerCase();
   if (!clean) return empty;
 
@@ -117,17 +139,132 @@ export async function getWeightLogsForEmail(
       heightCm,
       bmi: bmiFrom(weightKg, heightCm),
       status: (r.status as string) ?? null,
+      source: "consultation",
     });
   }
 
-  const weights = entries.map((e) => e.weightKg!).filter((n) => n !== null);
+  return summarize(clean, entries);
+}
+
+/** Empty summary shell. */
+function emptySummary(email: string): WeightLogSummary {
+  return {
+    email,
+    entries: [],
+    startWeightKg: null,
+    latestWeightKg: null,
+    changeKg: null,
+    latestBmi: null,
+    latestChange: null,
+  };
+}
+
+/**
+ * Given chronologically-sorted entries, fill BMI (carrying the most recent
+ * known height forward so manual logs without a height still get a BMI) and
+ * compute the start/latest/total-change/latest-BMI plus the latest-vs-previous
+ * change indicator.
+ */
+function summarize(email: string, sorted: WeightLogEntry[]): WeightLogSummary {
+  if (sorted.length === 0) return emptySummary(email);
+
+  // Carry the last known height forward to derive BMI for later points.
+  let lastHeight: number | null = null;
+  for (const e of sorted) {
+    if (e.heightCm !== null) lastHeight = e.heightCm;
+    else if (lastHeight !== null) e.bmi = bmiFrom(e.weightKg, lastHeight);
+  }
+
+  const weights = sorted
+    .map((e) => e.weightKg)
+    .filter((n): n is number => n !== null);
   const startWeightKg = weights.length ? weights[0] : null;
   const latestWeightKg = weights.length ? weights[weights.length - 1] : null;
   const changeKg =
     startWeightKg !== null && latestWeightKg !== null
       ? Math.round((latestWeightKg - startWeightKg) * 10) / 10
       : null;
-  const latestBmi = entries.length ? entries[entries.length - 1].bmi : null;
+  const latestBmi = sorted[sorted.length - 1].bmi;
 
-  return { email: clean, entries, startWeightKg, latestWeightKg, changeKg, latestBmi };
+  let latestChange: WeightChange | null = null;
+  if (sorted.length >= 2) {
+    const last = sorted[sorted.length - 1].weightKg;
+    const prev = sorted[sorted.length - 2].weightKg;
+    if (last !== null && prev !== null) latestChange = describeChange(last - prev);
+  }
+
+  return {
+    email,
+    entries: sorted,
+    startWeightKg,
+    latestWeightKg,
+    changeKg,
+    latestBmi,
+    latestChange,
+  };
+}
+
+/**
+ * Combined weight history for a user: manual weight-log entries
+ * (POST /api/weight-logs) merged with weights captured in consultations,
+ * sorted oldest→newest. This is the source for the account chart/summary.
+ */
+export async function getCombinedWeightLogs(
+  email: string,
+): Promise<WeightLogSummary> {
+  const clean = email?.trim().toLowerCase();
+  if (!clean) return emptySummary(email);
+
+  // Consultation-derived weights (reuses the existing reader).
+  const consult = await getWeightLogsForEmail(clean);
+
+  // Manual weight-log entries from the dedicated table.
+  const manual: WeightLogEntry[] = [];
+  try {
+    const payload = await getPayloadInstance();
+    const drizzle = (
+      payload.db as unknown as {
+        drizzle?: { execute?: (q: unknown) => Promise<unknown> };
+      }
+    ).drizzle as DrizzleLike | undefined;
+    if (drizzle?.execute) {
+      const { sql } = (await import("drizzle-orm")) as {
+        sql: { raw: (s: string) => unknown };
+      };
+      const safe = clean.replace(/'/g, "''");
+      const result = (await drizzle.execute(
+        sql.raw(`
+          SELECT id, weight_kg, logged_at
+          FROM "weight_logs"
+          WHERE lower(customer_email) = '${safe}'
+          ORDER BY logged_at ASC
+        `),
+      )) as
+        | { rows?: Array<Record<string, unknown>> }
+        | Array<Record<string, unknown>>;
+      const rows = Array.isArray(result) ? result : (result.rows ?? []);
+      for (const r of rows) {
+        const weightKg = num(r.weight_kg);
+        if (weightKg === null) continue;
+        manual.push({
+          id: Number(r.id),
+          date: r.logged_at
+            ? new Date(r.logged_at as string).toISOString()
+            : new Date().toISOString(),
+          weightKg,
+          heightCm: null,
+          bmi: null,
+          status: "logged",
+          source: "log",
+        });
+      }
+    }
+  } catch {
+    // table may not exist yet / DB unavailable — fall back to consultations only
+  }
+
+  const merged = [...consult.entries, ...manual].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+  return summarize(clean, merged);
 }
