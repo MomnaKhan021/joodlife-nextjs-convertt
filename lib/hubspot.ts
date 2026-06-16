@@ -52,6 +52,62 @@ export function isHubSpotEnabled(): boolean {
   return !!token();
 }
 
+/**
+ * Read the granted scopes (and hub info) for the configured token.
+ * Uses HubSpot's token-info endpoint, which takes the token in the path
+ * and needs no auth header. Lets a diagnostic confirm whether the
+ * private app has e.g. `crm.objects.notes.write` (required for weight-log
+ * notes) without trial-and-error.
+ */
+export async function getHubSpotTokenInfo(): Promise<
+  HubSpotResult<{ scopes: string[]; hubId?: number; appId?: number; userId?: number }>
+> {
+  const t = token();
+  if (!t) return { ok: false, status: 0, error: "HUBSPOT_ACCESS_TOKEN missing" };
+  try {
+    const res = await fetch(
+      `${HUBSPOT_BASE}/oauth/v1/access-tokens/${encodeURIComponent(t)}`,
+      { cache: "no-store" }
+    );
+    const text = await res.text();
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+    if (!res.ok) {
+      return {
+        ok: false,
+        status: res.status,
+        error:
+          (data as { message?: string })?.message ?? text ?? "token info failed",
+      };
+    }
+    const d = data as {
+      scopes?: string[];
+      hub_id?: number;
+      app_id?: number;
+      user_id?: number;
+    };
+    return {
+      ok: true,
+      data: {
+        scopes: Array.isArray(d.scopes) ? d.scopes : [],
+        hubId: d.hub_id,
+        appId: d.app_id,
+        userId: d.user_id,
+      },
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 0,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 async function hsFetch<T>(
   path: string,
   init: RequestInit = {}
