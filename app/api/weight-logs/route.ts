@@ -14,6 +14,7 @@ import { z } from "zod";
 
 import { getCurrentUser } from "@/lib/auth";
 import { getPayloadInstance } from "@/lib/payload";
+import { ensureWeightLogsTable } from "@/lib/weightLogs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -73,6 +74,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const payload = await getPayloadInstance();
+    // Production never auto-creates the table (push is dev-only), so make sure
+    // it exists before the first insert.
+    await ensureWeightLogsTable();
     const userId = Number.isNaN(Number(user.id)) ? user.id : Number(user.id);
     const doc = await payload.create({
       collection: "weight-logs",
@@ -107,6 +111,7 @@ export async function GET() {
   }
   try {
     const payload = await getPayloadInstance();
+    await ensureWeightLogsTable();
     const res = await payload.find({
       collection: "weight-logs",
       where: { customerEmail: { equals: user.email.toLowerCase() } },

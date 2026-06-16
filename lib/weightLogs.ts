@@ -3,6 +3,70 @@ import "server-only";
 import { getPayloadInstance } from "@/lib/payload";
 
 /**
+ * Ensure the `weight_logs` table exists.
+ *
+ * Payload's Postgres adapter only auto-creates schema (`push`) when
+ * NODE_ENV !== "production" (see @payloadcms/db-postgres connect.js), and
+ * this project has no migrations wired up — so a newly-added collection's
+ * table is never created on the live (Vercel) database. Without this, the
+ * first weight save 500s with `relation "weight_logs" does not exist`.
+ *
+ * This runs the exact DDL Payload generates for the collection (verified
+ * against a dev push), idempotently (IF NOT EXISTS), once per server
+ * instance. Safe to call on every write.
+ */
+let weightLogsTableEnsured = false;
+export async function ensureWeightLogsTable(): Promise<void> {
+  if (weightLogsTableEnsured) return;
+  const payload = await getPayloadInstance();
+  const drizzle = (
+    payload.db as unknown as {
+      drizzle?: { execute?: (q: unknown) => Promise<unknown> };
+    }
+  ).drizzle as { execute: (q: unknown) => Promise<unknown> } | undefined;
+  if (!drizzle?.execute) return;
+  const { sql } = (await import("drizzle-orm")) as {
+    sql: { raw: (s: string) => unknown };
+  };
+
+  // Table first (critical — let failures surface to the caller).
+  await drizzle.execute(
+    sql.raw(`
+      CREATE TABLE IF NOT EXISTS "weight_logs" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "user_id" integer NOT NULL,
+        "customer_email" varchar NOT NULL,
+        "weight_kg" numeric NOT NULL,
+        "logged_at" timestamp(3) with time zone NOT NULL,
+        "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+        "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  );
+
+  // FK + indexes are best-effort (idempotent; never block a save).
+  const extras = [
+    `DO $$ BEGIN
+       ALTER TABLE "weight_logs"
+         ADD CONSTRAINT "weight_logs_user_id_users_id_fk"
+         FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+     EXCEPTION WHEN others THEN null; END $$`,
+    `CREATE INDEX IF NOT EXISTS "weight_logs_user_idx" ON "weight_logs" ("user_id")`,
+    `CREATE INDEX IF NOT EXISTS "weight_logs_customer_email_idx" ON "weight_logs" ("customer_email")`,
+    `CREATE INDEX IF NOT EXISTS "weight_logs_updated_at_idx" ON "weight_logs" ("updated_at")`,
+    `CREATE INDEX IF NOT EXISTS "weight_logs_created_at_idx" ON "weight_logs" ("created_at")`,
+  ];
+  for (const stmt of extras) {
+    try {
+      await drizzle.execute(sql.raw(stmt));
+    } catch {
+      // ignore — table is what matters for writes
+    }
+  }
+  weightLogsTableEnsured = true;
+}
+
+/**
  * Weight-log history for a signed-in user.
  *
  * Source of truth is the `consultations` table — every consultation the
