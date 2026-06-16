@@ -213,6 +213,18 @@ export default buildConfig({
   // awaited value as a function, so resolving to `undefined` would crash init;
   // passing literal `undefined` correctly falls back to the console adapter.
   email: process.env.SMTP_HOST ? resolveEmailAdapter() : undefined,
+  // On boot, make sure the products table/columns match the collection.
+  // Production never auto-pushes schema (push is dev-only) and there are no
+  // migrations, so new fields would otherwise be missing in prod and break
+  // the products admin. Additive + idempotent; failures are logged, never throw.
+  onInit: async (payload) => {
+    try {
+      const { ensureProductsSchema } = await import("@/lib/ensureSchema");
+      await ensureProductsSchema(payload);
+    } catch (err) {
+      payload.logger?.error?.({ msg: "ensureProductsSchema (onInit) failed", err });
+    }
+  },
   admin: {
     user: Users.slug,
     theme: "light",

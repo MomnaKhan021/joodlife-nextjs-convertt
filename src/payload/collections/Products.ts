@@ -25,7 +25,8 @@ export const Products: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: [
       "title",
-      "displayOrder",
+      "treatment",
+      "tag",
       "fromPrice",
       "category",
       "isActive",
@@ -103,6 +104,41 @@ export const Products: CollectionConfig = {
         { label: "Supplement", value: "supplement" },
         { label: "Accessory", value: "accessory" },
         { label: "Other", value: "other" },
+      ],
+    },
+    /* ---------------------------------------------------------------- */
+    /* Treatment differentiation — which condition/funnel a product is   */
+    /* for. Matches the site's /weight-loss, /erectile-dysfunction and   */
+    /* /period-delay routes so products can be filtered per treatment.   */
+    /* ---------------------------------------------------------------- */
+    {
+      type: "row",
+      fields: [
+        {
+          name: "treatment",
+          type: "select",
+          // Optional so existing products keep validating; set it to slot a
+          // product into a treatment category.
+          options: [
+            { label: "Weight loss", value: "weight-loss" },
+            { label: "Erectile dysfunction", value: "erectile-dysfunction" },
+            { label: "Period delay", value: "period-delay" },
+          ],
+          admin: {
+            width: "50%",
+            description:
+              "Treatment category this product belongs to. Used to differentiate products across the site (weight loss / erectile dysfunction / period delay).",
+          },
+        },
+        {
+          name: "tag",
+          type: "text",
+          admin: {
+            width: "50%",
+            description:
+              'Free-form tag for grouping or filtering, e.g. "glp-1", "best-seller". Optional.',
+          },
+        },
       ],
     },
     {
