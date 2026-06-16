@@ -482,6 +482,37 @@ export async function syncWeightLogToContact(input: {
   });
 }
 
+/**
+ * Read back the weight properties currently stored on a contact — so a
+ * diagnostic can confirm the values actually landed in HubSpot (vs. just
+ * not being shown on the record layout).
+ */
+export async function readContactWeightProps(
+  email: string
+): Promise<
+  HubSpotResult<{ contactId: string | null; props: Record<string, string | null> }>
+> {
+  if (!email) return { ok: false, status: 400, error: "email required" };
+  const res = await hsFetch<{
+    results: Array<{ id: string; properties: Record<string, string | null> }>;
+  }>(`/crm/v3/objects/contacts/search`, {
+    method: "POST",
+    body: JSON.stringify({
+      filterGroups: [
+        { filters: [{ propertyName: "email", operator: "EQ", value: email }] },
+      ],
+      properties: [WEIGHT_PROP_LATEST, WEIGHT_PROP_DATE, WEIGHT_PROP_HISTORY],
+      limit: 1,
+    }),
+  });
+  if (!res.ok) return res;
+  const c = res.data.results?.[0];
+  return {
+    ok: true,
+    data: { contactId: c?.id ?? null, props: c?.properties ?? {} },
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* Bulk-pull helpers — admin sync endpoints                            */
 /* ------------------------------------------------------------------ */

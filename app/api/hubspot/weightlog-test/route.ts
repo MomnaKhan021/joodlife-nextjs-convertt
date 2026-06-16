@@ -19,6 +19,7 @@ import {
   isHubSpotEnabled,
   ensureWeightContactProperties,
   syncWeightLogToContact,
+  readContactWeightProps,
   WEIGHT_PROP_LATEST,
   WEIGHT_PROP_DATE,
   WEIGHT_PROP_HISTORY,
@@ -54,18 +55,33 @@ export async function GET(req: NextRequest) {
     history: WEIGHT_PROP_HISTORY,
   };
 
+  const email = (user as unknown as { email?: string }).email ?? "";
   const doWrite = req.nextUrl.searchParams.get("write") === "1";
   if (!doWrite) {
+    // Read back what's actually stored on this admin's contact, so you can
+    // see the values regardless of whether they're pinned to the record view.
+    const read = await readContactWeightProps(email);
     return NextResponse.json({
-      ok: true,
+      ok: read.ok,
       hasToken: true,
       method: "contact properties",
       properties,
-      hint: "Add ?write=1 to run a live test write to your own contact and confirm it works.",
+      contact: email,
+      storedInHubSpot: read.ok
+        ? {
+            contactId: read.data.contactId,
+            latestWeightKg: read.data.props[WEIGHT_PROP_LATEST] ?? null,
+            lastLoggedAt: read.data.props[WEIGHT_PROP_DATE] ?? null,
+            history: read.data.props[WEIGHT_PROP_HISTORY] ?? null,
+          }
+        : { error: read.error, status: read.status },
+      hint:
+        read.ok && read.data.props[WEIGHT_PROP_LATEST]
+          ? "These values ARE stored on your contact. If you don't see them on the record, they just need adding to the layout — see steps below. Add ?write=1 to push a fresh test value."
+          : "No weight value found yet on this contact. Add ?write=1 to push a test value, or log a weight on /profile/weight-logs.",
     });
   }
 
-  const email = (user as unknown as { email?: string }).email ?? "";
   const res = await syncWeightLogToContact({
     email,
     weightKg: 80,
