@@ -81,24 +81,24 @@ export const WeightLogs: CollectionConfig = {
       async ({ doc, operation, req }) => {
         if (operation !== "create" || !doc?.customerEmail) return doc;
         try {
-          const { fireHubSpot, addNoteToContact } = await import(
+          const { fireHubSpot, syncWeightLogToContact } = await import(
             "@/lib/hubspot"
           );
           const customerId =
             typeof doc.user === "object" && doc.user
               ? (doc.user as { id?: unknown }).id
               : doc.user;
-          const when = doc.loggedAt
-            ? new Date(doc.loggedAt as string).toISOString().slice(0, 10)
-            : "today";
-          const noteBody =
-            `JoodLife weight log\n` +
-            `Weight: ${doc.weightKg} kg\n` +
-            `Date: ${when}\n` +
-            `Customer ID: ${customerId ?? "—"}\n` +
-            `Email: ${doc.customerEmail}`;
-          void fireHubSpot("weightlog:note", () =>
-            addNoteToContact(String(doc.customerEmail), noteBody)
+          // Store the weight on the customer's HubSpot contact as properties
+          // (latest weight, date, appended history). Uses only the
+          // contacts.write scope — no notes scope required.
+          void fireHubSpot("weightlog:contact", () =>
+            syncWeightLogToContact({
+              email: String(doc.customerEmail),
+              weightKg: Number(doc.weightKg),
+              loggedAt:
+                typeof doc.loggedAt === "string" ? doc.loggedAt : null,
+              customerId: customerId as string | number | null,
+            })
           );
         } catch (err) {
           req.payload.logger?.error?.({

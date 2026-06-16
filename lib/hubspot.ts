@@ -368,6 +368,121 @@ export async function addNoteToContact(
 }
 
 /* ------------------------------------------------------------------ */
+/* Weight logs → contact properties                                    */
+/* ------------------------------------------------------------------ */
+
+/** Custom contact property names used to store weight-log data. */
+export const WEIGHT_PROP_LATEST = "jood_latest_weight_kg";
+export const WEIGHT_PROP_DATE = "jood_last_weight_logged_at";
+export const WEIGHT_PROP_HISTORY = "jood_weight_log_history";
+
+/**
+ * Create the weight custom contact properties if they don't exist yet.
+ * Needs the `crm.schemas.contacts.write` scope. Best-effort: if the scope
+ * is missing, the properties must be created once by hand in HubSpot
+ * (Settings → Properties) with these exact internal names — the write
+ * below then populates them with `crm.objects.contacts.write` alone.
+ */
+export async function ensureWeightContactProperties(): Promise<
+  HubSpotResult<{ ensured: boolean }>
+> {
+  const defs = [
+    {
+      name: WEIGHT_PROP_LATEST,
+      label: "Latest weight (kg)",
+      type: "number",
+      fieldType: "number",
+      groupName: "contactinformation",
+    },
+    {
+      name: WEIGHT_PROP_DATE,
+      label: "Last weight logged",
+      type: "date",
+      fieldType: "date",
+      groupName: "contactinformation",
+    },
+    {
+      name: WEIGHT_PROP_HISTORY,
+      label: "Weight log history",
+      type: "string",
+      fieldType: "textarea",
+      groupName: "contactinformation",
+    },
+  ];
+  for (const def of defs) {
+    // 409 = already exists (fine); 403 = no schema scope (fall back to manual).
+    await hsFetch(`/crm/v3/properties/contacts`, {
+      method: "POST",
+      body: JSON.stringify(def),
+    });
+  }
+  return { ok: true, data: { ensured: true } };
+}
+
+/**
+ * Sync one weight-log entry to the customer's HubSpot contact as
+ * properties (a "column" on the contact record), using only
+ * `crm.objects.contacts.write`:
+ *   - jood_latest_weight_kg     — most recent weight
+ *   - jood_last_weight_logged_at — date of that reading
+ *   - jood_weight_log_history    — appended "YYYY-MM-DD: N kg" log
+ *
+ * Reads the existing history first so the full record is preserved in
+ * one field (no duplicate rows; each call appends one line).
+ */
+export async function syncWeightLogToContact(input: {
+  email: string;
+  weightKg: number;
+  loggedAt?: string | null;
+  customerId?: string | number | null;
+}): Promise<HubSpotResult<{ id: string }>> {
+  if (!input.email) return { ok: false, status: 400, error: "email required" };
+
+  await ensureWeightContactProperties();
+
+  // Date as midnight-UTC epoch ms (HubSpot date-property format).
+  const dateOnly = (input.loggedAt
+    ? new Date(input.loggedAt)
+    : new Date()
+  )
+    .toISOString()
+    .slice(0, 10);
+  const dateMs = Date.parse(`${dateOnly}T00:00:00.000Z`);
+
+  // Read current history to append to it.
+  let existingHistory = "";
+  const search = await hsFetch<{
+    results: Array<{ id: string; properties: Record<string, string | null> }>;
+  }>(`/crm/v3/objects/contacts/search`, {
+    method: "POST",
+    body: JSON.stringify({
+      filterGroups: [
+        { filters: [{ propertyName: "email", operator: "EQ", value: input.email }] },
+      ],
+      properties: [WEIGHT_PROP_HISTORY],
+      limit: 1,
+    }),
+  });
+  if (search.ok && search.data.results?.[0]) {
+    existingHistory =
+      search.data.results[0].properties?.[WEIGHT_PROP_HISTORY] ?? "";
+  }
+  const line = `${dateOnly}: ${input.weightKg} kg`;
+  let history = existingHistory ? `${existingHistory}\n${line}` : line;
+  // Keep the field within HubSpot's textarea limit.
+  if (history.length > 60000) history = history.split("\n").slice(-300).join("\n");
+
+  return upsertContact({
+    email: input.email,
+    extra: {
+      [WEIGHT_PROP_LATEST]: input.weightKg,
+      [WEIGHT_PROP_DATE]: dateMs,
+      [WEIGHT_PROP_HISTORY]: history,
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Bulk-pull helpers — admin sync endpoints                            */
 /* ------------------------------------------------------------------ */
 
