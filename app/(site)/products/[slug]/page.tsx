@@ -1,12 +1,21 @@
+import { redirect } from "next/navigation";
+
 /**
- * /products/[slug] — alias of the product detail page that lives at
- * /shop/[slug]. The live joodlife.com (Shopify) used /products/<handle>
- * URLs, and people expect them here too, so we serve the exact same PDP
- * from this path by re-exporting the /shop/[slug] page. Existing /shop
- * links keep working unchanged.
+ * /products/<slug> — legacy / Shopify-style product URL.
+ *
+ * The product detail page lives at /shop/<slug>. The live joodlife.com
+ * (Shopify) used /products/<handle>, and inbound links / habit still hit
+ * those, so we redirect them to the canonical PDP. A plain redirect always
+ * builds and works (no importing of the page module), and preserves any
+ * inbound links to the old URLs.
  */
-export {
-  default,
-  generateStaticParams,
-  dynamic,
-} from "../../shop/[slug]/page";
+export const dynamic = "force-dynamic";
+
+export default async function LegacyProductRedirect({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  redirect(`/shop/${slug}`);
+}
