@@ -16,9 +16,15 @@ import { getPayloadInstance } from "@/lib/payload";
  * instance. Safe to call on every write.
  */
 let weightLogsTableEnsured = false;
-export async function ensureWeightLogsTable(): Promise<void> {
+export async function ensureWeightLogsTable(
+  payloadInstance?: unknown
+): Promise<void> {
   if (weightLogsTableEnsured) return;
-  const payload = await getPayloadInstance();
+  // Accept an already-initialised Payload (e.g. from onInit) to avoid
+  // re-entering getPayloadInstance() during init (which would deadlock).
+  const payload = (payloadInstance ?? (await getPayloadInstance())) as Awaited<
+    ReturnType<typeof getPayloadInstance>
+  >;
   const drizzle = (
     payload.db as unknown as {
       drizzle?: { execute?: (q: unknown) => Promise<unknown> };

@@ -224,6 +224,14 @@ export default buildConfig({
     } catch (err) {
       payload.logger?.error?.({ msg: "ensureProductsSchema (onInit) failed", err });
     }
+    try {
+      // Ensure the weight_logs table exists too, so the admin (Payload REST)
+      // can list/manage the WeightLogs collection in production.
+      const { ensureWeightLogsTable } = await import("@/lib/weightLogs");
+      await ensureWeightLogsTable(payload);
+    } catch (err) {
+      payload.logger?.error?.({ msg: "ensureWeightLogsTable (onInit) failed", err });
+    }
   },
   admin: {
     user: Users.slug,

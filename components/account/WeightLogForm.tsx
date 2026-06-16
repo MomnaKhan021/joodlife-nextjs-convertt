@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * "Log current weight" form. Posts to /api/weight-logs, then refreshes the
+ * "Log current weight" form. Posts to /api/account/weight-logs, then refreshes the
  * server component so the summary cards, trend chart and history table all
  * re-render with the new entry — no client-side chart state to keep in sync.
  */
@@ -25,7 +25,7 @@ export default function WeightLogForm() {
     }
     setBusy(true);
     try {
-      const res = await fetch("/api/weight-logs", {
+      const res = await fetch("/api/account/weight-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
