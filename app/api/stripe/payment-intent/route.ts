@@ -20,7 +20,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { getStripe, isStripeConfigured, toMinorUnits } from "@/lib/stripe";
+import { isStripeConfigured, stripeRest, toMinorUnits } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -135,27 +135,34 @@ export async function POST(req: NextRequest) {
   }
   const amountMinor = toMinorUnits(Number(order.total_amount));
 
-  const stripe = await getStripe();
   try {
     const existingPi =
       typeof order.stripe_payment_intent_id === "string"
         ? order.stripe_payment_intent_id
         : null;
 
-    let pi;
+    // Talk to Stripe over the REST API with the runtime's fetch — the Stripe
+    // Node SDK's HTTP client fails to connect on Vercel's Node 24 serverless
+    // runtime (see lib/stripe.ts:stripeRest).
+    type PaymentIntent = { id: string; client_secret: string | null };
+    let pi: PaymentIntent;
     if (existingPi) {
       // Reuse the PaymentIntent for this order (keeps the amount fresh)
-      pi = await stripe.paymentIntents.update(existingPi, {
+      pi = await stripeRest<PaymentIntent>(`payment_intents/${existingPi}`, {
         amount: amountMinor,
-        metadata: { orderNumber: String(order.order_number), orderId: String(order.id) },
+        "metadata[orderNumber]": String(order.order_number),
+        "metadata[orderId]": String(order.id),
       });
     } else {
-      pi = await stripe.paymentIntents.create({
+      pi = await stripeRest<PaymentIntent>("payment_intents", {
         amount: amountMinor,
         currency: "gbp",
-        automatic_payment_methods: { enabled: true },
-        receipt_email: order.customer_email ? String(order.customer_email) : undefined,
-        metadata: { orderNumber: String(order.order_number), orderId: String(order.id) },
+        "automatic_payment_methods[enabled]": "true",
+        receipt_email: order.customer_email
+          ? String(order.customer_email)
+          : undefined,
+        "metadata[orderNumber]": String(order.order_number),
+        "metadata[orderId]": String(order.id),
       });
     }
 

@@ -50,3 +50,49 @@ export async function getStripe(): Promise<Stripe> {
 export function toMinorUnits(amount: number): number {
   return Math.round(amount * 100);
 }
+
+/**
+ * Call Stripe's REST API directly with the runtime's `fetch`.
+ *
+ * The Stripe Node SDK's HTTP client fails to connect on Vercel's serverless
+ * Node 24 runtime ("An error occurred with our connection to Stripe…"), even
+ * with createFetchHttpClient(), whereas a plain `fetch` to the same endpoint
+ * succeeds in ~200ms. For the payment path we therefore bypass the SDK and
+ * talk to the REST API ourselves.
+ *
+ * @param path   e.g. "payment_intents" or "payment_intents/pi_123"
+ * @param params flat form fields; nested keys use Stripe's bracket syntax,
+ *               e.g. { "metadata[orderId]": "5", "automatic_payment_methods[enabled]": "true" }
+ */
+export async function stripeRest<T = Record<string, unknown>>(
+  path: string,
+  params: Record<string, string | number | boolean | undefined>,
+): Promise<T> {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) {
+    throw new Error("STRIPE_SECRET_KEY is not set — cannot call Stripe.");
+  }
+  const form = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined) continue;
+    form.append(key, String(value));
+  }
+  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Stripe-Version": "2025-09-30.clover",
+    },
+    body: form.toString(),
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    error?: { message?: string; type?: string };
+  };
+  if (!res.ok) {
+    const msg =
+      json?.error?.message || `Stripe API responded ${res.status}`;
+    throw new Error(msg);
+  }
+  return json as T;
+}
