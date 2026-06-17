@@ -250,7 +250,7 @@ export default buildConfig({
       },
       // Renders inside the sidebar, above the nav groups. Replaces the
       // empty band Payload leaves at the top of the .nav surface.
-      beforeNavLinks: ["@/components/admin/SidebarBrand#SidebarBrand"],
+      beforeNavLinks: ["@/components/admin/SidebarBrand#SidebarBrand", "@/components/admin/AdminThemeStyle#AdminThemeStyle"],
       // Custom dashboard surface: stat cards + recent products + recent
       // users. Renders above whatever Payload puts on /admin by default.
       beforeDashboard: ["@/components/admin/Dashboard#Dashboard"],
