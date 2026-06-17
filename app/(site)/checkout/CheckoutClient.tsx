@@ -27,6 +27,28 @@ const formatPrice = (n: number) =>
     maximumFractionDigits: 2,
   });
 
+/** Turn the /api/checkout error JSON into an actionable message. The API
+ *  returns {error:"Validation failed", issues:[…]} on a bad body; map the
+ *  failing field paths to friendly names rather than show "Validation failed". */
+function describeCheckoutError(
+  json: { error?: string; issues?: Array<{ path?: Array<string | number> }> },
+  status: number,
+): string {
+  if (Array.isArray(json?.issues) && json.issues.length) {
+    const labels = json.issues.map((i) => {
+      const p = Array.isArray(i?.path) ? i.path.join(".") : "";
+      if (/address/.test(p)) return "delivery address";
+      if (/email/.test(p)) return "email address";
+      if (/name/.test(p)) return "name";
+      if (/phone/.test(p)) return "phone number";
+      if (/items/.test(p)) return "one of your cart items";
+      return p || "a field";
+    });
+    return `Please check: ${[...new Set(labels)].join(", ")}.`;
+  }
+  return json?.error ?? `Order failed (HTTP ${status})`;
+}
+
 /* Shared styling for the Stripe card <input> iframes so they read as the
    same fields as our native inputs. */
 const STRIPE_ELEMENT_OPTIONS = {
@@ -177,6 +199,38 @@ function CheckoutForm() {
             : Date.now() + "_" + Math.random().toString(36).slice(2)
         }`);
 
+      // Sanitise cart items to the exact shape the API expects. A stale or
+      // malformed item left in localStorage (missing productId/title/etc.)
+      // would otherwise fail server validation with an opaque error.
+      const cleanItems = items
+        .filter(
+          (i) =>
+            i &&
+            typeof i.productId === "number" &&
+            i.productId > 0 &&
+            typeof i.slug === "string" &&
+            i.slug.length > 0 &&
+            typeof i.title === "string" &&
+            i.title.length > 0 &&
+            typeof i.quantity === "number" &&
+            i.quantity >= 1,
+        )
+        .map((i) => ({
+          productId: i.productId,
+          slug: i.slug,
+          title: i.title,
+          dose: i.dose ?? null,
+          price: typeof i.price === "number" ? i.price : undefined,
+          quantity: Math.min(99, Math.max(1, Math.round(i.quantity))),
+          imageUrl: i.imageUrl ?? null,
+        }));
+
+      if (cleanItems.length === 0) {
+        throw new Error(
+          "Your cart has an invalid item. Please clear your cart and add the product again.",
+        );
+      }
+
       const orderRes = await fetch("/api/checkout", {
         method: "POST",
         headers: {
@@ -185,7 +239,7 @@ function CheckoutForm() {
         },
         credentials: "include",
         body: JSON.stringify({
-          items,
+          items: cleanItems,
           customer: {
             name: fullName,
             email: email.trim(),
@@ -197,7 +251,7 @@ function CheckoutForm() {
       });
       const orderJson = await orderRes.json();
       if (!orderRes.ok || !orderJson.ok) {
-        throw new Error(orderJson?.error ?? `Order failed (HTTP ${orderRes.status})`);
+        throw new Error(describeCheckoutError(orderJson, orderRes.status));
       }
 
       // 2) Create / reuse the PaymentIntent for the trusted total
