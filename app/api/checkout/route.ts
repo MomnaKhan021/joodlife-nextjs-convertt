@@ -192,27 +192,34 @@ async function repriceItems(
   | { ok: true; items: Required<ValidatedItem>[]; total: number }
   | { ok: false; error: string }
 > {
-  const ids = [...new Set(items.map((i) => i.productId))];
-  if (ids.length === 0) return { ok: false, error: "No items" };
-  const inList = ids.join(",");
+  // Match by SLUG, not numeric id. The product detail pages use a static
+  // catalog with their own placeholder ids (e.g. 1001/1002/1003), which don't
+  // match the Payload products table ids — so an id lookup wrongly reported
+  // "Product not found" at checkout. The slug is stable across both, so we
+  // reprice by slug (the cart always carries it).
+  const slugs = [...new Set(items.map((i) => i.slug).filter(Boolean))];
+  if (slugs.length === 0) return { ok: false, error: "No items" };
+  const inList = slugs
+    .map((s) => `'${String(s).replace(/'/g, "''")}'`)
+    .join(",");
 
   const result = (await drizzle.execute(
     sql.raw(
       `SELECT id, slug, title, from_price, hero_image_url, variants_json, is_active
        FROM products
-       WHERE id IN (${inList})`
+       WHERE slug IN (${inList})`
     )
   )) as
     | { rows?: Array<Record<string, unknown>> }
     | Array<Record<string, unknown>>;
   const rows = Array.isArray(result) ? result : (result.rows ?? []);
-  const byId = new Map(rows.map((r) => [Number(r.id), r]));
+  const bySlug = new Map(rows.map((r) => [String(r.slug), r]));
 
   const repriced: Required<ValidatedItem>[] = [];
   for (const item of items) {
-    const product = byId.get(item.productId);
+    const product = bySlug.get(item.slug);
     if (!product) {
-      return { ok: false, error: `Product ${item.productId} not found` };
+      return { ok: false, error: `Product "${item.slug}" not found` };
     }
     if (!product.is_active) {
       return { ok: false, error: `Product "${product.title}" is no longer available` };
