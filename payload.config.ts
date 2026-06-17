@@ -213,24 +213,18 @@ export default buildConfig({
   // awaited value as a function, so resolving to `undefined` would crash init;
   // passing literal `undefined` correctly falls back to the console adapter.
   email: process.env.SMTP_HOST ? resolveEmailAdapter() : undefined,
-  // On boot, make sure the products table/columns match the collection.
-  // Production never auto-pushes schema (push is dev-only) and there are no
-  // migrations, so new fields would otherwise be missing in prod and break
-  // the products admin. Additive + idempotent; failures are logged, never throw.
+  // On boot, repair the live DB schema to match the collections. Production
+  // never auto-pushes schema (push is dev-only) and there are no migrations, so
+  // tables/columns added since the DB was created would otherwise be missing —
+  // which breaks the native admin (opening documents, the account menu, whole
+  // collections, incl. Payload's internal locked-documents/preferences tables).
+  // Fully additive + idempotent; failures are logged, never throw.
   onInit: async (payload) => {
     try {
-      const { ensureProductsSchema } = await import("@/lib/ensureSchema");
-      await ensureProductsSchema(payload);
+      const { ensureFullSchema } = await import("@/lib/ensureSchema");
+      await ensureFullSchema(payload);
     } catch (err) {
-      payload.logger?.error?.({ msg: "ensureProductsSchema (onInit) failed", err });
-    }
-    try {
-      // Ensure the weight_logs table exists too, so the admin (Payload REST)
-      // can list/manage the WeightLogs collection in production.
-      const { ensureWeightLogsTable } = await import("@/lib/weightLogs");
-      await ensureWeightLogsTable(payload);
-    } catch (err) {
-      payload.logger?.error?.({ msg: "ensureWeightLogsTable (onInit) failed", err });
+      payload.logger?.error?.({ msg: "ensureFullSchema (onInit) failed", err });
     }
   },
   admin: {
