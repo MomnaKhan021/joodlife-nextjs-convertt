@@ -28,6 +28,13 @@ export async function getStripe(): Promise<Stripe> {
   stripeClient = new StripeModule(secret, {
     apiVersion: "2025-09-30.clover" as never, // newest available; pin explicitly
     typescript: true,
+    // Use the runtime's global fetch instead of Stripe's default Node `https`
+    // HTTP client. On Vercel serverless the default client intermittently fails
+    // with "An error occurred with our connection to Stripe. Request was retried
+    // N times." — the fetch-based client connects reliably there.
+    httpClient: StripeModule.createFetchHttpClient(),
+    maxNetworkRetries: 2,
+    timeout: 20000,
     appInfo: {
       name: "JoodLife — Next.js storefront",
       version: "1.0.0",
