@@ -14,14 +14,17 @@ import type { Dosage, PDPProduct } from "@/lib/pdp-products";
 
 interface ProductInfoProps {
   product: PDPProduct;
+  /** Real dashboard (DB) product id, passed from the server page so the
+   *  cart row matches the CMS product. */
+  productId?: number;
 }
 
 /**
- * Stable numeric IDs for the static PDP catalog so cart-item dedup
- * (which keys on productId+dose) works the same way it does for
- * Payload-backed products. Picked deterministically per slug.
+ * Fallback numeric IDs, used only if the page couldn't resolve the real
+ * dashboard product id (e.g. DB momentarily unavailable). Normally the
+ * DB id passed via props is used.
  */
-const PRODUCT_ID_BY_SLUG: Record<PDPProduct["slug"], number> = {
+const PRODUCT_ID_BY_SLUG: Record<string, number> = {
   mounjaro: 1001,
   wegovy: 1002,
   saxenda: 1003,
@@ -46,14 +49,14 @@ function parsePrice(formatted: string): number {
  *   6. Three service chips (Next-day delivery / Safe payment / etc)
  *   7. Accordions: How it works / Is X safe? / Side effects
  */
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({ product, productId }: ProductInfoProps) {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const router = useRouter();
   const { addItem, openDrawer } = useCart();
 
   const handleAddToCart = (dosage: Dosage) => {
     addItem({
-      productId: PRODUCT_ID_BY_SLUG[product.slug],
+      productId: productId ?? PRODUCT_ID_BY_SLUG[product.slug] ?? 0,
       slug: product.slug,
       title: product.title,
       dose: dosage.label,
