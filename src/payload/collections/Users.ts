@@ -105,25 +105,25 @@ export const Users: CollectionConfig = {
         return doc;
       },
       // Send the account-creation ("welcome") email exactly once, on create.
-      // Fire-and-forget: a mail failure must never break signup. Actual
-      // delivery depends on the configured email adapter (SMTP in prod;
-      // console-only in dev when SMTP env vars are absent).
+      //
+      // IMPORTANT: this must be AWAITED, not fire-and-forget. On Vercel
+      // serverless the function freezes the moment the response is sent, so a
+      // voided/background send is killed before it reaches Brevo (which is why
+      // welcome emails never arrived in production while reset emails — which
+      // Payload awaits inline — did). The send is bounded (the email adapter
+      // wrapper times out in ~7s) and never throws, so awaiting it can't slow
+      // signup meaningfully or break account creation.
       async ({ doc, operation, req }) => {
         if (operation !== "create" || !doc?.email) return doc;
         try {
           const { sendWelcomeEmail } = await import("@/lib/account-email");
-          void sendWelcomeEmail(req.payload, {
+          await sendWelcomeEmail(req.payload, {
             email: String(doc.email),
             name: doc.name ?? null,
-          }).catch((err) => {
-            req.payload.logger.error({
-              msg: "Welcome email failed to send",
-              err,
-            });
           });
         } catch (err) {
           req.payload.logger.error({
-            msg: "Welcome email could not be dispatched",
+            msg: "Welcome email failed to send",
             err,
           });
         }
