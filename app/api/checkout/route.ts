@@ -56,6 +56,8 @@ const CheckoutSchema = z.object({
     address: z.string().min(5).max(2000),
     notes: z.string().max(2000).optional().default(""),
   }),
+  // Optional discount code — validated + applied server-side below.
+  discountCode: z.string().max(40).optional(),
 });
 
 type ValidatedItem = z.infer<typeof CartItemSchema>;
@@ -400,6 +402,28 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 7b. Apply a discount code (optional). Recomputed server-side against the
+  //     trusted (re-priced) subtotal so the charge always matches what the
+  //     customer was shown. A supplied-but-invalid code fails the order
+  //     rather than silently charging full price.
+  let discountAmount = 0;
+  let appliedCode: string | null = null;
+  const rawDiscountCode = parsed.data.discountCode?.trim();
+  if (rawDiscountCode) {
+    const { applyDiscountCode } = await import("@/lib/discounts");
+    const applied = await applyDiscountCode(rawDiscountCode, repriced.total);
+    if (!applied.valid) {
+      return NextResponse.json(
+        { ok: false, error: applied.reason ?? "This discount code isn’t valid." },
+        { status: 400 }
+      );
+    }
+    discountAmount = applied.amount;
+    appliedCode = applied.code ?? rawDiscountCode.toUpperCase();
+  }
+  const finalTotal =
+    Math.round(Math.max(0, repriced.total - discountAmount) * 100) / 100;
+
   // 8. Insert
   const orderNumber = `JL-${Math.random()
     .toString(36)
@@ -422,7 +446,7 @@ export async function POST(req: NextRequest) {
          ${esc(customer.name)}, ${esc(customer.email)}, ${esc(customer.phone)},
          ${esc(customer.address)},
          ${esc(JSON.stringify(repriced.items))}::jsonb,
-         ${repriced.total}, 0,
+         ${finalTotal}, ${discountAmount},
          'pending', 'card', 'unpaid',
          ${esc(ipForAudit)}, ${esc(userAgent)},
          ${esc(customer.notes)},
@@ -440,8 +464,24 @@ export async function POST(req: NextRequest) {
       idempotencyStore(idempotencyKey, {
         orderId: id,
         orderNumber,
-        total: repriced.total,
+        total: finalTotal,
       });
+    }
+
+    // Best-effort: increment the discount's redemption counter. Never let a
+    // counter failure break the order.
+    if (appliedCode) {
+      try {
+        await drizzle.execute(
+          sql.raw(
+            `UPDATE "discounts"
+             SET usage_count = COALESCE(usage_count, 0) + 1
+             WHERE upper(code) = upper(${esc(appliedCode)})`
+          )
+        );
+      } catch {
+        /* ignore */
+      }
     }
 
     // ── HubSpot mirror (fire-and-forget) ─────────────────────────
@@ -457,7 +497,7 @@ export async function POST(req: NextRequest) {
           phone: customer.phone || null,
           extra: {
             jood_last_order_number: orderNumber,
-            jood_last_order_total: repriced.total,
+            jood_last_order_total: finalTotal,
           },
         })
       );
@@ -471,7 +511,7 @@ export async function POST(req: NextRequest) {
       void fireHubSpot("checkout:deal", () =>
         createDeal({
           name: `JoodLife — ${orderNumber}`,
-          amount: repriced.total,
+          amount: finalTotal,
           contactEmail: customer.email,
           extra: {
             jood_order_number: orderNumber,
@@ -487,7 +527,8 @@ export async function POST(req: NextRequest) {
       ok: true,
       id,
       orderNumber,
-      totalAmount: repriced.total,
+      totalAmount: finalTotal,
+      discountAmount,
     });
   } catch (err) {
     return NextResponse.json(

@@ -103,10 +103,15 @@ function CheckoutForm() {
   const [expiryComplete, setExpiryComplete] = useState(false);
   const [cvcComplete, setCvcComplete] = useState(false);
 
-  // Discount expander (cosmetic — no fake discount is applied)
+  // Discount code: typed code + the applied result (validated server-side).
   const [showDiscount, setShowDiscount] = useState(false);
   const [discountCode, setDiscountCode] = useState("");
   const [discountMsg, setDiscountMsg] = useState<string | null>(null);
+  const [discountBusy, setDiscountBusy] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    amount: number;
+  } | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,8 +141,46 @@ function CheckoutForm() {
     }
   }, []);
 
-  const discount = 0; // honest: no discount applied unless a real code is wired
-  const total = Math.max(0, subtotal - discount);
+  // Applied discount, clamped to the current subtotal (so a stale fixed-£
+  // code can never make the total negative).
+  const discount = appliedDiscount
+    ? Math.min(appliedDiscount.amount, subtotal)
+    : 0;
+  const total = Math.round(Math.max(0, subtotal - discount) * 100) / 100;
+
+  async function applyDiscount() {
+    const code = discountCode.trim().toUpperCase();
+    if (!code || discountBusy) return;
+    setDiscountBusy(true);
+    setDiscountMsg(null);
+    try {
+      const res = await fetch("/api/discount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ code, subtotal }),
+      });
+      const json = await res.json();
+      if (res.ok && json.valid) {
+        setAppliedDiscount({ code: json.code ?? code, amount: json.amount });
+        setDiscountMsg(null);
+      } else {
+        setAppliedDiscount(null);
+        setDiscountMsg(json?.reason ?? "This code isn’t valid.");
+      }
+    } catch {
+      setAppliedDiscount(null);
+      setDiscountMsg("Couldn’t check that code. Please try again.");
+    } finally {
+      setDiscountBusy(false);
+    }
+  }
+
+  function removeDiscount() {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    setDiscountMsg(null);
+  }
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const canPay =
@@ -247,6 +290,7 @@ function CheckoutForm() {
             address: composedAddress,
             notes: "",
           },
+          discountCode: appliedDiscount?.code,
         }),
       });
       const orderJson = await orderRes.json();
@@ -626,57 +670,74 @@ function CheckoutForm() {
           <div className="mt-5 flex flex-col gap-3">
             <SummaryRow label="Subtotal" value={formatPrice(subtotal)} />
 
-            {discount > 0 ? (
-              <SummaryRow
-                label="First order discount"
-                value={`-${formatPrice(discount)}`}
-              />
+            {appliedDiscount && discount > 0 ? (
+              <div className="flex items-center justify-between gap-2 font-ui text-[16px]">
+                <span className="flex flex-wrap items-center gap-2 font-semibold text-[#142e2a]">
+                  Discount
+                  <span className="rounded-full bg-[#142e2a]/10 px-2 py-0.5 text-[12px] font-semibold uppercase tracking-[0.02em] text-[#142e2a]">
+                    {appliedDiscount.code}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removeDiscount}
+                    className="text-[12px] font-medium text-[#142e2a]/55 underline underline-offset-2 hover:text-[#142e2a]"
+                  >
+                    Remove
+                  </button>
+                </span>
+                <span className="shrink-0 font-semibold text-[#142e2a]">
+                  -{formatPrice(discount)}
+                </span>
+              </div>
             ) : null}
 
             {/* Add discount code */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowDiscount((v) => !v)}
-                className="flex items-center gap-1 font-ui text-[16px] text-[#142e2a] underline underline-offset-2 transition-opacity hover:opacity-70"
-              >
-                Add discount code
-                <ChevronGlyph
-                  className={showDiscount ? "rotate-90 transition-transform" : "transition-transform"}
-                />
-              </button>
-              {showDiscount ? (
-                <div className="mt-2.5 flex gap-2">
-                  <input
-                    value={discountCode}
-                    onChange={(e) => {
-                      setDiscountCode(e.target.value);
-                      setDiscountMsg(null);
-                    }}
-                    placeholder="Enter code"
-                    className="h-11 flex-1 rounded-[8px] border border-[#e7e8e3] bg-white px-3 font-ui text-[14px] text-[#142e2a] outline-none focus:border-[#142e2a]"
+            {!appliedDiscount ? (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowDiscount((v) => !v)}
+                  className="flex items-center gap-1 font-ui text-[16px] text-[#142e2a] underline underline-offset-2 transition-opacity hover:opacity-70"
+                >
+                  Add discount code
+                  <ChevronGlyph
+                    className={showDiscount ? "rotate-90 transition-transform" : "transition-transform"}
                   />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setDiscountMsg(
-                        discountCode.trim()
-                          ? "This code isn’t valid."
-                          : null,
-                      )
-                    }
-                    className="h-11 rounded-[8px] border border-[#142e2a] px-4 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-[#142e2a] hover:text-white"
-                  >
-                    Apply
-                  </button>
-                </div>
-              ) : null}
-              {discountMsg ? (
-                <p className="mt-1.5 font-ui text-[12px] text-red-600">
-                  {discountMsg}
-                </p>
-              ) : null}
-            </div>
+                </button>
+                {showDiscount ? (
+                  <div className="mt-2.5 flex gap-2">
+                    <input
+                      value={discountCode}
+                      onChange={(e) => {
+                        setDiscountCode(e.target.value);
+                        setDiscountMsg(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          applyDiscount();
+                        }
+                      }}
+                      placeholder="Enter code"
+                      className="h-11 flex-1 rounded-[8px] border border-[#e7e8e3] bg-white px-3 font-ui text-[14px] uppercase text-[#142e2a] outline-none placeholder:normal-case focus:border-[#142e2a]"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyDiscount}
+                      disabled={discountBusy || !discountCode.trim()}
+                      className="h-11 rounded-[8px] border border-[#142e2a] px-4 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-[#142e2a] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {discountBusy ? "…" : "Apply"}
+                    </button>
+                  </div>
+                ) : null}
+                {discountMsg ? (
+                  <p className="mt-1.5 font-ui text-[12px] text-red-600">
+                    {discountMsg}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <SummaryRow label="Shipping" value="Free" muted />
           </div>

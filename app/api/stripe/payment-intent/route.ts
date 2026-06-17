@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
   const orderResult = (await drizzle.execute(
     sql.raw(
       `SELECT id, order_number, customer_email, items_json,
-              total_amount, payment_status, stripe_payment_intent_id
+              total_amount, discount_amount, payment_status, stripe_payment_intent_id
        FROM "orders"
        WHERE order_number = ${esc(orderNumber)}
        LIMIT 1`,
@@ -125,9 +125,15 @@ export async function POST(req: NextRequest) {
   }
 
   const items = Array.isArray(order.items_json) ? (order.items_json as OrderItem[]) : [];
-  const computedTotal =
+  const itemsTotal =
     Math.round(items.reduce((acc, i) => acc + i.price * i.quantity, 0) * 100) / 100;
-  if (items.length === 0 || Math.abs(computedTotal - Number(order.total_amount)) > 0.01) {
+  // The stored total is the line-item total minus any applied discount.
+  const discount = Number(order.discount_amount ?? 0) || 0;
+  const expectedTotal = Math.round((itemsTotal - discount) * 100) / 100;
+  if (
+    items.length === 0 ||
+    Math.abs(expectedTotal - Number(order.total_amount)) > 0.01
+  ) {
     return NextResponse.json(
       { ok: false, error: "Order total invalid — refusing to charge" },
       { status: 400 },

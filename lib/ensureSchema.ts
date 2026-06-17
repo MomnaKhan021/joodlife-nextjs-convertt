@@ -272,7 +272,11 @@ const STATEMENTS: string[] = [
   "CREATE INDEX IF NOT EXISTS weight_logs_user_idx ON public.weight_logs USING btree (user_id)",
   "CREATE INDEX IF NOT EXISTS weight_logs_customer_email_idx ON public.weight_logs USING btree (customer_email)",
   "CREATE INDEX IF NOT EXISTS weight_logs_updated_at_idx ON public.weight_logs USING btree (updated_at)",
-  "CREATE INDEX IF NOT EXISTS weight_logs_created_at_idx ON public.weight_logs USING btree (created_at)"
+  "CREATE INDEX IF NOT EXISTS weight_logs_created_at_idx ON public.weight_logs USING btree (created_at)",
+  // Seed a starter discount code (WELCOME20 → 20% off) once. Idempotent: only
+  // inserts when absent, so editing/disabling it in the dashboard sticks. To
+  // retire it, set it inactive in the admin rather than deleting the row.
+  "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
 let ensured = false;
