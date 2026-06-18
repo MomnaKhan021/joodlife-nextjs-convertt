@@ -17,19 +17,21 @@ import { useEffect, useRef } from "react";
  * normalised stroke-dasharray of 1 — no runtime measurement, no race.
  */
 
-// Dot coordinates sampled from Figma (viewBox 1444 × 372).
+// Dot coordinates (viewBox 1444 × 372). A gentle, near-horizontal wave that
+// enters at the left edge and exits at the right edge at mid-height — so the
+// connector spans the full width and visibly touches both screen edges
+// (matching the Figma), rather than running corner-to-corner.
 const DOTS: ReadonlyArray<readonly [number, number]> = [
-  [63, 8],
-  [196, 50],
-  [329, 122],
-  [463, 159],
-  [586, 161],
-  [728, 170],
-  [862, 201],
-  [993, 261],
-  [1127, 307],
-  [1260, 340],
-  [1392, 354],
+  [70, 150],
+  [220, 132],
+  [370, 150],
+  [520, 138],
+  [665, 160],
+  [810, 150],
+  [960, 170],
+  [1110, 182],
+  [1255, 198],
+  [1390, 208],
 ];
 
 const VB_W = 1444;
@@ -57,9 +59,9 @@ function buildPath(pts: ReadonlyArray<readonly [number, number]>): string {
 // reach the very left and right of the section. The dots themselves stay
 // at the sampled positions.
 const LINE_POINTS: ReadonlyArray<readonly [number, number]> = [
-  [-60, -12],
+  [-80, 150],
   ...DOTS,
-  [VB_W + 60, 366],
+  [VB_W + 80, 214],
 ];
 
 const PATH = buildPath(LINE_POINTS);
