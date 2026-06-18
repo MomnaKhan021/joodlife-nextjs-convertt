@@ -2,18 +2,48 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
+import TestimonialCarousel, {
+  type Testimonial,
+} from "@/components/category/TestimonialCarousel";
 
 /**
  * Erectile-dysfunction section content (Figma Component 290, below the
  * hero):
  *   • treatment card — copy + pill image + CTA
- *   • "What are your goals?" image card + a patient testimonial
+ *   • "What are your goals?" image card + a patient testimonial carousel
  */
 
 const GOALS = [
   "Address erectile difficulties",
   "Improve sexual confidence",
   "All the above",
+];
+
+const TESTIMONIALS: Testimonial[] = [
+  {
+    quote:
+      "This treatment completely restored my confidence. I no longer worry about performance, and I feel in control.",
+    name: "Jordan, 42",
+    meta: "2 months completed",
+  },
+  {
+    quote:
+      "I feel like myself again. My confidence has improved, and intimacy no longer feels stressful.",
+    name: "Michael, 46",
+    meta: "6 weeks completed",
+  },
+  {
+    quote:
+      "I noticed a real difference in my performance and confidence. It's helped me feel more in control again.",
+    name: "David, 39",
+    meta: "1 month completed",
+  },
+  {
+    quote:
+      "This has made a big impact on both my confidence and my relationship. I feel much more relaxed and reassured now.",
+    name: "Chris, 51",
+    meta: "7 weeks completed",
+  },
 ];
 
 export default function EdDetail() {
@@ -75,28 +105,9 @@ export default function EdDetail() {
           </div>
         </Reveal>
 
-        {/* Testimonial */}
-        <Reveal
-          as="div"
-          delay={120}
-          className="flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-[24px] bg-black/12 p-8 text-center backdrop-blur-[20px]"
-        >
-          <p className="max-w-[34ch] font-serif text-[20px] font-normal italic leading-snug text-white md:text-[22px]">
-            &ldquo;This treatment completely restored my confidence. I no longer worry about
-            performance, and I feel in control.&rdquo;
-          </p>
-          <div className="flex flex-col gap-0.5">
-            <span className="font-ui text-[15px] font-semibold text-white">Jordan, 42</span>
-            <span className="font-ui text-[13px] text-white/70">2 months completed</span>
-          </div>
-          <div className="flex gap-1.5" aria-hidden>
-            {[0, 1, 2, 3].map((i) => (
-              <span
-                key={i}
-                className={`h-2 w-2 rounded-full ${i === 0 ? "bg-white" : "bg-white/40"}`}
-              />
-            ))}
-          </div>
+        {/* Testimonial carousel */}
+        <Reveal as="div" delay={120}>
+          <TestimonialCarousel items={TESTIMONIALS} />
         </Reveal>
       </div>
     </div>
