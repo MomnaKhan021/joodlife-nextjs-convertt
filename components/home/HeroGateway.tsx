@@ -136,8 +136,8 @@ function SecondaryCard({ category }: { category: Category }) {
           src={category.cardImage}
           alt={category.imageAlt}
           fill
-          quality={90}
-          sizes="(max-width: 1024px) 50vw, 260px"
+          quality={95}
+          sizes="(max-width: 1024px) 75vw, 460px"
           className="object-cover object-center"
         />
         <div
