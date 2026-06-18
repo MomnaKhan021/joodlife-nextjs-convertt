@@ -73,9 +73,108 @@ function GhostButton({ href, children }: { href: string; children: React.ReactNo
   );
 }
 
+function FeatureRow({
+  title,
+  sub,
+  icon,
+}: {
+  title: string;
+  sub: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          {icon}
+        </svg>
+      </span>
+      <span className="flex flex-col">
+        <span className="font-ui text-[18px] font-semibold leading-[24px] text-white md:text-[20px]">
+          {title}
+        </span>
+        <span className="mt-0.5 font-ui text-[14px] leading-[19px] text-white/70">
+          {sub}
+        </span>
+      </span>
+    </li>
+  );
+}
+
+/** "Introducing Wegovy Pills" card (Figma 67:1897, top of the WL panel). */
+function WegovyIntroCard() {
+  return (
+    <Reveal
+      as="div"
+      className="relative overflow-hidden rounded-[24px] bg-black/20 p-6 backdrop-blur-[20px] md:p-8 lg:p-10"
+    >
+      <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
+        <div className="flex flex-col">
+          <h3 className="font-display text-[26px] font-semibold leading-[1.14] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
+            Introducing <span className="text-[#b4ff9f]">Wegovy Pills</span>
+            <br />
+            care in the UK{" "}
+            <em className="font-serif font-normal italic">through Jood Life</em>
+          </h3>
+          <p className="mt-3 max-w-[48ch] font-ui text-[16px] leading-[22px] text-white/80">
+            A new option for weight loss, backed by{" "}
+            <span className="text-[#b4ff9f]">UK-registered prescribers</span> and
+            ongoing support.
+          </p>
+
+          <ul className="mt-6 flex flex-col gap-4">
+            <FeatureRow
+              title="Now available in the UK"
+              sub="Wegovy® care, introduced by Jood."
+              icon={
+                <>
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M8.5 12.5l2.4 2.4 4.6-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </>
+              }
+            />
+            <FeatureRow
+              title="Clinician-led care you can trust"
+              sub="Reviewed by UK-registered prescribers to ensure it’s right for you."
+              icon={
+                <>
+                  <path d="M12 3l7 3v5c0 4.2-2.9 7.4-7 8.5C7.9 18.4 5 15.2 5 11V6l7-3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                  <path d="M9 11.5l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </>
+              }
+            />
+          </ul>
+
+          <div className="mt-7">
+            <Link
+              href="/weight-loss#assessment"
+              className="inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white transition-colors duration-200 hover:bg-white/15"
+            >
+              How Wegovy® works
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative mx-auto h-[300px] w-full max-w-[440px] md:h-[380px]">
+          <Image
+            src="/assets/category/wl-wegovy.png"
+            alt="A Jood Life member who started Wegovy treatment"
+            fill
+            quality={90}
+            sizes="(max-width: 1024px) 80vw, 440px"
+            className="object-contain object-center"
+          />
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
 export default function WeightLossDetail() {
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="flex flex-col gap-5">
+      <WegovyIntroCard />
+      <div className="grid gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
       <Reveal as="div" className="order-2 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
         <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
@@ -142,6 +241,7 @@ export default function WeightLossDetail() {
           <GhostButton href="/weight-loss#assessment">Get started</GhostButton>
         </div>
       </Reveal>
+      </div>
     </div>
   );
 }
