@@ -52,7 +52,7 @@ export default function EdDetail() {
       {/* Treatment card */}
       <Reveal
         as="div"
-        className="grid items-center gap-6 rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
+        className="grid min-h-[300px] items-center gap-6 rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:min-h-[330px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
       >
         <p className="max-w-[46ch] font-ui text-[15px] leading-relaxed text-white/90">
           Take control of erectile health safely and discreetly. Clinically approved treatments are

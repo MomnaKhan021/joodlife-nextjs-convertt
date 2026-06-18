@@ -27,7 +27,7 @@ export default function TestimonialCarousel({
 
   return (
     <div
-      className={`relative flex min-h-[300px] flex-col items-center justify-center gap-5 rounded-[24px] bg-black/12 p-8 text-center backdrop-blur-[20px] ${className}`}
+      className={`relative flex min-h-[400px] flex-col items-center justify-center gap-5 rounded-[24px] bg-black/12 p-8 text-center backdrop-blur-[20px] ${className}`}
     >
       {/* arrows */}
       <button

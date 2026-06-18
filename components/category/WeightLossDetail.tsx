@@ -15,15 +15,45 @@ type Chip = { label: string; sub: string; icon: React.ReactNode };
 
 const I = {
   pill: (
-    <path d="M8 3a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" stroke="currentColor" strokeWidth="1.4" />
+    <>
+      <rect x="3.4" y="6.4" width="9.2" height="3.6" rx="1.8" transform="rotate(-45 8 8)" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M6.2 5.9l3.9 3.9" stroke="currentColor" strokeWidth="1.3" />
+    </>
   ),
   support: (
-    <path d="M3 9a5 5 0 0 1 10 0v3a2 2 0 0 1-2 2M3 9v2a2 2 0 0 0 2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    <>
+      <path d="M3.2 9a4.8 4.8 0 0 1 9.6 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <rect x="1.9" y="9" width="2.6" height="4" rx="1.1" stroke="currentColor" strokeWidth="1.2" />
+      <rect x="11.5" y="9" width="2.6" height="4" rx="1.1" stroke="currentColor" strokeWidth="1.2" />
+    </>
   ),
-  result: <path d="M3 12l3-3 2 2 5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />,
-  delivery: <path d="M2 5h8v6H2zM10 7h3l2 2v2h-5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />,
-  guidance: <path d="M8 2l2 4 4 .5-3 3 .8 4L8 11.5 4.2 13.5 5 9.5 2 6.5 6 6z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />,
-  chat: <path d="M3 4h10v7H7l-3 3v-3H3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />,
+  result: (
+    <>
+      <path d="M2.5 13.3h11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M3.2 6.2l3.3-2.1 3 1.6 3.6-2.7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 11.2V8.6M7.5 11.2V7.2M11 11.2V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </>
+  ),
+  delivery: (
+    <>
+      <rect x="1.6" y="4.8" width="7.4" height="6" rx="0.8" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M9 6.8h3l2.2 2.2v1.8H9z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="4.6" cy="11.6" r="1.2" stroke="currentColor" strokeWidth="1.1" />
+      <circle cx="11.2" cy="11.6" r="1.2" stroke="currentColor" strokeWidth="1.1" />
+    </>
+  ),
+  guidance: (
+    <>
+      <circle cx="8" cy="8" r="5.6" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M10.6 5.4L8.9 8.9 5.4 10.6 7.1 7.1z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" />
+    </>
+  ),
+  chat: (
+    <>
+      <path d="M2.6 4.4h10.8v6H7.4l-3 2.4v-2.4H2.6z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M5 6.9h6M5 8.7h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+    </>
+  ),
 };
 
 // Column split + exact Figma copy. Left column sits higher, right column
