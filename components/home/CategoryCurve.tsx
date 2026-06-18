@@ -22,16 +22,16 @@ import { useEffect, useRef } from "react";
 // connector spans the full width and visibly touches both screen edges
 // (matching the Figma), rather than running corner-to-corner.
 const DOTS: ReadonlyArray<readonly [number, number]> = [
-  [60, 70],
-  [210, 96],
-  [360, 118],
-  [510, 132],
-  [665, 162],
-  [820, 184],
-  [975, 212],
-  [1120, 240],
-  [1265, 264],
-  [1390, 286],
+  [60, 64],
+  [200, 104],
+  [340, 86],
+  [480, 132],
+  [620, 116],
+  [760, 162],
+  [900, 146],
+  [1040, 192],
+  [1180, 176],
+  [1390, 220],
 ];
 
 const VB_W = 1444;
@@ -59,9 +59,9 @@ function buildPath(pts: ReadonlyArray<readonly [number, number]>): string {
 // reach the very left and right of the section. The dots themselves stay
 // at the sampled positions.
 const LINE_POINTS: ReadonlyArray<readonly [number, number]> = [
-  [-80, 56],
+  [-80, 48],
   ...DOTS,
-  [VB_W + 80, 300],
+  [VB_W + 80, 236],
 ];
 
 const PATH = buildPath(LINE_POINTS);
