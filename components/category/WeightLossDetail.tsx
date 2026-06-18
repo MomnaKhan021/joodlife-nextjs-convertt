@@ -11,62 +11,20 @@ import Reveal from "@/components/ui/Reveal";
  *     supporting copy and a CTA.
  */
 
-type Chip = { label: string; sub: string; icon: React.ReactNode };
+type Chip = { label: string; sub: string; iconSrc: string };
 
-const I = {
-  pill: (
-    <>
-      <rect x="3.4" y="6.4" width="9.2" height="3.6" rx="1.8" transform="rotate(-45 8 8)" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M6.2 5.9l3.9 3.9" stroke="currentColor" strokeWidth="1.3" />
-    </>
-  ),
-  support: (
-    <>
-      <path d="M3.2 9a4.8 4.8 0 0 1 9.6 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <rect x="1.9" y="9" width="2.6" height="4" rx="1.1" stroke="currentColor" strokeWidth="1.2" />
-      <rect x="11.5" y="9" width="2.6" height="4" rx="1.1" stroke="currentColor" strokeWidth="1.2" />
-    </>
-  ),
-  result: (
-    <>
-      <path d="M2.5 13.3h11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M3.2 6.2l3.3-2.1 3 1.6 3.6-2.7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M4 11.2V8.6M7.5 11.2V7.2M11 11.2V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </>
-  ),
-  delivery: (
-    <>
-      <rect x="1.6" y="4.8" width="7.4" height="6" rx="0.8" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M9 6.8h3l2.2 2.2v1.8H9z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-      <circle cx="4.6" cy="11.6" r="1.2" stroke="currentColor" strokeWidth="1.1" />
-      <circle cx="11.2" cy="11.6" r="1.2" stroke="currentColor" strokeWidth="1.1" />
-    </>
-  ),
-  guidance: (
-    <>
-      <circle cx="8" cy="8" r="5.6" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M10.6 5.4L8.9 8.9 5.4 10.6 7.1 7.1z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" />
-    </>
-  ),
-  chat: (
-    <>
-      <path d="M2.6 4.4h10.8v6H7.4l-3 2.4v-2.4H2.6z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M5 6.9h6M5 8.7h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    </>
-  ),
-};
-
-// Column split + exact Figma copy. Left column sits higher, right column
-// is staggered ~64px lower around the portrait (Figma 289).
+// Column split + exact Figma copy. Icons are the exact glyphs exported from
+// the Figma (white circle + mark baked in). Left column sits higher, right
+// column is staggered ~64px lower around the portrait (Figma 289).
 const LEFT_CHIPS: Chip[] = [
-  { label: "Medication", sub: "Licensed treatment", icon: I.pill },
-  { label: "Support", sub: "On going", icon: I.support },
-  { label: "Result", sub: "Loss upto 26 %", icon: I.result },
+  { label: "Medication", sub: "Licensed treatment", iconSrc: "/assets/icons/chip-medication.svg" },
+  { label: "Support", sub: "On going", iconSrc: "/assets/icons/chip-support.svg" },
+  { label: "Result", sub: "Loss upto 26 %", iconSrc: "/assets/icons/chip-result.svg" },
 ];
 const RIGHT_CHIPS: Chip[] = [
-  { label: "Delivery", sub: "Next Day", icon: I.delivery },
-  { label: "Guidance", sub: "For lasting result", icon: I.guidance },
-  { label: "Whatapp", sub: "24/7 support", icon: I.chat },
+  { label: "Delivery", sub: "Next Day", iconSrc: "/assets/icons/chip-delivery.svg" },
+  { label: "Guidance", sub: "For lasting result", iconSrc: "/assets/icons/chip-guidance.svg" },
+  { label: "Whatapp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
 ];
 
 function renderChip(c: Chip) {
@@ -75,11 +33,13 @@ function renderChip(c: Chip) {
       key={c.label}
       className="flex w-[140px] items-center gap-2 rounded-[10px] bg-[#142e2a] px-2.5 py-2 text-left md:w-[188px] md:gap-2.5 md:px-3 md:py-2.5"
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#142e2a] md:h-10 md:w-10">
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
-          {c.icon}
-        </svg>
-      </span>
+      <Image
+        src={c.iconSrc}
+        alt=""
+        width={40}
+        height={40}
+        className="h-9 w-9 shrink-0 md:h-10 md:w-10"
+      />
       <span className="flex min-w-0 flex-col leading-tight">
         <span className="font-ui text-[16px] font-medium leading-[20px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
           {c.label}
