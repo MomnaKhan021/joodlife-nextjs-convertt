@@ -71,26 +71,24 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
 /** Primary (weight-loss) card — dark green, fills the left column. */
 function PrimaryCard({ category }: { category: Category }) {
   return (
-    <div className="group relative flex min-h-[440px] flex-col justify-between overflow-hidden rounded-[24px] bg-[#142e2a] p-6 md:min-h-[460px] md:p-8 lg:p-10">
-      {/* Portrait — anchored bottom-right */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[64%] md:w-[56%]">
+    <div className="group relative flex flex-col overflow-hidden rounded-[24px] bg-[#142e2a] p-6 md:p-8 lg:min-h-[450px] lg:p-10">
+      {/* Desktop: the two-women cutout fills the card; women sit on the right
+          (transparent left lets the green show), text overlays the left. */}
+      <div aria-hidden className="absolute inset-0 z-0 hidden lg:block">
         <Image
-          src={category.cardImage}
-          alt={category.imageAlt}
+          src="/assets/figma/hero-two-women-desktop.png"
+          alt=""
           fill
           priority
           quality={90}
-          sizes="(max-width: 768px) 64vw, 520px"
-          className="object-cover object-top"
-        />
-        {/* Left-to-right fade so the headline stays legible over the photo */}
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#142e2a] via-[#142e2a]/60 to-transparent"
+          sizes="760px"
+          className="object-cover object-bottom"
         />
       </div>
 
-      <div className="relative z-10 flex flex-col gap-5">
+      {/* Text — constrained to the left half on desktop so it never overlaps
+          the women. */}
+      <div className="relative z-10 flex flex-col gap-5 lg:max-w-[54%]">
         <TrustpilotRow />
         <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[48px] md:leading-[1.06]">
           Weight loss, now
@@ -102,15 +100,27 @@ function PrimaryCard({ category }: { category: Category }) {
             <CheckBullet key={b}>{b}</CheckBullet>
           ))}
         </ul>
+        <div className="mt-2">
+          <Link
+            href={category.href}
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm transition-transform duration-200 hover:-translate-y-0.5"
+          >
+            Check Your Eligibility
+          </Link>
+        </div>
       </div>
 
-      <div className="relative z-10 mt-8">
-        <Link
-          href={category.href}
-          className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm transition-transform duration-200 hover:-translate-y-0.5"
-        >
-          Check Your Eligibility
-        </Link>
+      {/* Mobile: the centred two-women cutout sits full-width BELOW the text. */}
+      <div className="relative z-10 mt-6 h-[260px] w-full lg:hidden">
+        <Image
+          src="/assets/figma/hero-two-women-mobile.png"
+          alt={category.imageAlt}
+          fill
+          priority
+          quality={90}
+          sizes="100vw"
+          className="object-contain object-bottom"
+        />
       </div>
     </div>
   );
@@ -162,7 +172,7 @@ export default function HeroGateway() {
   return (
     <section aria-label="Explore our treatments" className="w-full bg-white">
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[857fr_447fr]">
           <PrimaryCard category={CATEGORIES["weight-loss"]} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <SecondaryCard category={CATEGORIES["erectile-dysfunction"]} />
