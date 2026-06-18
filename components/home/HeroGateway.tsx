@@ -71,7 +71,7 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
 /** Primary (weight-loss) card — dark green, fills the left column. */
 function PrimaryCard({ category }: { category: Category }) {
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-[24px] bg-[#142e2a] p-6 md:p-8 lg:min-h-[450px] lg:p-10">
+    <div className="group relative flex flex-col overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,#142e2a_0%,#42746d_100%)] p-6 md:p-8 lg:min-h-[450px] lg:bg-[linear-gradient(225deg,#42746d_0%,#142e2a_100%)] lg:p-10">
       {/* Desktop: the two-women cutout fills the card; women sit on the right
           (transparent left lets the green show), text overlays the left. */}
       <div aria-hidden className="absolute inset-0 z-0 hidden lg:block">
@@ -130,7 +130,7 @@ function PrimaryCard({ category }: { category: Category }) {
 function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
   return (
-    <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-[#142e2a] p-6">
+    <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-[#f7f9f2] p-6">
       <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[50%]">
         <Image
           src={category.cardImage}
@@ -142,15 +142,15 @@ function SecondaryCard({ category }: { category: Category }) {
         />
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#142e2a] via-[#142e2a]/65 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-[#f7f9f2] via-[#f7f9f2]/70 to-transparent"
         />
       </div>
 
       <div className="relative z-10 max-w-[62%]">
-        <p className="font-ui text-[14px] font-normal text-white/75 md:text-[15px]">
+        <p className="font-ui text-[14px] font-normal text-[#142e2a]/65 md:text-[15px]">
           {category.eyebrow}
         </p>
-        <h2 className="mt-1.5 whitespace-pre-line font-display text-[24px] font-semibold leading-[1.08] tracking-[-0.01em] text-white md:text-[28px]">
+        <h2 className="mt-1.5 whitespace-pre-line font-display text-[24px] font-semibold leading-[1.08] tracking-[-0.01em] text-[#0a140f] md:text-[28px]">
           {category.cardTitle}
         </h2>
       </div>
@@ -159,7 +159,7 @@ function SecondaryCard({ category }: { category: Category }) {
         <Link
           href={category.href}
           aria-label={`${category.eyebrow}: ${title} — get started`}
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-[#0c2421] px-6 font-ui text-[14px] font-semibold text-white ring-1 ring-white/15 transition-colors duration-200 hover:bg-[#0a1c19]"
+          className="inline-flex h-10 items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-[#0c2421]"
         >
           Get Started
         </Link>
