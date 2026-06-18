@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Decorative wavy connector line for the category preview sections —
@@ -63,7 +63,6 @@ const LINE_POINTS: ReadonlyArray<readonly [number, number]> = [
 ];
 
 const PATH = buildPath(LINE_POINTS);
-const DRAW_MS = 1800;
 
 export default function CategoryCurve({
   color = "#ffffff",
@@ -73,30 +72,67 @@ export default function CategoryCurve({
   className?: string;
 }) {
   const ref = useRef<SVGSVGElement | null>(null);
-  const [active, setActive] = useState(false);
-  const [reduced, setReduced] = useState(false);
+  const pathRef = useRef<SVGPathElement | null>(null);
+  const dotsRef = useRef<Array<SVGCircleElement | null>>([]);
 
+  // Scroll-LINKED draw: the connector draws progressively as the reader
+  // scrolls down through its section — starting at the top of the section
+  // and completing as they move down it (top → bottom), rather than a
+  // one-shot reveal. Honours prefers-reduced-motion (renders fully drawn).
   useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    const el = ref.current;
-    if (!el) return;
-    let done = false;
-    const check = () => {
-      if (done) return;
-      const r = el.getBoundingClientRect();
-      // fire once the curve's top edge enters the lower 90% of the viewport
-      if (r.top < window.innerHeight * 0.9 && r.bottom > 0) {
-        done = true;
-        setActive(true);
-        window.removeEventListener("scroll", check);
+    const svg = ref.current;
+    if (!svg) return;
+    // Track the enclosing category <section> so progress is tied to "this
+    // section", not just the thin curve element at its top.
+    const section = (svg.closest("section") as HTMLElement | null) ?? svg;
+
+    const apply = (raw: number) => {
+      const progress = Math.max(0, Math.min(1, raw));
+      if (pathRef.current) {
+        pathRef.current.style.strokeDashoffset = String(1 - progress);
+      }
+      const n = DOTS.length;
+      for (let i = 0; i < n; i++) {
+        const dot = dotsRef.current[i];
+        if (!dot) continue;
+        const frac = n > 1 ? i / (n - 1) : 0;
+        const lit = progress >= frac - 0.02;
+        dot.style.opacity = lit ? "1" : "0";
+        dot.style.transform = lit ? "scale(1)" : "scale(0.3)";
       }
     };
-    check();
-    window.addEventListener("scroll", check, { passive: true });
-    return () => window.removeEventListener("scroll", check);
-  }, []);
 
-  const drawn = active || reduced;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduced) {
+      apply(1);
+      return;
+    }
+
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      const r = section.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      // 0 when the section's top sits at the bottom of the viewport (i.e. the
+      // reader has just reached the top of the section); 1 after scrolling
+      // ~min(sectionHeight, 1.2 viewport) further down it.
+      const span = Math.min(r.height, vh * 1.2) || vh;
+      apply((vh - r.top) / span);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(compute);
+    };
+    compute();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   return (
     <svg
@@ -108,6 +144,7 @@ export default function CategoryCurve({
       className={className}
     >
       <path
+        ref={pathRef}
         d={PATH}
         pathLength={1}
         stroke={color}
@@ -115,28 +152,27 @@ export default function CategoryCurve({
         strokeLinecap="round"
         style={{
           strokeDasharray: 1,
-          strokeDashoffset: drawn ? 0 : 1,
-          transition: reduced
-            ? "none"
-            : `stroke-dashoffset ${DRAW_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+          strokeDashoffset: 1,
+          // Small smoothing between rAF scroll samples so the draw isn't jittery.
+          transition: "stroke-dashoffset 120ms linear",
         }}
       />
       {DOTS.map(([cx, cy], i) => (
         <circle
           key={`${cx}-${cy}`}
+          ref={(el) => {
+            dotsRef.current[i] = el;
+          }}
           cx={cx}
           cy={cy}
           r={5}
           fill={color}
           style={{
-            opacity: drawn ? 1 : 0,
-            transform: drawn ? "scale(1)" : "scale(0.3)",
+            opacity: 0,
+            transform: "scale(0.3)",
             transformOrigin: `${cx}px ${cy}px`,
-            transition: reduced
-              ? "none"
-              : "opacity 320ms ease-out, transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-            // light up in sequence as the line reaches each dot
-            transitionDelay: `${Math.round((i / (DOTS.length - 1)) * DRAW_MS * 0.85)}ms`,
+            transition:
+              "opacity 200ms ease-out, transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         />
       ))}
