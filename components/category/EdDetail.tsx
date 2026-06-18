@@ -78,14 +78,14 @@ export default function EdDetail() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Goals card */}
-        <Reveal as="div" className="relative min-h-[300px] overflow-hidden rounded-[24px]">
+        <Reveal as="div" className="relative min-h-[360px] overflow-hidden rounded-[24px] md:min-h-[400px]">
           <Image
             src="/assets/category/ed-goals.png"
             alt="Man considering his treatment goals"
             fill
-            quality={85}
-            sizes="(max-width: 1024px) 90vw, 560px"
-            className="object-cover"
+            quality={90}
+            sizes="(max-width: 1024px) 90vw, 620px"
+            className="object-cover object-center"
           />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">

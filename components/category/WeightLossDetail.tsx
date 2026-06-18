@@ -76,18 +76,16 @@ function GhostButton({ href, children }: { href: string; children: React.ReactNo
 function FeatureRow({
   title,
   sub,
-  icon,
+  iconSrc,
 }: {
   title: string;
   sub: string;
-  icon: React.ReactNode;
+  iconSrc: string;
 }) {
   return (
     <li className="flex items-start gap-3">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-          {icon}
-        </svg>
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10">
+        <Image src={iconSrc} alt="" width={22} height={22} className="h-[22px] w-[22px]" />
       </span>
       <span className="flex flex-col">
         <span className="font-ui text-[18px] font-semibold leading-[24px] text-white md:text-[20px]">
@@ -126,22 +124,12 @@ function WegovyIntroCard() {
             <FeatureRow
               title="Now available in the UK"
               sub="Wegovy® care, introduced by Jood."
-              icon={
-                <>
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M8.5 12.5l2.4 2.4 4.6-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                </>
-              }
+              iconSrc="/assets/icons/wegovy-uk.svg"
             />
             <FeatureRow
               title="Clinician-led care you can trust"
               sub="Reviewed by UK-registered prescribers to ensure it’s right for you."
-              icon={
-                <>
-                  <path d="M12 3l7 3v5c0 4.2-2.9 7.4-7 8.5C7.9 18.4 5 15.2 5 11V6l7-3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-                  <path d="M9 11.5l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </>
-              }
+              iconSrc="/assets/icons/wegovy-clinician.svg"
             />
           </ul>
 

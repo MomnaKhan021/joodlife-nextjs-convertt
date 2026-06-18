@@ -58,7 +58,7 @@ export default function CategoryPreview({
         {/* Decorative wavy connector — spans full width, draws on scroll */}
         <CategoryCurve
           color={theme.onBase}
-          className="pointer-events-none absolute inset-x-0 top-4 z-0 aspect-[1444/372] w-full opacity-60 md:top-6 md:opacity-75 lg:top-10"
+          className="pointer-events-none absolute inset-x-0 top-[120px] z-0 aspect-[1444/372] w-full opacity-70 md:top-[150px] md:opacity-80 lg:top-[170px]"
         />
 
         <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 md:px-8">
