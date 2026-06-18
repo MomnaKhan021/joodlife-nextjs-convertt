@@ -75,7 +75,13 @@ function FeatureRow({
   return (
     <li className="flex items-start gap-3">
       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10">
-        <Image src={iconSrc} alt="" width={22} height={22} className="h-[22px] w-[22px]" />
+        <Image
+          src={iconSrc}
+          alt=""
+          width={22}
+          height={22}
+          className="h-[22px] w-[22px] [filter:brightness(0)_invert(1)]"
+        />
       </span>
       <span className="flex flex-col">
         <span className="font-ui text-[18px] font-semibold leading-[24px] text-white md:text-[20px]">

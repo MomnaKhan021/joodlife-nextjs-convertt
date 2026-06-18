@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
     // We use quality={95} on hero/portrait imagery for sharpness; the
     // default 75 stays available for everything else.
     qualities: [75, 90, 95],
+    // Allow our own SVG icon assets (chip + feature icons) through the image
+    // optimizer. Without this Next returns 400 for SVG sources and the icons
+    // don't render. Locked down with an attachment disposition + sandbox CSP
+    // since we only serve first-party SVGs.
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       // Allow media served from Payload's local uploads folder
       { protocol: "http", hostname: "localhost" },
