@@ -131,22 +131,22 @@ function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
   return (
     <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-[#f7f9f2] p-6">
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[50%]">
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[44%]">
         <Image
           src={category.cardImage}
           alt={category.imageAlt}
           fill
           quality={95}
-          sizes="(max-width: 1024px) 75vw, 460px"
-          className="object-cover object-center"
+          sizes="(max-width: 1024px) 60vw, 320px"
+          className="object-cover object-right"
         />
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#f7f9f2] via-[#f7f9f2]/70 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-[#f7f9f2] via-[#f7f9f2]/55 to-transparent"
         />
       </div>
 
-      <div className="relative z-10 max-w-[62%]">
+      <div className="relative z-10 max-w-[56%]">
         <p className="font-ui text-[14px] font-normal text-[#142e2a]/65 md:text-[15px]">
           {category.eyebrow}
         </p>
