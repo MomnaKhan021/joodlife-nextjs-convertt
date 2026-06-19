@@ -58,7 +58,14 @@ function BagIcon() {
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
+  // Mobile drawer: which screen is showing — main menu or the treatments panel.
+  const [mobileTreat, setMobileTreat] = useState(false);
   const { itemCount, openDrawer } = useCart();
+
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setMobileTreat(false);
+  };
 
   return (
     <header
@@ -172,7 +179,10 @@ export default function Header() {
             type="button"
             aria-label="Open menu"
             aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
+            onClick={() => {
+              setMobileTreat(false);
+              setMobileOpen((v) => !v);
+            }}
             className="grid h-10 w-10 place-items-center"
           >
             <span className="flex w-[21px] flex-col items-end gap-[5px]">
@@ -189,7 +199,7 @@ export default function Header() {
         className={`md:hidden fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ease-in-out ${
           mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
-        onClick={() => setMobileOpen(false)}
+        onClick={closeMobile}
         aria-hidden="true"
       />
 
@@ -197,16 +207,17 @@ export default function Header() {
       <nav
         aria-label="Mobile"
         aria-hidden={!mobileOpen}
-        className={`md:hidden fixed inset-y-0 right-0 z-50 flex h-full w-[85%] max-w-sm flex-col bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed inset-y-0 right-0 z-50 flex h-full w-[85%] max-w-sm flex-col overflow-hidden bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
+        {/* Shared top bar: logo + close */}
         <div className="flex items-center justify-between px-4 h-14 border-b border-[#142e2a]/10">
           <Link
             href="/"
             aria-label="JoodLife home"
             className="flex items-center"
-            onClick={() => setMobileOpen(false)}
+            onClick={closeMobile}
           >
             <Image
               src="/assets/icons/logo-wesmount-mobile.svg"
@@ -219,7 +230,7 @@ export default function Header() {
           <button
             type="button"
             aria-label="Close menu"
-            onClick={() => setMobileOpen(false)}
+            onClick={closeMobile}
             className="grid h-6 w-6 place-items-center"
           >
             <span className="flex w-full flex-col items-center justify-center gap-0 relative">
@@ -229,93 +240,129 @@ export default function Header() {
           </button>
         </div>
 
-        <ul className="flex flex-col gap-1 px-4 py-4">
-          {NAV_LINKS.map((link) =>
-            link.mega ? (
-              <li key={link.label} className="py-2">
-                <p className="px-1 py-2 font-display text-[18px] font-semibold text-[#142e2a]">
-                  Our Treatments
-                </p>
-                <ul className="flex flex-col gap-1">
-                  {TREATMENTS.map((t) => (
-                    <li key={t.href}>
-                      <Link
-                        href={t.href}
-                        onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-[#f7f9f2]"
+        {/* Two-screen slider: main menu ↔ treatments panel */}
+        <div className="relative flex-1 overflow-hidden">
+          <div
+            className={`flex h-full w-[200%] transition-transform duration-300 ease-in-out ${
+              mobileTreat ? "-translate-x-1/2" : "translate-x-0"
+            }`}
+          >
+            {/* ── Screen 1: main menu ── */}
+            <div className="flex h-full w-1/2 flex-col overflow-y-auto">
+              <ul className="flex flex-col gap-1 px-4 py-4">
+                {NAV_LINKS.map((link) =>
+                  link.mega ? (
+                    <li key={link.label}>
+                      <button
+                        type="button"
+                        onClick={() => setMobileTreat(true)}
+                        className="flex w-full items-center justify-between py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                       >
-                        <span className="relative h-[56px] w-[56px] shrink-0 overflow-hidden rounded-2xl">
-                          <Image src={t.icon} alt="" fill sizes="56px" className="object-cover" />
-                        </span>
-                        <span className="flex-1">
-                          <span className="block font-ui text-[15px] font-semibold text-[#142e2a]">
-                            {t.label}
-                          </span>
-                          <span className="block font-ui text-[13px] text-[#142e2a]/60">
-                            {t.desc}
-                          </span>
-                        </span>
-                        <svg width="9" height="14" viewBox="0 0 9 14" fill="none" aria-hidden className="shrink-0 text-[#142e2a]/50">
-                          <path d="M2 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        <span>{link.label}</span>
+                        <svg width="9" height="14" viewBox="0 0 9 14" fill="none" aria-hidden className="text-[#142e2a]/50">
+                          <path d="M2 2l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
+                      </button>
+                    </li>
+                  ) : (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        onClick={closeMobile}
+                        className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                      >
+                        {link.label}
                       </Link>
                     </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/shop"
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[15px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
-                >
-                  Explore Treatment
-                </Link>
-              </li>
-            ) : (
-              <li key={link.label}>
-                <Link
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ),
-          )}
-          <li>
-            <Link
-              href="/profile"
-              onClick={() => setMobileOpen(false)}
-              className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-            >
-              Account
-            </Link>
-          </li>
-          <li>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                openDrawer();
-              }}
-              className="flex w-full items-center justify-between py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-            >
-              <span>Cart</span>
-              <span className="rounded-full bg-[#142e2a] px-2 py-0.5 font-ui text-[11px] font-semibold text-white">
-                {itemCount}
-              </span>
-            </button>
-          </li>
-        </ul>
+                  ),
+                )}
+                <li>
+                  <Link
+                    href="/profile"
+                    onClick={closeMobile}
+                    className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                  >
+                    Account
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMobile();
+                      openDrawer();
+                    }}
+                    className="flex w-full items-center justify-between py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                  >
+                    <span>Cart</span>
+                    <span className="rounded-full bg-[#142e2a] px-2 py-0.5 font-ui text-[11px] font-semibold text-white">
+                      {itemCount}
+                    </span>
+                  </button>
+                </li>
+              </ul>
 
-        <div className="mt-auto px-4 pb-6">
-          <Link
-            href="/consultation"
-            onClick={() => setMobileOpen(false)}
-            className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-base font-bold text-white transition-colors hover:bg-[#142e2a]/90"
-          >
-            Get started
-          </Link>
+              <div className="mt-auto px-4 pb-6">
+                <Link
+                  href="/consultation"
+                  onClick={closeMobile}
+                  className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-base font-bold text-white transition-colors hover:bg-[#142e2a]/90"
+                >
+                  Get started
+                </Link>
+              </div>
+            </div>
+
+            {/* ── Screen 2: Our Treatments ── */}
+            <div className="flex h-full w-1/2 flex-col overflow-y-auto px-4 py-4">
+              <button
+                type="button"
+                onClick={() => setMobileTreat(false)}
+                className="flex items-center gap-1.5 self-start py-1 font-ui text-[15px] font-medium text-[#142e2a]/70 transition-colors hover:text-[#142e2a]"
+              >
+                <svg width="8" height="13" viewBox="0 0 8 13" fill="none" aria-hidden>
+                  <path d="M6.5 1.5l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Back
+              </button>
+              <p className="mt-2 mb-3 font-display text-[24px] font-bold tracking-[-0.02em] text-[#142e2a]">
+                Our Treatments
+              </p>
+              <ul className="flex flex-col gap-1">
+                {TREATMENTS.map((t) => (
+                  <li key={t.href}>
+                    <Link
+                      href={t.href}
+                      onClick={closeMobile}
+                      className="flex items-center gap-3 rounded-2xl py-2 transition-colors hover:bg-[#f7f9f2]"
+                    >
+                      <span className="relative h-[56px] w-[56px] shrink-0 overflow-hidden rounded-2xl">
+                        <Image src={t.icon} alt="" fill sizes="56px" className="object-cover" />
+                      </span>
+                      <span className="flex-1">
+                        <span className="block font-ui text-[15px] font-semibold text-[#142e2a]">
+                          {t.label}
+                        </span>
+                        <span className="block font-ui text-[13px] text-[#142e2a]/60">
+                          {t.desc}
+                        </span>
+                      </span>
+                      <svg width="9" height="14" viewBox="0 0 9 14" fill="none" aria-hidden className="shrink-0 text-[#142e2a]/50">
+                        <path d="M2 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/shop"
+                onClick={closeMobile}
+                className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[15px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+              >
+                Explore Treatment
+              </Link>
+            </div>
+          </div>
         </div>
       </nav>
 
