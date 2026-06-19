@@ -15,6 +15,10 @@ import Footer from "@/sections/home/Footer";
 
 import { CATEGORIES } from "@/lib/categories";
 
+// Rendered per-request: the "Recent blog posts" section reads published
+// posts from the CMS (DB), so new/edited articles appear without a rebuild.
+export const dynamic = "force-dynamic";
+
 /**
  * Home — a gateway page. The hero presents the three care categories as
  * cards that route to dedicated sub-pages; below, each category gets a
