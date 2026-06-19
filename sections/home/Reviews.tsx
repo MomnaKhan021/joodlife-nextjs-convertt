@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 
@@ -120,6 +123,12 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 export default function Reviews() {
+  const [active, setActive] = useState<string>("All");
+  const shown =
+    active === "All"
+      ? REVIEWS
+      : REVIEWS.filter((r) => r.category === active);
+
   return (
     <section
       id="reviews"
@@ -173,17 +182,19 @@ export default function Reviews() {
           delay={80}
           className="mb-8 flex flex-wrap items-center justify-center gap-2.5"
         >
-          {TABS.map((t, i) => (
-            <span
+          {TABS.map((t) => (
+            <button
               key={t.label}
-              className={`rounded-full px-4 py-2 font-ui text-[13px] font-medium transition-colors md:text-[14px] ${
-                i === 0
+              type="button"
+              onClick={() => setActive(t.label)}
+              className={`cursor-pointer rounded-full px-4 py-2 font-ui text-[13px] font-medium transition-colors md:text-[14px] ${
+                active === t.label
                   ? "bg-[#142e2a] text-white"
-                  : "border border-[#142e2a]/15 bg-white text-[#142e2a]"
+                  : "border border-[#142e2a]/15 bg-white text-[#142e2a] hover:border-[#142e2a]/40"
               }`}
             >
               {t.label} ({t.count})
-            </span>
+            </button>
           ))}
         </Reveal>
 
@@ -193,20 +204,22 @@ export default function Reviews() {
           delay={150}
           className="no-scrollbar -mx-6 flex gap-5 overflow-x-auto overflow-y-visible px-6 pb-6 pt-3 md:mx-0 md:px-1 md:py-4"
         >
-          {REVIEWS.map((r, i) => (
-            <ReviewCard key={i} review={r} />
+          {shown.map((r, i) => (
+            <ReviewCard key={`${active}-${i}`} review={r} />
           ))}
         </Reveal>
 
         {/* Carousel dots */}
-        <div className="mt-2 flex items-center justify-center gap-1.5" aria-hidden>
-          {[0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className={`h-2 rounded-full ${i === 0 ? "w-5 bg-[#142e2a]" : "w-2 bg-[#142e2a]/25"}`}
-            />
-          ))}
-        </div>
+        {shown.length > 1 ? (
+          <div className="mt-2 flex items-center justify-center gap-1.5" aria-hidden>
+            {shown.map((_, i) => (
+              <span
+                key={i}
+                className={`h-2 rounded-full ${i === 0 ? "w-5 bg-[#142e2a]" : "w-2 bg-[#142e2a]/25"}`}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

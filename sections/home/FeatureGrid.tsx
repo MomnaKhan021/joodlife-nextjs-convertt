@@ -93,10 +93,10 @@ export default function FeatureGrid() {
                   <Image
                     src={f.icon}
                     alt=""
-                    width={24}
-                    height={24}
+                    width={28}
+                    height={28}
                     aria-hidden
-                    className="h-6 w-6 [filter:brightness(0)_invert(1)]"
+                    className="h-7 w-7"
                   />
                 </span>
                 <h3 className="mt-1 font-ui text-[17px] font-semibold leading-[22px] text-white">
