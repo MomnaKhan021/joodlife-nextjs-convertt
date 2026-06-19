@@ -43,24 +43,29 @@ export default function PeriodDetail() {
             fill
             quality={90}
             sizes="(max-width: 1024px) 90vw, 520px"
-            className="object-contain object-left-bottom"
+            className="object-contain object-bottom"
           />
         </div>
       </Reveal>
 
-      {/* Cycle & hormone health card */}
+      {/* Cycle & hormone health card — centred heading, hormone tag cloud
+          filling the card, the portrait centred at the bottom, and the CTA
+          centred over it (Figma). */}
       <Reveal
         as="div"
         delay={120}
-        className="relative flex min-h-[320px] flex-col overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:p-8"
+        className="relative flex min-h-[380px] flex-col items-center overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:min-h-[420px] md:p-8"
       >
-        <h3 className="relative z-10 max-w-[18ch] font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
+        <h3 className="relative z-10 max-w-[20ch] text-center font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
           Understand Your Cycle and Hormone Health
         </h3>
 
-        {/* hormone tag cloud */}
-        <ul aria-hidden className="relative z-0 mt-5 flex flex-1 flex-wrap content-start gap-2 opacity-70">
-          {TAGS.concat(TAGS).map((t, i) => (
+        {/* hormone tag cloud — faint, fills the whole card */}
+        <ul
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 flex flex-wrap content-center justify-center gap-2 p-6 opacity-40"
+        >
+          {TAGS.concat(TAGS, TAGS, TAGS).map((t, i) => (
             <li
               key={`${t}-${i}`}
               className="rounded-full border border-white/25 px-3 py-1 font-ui text-[11px] text-white/80"
@@ -70,19 +75,20 @@ export default function PeriodDetail() {
           ))}
         </ul>
 
-        {/* portrait anchored bottom-right */}
-        <div className="pointer-events-none absolute bottom-0 right-0 z-0 h-[280px] w-[58%]">
+        {/* portrait centred at the bottom */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] mx-auto h-[300px] w-[78%] max-w-[360px]">
           <Image
             src="/assets/category/period-cycle.png"
             alt="Woman reflecting on her cycle and hormone health"
             fill
             quality={88}
-            sizes="320px"
+            sizes="360px"
             className="object-contain object-bottom"
           />
         </div>
 
-        <div className="relative z-10 mt-6">
+        {/* CTA centred at the bottom, above the portrait */}
+        <div className="relative z-10 mt-auto pt-6">
           <Link
             href="/period-delay#assessment"
             className="inline-flex h-12 items-center justify-center rounded-lg bg-[#3a0d20] px-7 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-[#2d0a19]"

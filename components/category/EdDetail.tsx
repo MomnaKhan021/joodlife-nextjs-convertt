@@ -72,12 +72,13 @@ export default function EdDetail() {
           href="/erectile-dysfunction#assessment"
           className="inline-flex h-12 items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-[#08222f] md:justify-self-end"
         >
-          Get started
+          Get Started
         </Link>
       </Reveal>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        {/* Goals card */}
+        {/* Goals card — heading top-left, goal chips centred on the right
+            over the portrait (Figma). */}
         <Reveal as="div" className="relative min-h-[360px] overflow-hidden rounded-[24px] md:min-h-[400px]">
           <Image
             src="/assets/category/ed-goals.png"
@@ -87,16 +88,16 @@ export default function EdDetail() {
             sizes="(max-width: 1024px) 90vw, 620px"
             className="object-cover object-center"
           />
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">
+          <div aria-hidden className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 flex flex-col p-6 md:p-8">
             <h3 className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
               What are your goals?
             </h3>
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-1 flex-col items-end justify-center gap-2.5">
               {GOALS.map((g) => (
                 <li
                   key={g}
-                  className="w-fit rounded-full bg-white/15 px-4 py-2 font-ui text-[13px] font-medium text-white backdrop-blur-sm"
+                  className="w-fit rounded-full bg-white/15 px-4 py-2 text-right font-ui text-[13px] font-medium text-white backdrop-blur-sm"
                 >
                   {g}
                 </li>
