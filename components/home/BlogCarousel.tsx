@@ -10,7 +10,7 @@ import "swiper/css";
 
 export type BlogCardPost = {
   title: string;
-  slug: string;
+  href: string;
   tag: string;
   image: string;
 };
@@ -102,9 +102,9 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
         className="blog-swiper"
       >
         {posts.map((post, i) => (
-          <SwiperSlide key={`${post.slug}-${i}`} className="!h-auto">
+          <SwiperSlide key={`${post.href}-${i}`} className="!h-auto">
             <Link
-              href={`/blogs/${post.slug}`}
+              href={post.href}
               className="blog-card group relative block h-[460px] w-full overflow-hidden rounded-2xl md:h-[520px]"
             >
               <Image
@@ -137,7 +137,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
       <div className="mt-8 flex items-center justify-center gap-2">
         {posts.map((post, i) => (
           <button
-            key={`dot-${post.slug}-${i}`}
+            key={`dot-${post.href}-${i}`}
             type="button"
             aria-label={`Go to slide ${i + 1}`}
             aria-current={active === i}
