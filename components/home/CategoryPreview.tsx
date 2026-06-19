@@ -100,7 +100,7 @@ export default function CategoryPreview({
               {/* Dual CTA — overlays the lower torso, sits above the cards */}
               <div className="absolute bottom-[42%] left-0 z-20 flex w-full flex-wrap items-center justify-start gap-3 md:left-1/2 md:-translate-x-1/2 md:justify-center">
                 <Link
-                  href={`${category.href}#assessment`}
+                  href={`/consultation?product=${category.key}`}
                   className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5"
                 >
                   Get Started

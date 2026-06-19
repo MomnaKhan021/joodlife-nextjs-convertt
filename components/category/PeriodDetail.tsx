@@ -90,7 +90,7 @@ export default function PeriodDetail() {
         {/* CTA centred at the bottom, above the portrait */}
         <div className="relative z-10 mt-auto pt-6">
           <Link
-            href="/period-delay#assessment"
+            href="/consultation?product=period-delay"
             className="inline-flex h-12 items-center justify-center rounded-lg bg-[#3a0d20] px-7 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-[#2d0a19]"
           >
             Check Your Eligibility

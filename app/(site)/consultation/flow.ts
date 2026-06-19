@@ -135,7 +135,13 @@ export type SlideType =
   | "doseSelector" // dynamically built dose options based on selected medicine
   | "purchase"
   | "block"
-  | "success";
+  | "success"
+  // ── added for the ED / PD / reorder flows ──
+  | "text" // single-line free text
+  | "textarea" // multi-line free text
+  | "number" // numeric input with a unit label
+  | "name" // first + last name in one card
+  | "acknowledge"; // tick-to-proceed safety screen (one or more required ticks)
 
 export type SlideOption = string;
 
@@ -159,6 +165,20 @@ export type SlideDef = {
   reviewSlideId?: string;
   /** Compute next slide based on answers. */
   next?: (answers: Answers) => string;
+  // ── extras for text / textarea / number / acknowledge slides ──
+  /** Placeholder for text/textarea/number inputs. */
+  placeholder?: string;
+  /** Unit label shown beside a number input (e.g. "kg"). */
+  unit?: string;
+  /** Min/max for number inputs. */
+  min?: number;
+  max?: number;
+  /** When false, a text/textarea slide can be skipped (Continue always enabled). */
+  required?: boolean;
+  /** Acknowledge-screen lines — each renders as a required tick. */
+  bullets?: string[];
+  /** Body copy for block slides (overrides the generic copy). */
+  body?: string;
 };
 
 const isWegovyContext = (a: Answers): boolean => {

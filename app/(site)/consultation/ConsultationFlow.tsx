@@ -6,14 +6,12 @@ import { useRouter } from "next/navigation";
 import {
   type Answers,
   DOSES,
-  SLIDES,
-  TOTAL_STEPS,
   calcAge,
   calcBmi,
   doseMedicine,
-  getSlide,
   type SlideDef,
 } from "./flow";
+import { getFlow } from "./flows";
 
 const LOCAL_STORAGE_KEY = "jood:consultation:state";
 
@@ -42,6 +40,11 @@ export default function ConsultationFlow({
   const [consultationId, setConsultationId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pick the questionnaire (weight-loss / ED / PD / reorder) by productSlug.
+  const flow = useMemo(() => getFlow(productSlug), [productSlug]);
+  const getSlide = (id: string): SlideDef | undefined => flow.index[id];
+  const TOTAL_STEPS = flow.total;
 
   // Always start the questionnaire from the very beginning.
   //
@@ -92,12 +95,12 @@ export default function ConsultationFlow({
     }
   }, [consultationId, currentSlideId, history, answers]);
 
-  const slide = useMemo(() => getSlide(currentSlideId), [currentSlideId]);
+  const slide = useMemo(() => flow.index[currentSlideId], [flow, currentSlideId]);
 
   const progress = useMemo(() => {
     if (!slide || slide.step === 0) return 0;
     return Math.round((slide.step / TOTAL_STEPS) * 100);
-  }, [slide]);
+  }, [slide, TOTAL_STEPS]);
 
   // ---- helpers ----
   function setAnswer<T>(key: string, value: T) {
@@ -344,11 +347,143 @@ function SlideRenderer(props: SlideProps) {
       return <DoseSelectorSlide {...props} />;
     case "purchase":
       return <PurchaseSlide {...props} />;
+    case "text":
+      return <TextSlide {...props} />;
+    case "textarea":
+      return <TextareaSlide {...props} />;
+    case "number":
+      return <NumberSlide {...props} />;
+    case "name":
+      return <NameSlide {...props} />;
+    case "acknowledge":
+      return <AcknowledgeSlide {...props} />;
     case "block":
       return <BlockSlide {...props} />;
     case "success":
       return null;
   }
+}
+
+/* ---- Text / Textarea / Number / Name / Acknowledge ---- */
+
+function TextSlide({ slide, answers, setAnswer }: SlideProps) {
+  const value = (answers[slide.field!] as string | undefined) ?? "";
+  return (
+    <SlideShell>
+      <SlideHeader title={slide.title} subtitle={slide.subtitle} />
+      <input
+        type="text"
+        value={value}
+        placeholder={slide.placeholder}
+        onChange={(e) => setAnswer(slide.field!, e.target.value)}
+        className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+      />
+    </SlideShell>
+  );
+}
+
+function TextareaSlide({ slide, answers, setAnswer }: SlideProps) {
+  const value = (answers[slide.field!] as string | undefined) ?? "";
+  return (
+    <SlideShell>
+      <SlideHeader title={slide.title} subtitle={slide.subtitle} />
+      <textarea
+        rows={4}
+        value={value}
+        placeholder={slide.placeholder}
+        onChange={(e) => setAnswer(slide.field!, e.target.value)}
+        className="w-full resize-y rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] leading-[22px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+      />
+    </SlideShell>
+  );
+}
+
+function NumberSlide({ slide, answers, setAnswer }: SlideProps) {
+  const value = (answers[slide.field!] as string | number | undefined) ?? "";
+  return (
+    <SlideShell>
+      <SlideHeader title={slide.title} subtitle={slide.subtitle} />
+      <div className="flex items-center gap-3">
+        <input
+          type="number"
+          inputMode="decimal"
+          value={value as string}
+          placeholder={slide.placeholder}
+          min={slide.min}
+          max={slide.max}
+          onChange={(e) => setAnswer(slide.field!, e.target.value)}
+          className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+        />
+        {slide.unit ? (
+          <span className="font-ui text-[14px] font-semibold text-[#142e2a]/70">{slide.unit}</span>
+        ) : null}
+      </div>
+    </SlideShell>
+  );
+}
+
+function NameSlide({ slide, answers, setAnswer }: SlideProps) {
+  const first = (answers.firstName as string | undefined) ?? "";
+  const last = (answers.lastName as string | undefined) ?? "";
+  return (
+    <SlideShell>
+      <SlideHeader title={slide.title} subtitle={slide.subtitle} />
+      <div className="flex flex-col gap-3 md:flex-row">
+        <input
+          type="text"
+          value={first}
+          placeholder="First name"
+          autoComplete="given-name"
+          onChange={(e) => setAnswer("firstName", e.target.value)}
+          className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+        />
+        <input
+          type="text"
+          value={last}
+          placeholder="Last name"
+          autoComplete="family-name"
+          onChange={(e) => setAnswer("lastName", e.target.value)}
+          className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+        />
+      </div>
+    </SlideShell>
+  );
+}
+
+function AcknowledgeSlide({ slide, answers, setAnswer }: SlideProps) {
+  const lines = slide.bullets ?? [];
+  const ticked = (answers[slide.field!] as string[] | undefined) ?? [];
+  const toggle = (line: string) => {
+    const next = ticked.includes(line)
+      ? ticked.filter((x) => x !== line)
+      : [...ticked, line];
+    setAnswer(slide.field!, next);
+  };
+  return (
+    <SlideShell>
+      <SlideHeader title={slide.title} subtitle={slide.subtitle} />
+      <ul className="flex flex-col gap-3">
+        {lines.map((line) => {
+          const on = ticked.includes(line);
+          return (
+            <li key={line}>
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#142e2a]/10 bg-[#f7f9f2] px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => toggle(line)}
+                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[#142e2a]"
+                />
+                <span className="font-ui text-[13px] leading-[20px] text-[#142e2a]/85 md:text-[14px] md:leading-[22px]">
+                  {line}
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </SlideShell>
+  );
 }
 
 /* ---- Common bits ---- */
@@ -384,24 +519,31 @@ function SlideShell({ children }: { children: React.ReactNode }) {
 
 /* ---- Consent ---- */
 
+const DEFAULT_CONSENT_BULLETS = [
+  "You are completing this consultation for yourself",
+  "The information you provide will be honest, accurate, and complete",
+  "You will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking",
+  "You understand you should only use one weight loss treatment at a time",
+  "You understand a short video consultation is required before treatment can be supplied",
+  "You understand a clinician may need to review your answers before treatment is approved",
+  "You agree to our Terms and Conditions and confirm you have read our Privacy Policy",
+];
+
 function ConsentSlide({ slide, answers, setAnswer, onAdvance }: SlideProps) {
   const checked = answers[slide.field!] === "Yes";
+  // Per-flow consent points; the weight-loss flow omits `bullets` and uses
+  // the default list above. ED/PD/reorder pass their own (or an empty list).
+  const lines = slide.bullets ?? DEFAULT_CONSENT_BULLETS;
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <p className="mb-3 font-ui text-[14px] font-semibold text-[#142e2a]">
-        Please confirm that:
-      </p>
+      {lines.length > 0 && (
+        <p className="mb-3 font-ui text-[14px] font-semibold text-[#142e2a]">
+          Please confirm that:
+        </p>
+      )}
       <ul className="flex flex-col gap-3">
-        {[
-          "You are completing this consultation for yourself",
-          "The information you provide will be honest, accurate, and complete",
-          "You will tell us about any medical conditions, serious illnesses, operations, and medicines you are taking",
-          "You understand you should only use one weight loss treatment at a time",
-          "You understand a short video consultation is required before treatment can be supplied",
-          "You understand a clinician may need to review your answers before treatment is approved",
-          "You agree to our Terms and Conditions and confirm you have read our Privacy Policy",
-        ].map((line) => (
+        {lines.map((line) => (
           <li
             key={line}
             className="flex items-start gap-3 font-ui text-[13px] leading-[20px] text-[#142e2a]/85 md:text-[14px] md:leading-[22px]"
@@ -1066,12 +1208,8 @@ function BlockSlide({ slide, onJumpTo }: SlideProps) {
           {slide.title}
         </h1>
         <p className="font-ui text-[14px] leading-[22px] text-[#142e2a]/75 max-w-[520px]">
-          Based on the information provided, our clinicians are unable to offer
-          treatment through this service at the moment.
-        </p>
-        <p className="font-ui text-[14px] leading-[22px] text-[#142e2a]/75 max-w-[520px]">
-          This may be due to clinical, safety, or eligibility reasons. We
-          recommend speaking with your GP or healthcare provider.
+          {slide.body ??
+            "Based on the information provided, our clinicians are unable to offer treatment through this service at the moment. This may be due to clinical, safety, or eligibility reasons. We recommend speaking with your GP or healthcare provider."}
         </p>
         <p className="mt-3 font-ui text-[14px] font-semibold text-[#142e2a]">
           Think something may not be quite right?
@@ -1196,6 +1334,26 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return Boolean(answers[slide.field!]);
   }
   if (slide.type === "purchase") return true;
+  if (slide.type === "text" || slide.type === "textarea") {
+    if (slide.required === false) return true;
+    const v = (answers[slide.field!] as string | undefined) ?? "";
+    return v.trim().length > 0;
+  }
+  if (slide.type === "number") {
+    if (slide.required === false) return true;
+    const v = answers[slide.field!];
+    return v != null && String(v).trim() !== "" && !Number.isNaN(Number(v));
+  }
+  if (slide.type === "name") {
+    const f = (answers.firstName as string | undefined)?.trim();
+    const l = (answers.lastName as string | undefined)?.trim();
+    return Boolean(f && l);
+  }
+  if (slide.type === "acknowledge") {
+    const lines = slide.bullets ?? [];
+    const ticked = (answers[slide.field!] as string[] | undefined) ?? [];
+    return lines.length > 0 && lines.every((line) => ticked.includes(line));
+  }
   return true;
 }
 
