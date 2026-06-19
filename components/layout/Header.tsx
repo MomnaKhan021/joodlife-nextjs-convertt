@@ -5,25 +5,19 @@ import Link from "next/link";
 import { useState } from "react";
 
 import CartDrawer from "@/components/layout/CartDrawer";
+import MegaMenu, { TREATMENTS } from "@/components/layout/MegaMenu";
 import { useCart } from "@/components/cart/CartContext";
 
 type NavLink = {
   label: string;
   href: string;
-  dropdown?: { label: string; href: string }[];
+  /** Opens the full "Our Treatments" mega menu instead of a plain link. */
+  mega?: boolean;
 };
 
 const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/" },
-  {
-    label: "Treatment",
-    href: "/weight-loss",
-    dropdown: [
-      { label: "Weight loss", href: "/weight-loss" },
-      { label: "Erectile dysfunction", href: "/erectile-dysfunction" },
-      { label: "Period delay", href: "/period-delay" },
-    ],
-  },
+  { label: "Treatments", href: "/weight-loss", mega: true },
   { label: "FAQs", href: "/#faq" },
   { label: "Reviews", href: "/#reviews" },
 ];
@@ -63,10 +57,14 @@ function BagIcon() {
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
   const { itemCount, openDrawer } = useCart();
 
   return (
-    <header className="w-full bg-white">
+    <header
+      className="relative w-full bg-white"
+      onMouseLeave={() => setMegaOpen(false)}
+    >
       {/* Desktop Header: 80px tall */}
       <div className="hidden md:flex mx-auto h-20 w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8">
         <Link href="/" aria-label="JoodLife home" className="flex items-center">
@@ -83,31 +81,33 @@ export default function Header() {
         <nav aria-label="Primary" className="flex items-center">
           <ul className="flex items-center gap-2">
             {NAV_LINKS.map((link) =>
-              link.dropdown ? (
-                <li key={link.label} className="group/nav relative">
+              link.mega ? (
+                <li
+                  key={link.label}
+                  onMouseEnter={() => setMegaOpen(true)}
+                >
                   <Link
                     href={link.href}
                     className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                   >
                     {link.label}
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden className="mt-0.5">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      aria-hidden
+                      className={`mt-0.5 transition-transform duration-200 ${megaOpen ? "rotate-180" : ""}`}
+                    >
                       <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </Link>
-                  <div className="invisible absolute left-1/2 top-[68px] z-50 w-56 -translate-x-1/2 translate-y-1 rounded-xl border border-[#142e2a]/10 bg-white p-2 opacity-0 shadow-[0_12px_30px_-10px_rgba(20,46,42,0.25)] transition-all duration-200 group-hover/nav:visible group-hover/nav:translate-y-0 group-hover/nav:opacity-100">
-                    {link.dropdown.map((d) => (
-                      <Link
-                        key={d.href}
-                        href={d.href}
-                        className="block rounded-lg px-3 py-2.5 font-ui text-[15px] font-medium text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
-                      >
-                        {d.label}
-                      </Link>
-                    ))}
-                  </div>
                 </li>
               ) : (
-                <li key={link.label}>
+                <li
+                  key={link.label}
+                  onMouseEnter={() => setMegaOpen(false)}
+                >
                   <Link
                     href={link.href}
                     className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
@@ -131,6 +131,22 @@ export default function Header() {
           </Link>
           {/* Cart trigger */}
           <CartButton onClick={openDrawer} count={itemCount} />
+        </div>
+      </div>
+
+      {/* Desktop mega menu — full-width panel below the header bar */}
+      <div
+        onMouseEnter={() => setMegaOpen(true)}
+        className={`absolute left-0 right-0 top-full z-50 hidden md:block ${
+          megaOpen
+            ? "pointer-events-auto opacity-100 translate-y-0"
+            : "pointer-events-none -translate-y-1 opacity-0"
+        } transition-all duration-200`}
+      >
+        <div className="mx-auto w-full max-w-[1200px] px-6 lg:px-10">
+          <div className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 shadow-[0_24px_50px_-20px_rgba(20,46,42,0.35)]">
+            <MegaMenu onNavigate={() => setMegaOpen(false)} />
+          </div>
         </div>
       </div>
 
@@ -214,32 +230,58 @@ export default function Header() {
         </div>
 
         <ul className="flex flex-col gap-1 px-4 py-4">
-          {NAV_LINKS.map((link) => (
-            <li key={link.label}>
-              <Link
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-              >
-                {link.label}
-              </Link>
-              {link.dropdown ? (
-                <ul className="mb-1 ml-3 flex flex-col border-l border-[#142e2a]/10 pl-3">
-                  {link.dropdown.map((d) => (
-                    <li key={d.href}>
+          {NAV_LINKS.map((link) =>
+            link.mega ? (
+              <li key={link.label} className="py-2">
+                <p className="px-1 py-2 font-display text-[18px] font-semibold text-[#142e2a]">
+                  Our Treatments
+                </p>
+                <ul className="flex flex-col gap-1">
+                  {TREATMENTS.map((t) => (
+                    <li key={t.href}>
                       <Link
-                        href={d.href}
+                        href={t.href}
                         onClick={() => setMobileOpen(false)}
-                        className="block py-2 font-ui text-[15px] text-[#142e2a]/80 transition-colors hover:text-[#142e2a]"
+                        className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-[#f7f9f2]"
                       >
-                        {d.label}
+                        <span className="relative h-[56px] w-[56px] shrink-0 overflow-hidden rounded-2xl">
+                          <Image src={t.icon} alt="" fill sizes="56px" className="object-cover" />
+                        </span>
+                        <span className="flex-1">
+                          <span className="block font-ui text-[15px] font-semibold text-[#142e2a]">
+                            {t.label}
+                          </span>
+                          <span className="block font-ui text-[13px] text-[#142e2a]/60">
+                            {t.desc}
+                          </span>
+                        </span>
+                        <svg width="9" height="14" viewBox="0 0 9 14" fill="none" aria-hidden className="shrink-0 text-[#142e2a]/50">
+                          <path d="M2 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </Link>
                     </li>
                   ))}
                 </ul>
-              ) : null}
-            </li>
-          ))}
+                <Link
+                  href="/shop"
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[15px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+                >
+                  Explore Treatment
+                </Link>
+              </li>
+            ) : (
+              <li key={link.label}>
+                <Link
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ),
+          )}
           <li>
             <Link
               href="/profile"
