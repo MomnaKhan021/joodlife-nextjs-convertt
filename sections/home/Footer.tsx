@@ -242,14 +242,21 @@ export default function Footer() {
                 Have a question?
               </h3>
               <div className="flex items-start gap-2">
-                <Image
-                  src="/assets/figma/icon-chat.svg"
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="mt-0.5 h-5 w-5"
-                  aria-hidden
-                />
+                <Image src="/assets/figma/icon-chat.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
+                <div className="flex flex-col">
+                  <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
+                    Phone
+                  </span>
+                  <a
+                    href="tel:01494424435"
+                    className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80 transition-colors duration-200 hover:text-[#142e2a]"
+                  >
+                    01494 424435
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Image src="/assets/figma/icon-chat.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
                 <div className="flex flex-col">
                   <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
                     Email
@@ -260,6 +267,17 @@ export default function Footer() {
                   >
                     Joodlife@info.com
                   </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Image src="/assets/figma/icon-chat.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
+                <div className="flex flex-col">
+                  <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
+                    Address
+                  </span>
+                  <span className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80">
+                    8 Devonshire Pl, London W1G 6HP
+                  </span>
                 </div>
               </div>
             </div>
