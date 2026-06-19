@@ -21,6 +21,12 @@ export type CategoryTheme = {
   onBase: string;
   /** Soft radial glow rendered behind the hero portrait (CSS background). */
   glow: string;
+  /**
+   * Exact Figma section background image (gradient + subtle baked texture).
+   * When set, it replaces the CSS gradient for the preview block. Weight
+   * loss has none — it uses the solid `base` colour, as in Figma.
+   */
+  bgImage?: string;
 };
 
 export type CategoryKey = "weight-loss" | "erectile-dysfunction" | "period-delay";
@@ -99,6 +105,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       tint: "#c7eeff",
       onBase: "#ffffff",
       glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
+      bgImage: "/assets/category/ed-section-bg.png",
     },
   },
   "period-delay": {
@@ -124,6 +131,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       tint: "#ffeaf2",
       onBase: "#ffffff",
       glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
+      bgImage: "/assets/category/pd-section-bg.png",
     },
   },
 };

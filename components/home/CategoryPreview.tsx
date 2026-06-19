@@ -45,42 +45,20 @@ export default function CategoryPreview({
         } as React.CSSProperties
       }
     >
-      {/* Full-width gradient block with rounded corners (Figma 289/290/291) */}
+      {/* Full-width section block — exact Figma background. ED/PD use the
+          Figma gradient image (with its subtle baked texture); weight loss
+          uses the solid base colour. No hand-drawn ray lines. */}
       <div
         className="relative overflow-hidden rounded-[24px] pb-10 pt-12 md:pb-14 md:pt-16 lg:pt-20"
         style={{
-          // Figma: lighter hue at the top fading to the solid base toward
-          // the bottom (vertical gradient), not a diagonal.
-          background: `linear-gradient(180deg, ${theme.soft} 0%, ${theme.base} 62%)`,
+          backgroundColor: theme.base,
+          backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : undefined,
+          // Figma STRETCHes the gradient to fill the whole block.
+          backgroundSize: "100% 100%",
+          backgroundRepeat: "no-repeat",
           color: theme.onBase,
         }}
       >
-        {/* Sun-ray fan radiating behind the portrait (Figma sections) */}
-        <svg
-          aria-hidden
-          viewBox="0 0 1200 760"
-          preserveAspectRatio="xMidYMin slice"
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[560px] w-full opacity-[0.13] md:h-[640px] md:opacity-[0.17]"
-        >
-          {Array.from({ length: 26 }).map((_, i) => {
-            const cx = 660;
-            const cy = 40;
-            const r = 1300;
-            const ang = ((-92 + (i * 184) / 25) * Math.PI) / 180;
-            return (
-              <line
-                key={i}
-                x1={cx}
-                y1={cy}
-                x2={cx + r * Math.sin(ang)}
-                y2={cy + r * Math.cos(ang)}
-                stroke={theme.onBase}
-                strokeWidth="1.1"
-              />
-            );
-          })}
-        </svg>
-
         {/* Decorative wavy connector — spans full width, draws on scroll */}
         <CategoryCurve
           color={theme.onBase}
