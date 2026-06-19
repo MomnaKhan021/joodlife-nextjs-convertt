@@ -22,11 +22,12 @@ export type CategoryTheme = {
   /** Soft radial glow rendered behind the hero portrait (CSS background). */
   glow: string;
   /**
-   * Exact Figma section background image (gradient + subtle baked texture).
-   * When set, it replaces the CSS gradient for the preview block. Weight
-   * loss has none — it uses the solid `base` colour, as in Figma.
+   * Exact Figma section background, recreated as a CSS `background` value
+   * (vertical gradient sampled from Figma + a subtle radiating ray fan).
+   * Fully responsive — no raster stretching/letterbox artifacts. Weight
+   * loss has none and uses the solid `base` colour, as in Figma.
    */
-  bgImage?: string;
+  sectionBg?: string;
 };
 
 export type CategoryKey = "weight-loss" | "erectile-dysfunction" | "period-delay";
@@ -105,7 +106,8 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       tint: "#c7eeff",
       onBase: "#ffffff",
       glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
-      bgImage: "/assets/category/ed-section-bg.png",
+      sectionBg:
+        "repeating-conic-gradient(from 200deg at 82% -8%, rgba(255,255,255,0.05) 0deg 0.28deg, rgba(255,255,255,0) 0.28deg 1.9deg), linear-gradient(180deg, #1e92c4 0%, #4eaad4 30%, #6abade 52%, #94cee8 80%, #aedaec 100%)",
     },
   },
   "period-delay": {
@@ -131,7 +133,8 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       tint: "#ffeaf2",
       onBase: "#ffffff",
       glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
-      bgImage: "/assets/category/pd-section-bg.png",
+      sectionBg:
+        "repeating-conic-gradient(from 200deg at 82% -8%, rgba(255,255,255,0.06) 0deg 0.28deg, rgba(255,255,255,0) 0.28deg 1.9deg), linear-gradient(180deg, #d59cad 0%, #ddb0c0 35%, #e5bfcb 55%, #efd9df 82%, #f4e2e6 100%)",
     },
   },
 };

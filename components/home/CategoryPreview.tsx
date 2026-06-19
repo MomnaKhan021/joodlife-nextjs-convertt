@@ -45,17 +45,14 @@ export default function CategoryPreview({
         } as React.CSSProperties
       }
     >
-      {/* Full-width section block — exact Figma background. ED/PD use the
-          Figma gradient image (with its subtle baked texture); weight loss
-          uses the solid base colour. No hand-drawn ray lines. */}
+      {/* Full-width section block — exact Figma background recreated in CSS.
+          ED/PD use a sampled vertical gradient + a subtle radiating ray fan;
+          weight loss uses the solid base colour. Fully responsive, no raster
+          stretch/letterbox artifacts. */}
       <div
         className="relative overflow-hidden rounded-[24px] pb-10 pt-12 md:pb-14 md:pt-16 lg:pt-20"
         style={{
-          backgroundColor: theme.base,
-          backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : undefined,
-          // Figma STRETCHes the gradient to fill the whole block.
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
+          background: theme.sectionBg ?? theme.base,
           color: theme.onBase,
         }}
       >
