@@ -55,6 +55,32 @@ export default function CategoryPreview({
           color: theme.onBase,
         }}
       >
+        {/* Sun-ray fan radiating behind the portrait (Figma sections) */}
+        <svg
+          aria-hidden
+          viewBox="0 0 1200 760"
+          preserveAspectRatio="xMidYMin slice"
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[560px] w-full opacity-[0.13] md:h-[640px] md:opacity-[0.17]"
+        >
+          {Array.from({ length: 26 }).map((_, i) => {
+            const cx = 660;
+            const cy = 40;
+            const r = 1300;
+            const ang = ((-92 + (i * 184) / 25) * Math.PI) / 180;
+            return (
+              <line
+                key={i}
+                x1={cx}
+                y1={cy}
+                x2={cx + r * Math.sin(ang)}
+                y2={cy + r * Math.cos(ang)}
+                stroke={theme.onBase}
+                strokeWidth="1.1"
+              />
+            );
+          })}
+        </svg>
+
         {/* Decorative wavy connector — spans full width, draws on scroll */}
         <CategoryCurve
           color={theme.onBase}
