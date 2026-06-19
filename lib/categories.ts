@@ -90,7 +90,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       "Discreet, next-day delivery",
       "Regain confidence & performance",
     ],
-    cardImage: "/assets/category/men-gateway.png",
+    cardImage: "/assets/category/ed-card.png",
     heroImage: "/assets/category/ed-hero.png",
     imageAlt: "Man considering his options for erectile-dysfunction treatment",
     theme: {
@@ -115,7 +115,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       "Delay your period reliably",
       "Discreet delivery, your schedule",
     ],
-    cardImage: "/assets/category/women-gateway.png",
+    cardImage: "/assets/category/pd-card.png",
     heroImage: "/assets/category/period-hero.png",
     imageAlt: "Woman holding a clock and calendar, planning her cycle",
     theme: {

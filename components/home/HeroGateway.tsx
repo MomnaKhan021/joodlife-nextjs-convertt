@@ -126,23 +126,22 @@ function PrimaryCard({ category }: { category: Category }) {
   );
 }
 
-/** Secondary category card — dark green, person photo on the right, CTA. */
+/** Secondary category card — cream, transparent person cutout on the right, CTA. */
 function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
+  // The ED studio cutout faces right; mirror it so he looks into the card.
+  const flip = category.key === "erectile-dysfunction";
   return (
     <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-[#f7f9f2] p-6">
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[44%]">
+      {/* Transparent cut-out portrait, anchored bottom-right — no overlay needed */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[50%] md:w-[48%]">
         <Image
           src={category.cardImage}
           alt={category.imageAlt}
           fill
           quality={95}
-          sizes="(max-width: 1024px) 60vw, 320px"
-          className="object-cover object-right"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#f7f9f2] via-[#f7f9f2]/55 to-transparent"
+          sizes="(max-width: 1024px) 55vw, 300px"
+          className={`object-contain object-bottom ${flip ? "[transform:scaleX(-1)]" : ""}`}
         />
       </div>
 
