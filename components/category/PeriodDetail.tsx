@@ -75,14 +75,14 @@ export default function PeriodDetail() {
           ))}
         </ul>
 
-        {/* portrait centred at the bottom */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] mx-auto h-[300px] w-[78%] max-w-[360px]">
+        {/* portrait at the bottom, sitting left of centre (Figma) */}
+        <div className="pointer-events-none absolute bottom-0 left-[2%] z-[1] h-[300px] w-[62%] max-w-[320px]">
           <Image
             src="/assets/category/period-cycle.png"
             alt="Woman reflecting on her cycle and hormone health"
             fill
             quality={88}
-            sizes="360px"
+            sizes="320px"
             className="object-contain object-bottom"
           />
         </div>
