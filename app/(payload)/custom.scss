@@ -14,7 +14,20 @@
  *   --jood-leaf       #dff49f   sidebar accent
  */
 
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap");
+/* Brand fonts (self-hosted from joodlife.com): Gilroy headings, Outfit
+   body, ITC Clearface italic accents — same fonts as the storefront. */
+@font-face { font-family: "Gilroy"; font-weight: 300; font-style: normal; font-display: swap; src: url("/fonts/Gilroy-Light.woff2") format("woff2"); }
+@font-face { font-family: "Gilroy"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/Gilroy-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Gilroy"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/Gilroy-Medium.woff2") format("woff2"); }
+@font-face { font-family: "Gilroy"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/Gilroy-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Gilroy"; font-weight: 700; font-style: normal; font-display: swap; src: url("/fonts/Gilroy-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Gilroy"; font-weight: 800; font-style: normal; font-display: swap; src: url("/fonts/Gilroy-ExtraBold.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/Outfit-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/Outfit-Medium.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/Outfit-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-weight: 700; font-style: normal; font-display: swap; src: url("/fonts/Outfit-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Clearface"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/ClearfaceStd-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Clearface"; font-weight: 400; font-style: italic; font-display: swap; src: url("/fonts/ClearfaceRegularItalic.woff2") format("woff2"); }
 
 :root {
   --jood-green: #142e2a;
@@ -30,10 +43,10 @@
      text element inside the admin via Payload's own typography rules,
      no per-class overrides needed. */
   --font-body:
-    "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
+    "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   --font-mono:
-    "DM Sans", ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+    "Outfit", ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
 }
 
 html,
@@ -45,6 +58,16 @@ textarea {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.005em;
+}
+
+/* Headings across the admin use Gilroy (brand display font). */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Gilroy", "Outfit", sans-serif;
 }
 
 /* Light-theme palette nudged toward the brand cream + green ramp.
