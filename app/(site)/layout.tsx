@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans, Fraunces } from "next/font/google";
+import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 
 import { CartProvider } from "@/components/cart/CartContext";
 import SitePreloader from "@/components/SitePreloader";
@@ -18,10 +19,19 @@ const inter = Inter({
   display: "swap",
 });
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+// Gilroy — the brand heading font, self-hosted from joodlife.com's own
+// licensed webfonts (next/font/local).
+const gilroy = localFont({
   variable: "--font-gilroy",
   display: "swap",
+  src: [
+    { path: "../fonts/Gilroy-Light.woff2", weight: "300", style: "normal" },
+    { path: "../fonts/Gilroy-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/Gilroy-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/Gilroy-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/Gilroy-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../fonts/Gilroy-ExtraBold.woff2", weight: "800", style: "normal" },
+  ],
 });
 
 const saans = DM_Sans({
@@ -36,15 +46,17 @@ const sofia = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// Elegant serif used for the italicised display accents across the
-// marketing site (e.g. "made for you.", "works", "your schedule").
-// Stands in for ITC Clearface Std from the Figma source; Fraunces'
-// soft, high-contrast italics read closest to it of the Google fonts.
-const fraunces = Fraunces({
-  subsets: ["latin"],
+// ITC Clearface — the serif used for the italicised display accents
+// (e.g. "with Wegovy Pills", "works", "toward a better you"). Self-hosted
+// from joodlife.com's own licensed webfonts. Keeps the --font-fraunces
+// variable name so existing font-serif usages resolve to it.
+const clearface = localFont({
   variable: "--font-fraunces",
   display: "swap",
-  axes: ["SOFT", "opsz"],
+  src: [
+    { path: "../fonts/ClearfaceStd-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/ClearfaceRegularItalic.woff2", weight: "400", style: "italic" },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -68,7 +80,7 @@ export default function SiteLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${inter.variable} ${plusJakarta.variable} ${saans.variable} ${sofia.variable} ${fraunces.variable}`}
+      className={`${outfit.variable} ${inter.variable} ${gilroy.variable} ${saans.variable} ${sofia.variable} ${clearface.variable}`}
     >
       <body
         className="min-h-screen bg-white text-[#142e2a] font-ui antialiased"
