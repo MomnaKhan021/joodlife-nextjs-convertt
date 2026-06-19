@@ -40,7 +40,9 @@
   --color-womens: var(--color-womens);
   --color-womens-soft: var(--color-womens-soft);
   --color-womens-tint: var(--color-womens-tint);
-  --font-display: var(--font-gilroy), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  /* Figma headings use Saans, so the display family points at the Saans
+     token (DM Sans stand-in) rather than the Gilroy/Plus-Jakarta alias. */
+  --font-display: var(--font-saans), var(--font-gilroy), "Inter", system-ui, sans-serif;
   --font-ui: var(--font-saans), "Inter", system-ui, sans-serif;
   --font-outfit: var(--font-outfit), "Outfit", system-ui, sans-serif;
   --font-inter: var(--font-inter), "Inter", system-ui, sans-serif;
