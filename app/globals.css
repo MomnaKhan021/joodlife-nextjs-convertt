@@ -40,14 +40,15 @@
   --color-womens: var(--color-womens);
   --color-womens-soft: var(--color-womens-soft);
   --color-womens-tint: var(--color-womens-tint);
-  /* Brand fonts from joodlife.com: Gilroy (headings), Outfit (body/UI/
-     buttons), ITC Clearface (italic display accents), self-hosted. */
-  --font-display: var(--font-gilroy), "Outfit", "Inter", system-ui, sans-serif;
-  --font-ui: var(--font-outfit), "Inter", system-ui, sans-serif;
-  --font-outfit: var(--font-outfit), "Outfit", system-ui, sans-serif;
-  --font-inter: var(--font-inter), "Inter", system-ui, sans-serif;
-  --font-sofia: var(--font-sofia), "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), "ITC Clearface Std", Georgia, "Times New Roman", serif;
+  /* Brand fonts only (joodlife.com), self-hosted: Gilroy (headings),
+     Outfit (body / UI / buttons), ITC Clearface (italic display accents).
+     Every token maps to one of these three — no extra fonts. */
+  --font-display: var(--font-gilroy), "Outfit", system-ui, sans-serif;
+  --font-ui: var(--font-outfit), system-ui, sans-serif;
+  --font-outfit: var(--font-outfit), system-ui, sans-serif;
+  --font-inter: var(--font-outfit), system-ui, sans-serif;
+  --font-sofia: var(--font-gilroy), system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), "Georgia", "Times New Roman", serif;
 }
 
 html {

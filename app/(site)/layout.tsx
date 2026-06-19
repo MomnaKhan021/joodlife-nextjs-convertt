@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
+import { Outfit } from "next/font/google";
 import localFont from "next/font/local";
 
 import { CartProvider } from "@/components/cart/CartContext";
@@ -13,14 +13,8 @@ const outfit = Outfit({
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
 // Gilroy — the brand heading font, self-hosted from joodlife.com's own
-// licensed webfonts (next/font/local).
+// licensed webfonts (next/font/local). Full weight range used by the brand.
 const gilroy = localFont({
   variable: "--font-gilroy",
   display: "swap",
@@ -31,19 +25,8 @@ const gilroy = localFont({
     { path: "../fonts/Gilroy-SemiBold.woff2", weight: "600", style: "normal" },
     { path: "../fonts/Gilroy-Bold.woff2", weight: "700", style: "normal" },
     { path: "../fonts/Gilroy-ExtraBold.woff2", weight: "800", style: "normal" },
+    { path: "../fonts/Gilroy-Black.woff2", weight: "900", style: "normal" },
   ],
-});
-
-const saans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-saans",
-  display: "swap",
-});
-
-const sofia = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-sofia",
-  display: "swap",
 });
 
 // ITC Clearface — the serif used for the italicised display accents
@@ -80,7 +63,7 @@ export default function SiteLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${inter.variable} ${gilroy.variable} ${saans.variable} ${sofia.variable} ${clearface.variable}`}
+      className={`${outfit.variable} ${gilroy.variable} ${clearface.variable}`}
     >
       <body
         className="min-h-screen bg-white text-[#142e2a] font-ui antialiased"
