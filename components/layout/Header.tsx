@@ -9,10 +9,9 @@ import { useCart } from "@/components/cart/CartContext";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Shop", href: "/shop" },
-  { label: "Journal", href: "/blogs" },
-  { label: "FAQs", href: "#faq" },
-  { label: "Reviews", href: "#reviews" },
+  { label: "Treatment", href: "/shop" },
+  { label: "FAQs", href: "/#faq" },
+  { label: "Reviews", href: "/#reviews" },
 ];
 
 export default function Header() {
@@ -20,7 +19,7 @@ export default function Header() {
   const { itemCount, openDrawer } = useCart();
 
   return (
-    <header className="w-full bg-white">
+    <header className="w-full border-b border-[#142e2a]/10 bg-white">
       {/* Desktop Header: 80px tall */}
       <div className="hidden md:flex mx-auto h-20 w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8">
         <Link href="/" aria-label="JoodLife home" className="flex items-center">
@@ -40,7 +39,7 @@ export default function Header() {
               <li key={link.label}>
                 <Link
                   href={link.href}
-                  className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                  className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-semibold text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                 >
                   {link.label}
                 </Link>
@@ -52,7 +51,7 @@ export default function Header() {
         <div className="flex items-center gap-5">
           <Link
             href="/consultation"
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a] bg-white px-8 font-ui text-xs font-semibold uppercase tracking-tight text-[#142f2b] transition-colors hover:bg-[#142e2a] hover:text-white"
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a] bg-white px-8 font-ui text-[16px] font-semibold text-[#142f2b] transition-colors hover:bg-[#142e2a] hover:text-white"
           >
             Get started
           </Link>
@@ -64,7 +63,7 @@ export default function Header() {
               className="grid h-[41px] w-[36.9px] cursor-pointer place-items-center transition-opacity hover:opacity-70"
             >
               <Image
-                src="/assets/icons/icon-cart.svg"
+                src="/assets/icons/icon-user.svg"
                 alt=""
                 width={26}
                 height={28}

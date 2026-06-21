@@ -4,8 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import {
+  CardCvcElement,
+  CardExpiryElement,
+  CardNumberElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import type { StripeCardNumberElement } from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
+import { getStripeClient } from "@/lib/stripeClient";
+
+const stripePromise = getStripeClient();
 
 const formatPrice = (n: number) =>
   n.toLocaleString("en-GB", {
@@ -15,89 +27,170 @@ const formatPrice = (n: number) =>
     maximumFractionDigits: 2,
   });
 
-export default function CheckoutClient() {
-  const router = useRouter();
-  const { items, subtotal, itemCount, clear } = useCart();
+/** Turn the /api/checkout error JSON into an actionable message. The API
+ *  returns {error:"Validation failed", issues:[…]} on a bad body; map the
+ *  failing field paths to friendly names rather than show "Validation failed". */
+function describeCheckoutError(
+  json: { error?: string; issues?: Array<{ path?: Array<string | number> }> },
+  status: number,
+): string {
+  if (Array.isArray(json?.issues) && json.issues.length) {
+    const labels = json.issues.map((i) => {
+      const p = Array.isArray(i?.path) ? i.path.join(".") : "";
+      if (/address/.test(p)) return "delivery address";
+      if (/email/.test(p)) return "email address";
+      if (/name/.test(p)) return "name";
+      if (/phone/.test(p)) return "phone number";
+      if (/items/.test(p)) return "one of your cart items";
+      return p || "a field";
+    });
+    return `Please check: ${[...new Set(labels)].join(", ")}.`;
+  }
+  return json?.error ?? `Order failed (HTTP ${status})`;
+}
 
-  const [name, setName] = useState("");
+/* Shared styling for the Stripe card <input> iframes so they read as the
+   same fields as our native inputs. */
+const STRIPE_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontFamily: "var(--font-saans), Inter, system-ui, sans-serif",
+      fontSize: "16px",
+      fontWeight: "400",
+      color: "#142e2a",
+      letterSpacing: "-0.32px",
+      "::placeholder": { color: "#142e2a", opacity: "0.4" },
+    },
+    invalid: { color: "#f93232" },
+  },
+} as const;
+
+/* ================================================================== */
+/*  Provider wrapper                                                   */
+/* ================================================================== */
+export default function CheckoutClient() {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm />
+    </Elements>
+  );
+}
+
+/* ================================================================== */
+/*  Checkout form + summary                                            */
+/* ================================================================== */
+function CheckoutForm() {
+  const router = useRouter();
+  const stripe = useStripe();
+  const elements = useElements();
+  const { items, subtotal, clear } = useCart();
+
+  // Shipping fields
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [notes, setNotes] = useState("");
+  const [apartment, setApartment] = useState("");
+  const [city, setCity] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("GB");
+  const [saveInfo, setSaveInfo] = useState(true);
+
+  // Card field state
+  const [focusField, setFocusField] = useState<string | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [expiryComplete, setExpiryComplete] = useState(false);
+  const [cvcComplete, setCvcComplete] = useState(false);
+
+  // Discount expander (cosmetic — no fake discount is applied)
+  const [showDiscount, setShowDiscount] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [discountMsg, setDiscountMsg] = useState<string | null>(null);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
-  // Stripe configuration probe — flips the Payment section between
-  // "Pay securely with card via Stripe" and "Test mode" depending on
-  // whether the server has its keys set up. Polled once on mount.
-  const [stripeReady, setStripeReady] = useState<boolean | null>(null);
+  // Restore previously-saved contact details (client-only; the form isn't
+  // rendered until the cart hydrates, so this can't cause a hydration
+  // mismatch). The setState calls are intentional one-shot restores.
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/stripe/status", {
-          credentials: "include",
-        });
-        const json = await res.json();
-        if (!cancelled) setStripeReady(Boolean(json?.configured));
-      } catch {
-        if (!cancelled) setStripeReady(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const raw = window.localStorage.getItem("jood:checkout:contact");
+      if (!raw) return;
+      const c = JSON.parse(raw);
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setFirstName(c.firstName ?? "");
+      setLastName(c.lastName ?? "");
+      setEmail(c.email ?? "");
+      setAddress(c.address ?? "");
+      setApartment(c.apartment ?? "");
+      setCity(c.city ?? "");
+      setPostcode(c.postcode ?? "");
+      setPhone(c.phone ?? "");
+      setCountry(c.country ?? "GB");
+      /* eslint-enable react-hooks/set-state-in-effect */
+    } catch {
+      /* ignore */
+    }
   }, []);
 
-  const canPlaceOrder =
+  const discount = 0; // honest: no discount applied unless a real code is wired
+  const total = Math.max(0, subtotal - discount);
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const canPay =
     items.length > 0 &&
-    name.trim() &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
-    address.trim();
+    firstName.trim() &&
+    lastName.trim() &&
+    emailValid &&
+    address.trim() &&
+    city.trim() &&
+    postcode.trim() &&
+    phone.trim() &&
+    cardComplete &&
+    expiryComplete &&
+    cvcComplete &&
+    Boolean(stripe && elements) &&
+    !busy;
 
-  // Empty-cart guard
-  if (items.length === 0) {
-    return (
-      <section className="mx-auto w-full max-w-[1100px] px-6 py-16 text-center md:py-24">
-        <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-[#f7f9f2]">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M6 6h15l-1.5 9h-12L4 3H2"
-              stroke="#142e2a"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="9" cy="20" r="1.5" stroke="#142e2a" strokeWidth="1.7" />
-            <circle cx="18" cy="20" r="1.5" stroke="#142e2a" strokeWidth="1.7" />
-          </svg>
-        </div>
-        <h1 className="font-display text-[28px] font-bold leading-[34px] tracking-[-0.01em] text-[#142e2a] md:text-[32px] md:leading-[40px]">
-          Your cart is empty
-        </h1>
-        <p className="mx-auto mt-3 max-w-[420px] font-ui text-[15px] leading-[24px] text-[#142e2a]/75">
-          Add a treatment to your cart before checking out.
-        </p>
-        <Link
-          href="/shop"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421]"
-        >
-          Browse shop
-        </Link>
-      </section>
-    );
-  }
-
-  async function handlePlaceOrder() {
-    if (!canPlaceOrder || busy) return;
+  async function handlePay() {
+    if (!canPay || !stripe || !elements) return;
     setBusy(true);
     setError(null);
+
     try {
-      // Idempotency-Key: same key on a retry returns the same order
-      // instead of creating a duplicate. We mint one per attempt and
-      // keep it on the component so React-strict-mode double-mounts +
-      // network blips don't accidentally double-charge.
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const composedAddress = [
+        address.trim(),
+        apartment.trim(),
+        `${city.trim()} ${postcode.trim()}`.trim(),
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      // Persist contact for next time (or clear it)
+      if (saveInfo) {
+        window.localStorage.setItem(
+          "jood:checkout:contact",
+          JSON.stringify({
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            email: email.trim(),
+            address: address.trim(),
+            apartment: apartment.trim(),
+            city: city.trim(),
+            postcode: postcode.trim(),
+            phone: phone.trim(),
+            country,
+          }),
+        );
+      } else {
+        window.localStorage.removeItem("jood:checkout:contact");
+      }
+
+      // 1) Create the order (idempotent on retry)
       const idempotencyKey =
         idempotencyKeyRef.current ??
         (idempotencyKeyRef.current = `co_${
@@ -105,7 +198,40 @@ export default function CheckoutClient() {
             ? crypto.randomUUID()
             : Date.now() + "_" + Math.random().toString(36).slice(2)
         }`);
-      const res = await fetch("/api/checkout", {
+
+      // Sanitise cart items to the exact shape the API expects. A stale or
+      // malformed item left in localStorage (missing productId/title/etc.)
+      // would otherwise fail server validation with an opaque error.
+      const cleanItems = items
+        .filter(
+          (i) =>
+            i &&
+            typeof i.productId === "number" &&
+            i.productId > 0 &&
+            typeof i.slug === "string" &&
+            i.slug.length > 0 &&
+            typeof i.title === "string" &&
+            i.title.length > 0 &&
+            typeof i.quantity === "number" &&
+            i.quantity >= 1,
+        )
+        .map((i) => ({
+          productId: i.productId,
+          slug: i.slug,
+          title: i.title,
+          dose: i.dose ?? null,
+          price: typeof i.price === "number" ? i.price : undefined,
+          quantity: Math.min(99, Math.max(1, Math.round(i.quantity))),
+          imageUrl: i.imageUrl ?? null,
+        }));
+
+      if (cleanItems.length === 0) {
+        throw new Error(
+          "Your cart has an invalid item. Please clear your cart and add the product again.",
+        );
+      }
+
+      const orderRes = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,242 +239,486 @@ export default function CheckoutClient() {
         },
         credentials: "include",
         body: JSON.stringify({
-          items,
+          items: cleanItems,
           customer: {
-            name: name.trim(),
+            name: fullName,
             email: email.trim(),
             phone: phone.trim(),
-            address: address.trim(),
-            notes: notes.trim(),
+            address: composedAddress,
+            notes: "",
           },
         }),
       });
-      const json = await res.json();
-      if (!res.ok || !json.ok) {
-        throw new Error(json?.error ?? `HTTP ${res.status}`);
+      const orderJson = await orderRes.json();
+      if (!orderRes.ok || !orderJson.ok) {
+        throw new Error(describeCheckoutError(orderJson, orderRes.status));
       }
 
-      // If Stripe is configured, ask the server to create a Checkout
-      // Session for this newly-created order and redirect the user to
-      // Stripe's hosted payment page. Stripe handles all card capture
-      // and 3-D Secure on their own domain — we never see card data.
-      //
-      // If Stripe is NOT configured yet (503 response), fall through
-      // to the legacy success page so the test-mode flow keeps working.
-      const stripeRes = await fetch("/api/stripe/session", {
+      // 2) Create / reuse the PaymentIntent for the trusted total
+      const piRes = await fetch("/api/stripe/payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ orderNumber: json.orderNumber }),
+        body: JSON.stringify({ orderNumber: orderJson.orderNumber }),
       });
+      const piJson = await piRes.json();
+      if (!piRes.ok || !piJson.ok || !piJson.clientSecret) {
+        throw new Error(
+          piJson?.error ?? `Payment setup failed (HTTP ${piRes.status})`,
+        );
+      }
 
-      if (stripeRes.status === 503) {
-        // Stripe not configured — go straight to success (test mode)
+      // 3) Confirm the card payment on Stripe (card data never touches us)
+      const cardNumber = elements.getElement(
+        CardNumberElement,
+      ) as StripeCardNumberElement | null;
+      if (!cardNumber) throw new Error("Card field not ready. Please retry.");
+
+      const { error: stripeError, paymentIntent } =
+        await stripe.confirmCardPayment(piJson.clientSecret, {
+          payment_method: {
+            card: cardNumber,
+            billing_details: {
+              name: fullName,
+              email: email.trim(),
+              phone: phone.trim(),
+              address: {
+                line1: address.trim(),
+                line2: apartment.trim() || undefined,
+                city: city.trim(),
+                postal_code: postcode.trim(),
+                country,
+              },
+            },
+          },
+        });
+
+      if (stripeError) {
+        throw new Error(stripeError.message ?? "Your card could not be charged.");
+      }
+
+      if (
+        paymentIntent &&
+        (paymentIntent.status === "succeeded" ||
+          paymentIntent.status === "processing")
+      ) {
         clear();
         router.replace(
-          `/checkout/success?order=${encodeURIComponent(json.orderNumber)}`
+          `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
         );
         return;
       }
 
-      const stripeJson = await stripeRes.json();
-      if (!stripeRes.ok || !stripeJson.ok || !stripeJson.url) {
-        throw new Error(stripeJson?.error ?? `Stripe HTTP ${stripeRes.status}`);
-      }
-
-      // Clear cart only after we've successfully kicked off Stripe. If
-      // the user cancels on Stripe's page we land back at
-      // /checkout?orderNumber=… and the order is still in `awaiting`
-      // payment state, so they can retry without losing line items.
-      clear();
-      window.location.href = stripeJson.url;
+      throw new Error(
+        `Payment status: ${paymentIntent?.status ?? "unknown"}. Please try again.`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setBusy(false);
     }
   }
 
-  return (
-    <section className="mx-auto w-full max-w-[1180px] px-5 py-10 md:px-10 md:py-14">
-      <header className="mb-8">
+  /* ---------------- Empty cart ---------------- */
+  if (items.length === 0) {
+    return (
+      <section className="mx-auto flex w-full max-w-[560px] flex-1 flex-col items-center px-6 py-20 text-center">
+        <h1 className="font-ui text-[24px] font-bold tracking-[-0.01em] text-[#142e2a]">
+          Your cart is empty
+        </h1>
+        <p className="mt-3 font-ui text-[15px] text-[#142e2a]/70">
+          Add a treatment to your cart before checking out.
+        </p>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-1 font-ui text-[13px] font-medium text-[#142e2a]/70 transition-colors hover:text-[#142e2a]"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
         >
-          ← Continue shopping
+          Browse shop
         </Link>
-        <h1 className="mt-3 font-display text-[32px] font-bold leading-[38px] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[46px]">
-          Checkout
-        </h1>
-        <p className="mt-2 font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
-          {itemCount} item{itemCount === 1 ? "" : "s"} in your cart · Tax + delivery
-          calculated at fulfilment.
-        </p>
-      </header>
+      </section>
+    );
+  }
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-[1fr_400px] md:gap-10">
-        {/* ─────────── LEFT: form ─────────── */}
-        <div className="flex flex-col gap-6">
-          <FormSection
-            title="Contact"
-            subtitle="We'll send the order confirmation here."
-          >
+  /* ---------------- Main ---------------- */
+  return (
+    <section className="mx-auto w-full max-w-[1327px] flex-1 px-5 py-10 md:px-8 lg:py-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-[24px]">
+        {/* ════════ LEFT: form card ════════ */}
+        <div className="rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10">
+          {/* 1. Shipping Details */}
+          <h2 className="font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
+            <span className="mr-2 text-[#142e2a]">1.</span>Shipping Details
+          </h2>
+
+          <div className="mt-6 flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Full name *">
-                <input
-                  type="text"
-                  autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Jane Doe"
-                  className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
+              <Field label="First Name" required>
+                <TextInput
+                  value={firstName}
+                  onChange={setFirstName}
+                  autoComplete="given-name"
                 />
               </Field>
-              <Field label="Email *">
-                <input
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-                />
-              </Field>
-              <Field label="Phone (optional)">
-                <input
-                  type="tel"
-                  autoComplete="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="07700 900 000"
-                  className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
+              <Field label="Last Name" required>
+                <TextInput
+                  value={lastName}
+                  onChange={setLastName}
+                  autoComplete="family-name"
                 />
               </Field>
             </div>
-          </FormSection>
 
-          <FormSection
-            title="Delivery address"
-            subtitle="Include house/flat number, street, town/city, and postcode."
+            <Field label="Email" required>
+              <TextInput
+                value={email}
+                onChange={setEmail}
+                type="email"
+                autoComplete="email"
+                placeholder="info@gmail.com"
+              />
+            </Field>
+
+            <Field label="Address" required>
+              <TextInput
+                value={address}
+                onChange={setAddress}
+                autoComplete="address-line1"
+              />
+            </Field>
+
+            <Field label="Apartment, suit, etc. (optional)">
+              <TextInput
+                value={apartment}
+                onChange={setApartment}
+                autoComplete="address-line2"
+              />
+            </Field>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="City" required>
+                <TextInput
+                  value={city}
+                  onChange={setCity}
+                  autoComplete="address-level2"
+                  placeholder="London"
+                />
+              </Field>
+              <Field label="Postcode" required>
+                <TextInput
+                  value={postcode}
+                  onChange={setPostcode}
+                  autoComplete="postal-code"
+                />
+              </Field>
+            </div>
+
+            <Field label="Phone" required>
+              <TextInput
+                value={phone}
+                onChange={setPhone}
+                type="tel"
+                autoComplete="tel"
+                placeholder="+91 -0000-00000"
+              />
+            </Field>
+
+            <label className="mt-1 flex cursor-pointer items-center gap-2.5 select-none">
+              <input
+                type="checkbox"
+                checked={saveInfo}
+                onChange={(e) => setSaveInfo(e.target.checked)}
+                className="h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border-[#142e2a]/30 accent-[#142e2a]"
+              />
+              <span className="font-ui text-[15px] text-[#545454]">
+                Save this information for next time
+              </span>
+            </label>
+          </div>
+
+          {/* 2. Payment */}
+          <h2 className="mt-10 font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
+            <span className="mr-2 text-[#142e2a]">2.</span>Payment
+          </h2>
+
+          {/* Payment method tabs */}
+          <div className="mt-5 grid grid-cols-4 gap-2.5">
+            <MethodTab active>
+              <CardGlyph />
+              <span>Card</span>
+            </MethodTab>
+            <MethodTab>
+              <RevolutGlyph />
+              <span>Revolut Pay</span>
+            </MethodTab>
+            <MethodTab>
+              <BillieGlyph />
+              <span>Billie</span>
+            </MethodTab>
+            <MethodTab dropdown>
+              <span className="italic">pay</span>
+            </MethodTab>
+          </div>
+
+          {/* Card number */}
+          <div className="mt-5">
+            <FieldLabel>Card Number</FieldLabel>
+            <ElementBox focused={focusField === "number"}>
+              <div className="flex-1">
+                <CardNumberElement
+                  options={{
+                    ...STRIPE_ELEMENT_OPTIONS,
+                    showIcon: false,
+                    placeholder: "1234 1234 1234 1234",
+                  }}
+                  onFocus={() => setFocusField("number")}
+                  onBlur={() => setFocusField(null)}
+                  onChange={(e) => setCardComplete(e.complete)}
+                />
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5 pl-2">
+                <MastercardMark />
+                <VisaMark />
+                <AmexMark />
+              </div>
+            </ElementBox>
+          </div>
+
+          {/* Expiry + CVC */}
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <FieldLabel>Expiration date</FieldLabel>
+              <ElementBox focused={focusField === "expiry"}>
+                <div className="flex-1">
+                  <CardExpiryElement
+                    options={{ ...STRIPE_ELEMENT_OPTIONS, placeholder: "MM/YY" }}
+                    onFocus={() => setFocusField("expiry")}
+                    onBlur={() => setFocusField(null)}
+                    onChange={(e) => setExpiryComplete(e.complete)}
+                  />
+                </div>
+              </ElementBox>
+            </div>
+            <div>
+              <FieldLabel>Security code</FieldLabel>
+              <ElementBox focused={focusField === "cvc"}>
+                <div className="flex-1">
+                  <CardCvcElement
+                    options={{ ...STRIPE_ELEMENT_OPTIONS, placeholder: "CVC" }}
+                    onFocus={() => setFocusField("cvc")}
+                    onBlur={() => setFocusField(null)}
+                    onChange={(e) => setCvcComplete(e.complete)}
+                  />
+                </div>
+                <LockGlyph />
+              </ElementBox>
+            </div>
+          </div>
+
+          {/* Country */}
+          <div className="mt-4">
+            <FieldLabel>Country</FieldLabel>
+            <div className="relative">
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="h-[52px] w-full appearance-none rounded-[8px] border border-[#e7e8e3] bg-white px-4 pr-10 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+              >
+                <option value="GB">United Kingdom</option>
+                <option value="IE">Ireland</option>
+                <option value="US">United States</option>
+                <option value="FR">France</option>
+                <option value="DE">Germany</option>
+              </select>
+              <ChevronGlyph className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+
+          {/* Pay button */}
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={!canPay}
+            className="mt-6 inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#142e2a] px-6 font-ui text-[16px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.18)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#142e2a] disabled:hover:shadow-none"
           >
-            <textarea
-              rows={4}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder={"12 Example Road\nLondon\nSW1A 1AA"}
-              className="w-full rounded-lg bg-white px-4 py-3 font-ui text-[14px] leading-[22px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-            />
-          </FormSection>
+            {busy ? (
+              <>
+                <span
+                  aria-hidden
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                />
+                Processing…
+              </>
+            ) : (
+              `Pay ${formatPrice(total)}`
+            )}
+          </button>
 
-          <FormSection
-            title="Order notes (optional)"
-            subtitle="Anything our pharmacy team should know about delivery."
-          >
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Leave with neighbour, gate code 1234, etc."
-              className="w-full rounded-lg bg-white px-4 py-3 font-ui text-[14px] leading-[22px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-            />
-          </FormSection>
+          {error ? (
+            <p
+              role="alert"
+              className="mt-3 rounded-lg bg-red-50 px-4 py-3 font-ui text-[13px] text-red-700"
+            >
+              {error}
+            </p>
+          ) : null}
 
-          <FormSection
-            title="Payment method"
-            subtitle={
-              stripeReady
-                ? "Secure card payment powered by Stripe — we never store or see your card details."
-                : "Test mode is active. Real card processing is configured but waiting for Stripe credentials."
-            }
-          >
-            <StripePaymentCard ready={stripeReady} />
-          </FormSection>
-
-          {/* Mobile: place button under the form */}
-          <div className="md:hidden">
-            <PlaceOrderButton
-              busy={busy}
-              canPlaceOrder={Boolean(canPlaceOrder)}
-              onClick={handlePlaceOrder}
-              stripeReady={stripeReady}
-              total={subtotal}
-            />
-            {error ? <ErrorBox message={error} /> : null}
+          {/* Transaction secured */}
+          <div className="mt-4 flex items-center justify-between">
+            <span className="flex items-center gap-2 font-ui text-[14px] font-semibold text-[#142e2a]">
+              <LockGlyph />
+              Transaction secured
+            </span>
+            <span className="flex items-center gap-1 font-ui text-[13px] text-[#142e2a]/60">
+              <span className="grid h-4 w-4 place-items-center rounded-full bg-[#142e2a] text-[9px] font-bold text-white">
+                C
+              </span>
+              Checkify
+            </span>
           </div>
         </div>
 
-        {/* ─────────── RIGHT: summary (sticky on desktop) ─────────── */}
-        <aside className="md:sticky md:top-24 md:self-start">
-          <div className="rounded-2xl border border-[#142e2a]/10 bg-[#f7f9f2] p-5 md:p-6">
-            <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-[#142e2a]">
-              Order summary
-            </h2>
+        {/* ════════ RIGHT: order summary ════════ */}
+        <aside className="lg:pt-2">
+          <h2 className="font-ui text-[25px] font-semibold leading-[26px] tracking-[-0.49px] text-[#142e2a]">
+            Order Summary
+          </h2>
 
-            <ul className="mt-4 flex flex-col gap-3">
-              {items.map((item) => (
-                <li
-                  key={`${item.productId}-${item.dose ?? "default"}`}
-                  className="flex items-start gap-3"
-                >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-white">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                      />
-                    ) : null}
+          {/* Product card(s) */}
+          <div className="mt-5 flex flex-col gap-3 rounded-[16px] bg-[#f7f9f2] p-4">
+            {items.map((item) => (
+              <div
+                key={`${item.productId}-${item.dose ?? "default"}`}
+                className="flex items-center gap-4"
+              >
+                <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[12px] bg-white">
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.title}
+                      fill
+                      sizes="72px"
+                      className="object-contain p-1"
+                    />
+                  ) : null}
+                  {item.quantity > 1 ? (
                     <span className="absolute right-1 top-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-[#142e2a] px-1 font-ui text-[10px] font-semibold leading-none text-white">
                       {item.quantity}
                     </span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                      {item.title}
+                  ) : null}
+                </div>
+                <div className="flex-1">
+                  <p className="font-ui text-[16px] font-bold text-[#142e2a]">
+                    {item.title}
+                  </p>
+                  {item.dose ? (
+                    <p className="mt-0.5 font-ui text-[14px] text-[#142e2a]/80">
+                      {item.dose}
                     </p>
-                    {item.dose ? (
-                      <p className="mt-0.5 font-ui text-[12px] text-[#142e2a]/65">
-                        {item.dose}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                    {formatPrice(item.price * item.quantity)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-5 flex flex-col gap-2 border-t border-[#142e2a]/10 pt-4">
-              <Row label="Subtotal" value={formatPrice(subtotal)} />
-              <Row label="Delivery" value="At fulfilment" muted />
-              <Row label="Tax" value="At fulfilment" muted />
-            </div>
-            <div className="mt-3 flex items-baseline justify-between border-t border-[#142e2a]/10 pt-3">
-              <span className="font-display text-[16px] font-semibold text-[#142e2a]">
-                Total
-              </span>
-              <span className="font-display text-[22px] font-bold tracking-[-0.01em] text-[#142e2a]">
-                {formatPrice(subtotal)}
-              </span>
-            </div>
+                  ) : null}
+                </div>
+                <span className="font-ui text-[16px] font-semibold text-[#142e2a]">
+                  {formatPrice(item.price * item.quantity)}
+                </span>
+              </div>
+            ))}
           </div>
 
-          {/* Desktop: place button below the summary */}
-          <div className="mt-5 hidden md:block">
-            <PlaceOrderButton
-              busy={busy}
-              canPlaceOrder={Boolean(canPlaceOrder)}
-              onClick={handlePlaceOrder}
-              stripeReady={stripeReady}
-              total={subtotal}
+          {/* Pricing */}
+          <div className="mt-5 flex flex-col gap-3">
+            <SummaryRow label="Subtotal" value={formatPrice(subtotal)} />
+
+            {discount > 0 ? (
+              <SummaryRow
+                label="First order discount"
+                value={`-${formatPrice(discount)}`}
+              />
+            ) : null}
+
+            {/* Add discount code */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowDiscount((v) => !v)}
+                className="flex items-center gap-1 font-ui text-[16px] text-[#142e2a] underline underline-offset-2 transition-opacity hover:opacity-70"
+              >
+                Add discount code
+                <ChevronGlyph
+                  className={showDiscount ? "rotate-90 transition-transform" : "transition-transform"}
+                />
+              </button>
+              {showDiscount ? (
+                <div className="mt-2.5 flex gap-2">
+                  <input
+                    value={discountCode}
+                    onChange={(e) => {
+                      setDiscountCode(e.target.value);
+                      setDiscountMsg(null);
+                    }}
+                    placeholder="Enter code"
+                    className="h-11 flex-1 rounded-[8px] border border-[#e7e8e3] bg-white px-3 font-ui text-[14px] text-[#142e2a] outline-none focus:border-[#142e2a]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDiscountMsg(
+                        discountCode.trim()
+                          ? "This code isn’t valid."
+                          : null,
+                      )
+                    }
+                    className="h-11 rounded-[8px] border border-[#142e2a] px-4 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-[#142e2a] hover:text-white"
+                  >
+                    Apply
+                  </button>
+                </div>
+              ) : null}
+              {discountMsg ? (
+                <p className="mt-1.5 font-ui text-[12px] text-red-600">
+                  {discountMsg}
+                </p>
+              ) : null}
+            </div>
+
+            <SummaryRow label="Shipping" value="Free" muted />
+          </div>
+
+          {/* Total */}
+          <div className="mt-4 flex items-center justify-between border-t border-[#142e2a]/10 pt-4">
+            <span className="font-ui text-[16px] font-semibold text-[#142e2a]">
+              Today’s total
+            </span>
+            <span className="font-ui text-[25px] font-bold tracking-[-0.49px] text-[#142e2a]">
+              {formatPrice(total)}
+            </span>
+          </div>
+
+          {/* Delivery-thereafter note */}
+          <div className="mt-3 flex items-start gap-2 font-ui text-[14px] leading-[19px] text-[#545454]">
+            <TruckGlyph />
+            <span>
+              {formatPrice(197)} per delivery thereafter
+              <br />
+              Cancel or switch after 1 month
+            </span>
+          </div>
+
+          {/* Money back promise */}
+          <div className="mt-5 flex items-center gap-4 rounded-[16px] bg-[#f7f9f2] p-5">
+            <div className="flex-1">
+              <h3 className="font-ui text-[18px] font-bold leading-[22px] text-[#0c2421]">
+                Money back promise
+              </h3>
+              <p className="mt-1.5 font-ui text-[14px] leading-[19px] text-[#0c2421]/90">
+                Lose at least 10% of your body weight in 6 months with our
+                programme. If you don’t, we’ll refund you.
+              </p>
+            </div>
+            <Image
+              src="/assets/checkout/money-back-badge.png"
+              alt="Money back promise"
+              width={96}
+              height={96}
+              className="h-[96px] w-[96px] shrink-0"
             />
-            {error ? <ErrorBox message={error} /> : null}
-            <p className="mt-3 text-center font-ui text-[12px] text-[#142e2a]/55">
-              By placing this test order you agree to our Terms.
-            </p>
           </div>
         </aside>
       </div>
@@ -356,52 +726,88 @@ export default function CheckoutClient() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Subcomponents                                                       */
-/* ------------------------------------------------------------------ */
-
-function FormSection({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-[#142e2a]/10 bg-white p-5 md:p-6">
-      <header className="mb-4">
-        <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-[#142e2a]">
-          {title}
-        </h2>
-        {subtitle ? (
-          <p className="mt-1 font-ui text-[13px] text-[#142e2a]/65">{subtitle}</p>
-        ) : null}
-      </header>
-      {children}
-    </section>
-  );
-}
-
+/* ================================================================== */
+/*  Subcomponents                                                      */
+/* ================================================================== */
 function Field({
   label,
+  required,
   children,
 }: {
   label: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
-        {label}
-      </span>
+      <FieldLabel required={required}>{label}</FieldLabel>
       {children}
     </label>
   );
 }
 
-function Row({
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: React.ReactNode;
+  required?: boolean;
+}) {
+  return (
+    <span className="mb-1.5 block font-ui text-[16px] font-semibold leading-[19px] tracking-[-0.32px] text-[#0a0a0a]">
+      {children}
+      {required ? <span className="text-[#f93232]">*</span> : null}
+    </span>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  autoComplete,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  autoComplete?: string;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      autoComplete={autoComplete}
+      className="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+    />
+  );
+}
+
+function ElementBox({
+  focused,
+  children,
+}: {
+  focused: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={[
+        "flex h-[52px] items-center rounded-[8px] border bg-white px-4 transition-shadow",
+        focused
+          ? "border-[#142e2a] ring-2 ring-[#142e2a]/20"
+          : "border-[#e7e8e3]",
+      ].join(" ")}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SummaryRow({
   label,
   value,
   muted,
@@ -411,170 +817,142 @@ function Row({
   muted?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between font-ui text-[14px]">
-      <span className={muted ? "text-[#142e2a]/60" : "text-[#142e2a]/75"}>
-        {label}
-      </span>
-      <span className={muted ? "text-[#142e2a]/55" : "font-semibold text-[#142e2a]"}>
+    <div className="flex items-center justify-between font-ui text-[16px]">
+      <span className="font-semibold text-[#142e2a]">{label}</span>
+      <span className={muted ? "font-semibold text-[#767676]" : "font-semibold text-[#142e2a]"}>
         {value}
       </span>
     </div>
   );
 }
 
-function PlaceOrderButton({
-  busy,
-  canPlaceOrder,
-  onClick,
-  stripeReady,
-  total,
+function MethodTab({
+  active,
+  dropdown,
+  children,
 }: {
-  busy: boolean;
-  canPlaceOrder: boolean;
-  onClick: () => void;
-  stripeReady?: boolean | null;
-  total?: number;
+  active?: boolean;
+  dropdown?: boolean;
+  children: React.ReactNode;
 }) {
-  const totalLabel =
-    typeof total === "number"
-      ? total.toLocaleString("en-GB", {
-          style: "currency",
-          currency: "GBP",
-          minimumFractionDigits: 2,
-        })
-      : null;
-  const idleLabel = stripeReady
-    ? totalLabel
-      ? `Pay ${totalLabel} securely`
-      : "Pay securely with Stripe"
-    : "Place test order";
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!canPlaceOrder || busy}
-      className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.16)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#142e2a]"
+    <div
+      className={[
+        "flex h-[44px] items-center justify-center gap-1.5 rounded-[8px] border font-ui text-[12px] font-bold transition-colors",
+        active
+          ? "border-[#142e2a] bg-[#142e2a] text-white"
+          : "border-[#e7e8e3] bg-white text-[#666565]",
+      ].join(" ")}
     >
-      {busy ? (
-        <>
-          <span
-            aria-hidden
-            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"
-          />
-          {stripeReady ? "Redirecting to Stripe…" : "Placing order…"}
-        </>
-      ) : (
-        <>
-          {stripeReady ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.7" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-            </svg>
-          ) : null}
-          {idleLabel}
-        </>
-      )}
-    </button>
-  );
-}
-
-/**
- * Visible payment-method card shown inside the "Payment method" form
- * section. Renders a brand-recognisable Stripe-card UI even before
- * the customer kicks off the Stripe redirect, so they know exactly
- * what to expect on submit.
- */
-function StripePaymentCard({ ready }: { ready: boolean | null }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <label
-        className={[
-          "flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-4 transition-colors",
-          ready
-            ? "border-[#142e2a] bg-white"
-            : "border-[#142e2a]/15 bg-[#f7f9f2]",
-        ].join(" ")}
-      >
-        <span
-          aria-hidden
-          className={[
-            "mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2",
-            ready ? "border-[#142e2a]" : "border-[#142e2a]/30",
-          ].join(" ")}
-        >
-          <span
-            className={[
-              "h-2.5 w-2.5 rounded-full",
-              ready ? "bg-[#142e2a]" : "bg-transparent",
-            ].join(" ")}
-          />
-        </span>
-
-        <div className="flex flex-1 flex-col gap-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-              Credit or debit card
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-[#635bff]/10 px-2 py-0.5 font-ui text-[11px] font-bold italic text-[#635bff]">
-              stripe
-            </span>
-          </div>
-          <p className="font-ui text-[12.5px] leading-[18px] text-[#142e2a]/70">
-            {ready
-              ? "You'll be redirected to Stripe's secure payment page to enter your card details. We never see or store your card."
-              : "Stripe is wired up but the server is missing keys. Test orders will be saved without payment until the operator adds STRIPE_SECRET_KEY."}
-          </p>
-
-          {/* Card brand glyphs — Visa / Mastercard / Amex / Apple Pay /
-              Google Pay — so customers know which methods Stripe will
-              accept once they click through. */}
-          <div className="mt-1 flex items-center gap-2">
-            {[
-              { label: "Visa",        bg: "#1A1F71" },
-              { label: "MC",          bg: "#000000" },
-              { label: "Amex",        bg: "#2E77BB" },
-              { label: "Apple Pay",   bg: "#000000" },
-              { label: "G Pay",       bg: "#FFFFFF", color: "#5f6368", border: true },
-            ].map((b) => (
-              <span
-                key={b.label}
-                className="inline-flex h-6 items-center rounded-[4px] px-1.5 font-ui text-[10px] font-bold"
-                style={{
-                  backgroundColor: b.bg,
-                  color: b.color ?? "#ffffff",
-                  border: b.border ? "1px solid #142e2a1f" : "none",
-                }}
-              >
-                {b.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </label>
-
-      <p className="flex items-start gap-2 font-ui text-[12px] leading-[18px] text-[#142e2a]/55">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinejoin="round"
-          />
-          <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        Encrypted in transit. PCI DSS Level 1 processor. 3-D Secure where required.
-      </p>
+      {children}
+      {dropdown ? <ChevronGlyph className="opacity-60" /> : null}
     </div>
   );
 }
 
-function ErrorBox({ message }: { message: string }) {
+/* ---------------- Glyphs ---------------- */
+function CardGlyph() {
   return (
-    <p
-      role="alert"
-      className="mt-3 rounded-lg bg-red-50 px-4 py-3 font-ui text-[13px] text-red-700"
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M2 9.5h20" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+function RevolutGlyph() {
+  return (
+    <span className="font-display text-[13px] font-extrabold leading-none">R</span>
+  );
+}
+function BillieGlyph() {
+  return (
+    <span className="grid h-4 w-4 place-items-center rounded-[3px] bg-[#0a0a0a] text-[9px] font-bold leading-none text-white">
+      B
+    </span>
+  );
+}
+function ChevronGlyph({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className={className}
     >
-      {message}
-    </p>
+      <path
+        d="M9 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function LockGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-[#142e2a]">
+      <rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+function TruckGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="mt-0.5 shrink-0 text-[#545454]">
+      <path d="M2 6h11v9H2zM13 9h5l3 3v3h-8z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx="6" cy="18" r="1.6" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="17" cy="18" r="1.6" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+/* ---------------- Card brand marks ---------------- */
+function MastercardMark() {
+  return (
+    <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden>
+      <rect width="26" height="18" rx="3" fill="#16366b" />
+      <circle cx="10.5" cy="9" r="5" fill="#EB001B" />
+      <circle cx="15.5" cy="9" r="5" fill="#F79E1B" fillOpacity="0.9" />
+    </svg>
+  );
+}
+function VisaMark() {
+  return (
+    <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden>
+      <rect width="26" height="18" rx="3" fill="#fff" stroke="#e7e8e3" />
+      <text
+        x="13"
+        y="12.5"
+        textAnchor="middle"
+        fontSize="8"
+        fontWeight="700"
+        fontStyle="italic"
+        fill="#1A1F71"
+        fontFamily="Arial, sans-serif"
+      >
+        VISA
+      </text>
+    </svg>
+  );
+}
+function AmexMark() {
+  return (
+    <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden>
+      <rect width="26" height="18" rx="3" fill="#2E77BB" />
+      <text
+        x="13"
+        y="12"
+        textAnchor="middle"
+        fontSize="6"
+        fontWeight="700"
+        fill="#fff"
+        fontFamily="Arial, sans-serif"
+      >
+        AMEX
+      </text>
+    </svg>
   );
 }

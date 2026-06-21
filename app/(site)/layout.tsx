@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
+import { Outfit, Inter, Plus_Jakarta_Sans, DM_Sans, Fraunces } from "next/font/google";
 
 import { CartProvider } from "@/components/cart/CartContext";
 
@@ -35,6 +35,17 @@ const sofia = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+// Elegant serif used for the italicised display accents across the
+// marketing site (e.g. "made for you.", "works", "your schedule").
+// Stands in for ITC Clearface Std from the Figma source; Fraunces'
+// soft, high-contrast italics read closest to it of the Google fonts.
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  axes: ["SOFT", "opsz"],
+});
+
 export const metadata: Metadata = {
   title: "JoodLife — Innovative weight loss, made just for you",
   description:
@@ -56,7 +67,7 @@ export default function SiteLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${inter.variable} ${plusJakarta.variable} ${saans.variable} ${sofia.variable}`}
+      className={`${outfit.variable} ${inter.variable} ${plusJakarta.variable} ${saans.variable} ${sofia.variable} ${fraunces.variable}`}
     >
       <body
         className="min-h-screen bg-white text-[#142e2a] font-ui antialiased"

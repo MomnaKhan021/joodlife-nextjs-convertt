@@ -190,7 +190,7 @@ function Chip({ chip }: { chip: ChipDef }) {
   );
 }
 
-function TransformationCard() {
+export function TransformationCard() {
   return (
     <div className="relative flex h-full flex-col gap-6 rounded-[24px] bg-[#0a1f1c]/55 p-6 backdrop-blur-md md:p-8">
       {/* Heading */}
@@ -286,7 +286,7 @@ function PhoneGlyph() {
   );
 }
 
-function ExpertGuidanceCard() {
+export function ExpertGuidanceCard() {
   return (
     <div className="relative flex h-full flex-col gap-5 rounded-[24px] bg-[#0a1f1c]/55 p-6 backdrop-blur-md md:p-8">
       {/* Heading */}

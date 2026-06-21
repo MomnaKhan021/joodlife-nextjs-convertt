@@ -32,8 +32,9 @@ export default function Faq() {
 
   return (
     <section
+      id="faq"
       aria-label="FAQ"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
     >
       <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-8 px-6 md:gap-10 md:px-10 lg:px-[60px]">
         <Reveal as="div">
@@ -103,7 +104,7 @@ export default function Faq() {
 
         <a
           href="#get-started"
-          className="inline-flex h-[50px] cursor-pointer items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+          className="inline-flex h-[50px] cursor-pointer items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[16.3px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
         >
           Get started
         </a>

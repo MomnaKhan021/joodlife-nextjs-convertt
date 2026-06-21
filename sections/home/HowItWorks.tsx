@@ -3,19 +3,19 @@ import Reveal from "@/components/ui/Reveal";
 
 const STEPS = [
   {
-    step: "1 Step",
+    step: "Step 01",
     title: "Health assessment",
-    copy: "Fill out a quick form about your medical background, daily habits, and wellness goals.",
+    copy: "Choose a treatment and complete a short questionnaire to find the best option for you.",
     variant: "chart",
   },
   {
-    step: "2 Step",
+    step: "Step 02",
     title: "Expert review",
     copy: "Licensed providers in your state review your info and recommend the best course of action.",
     variant: "certified",
   },
   {
-    step: "3 Step",
+    step: "Step 03",
     title: "Get medication",
     copy: "Order affordable meds from vetted pharmacies or brand names.",
     variant: "medication",
@@ -133,7 +133,7 @@ export default function HowItWorks() {
           <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             How it <em className="font-serif italic font-normal">works</em>
           </h2>
-          <p className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
+          <p className="max-w-[480px] font-ui text-[15px] font-normal leading-[22px] text-[#142e2a]/75 md:text-[16.3px] md:leading-[20px]">
             Address symptoms, treat root causes, and adjust your behaviours,
             for immediate relief and long-term optimal health.
           </p>
@@ -151,14 +151,14 @@ export default function HowItWorks() {
                 {i === 1 && <Step2Visual />}
                 {i === 2 && <Step3Visual />}
               </div>
-              <div className="flex flex-col items-center gap-4 pb-8 text-center">
-                <span className="inline-flex items-center rounded-full bg-[#87af73] px-5 py-1.5 font-ui text-[14px] text-white">
+              <div className="flex flex-col items-center gap-3 pb-10 text-center">
+                <span className="font-ui text-[13px] font-medium text-[#142e2a]/50">
                   {step.step}
                 </span>
                 <h3 className="font-ui text-[22px] font-extrabold leading-[26px] text-[#142e2a] md:text-[25px]">
                   {step.title}
                 </h3>
-                <p className="font-ui text-[16px] leading-[20px] text-[#142e2a] md:text-[16.3px]">
+                <p className="max-w-[260px] font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px]">
                   {step.copy}
                 </p>
               </div>

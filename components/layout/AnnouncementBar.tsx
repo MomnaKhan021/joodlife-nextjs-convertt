@@ -14,7 +14,7 @@ export default function AnnouncementBar() {
             className="h-[18px] w-[18px] flex-shrink-0"
             aria-hidden
           />
-          <p className="font-outfit text-sm leading-snug text-white">
+          <p className="font-ui text-[13px] font-semibold leading-snug text-white">
             Limited-Time Offer: Buy 1 Month, Get 1 Month FREE!
           </p>
         </div>
@@ -31,7 +31,7 @@ export default function AnnouncementBar() {
             className="h-[18px] w-[18px] flex-shrink-0"
             aria-hidden
           />
-          <p className="font-outfit text-sm leading-snug text-white">
+          <p className="font-ui text-[13px] font-semibold leading-snug text-white">
             Limited-Time Offer: Buy 1 Month, Get 1 Month FREE!
           </p>
         </div>

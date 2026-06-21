@@ -137,17 +137,17 @@ export default function Blog() {
                   className="object-cover transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/60" />
-                <div className="relative z-10 flex h-full flex-col justify-between p-6 md:p-8">
-                  <span className="inline-flex w-fit items-center rounded-full bg-white/25 px-3 py-1.5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm md:text-[14px]">
+                <div className="relative z-10 flex h-full flex-col justify-between p-5 md:p-6">
+                  <span className="inline-flex w-fit items-center rounded-full bg-white/90 px-3 py-1 font-ui text-[13px] font-semibold text-[#142e2a] md:text-[13px]">
                     {post.tag}
                   </span>
-                  <div className="flex flex-col gap-4 rounded-xl bg-black/20 p-5 backdrop-blur-md md:p-6">
-                    <h3 className="font-ui text-[17px] font-semibold leading-[22px] text-white md:text-[19px] md:leading-[24px]">
+                  <div className="flex flex-col gap-3">
+                    <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white md:text-[18px] md:leading-[24px]">
                       {post.title}
                     </h3>
                     <Link
                       href="#"
-                      className="inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white/15 px-6 font-ui text-[13px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/25 backdrop-blur-sm transition-colors duration-200 hover:bg-white hover:text-[#142e2a] md:h-12 md:text-[14px]"
+                      className="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors duration-200 hover:bg-[#f7f9f2] md:h-11"
                     >
                       Read Blog Post
                     </Link>

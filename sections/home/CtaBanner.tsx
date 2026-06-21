@@ -37,24 +37,19 @@ export default function CtaBanner() {
             />
           </div>
 
-          <div className="relative grid h-full grid-cols-1 items-center md:grid-cols-[425px_minmax(0,1fr)_auto] md:gap-10 md:px-[60px]">
+          <div className="relative grid h-full grid-cols-1 items-center md:grid-cols-[440px_minmax(0,1fr)_220px] md:gap-6 md:px-[60px]">
             {/* LEFT — icon + headline + copy */}
             <div className="relative z-10 flex flex-col items-start gap-5 px-6 pt-10 pb-4 md:gap-6 md:px-0 md:py-0">
-              {/* Heart-in-square icon (48×48) */}
+              {/* Icon (48×48) */}
               <span className="grid h-12 w-12 place-items-center rounded-lg bg-[#142e2a]">
-                <svg
-                  width="22"
-                  height="21"
-                  viewBox="0 0 22 21"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <Image
+                  src="/assets/figma/icon-cta-arrow.svg"
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] brightness-0 invert"
                   aria-hidden
-                >
-                  <path
-                    d="M11 19s-7.5-4.5-7.5-10.5C3.5 5.46 5.96 3 9 3c1.55 0 3.13.76 4 2.07C13.87 3.76 15.45 3 17 3c3.04 0 5.5 2.46 5.5 5.5C22.5 14.5 11 19 11 19z"
-                    fill="#ffffff"
-                  />
-                </svg>
+                />
               </span>
 
               <h2 className="max-w-[425px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
@@ -70,15 +65,15 @@ export default function CtaBanner() {
               </p>
             </div>
 
-            {/* MIDDLE — portrait image */}
-            <div className="relative order-3 h-[300px] w-full md:order-2 md:h-full md:min-h-[430px]">
+            {/* MIDDLE — portrait image, bottom-anchored and centered */}
+            <div className="relative order-3 h-[300px] w-full self-end md:order-2 md:h-full md:min-h-[430px]">
               <Image
                 src="/assets/figma/cta-bg.png"
                 alt="Happy person smiling"
                 fill
-                sizes="(max-width: 768px) 100vw, 600px"
+                sizes="(max-width: 768px) 100vw, 560px"
                 quality={95}
-                className="object-cover object-[center_20%] md:object-[center_center]"
+                className="object-contain object-bottom md:object-[center_bottom]"
                 priority={false}
               />
             </div>

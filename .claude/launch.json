@@ -2,9 +2,32 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "convertt-dev",
+      "runtimeExecutable": "/Users/momnawaryamkhan/.local/bin/npm-jood-convertt",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
       "name": "next-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/Users/momnawaryamkhan/.local/bin/npm-jood",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "Next.js Dev Server",
+      "runtimeExecutable": "/Users/momnawaryamkhan/.local/bin/npm-jood",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "autoPort": true
     }
