@@ -299,7 +299,12 @@ export default function OrderDetailClient({ id }: { id: string }) {
               </div>
               <div className="px-5 pb-2 pt-4">
                 <div className="flex items-center gap-2 rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] font-medium text-[#303030]">
-                  <span aria-hidden>🚚</span> Delivery Charges
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="text-[#616161]">
+                    <path d="M2 6.5h11v9H2zM13 9.5h4l3 3v3h-7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                    <circle cx="6.5" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
+                    <circle cx="16.5" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                  Delivery Charges
                 </div>
               </div>
               <div className="px-5 pb-4">
