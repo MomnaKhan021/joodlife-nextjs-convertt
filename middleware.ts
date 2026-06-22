@@ -42,9 +42,25 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Protect /admin-tools/* — bounce to /login carrying the FULL requested
+  // path (incl. query) so after signing in the admin lands back on the exact
+  // page they asked for instead of a generic dashboard.
+  if (path.startsWith("/admin-tools") && !token) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("next", path + (url.search || ""));
+    return NextResponse.redirect(loginUrl);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/account", "/login", "/signup", "/profile/:path*"],
+  matcher: [
+    "/account",
+    "/login",
+    "/signup",
+    "/profile/:path*",
+    "/admin-tools",
+    "/admin-tools/:path*",
+  ],
 };
