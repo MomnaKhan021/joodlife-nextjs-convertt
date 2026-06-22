@@ -861,7 +861,7 @@ function CheckoutForm() {
               Transaction secured
             </span>
             <span className="flex items-center gap-1.5 font-ui text-[12px] text-[#142e2a]/55">
-              Secured by
+              Powered by
               <span className="font-semibold text-[#635bff]">Stripe</span>
             </span>
           </div>
