@@ -34,8 +34,7 @@ export default async function DataBrowserPage() {
         <p className="db-shell__subtitle">
           Search, sort and paginate every JoodLife collection — orders,
           consultations, posts, users, products, media and discounts —
-          straight from the live database. Click any row to open it in the
-          full Payload editor.
+          straight from the live database. Click a row to view or edit it.
         </p>
       </header>
 

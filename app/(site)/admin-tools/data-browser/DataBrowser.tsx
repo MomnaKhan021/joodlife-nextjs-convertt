@@ -246,6 +246,21 @@ const TABS: TabSpec[] = [
 
 const PAGE_SIZE = 25;
 
+/** Detail/edit destination per collection — products and orders use the new
+ *  Shopify-style pages; everything else uses the generic editor. */
+function detailHref(key: CollectionKey, id: unknown): string {
+  if (key === "products") return `/admin-tools/products/${id}`;
+  if (key === "orders") return `/admin-tools/orders/${id}`;
+  return `/admin-tools/edit/${key}/${id}`;
+}
+function newHref(key: CollectionKey): string {
+  if (key === "products") return `/admin-tools/products/new`;
+  return `/admin-tools/edit/${key}/new`;
+}
+function addLabel(label: string): string {
+  return `Add ${label.replace(/s$/, "").toLowerCase()}`;
+}
+
 function readInitialTab(): CollectionKey {
   if (typeof window === "undefined") return "orders";
   const params = new URLSearchParams(window.location.search);
@@ -371,10 +386,10 @@ export default function DataBrowser() {
             {loading ? "Loading…" : "Refresh"}
           </button>
           <Link
-            href={`/admin-tools/edit/${tab.key}/new`}
+            href={newHref(tab.key)}
             className="db-btn db-btn--primary"
           >
-            + New
+            {addLabel(tab.label)}
           </Link>
         </div>
       </div>
@@ -424,10 +439,10 @@ export default function DataBrowser() {
                     ))}
                     <td className="db-table__edit">
                       <Link
-                        href={`/admin-tools/edit/${tab.key}/${row.id}`}
+                        href={detailHref(tab.key, row.id)}
                         className="db-btn db-btn--ghost"
                       >
-                        Edit
+                        {tab.key === "orders" ? "View" : "Edit"}
                       </Link>
                     </td>
                   </tr>
@@ -462,10 +477,10 @@ export default function DataBrowser() {
                   ))}
                 </dl>
                 <Link
-                  href={`/admin-tools/edit/${tab.key}/${row.id}`}
+                  href={detailHref(tab.key, row.id)}
                   className="db-btn db-btn--block"
                 >
-                  Edit →
+                  {tab.key === "orders" ? "View →" : "Edit →"}
                 </Link>
               </li>
             ))}
