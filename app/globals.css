@@ -53,6 +53,11 @@
 
 html {
   scroll-behavior: smooth;
+  /* Clip stray horizontal overflow (e.g. the off-canvas mobile menu sitting
+     translated off the right edge) so the page never scrolls sideways on
+     mobile. `clip` (not `hidden`) avoids creating a scroll container, so
+     position: sticky keeps working. */
+  overflow-x: clip;
 }
 
 html, body {
