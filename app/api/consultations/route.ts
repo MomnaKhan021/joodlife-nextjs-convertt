@@ -22,7 +22,7 @@
  *   Admin-only. Returns the row as structured camelCase JSON with the
  *   `answers` blob inline. For external integrators / clinician tools.
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -139,20 +139,6 @@ export async function POST(req: NextRequest) {
     // Submit (status === 'submitted'). Drafts churn too much.
     if (status === "submitted" && body.email) {
       const [first, ...rest] = (body.fullName ?? "").split(" ");
-      void fireHubSpot("consultation:contact", () =>
-        upsertContact({
-          email: body.email!,
-          firstName: first || null,
-          lastName: rest.join(" ") || null,
-          phone: body.phone ?? null,
-          extra: {
-            jood_product_interest: body.productSlug ?? null,
-            jood_consultation_status: "submitted",
-            jood_consultation_id: insertedId ?? undefined,
-          },
-        })
-      );
-
       // Compact answers as a Note so clinicians can read them inside HubSpot
       const noteLines = Object.entries(body.answers ?? {})
         .filter(([k]) => !k.startsWith("_")) // skip internal flags
@@ -165,9 +151,27 @@ export async function POST(req: NextRequest) {
         `<p><b>JoodLife consultation submitted</b><br/>` +
         `Reference: #${insertedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
         `<hr/><p>${noteLines}</p>`;
-      void fireHubSpot("consultation:note", () =>
-        addNoteToContact(body.email!, noteBody)
-      );
+      // Run AFTER the response so the work isn't killed when the serverless
+      // function returns (Vercel freezes the function once it responds).
+      // Contact first, then the note (which associates by email).
+      after(async () => {
+        await fireHubSpot("consultation:contact", () =>
+          upsertContact({
+            email: body.email!,
+            firstName: first || null,
+            lastName: rest.join(" ") || null,
+            phone: body.phone ?? null,
+            extra: {
+              jood_product_interest: body.productSlug ?? null,
+              jood_consultation_status: "submitted",
+              jood_consultation_id: insertedId ?? undefined,
+            },
+          }),
+        );
+        await fireHubSpot("consultation:note", () =>
+          addNoteToContact(body.email!, noteBody),
+        );
+      });
     }
 
     return NextResponse.json({ ok: true, id: insertedId });
@@ -233,19 +237,6 @@ export async function PATCH(req: NextRequest) {
     // Mirror to HubSpot when this PATCH is the final submit.
     if (status === "submitted" && body.email) {
       const [first, ...rest] = (body.fullName ?? "").split(" ");
-      void fireHubSpot("consultation:contact", () =>
-        upsertContact({
-          email: body.email!,
-          firstName: first || null,
-          lastName: rest.join(" ") || null,
-          phone: body.phone ?? null,
-          extra: {
-            jood_product_interest: body.productSlug ?? null,
-            jood_consultation_status: "submitted",
-            jood_consultation_id: updatedId,
-          },
-        })
-      );
       const noteLines = Object.entries(body.answers ?? {})
         .filter(([k]) => !k.startsWith("_"))
         .map(([k, v]) => {
@@ -257,9 +248,24 @@ export async function PATCH(req: NextRequest) {
         `<p><b>JoodLife consultation submitted</b><br/>` +
         `Reference: #${updatedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
         `<hr/><p>${noteLines}</p>`;
-      void fireHubSpot("consultation:note", () =>
-        addNoteToContact(body.email!, noteBody)
-      );
+      after(async () => {
+        await fireHubSpot("consultation:contact", () =>
+          upsertContact({
+            email: body.email!,
+            firstName: first || null,
+            lastName: rest.join(" ") || null,
+            phone: body.phone ?? null,
+            extra: {
+              jood_product_interest: body.productSlug ?? null,
+              jood_consultation_status: "submitted",
+              jood_consultation_id: updatedId,
+            },
+          }),
+        );
+        await fireHubSpot("consultation:note", () =>
+          addNoteToContact(body.email!, noteBody),
+        );
+      });
     }
 
     return NextResponse.json({ ok: true, id: updatedId });

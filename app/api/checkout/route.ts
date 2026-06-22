@@ -15,7 +15,7 @@
  *   GET /api/checkout?orderNumber=JL-XXXXX
  *     Public summary used by the success page.
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 import { z } from "zod";
 
@@ -495,43 +495,45 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── HubSpot mirror (fire-and-forget) ─────────────────────────
-    // Upsert contact + create a Deal worth the order total. Both run
-    // in the background; we don't block the customer's response.
+    // ── HubSpot mirror ───────────────────────────────────────────
+    // Upsert the contact + create a Deal worth the order total. Runs via
+    // after() so it completes AFTER the response is sent without being
+    // killed when the Vercel serverless function freezes on return.
     {
       const [first, ...rest] = customer.name.split(" ");
-      void fireHubSpot("checkout:contact", () =>
-        upsertContact({
-          email: customer.email,
-          firstName: first || null,
-          lastName: rest.join(" ") || null,
-          phone: customer.phone || null,
-          extra: {
-            jood_last_order_number: orderNumber,
-            jood_last_order_total: finalTotal,
-          },
-        })
-      );
-
       const itemSummary = repriced.items
         .map(
           (i) =>
             `${i.title}${i.dose ? ` (${i.dose})` : ""} × ${i.quantity}`
         )
         .join(", ");
-      void fireHubSpot("checkout:deal", () =>
-        createDeal({
-          name: `JoodLife — ${orderNumber}`,
-          amount: finalTotal,
-          contactEmail: customer.email,
-          extra: {
-            jood_order_number: orderNumber,
-            jood_order_items: itemSummary,
-            jood_order_status: "pending",
-            jood_payment_method: "test",
-          },
-        })
-      );
+      after(async () => {
+        await fireHubSpot("checkout:contact", () =>
+          upsertContact({
+            email: customer.email,
+            firstName: first || null,
+            lastName: rest.join(" ") || null,
+            phone: customer.phone || null,
+            extra: {
+              jood_last_order_number: orderNumber,
+              jood_last_order_total: finalTotal,
+            },
+          }),
+        );
+        await fireHubSpot("checkout:deal", () =>
+          createDeal({
+            name: `JoodLife — ${orderNumber}`,
+            amount: finalTotal,
+            contactEmail: customer.email,
+            extra: {
+              jood_order_number: orderNumber,
+              jood_order_items: itemSummary,
+              jood_order_status: "pending",
+              jood_payment_method: payMethod,
+            },
+          }),
+        );
+      });
     }
 
     return NextResponse.json({
