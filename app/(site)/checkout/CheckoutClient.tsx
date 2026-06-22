@@ -867,6 +867,20 @@ function CheckoutForm() {
               Checkify
             </span>
           </div>
+
+          {/* Accepted payment methods — card brands + wallets */}
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#eef0ea] pt-4">
+            <span className="font-ui text-[12px] text-[#142e2a]/55">
+              We accept
+            </span>
+            <span className="flex items-center gap-1.5">
+              <VisaMark />
+              <MastercardMark />
+              <AmexMark />
+              <ApplePayBadge />
+              <GooglePayBadge />
+            </span>
+          </div>
         </div>
 
         {/* ════════ RIGHT: order summary ════════ */}
@@ -1264,5 +1278,40 @@ function AmexMark() {
         AMEX
       </text>
     </svg>
+  );
+}
+function ApplePayBadge() {
+  return (
+    <span
+      aria-label="Apple Pay"
+      className="inline-flex h-[18px] items-center gap-[2px] rounded-[3px] border border-[#e7e8e3] bg-white px-1.5"
+    >
+      <svg width="9" height="11" viewBox="0 0 384 512" aria-hidden fill="#000">
+        <path d="M318.7 268c-.3-36.7 16.4-64.4 50.1-84.8-18.9-27-47.5-41.9-85.1-44.8-35.8-2.8-74.9 21-89.3 21-15.2 0-49.8-20-77.1-20C61.2 140.3 0 184.8 0 275.8c0 27.7 5.1 56.3 15.2 85.8 13.6 38.8 62.8 134 114.2 132.4 26.9-.6 45.9-19.1 80.9-19.1 34 0 51.6 19.1 81.6 19.1 51.9-.7 96.4-87.2 109.3-126.1-69.6-32.8-69.6-96.2-69.6-98.2zM258.1 92.4c19.9-24.2 18.1-46.2 17.5-54.1-16.9 1-36.5 11.5-47.7 24.5-12.4 14-19.7 31.3-18.1 53.7 18.3 1.4 35-8 48.3-24.1z" />
+      </svg>
+      <span className="font-ui text-[10px] font-semibold leading-none text-[#0a0a0a]">
+        Pay
+      </span>
+    </span>
+  );
+}
+function GooglePayBadge() {
+  return (
+    <span
+      aria-label="Google Pay"
+      className="inline-flex h-[18px] items-center gap-[2px] rounded-[3px] border border-[#e7e8e3] bg-white px-1.5"
+    >
+      <span className="font-ui text-[10px] font-semibold leading-none">
+        <span style={{ color: "#4285F4" }}>G</span>
+        <span style={{ color: "#EA4335" }}>o</span>
+        <span style={{ color: "#FBBC04" }}>o</span>
+        <span style={{ color: "#4285F4" }}>g</span>
+        <span style={{ color: "#34A853" }}>l</span>
+        <span style={{ color: "#EA4335" }}>e</span>
+      </span>
+      <span className="font-ui text-[10px] font-semibold leading-none text-[#5f6368]">
+        Pay
+      </span>
+    </span>
   );
 }
