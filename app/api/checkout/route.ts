@@ -424,6 +424,14 @@ export async function POST(req: NextRequest) {
   const finalTotal =
     Math.round(Math.max(0, repriced.total - discountAmount) * 100) / 100;
 
+  // A 100%/large discount can bring the total to £0. Stripe rejects a £0
+  // PaymentIntent, so a free order skips Stripe entirely: it's recorded as
+  // already paid here and the client redirects straight to the success page.
+  const isFree = finalTotal <= 0;
+  const orderStatus = isFree ? "processing" : "pending";
+  const payMethod = isFree ? "free" : "card";
+  const payStatus = isFree ? "paid" : "unpaid";
+
   // 8. Insert
   const orderNumber = `JL-${Math.random()
     .toString(36)
@@ -447,7 +455,7 @@ export async function POST(req: NextRequest) {
          ${esc(customer.address)},
          ${esc(JSON.stringify(repriced.items))}::jsonb,
          ${finalTotal}, ${discountAmount},
-         'pending', 'card', 'unpaid',
+         ${esc(orderStatus)}, ${esc(payMethod)}, ${esc(payStatus)},
          ${esc(ipForAudit)}, ${esc(userAgent)},
          ${esc(customer.notes)},
          now(), now())
@@ -529,6 +537,7 @@ export async function POST(req: NextRequest) {
       orderNumber,
       totalAmount: finalTotal,
       discountAmount,
+      free: isFree,
     });
   } catch (err) {
     return NextResponse.json(

@@ -183,6 +183,9 @@ function CheckoutForm() {
   }
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // A fully-discounted (£0) order is placed without a card — Stripe rejects
+  // a £0 charge, so we skip the card requirement and the payment step.
+  const isFreeOrder = total <= 0;
   const canPay =
     items.length > 0 &&
     firstName.trim() &&
@@ -192,14 +195,15 @@ function CheckoutForm() {
     city.trim() &&
     postcode.trim() &&
     phone.trim() &&
-    cardComplete &&
-    expiryComplete &&
-    cvcComplete &&
-    Boolean(stripe && elements) &&
+    (isFreeOrder ||
+      (cardComplete &&
+        expiryComplete &&
+        cvcComplete &&
+        Boolean(stripe && elements))) &&
     !busy;
 
   async function handlePay() {
-    if (!canPay || !stripe || !elements) return;
+    if (!canPay) return;
     setBusy(true);
     setError(null);
 
@@ -298,6 +302,16 @@ function CheckoutForm() {
         throw new Error(describeCheckoutError(orderJson, orderRes.status));
       }
 
+      // Free order (£0 after a full discount): Stripe is skipped — the order
+      // is already recorded as paid server-side. Go straight to success.
+      if (orderJson.free || orderJson.totalAmount <= 0) {
+        clear();
+        router.replace(
+          `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+        );
+        return;
+      }
+
       // 2) Create / reuse the PaymentIntent for the trusted total
       const piRes = await fetch("/api/stripe/payment-intent", {
         method: "POST",
@@ -313,6 +327,9 @@ function CheckoutForm() {
       }
 
       // 3) Confirm the card payment on Stripe (card data never touches us)
+      if (!stripe || !elements) {
+        throw new Error("Payment form is still loading. Please retry.");
+      }
       const cardNumber = elements.getElement(
         CardNumberElement,
       ) as StripeCardNumberElement | null;
