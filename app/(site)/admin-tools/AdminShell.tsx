@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 /* Shopify-style admin shell: fixed left sidebar + content area.
@@ -92,13 +92,45 @@ function NavBadge({ type }: { type: string }) {
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const params = useSearchParams();
+  const router = useRouter();
   const type = params.get("type");
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Close the mobile drawer on navigation.
   useEffect(() => {
     setOpen(false);
   }, [pathname, type]);
+
+  async function logout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/users/logout", { method: "POST", credentials: "include" });
+    } catch {
+      /* ignore — cookie is cleared either way below */
+    }
+    router.push("/login");
+    router.refresh();
+  }
+
+  const footer = (
+    <div className="mt-auto border-t border-[#e1e3e5] p-3">
+      <button
+        type="button"
+        onClick={logout}
+        disabled={loggingOut}
+        className="flex w-full items-center gap-3 rounded-[8px] px-3 py-2 text-[14px] font-medium text-[#303030] transition-colors hover:bg-[#f1f1f1] disabled:opacity-50"
+      >
+        <span className="text-[#616161]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M15 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M10 17l-5-5 5-5M5 12h11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        {loggingOut ? "Logging out…" : "Log out"}
+      </button>
+    </div>
+  );
 
   const nav = (
     <nav className="flex flex-col gap-0.5 p-3">
@@ -128,12 +160,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col border-r border-[#e1e3e5] bg-[#fbfbfb] md:flex">
         <div className="flex h-14 items-center gap-2 px-5">
-          <span className="text-[16px] font-bold tracking-tight text-[#1a1a1a]">JoodLife</span>
+          <span className="text-[16px] font-bold tracking-tight text-[#142e2a]">JoodLife</span>
           <span className="rounded bg-[#e3e3e3] px-1.5 py-0.5 text-[10px] font-semibold text-[#616161]">
             Admin
           </span>
         </div>
         {nav}
+        {footer}
       </aside>
 
       {/* Mobile top bar */}
@@ -155,9 +188,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       {open ? (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-[260px] overflow-y-auto bg-[#fbfbfb] shadow-xl">
+          <aside className="absolute inset-y-0 left-0 flex w-[260px] flex-col overflow-y-auto bg-[#fbfbfb] shadow-xl">
             <div className="flex h-12 items-center justify-between px-4">
-              <span className="text-[15px] font-bold text-[#1a1a1a]">JoodLife Admin</span>
+              <span className="text-[15px] font-bold text-[#142e2a]">JoodLife Admin</span>
               <button
                 type="button"
                 aria-label="Close menu"
@@ -168,6 +201,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               </button>
             </div>
             {nav}
+            {footer}
           </aside>
         </div>
       ) : null}
