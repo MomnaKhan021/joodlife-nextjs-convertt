@@ -38,8 +38,26 @@ export default function SitePreloader() {
 
   useEffect(() => {
     if (skip) return;
-    // Fixed-duration display: keep the brand moment consistent regardless
-    // of how fast (or slow) the actual page assets resolve.
+    // Show the brand splash only ONCE per browser session. On repeat opens
+    // / internal navigations it dismisses immediately, so it never reads as
+    // a recurring glitch when you re-open the site.
+    let alreadyShown = false;
+    try {
+      alreadyShown = window.sessionStorage.getItem("jood:preloader") === "1";
+    } catch {
+      /* sessionStorage unavailable — fall back to showing it */
+    }
+    if (alreadyShown) {
+      setVisible(false);
+      setRemoved(true);
+      return;
+    }
+    try {
+      window.sessionStorage.setItem("jood:preloader", "1");
+    } catch {
+      /* ignore */
+    }
+    // First view of the session: keep the brand moment for the fixed duration.
     const fadeTimer = window.setTimeout(
       () => setVisible(false),
       PRELOADER_VISIBLE_MS,
