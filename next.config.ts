@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
       // The CRM lives in the custom Shopify-style admin tools, not Payload's
       // built-in /admin chrome. Landing on /admin sends staff to the new
       // dashboard. (Deep Payload links like /admin/collections/* still work.)
-      { source: "/admin", destination: "/admin-tools/data-browser", permanent: false },
+      { source: "/admin", destination: "/admin-tools", permanent: false },
     ];
   },
   /**
