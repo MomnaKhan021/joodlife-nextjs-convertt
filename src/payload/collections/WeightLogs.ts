@@ -91,7 +91,13 @@ export const WeightLogs: CollectionConfig = {
           // Store the weight on the customer's HubSpot contact as properties
           // (latest weight, date, appended history). Uses only the
           // contacts.write scope — no notes scope required.
-          void fireHubSpot("weightlog:contact", () =>
+          //
+          // AWAIT it: the POST route awaits payload.create(), so awaiting here
+          // means the HubSpot update finishes before the response is sent — it
+          // syncs in real time and is never cut off when the Vercel serverless
+          // function freezes on return. fireHubSpot never throws (returns
+          // {ok:false} on error), so the weight save is never blocked.
+          await fireHubSpot("weightlog:contact", () =>
             syncWeightLogToContact({
               email: String(doc.customerEmail),
               weightKg: Number(doc.weightKg),
