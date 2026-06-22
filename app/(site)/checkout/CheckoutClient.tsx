@@ -9,10 +9,15 @@ import {
   CardExpiryElement,
   CardNumberElement,
   Elements,
+  PaymentRequestButtonElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import type { StripeCardNumberElement } from "@stripe/stripe-js";
+import type {
+  StripeCardNumberElement,
+  PaymentRequest,
+  PaymentRequestPaymentMethodEvent,
+} from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
 import { getStripeClient } from "@/lib/stripeClient";
@@ -379,6 +384,207 @@ function CheckoutForm() {
     }
   }
 
+  /* ---------------- Apple Pay / Google Pay (Payment Request) ---------- */
+  // Delivery/contact details are still required (same as the card path);
+  // the wallet only supplies the payment method. Card data and wallet
+  // tokens are handled entirely by Stripe.
+  const formReady = Boolean(
+    items.length > 0 &&
+      firstName.trim() &&
+      lastName.trim() &&
+      emailValid &&
+      address.trim() &&
+      city.trim() &&
+      postcode.trim() &&
+      phone.trim(),
+  );
+
+  // Keep the latest handler in a ref so the Stripe listener never goes stale.
+  const walletPayRef = useRef<(ev: PaymentRequestPaymentMethodEvent) => void>(
+    () => {},
+  );
+  walletPayRef.current = async (ev: PaymentRequestPaymentMethodEvent) => {
+    try {
+      if (!stripe) {
+        ev.complete("fail");
+        return;
+      }
+      if (!formReady) {
+        ev.complete("fail");
+        setError(
+          "Please complete your contact and delivery details above, then use Apple Pay / Google Pay.",
+        );
+        return;
+      }
+      setBusy(true);
+      setError(null);
+
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const composedAddress = [
+        address.trim(),
+        apartment.trim(),
+        `${city.trim()} ${postcode.trim()}`.trim(),
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const cleanItems = items
+        .filter(
+          (i) =>
+            i &&
+            typeof i.productId === "number" &&
+            i.productId > 0 &&
+            typeof i.slug === "string" &&
+            i.slug.length > 0 &&
+            typeof i.title === "string" &&
+            i.title.length > 0 &&
+            typeof i.quantity === "number" &&
+            i.quantity >= 1,
+        )
+        .map((i) => ({
+          productId: i.productId,
+          slug: i.slug,
+          title: i.title,
+          dose: i.dose ?? null,
+          price: typeof i.price === "number" ? i.price : undefined,
+          quantity: Math.min(99, Math.max(1, Math.round(i.quantity))),
+          imageUrl: i.imageUrl ?? null,
+        }));
+
+      if (cleanItems.length === 0) {
+        ev.complete("fail");
+        setError("Your cart has an invalid item. Please re-add the product.");
+        setBusy(false);
+        return;
+      }
+
+      const idemKey = `wco_${
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : Date.now() + "_" + Math.random().toString(36).slice(2)
+      }`;
+
+      const orderRes = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idemKey,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          items: cleanItems,
+          customer: {
+            name: fullName,
+            email: email.trim(),
+            phone: phone.trim(),
+            address: composedAddress,
+            notes: "",
+          },
+          discountCode: appliedDiscount?.code,
+        }),
+      });
+      const orderJson = await orderRes.json();
+      if (!orderRes.ok || !orderJson.ok) {
+        ev.complete("fail");
+        setError(describeCheckoutError(orderJson, orderRes.status));
+        setBusy(false);
+        return;
+      }
+
+      if (orderJson.free || orderJson.totalAmount <= 0) {
+        ev.complete("success");
+        clear();
+        router.replace(
+          `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+        );
+        return;
+      }
+
+      const piRes = await fetch("/api/stripe/payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderNumber: orderJson.orderNumber }),
+      });
+      const piJson = await piRes.json();
+      if (!piRes.ok || !piJson.ok || !piJson.clientSecret) {
+        ev.complete("fail");
+        setError(piJson?.error ?? `Payment setup failed (HTTP ${piRes.status})`);
+        setBusy(false);
+        return;
+      }
+
+      // Confirm with the wallet's payment method. handleActions:false lets us
+      // close the wallet sheet first, then run any 3DS step ourselves.
+      const { error: confirmError, paymentIntent } =
+        await stripe.confirmCardPayment(
+          piJson.clientSecret,
+          { payment_method: ev.paymentMethod.id },
+          { handleActions: false },
+        );
+      if (confirmError) {
+        ev.complete("fail");
+        setError(confirmError.message ?? "Your payment could not be completed.");
+        setBusy(false);
+        return;
+      }
+      ev.complete("success");
+
+      if (paymentIntent && paymentIntent.status === "requires_action") {
+        const { error: actionError } = await stripe.confirmCardPayment(
+          piJson.clientSecret,
+        );
+        if (actionError) {
+          setError(actionError.message ?? "Authentication failed.");
+          setBusy(false);
+          return;
+        }
+      }
+
+      clear();
+      router.replace(
+        `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+      );
+    } catch (err) {
+      try {
+        ev.complete("fail");
+      } catch {
+        /* event may already be completed */
+      }
+      setError(err instanceof Error ? err.message : String(err));
+      setBusy(false);
+    }
+  };
+
+  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!stripe || total <= 0) {
+      setPaymentRequest(null);
+      return;
+    }
+    const pr = stripe.paymentRequest({
+      country: "GB",
+      currency: "gbp",
+      total: { label: "JoodLife order", amount: Math.round(total * 100) },
+      requestPayerName: false,
+      requestPayerEmail: false,
+    });
+    let active = true;
+    pr.canMakePayment().then((result) => {
+      if (!active) return;
+      setPaymentRequest(result ? pr : null);
+    });
+    const handler = (ev: PaymentRequestPaymentMethodEvent) =>
+      walletPayRef.current(ev);
+    pr.on("paymentmethod", handler);
+    return () => {
+      active = false;
+      pr.off("paymentmethod", handler);
+    };
+  }, [stripe, total]);
+
   /* ---------------- Empty cart ---------------- */
   if (items.length === 0) {
     return (
@@ -499,6 +705,32 @@ function CheckoutForm() {
           <h2 className="mt-10 font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
             <span className="mr-2 text-[#142e2a]">2.</span>Payment
           </h2>
+
+          {/* Express checkout — Apple Pay / Google Pay (shown only when the
+              device/browser supports a wallet). Falls back to card below. */}
+          {paymentRequest ? (
+            <div className="mt-5">
+              <PaymentRequestButtonElement
+                options={{
+                  paymentRequest,
+                  style: {
+                    paymentRequestButton: {
+                      type: "default",
+                      theme: "dark",
+                      height: "52px",
+                    },
+                  },
+                }}
+              />
+              <div className="my-5 flex items-center gap-3">
+                <span className="h-px flex-1 bg-[#e7e8e3]" />
+                <span className="font-ui text-[12px] text-[#142e2a]/55">
+                  Or pay with card
+                </span>
+                <span className="h-px flex-1 bg-[#e7e8e3]" />
+              </div>
+            </div>
+          ) : null}
 
           {/* Payment method tabs */}
           <div className="mt-5 grid grid-cols-4 gap-2.5">
