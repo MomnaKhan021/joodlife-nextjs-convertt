@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * Fullscreen brand preloader shown before the marketing site renders.
@@ -12,15 +13,31 @@ import { useEffect, useState } from "react";
  *   out over 300ms and unmounts so it never blocks interaction.
  * - Server-renders into the initial HTML so users see it during FOUC too;
  *   the client effect then dismisses it after hydration.
+ * - Skipped on app/account/admin/checkout routes — a marketing splash there
+ *   reads as a glitch (e.g. on /profile/weight-logs).
  */
 const PRELOADER_VISIBLE_MS = 3_000;
 const PRELOADER_FADE_MS = 300;
 
+/** Utility/app routes that must NOT show the marketing splash. */
+const SKIP_PREFIXES = [
+  "/profile",
+  "/admin-tools",
+  "/login",
+  "/signup",
+  "/checkout",
+  "/reorder",
+  "/consultation",
+];
+
 export default function SitePreloader() {
+  const pathname = usePathname();
+  const skip = SKIP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const [visible, setVisible] = useState(true);
   const [removed, setRemoved] = useState(false);
 
   useEffect(() => {
+    if (skip) return;
     // Fixed-duration display: keep the brand moment consistent regardless
     // of how fast (or slow) the actual page assets resolve.
     const fadeTimer = window.setTimeout(
@@ -35,9 +52,9 @@ export default function SitePreloader() {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(unmountTimer);
     };
-  }, []);
+  }, [skip]);
 
-  if (removed) return null;
+  if (skip || removed) return null;
 
   return (
     <div
