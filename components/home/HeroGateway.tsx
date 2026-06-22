@@ -132,7 +132,7 @@ function SecondaryCard({ category }: { category: Category }) {
   // The ED studio cutout faces right; mirror it so he looks into the card.
   const flip = category.key === "erectile-dysfunction";
   return (
-    <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-[#f7f9f2] p-6">
+    <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
       {/* Transparent cut-out portrait, anchored bottom-right — no overlay needed */}
       <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[50%] md:w-[48%]">
         <Image

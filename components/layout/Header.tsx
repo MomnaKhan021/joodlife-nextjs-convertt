@@ -69,7 +69,7 @@ export default function Header() {
 
   return (
     <header
-      className="relative w-full bg-white"
+      className="relative w-full border-b border-[#142e2a]/10 bg-white"
       onMouseLeave={() => setMegaOpen(false)}
     >
       {/* Desktop Header: 80px tall */}
