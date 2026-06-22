@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, A11y } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import Reveal from "@/components/ui/Reveal";
 
 type Category = "Weight loss" | "Period delay" | "Erectile dysfunction";
@@ -54,10 +58,13 @@ const TAG_STYLES: Record<Category, string> = {
   "Erectile dysfunction": "bg-[#d8ecff] text-[#142e2a]",
 };
 
+/** Below this many cards, all fit on screen — no pagination needed. */
+const PAGINATION_MIN = 4;
+
 function ReviewCard({ review }: { review: Review }) {
   return (
     <article
-      className="review-card flex h-full w-[315px] shrink-0 flex-col justify-between rounded-lg border border-[#142E2A]/20 bg-[#f7f9f2] px-4 py-6 md:h-[301.8px]"
+      className="review-card flex h-full w-full flex-col justify-between rounded-lg border border-[#142E2A]/20 bg-[#f7f9f2] px-4 py-6 md:h-[301.8px]"
       style={{
         transition:
           "border-color 320ms ease-out, background-color 320ms ease-out, box-shadow 320ms ease-out",
@@ -124,10 +131,18 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function Reviews() {
   const [active, setActive] = useState<string>("All");
+
   const shown =
     active === "All"
       ? REVIEWS
       : REVIEWS.filter((r) => r.category === active);
+
+  // Pagination only when there's something to page through (4+ cards).
+  const showPagination = shown.length >= PAGINATION_MIN;
+
+  const selectTab = (label: string) => {
+    setActive(label);
+  };
 
   return (
     <section
@@ -186,7 +201,7 @@ export default function Reviews() {
             <button
               key={t.label}
               type="button"
-              onClick={() => setActive(t.label)}
+              onClick={() => selectTab(t.label)}
               className={`cursor-pointer rounded-full px-4 py-2 font-ui text-[13px] font-medium transition-colors md:text-[14px] ${
                 active === t.label
                   ? "bg-[#142e2a] text-white"
@@ -198,29 +213,61 @@ export default function Reviews() {
           ))}
         </Reveal>
 
-        {/* Outer wrapper adds vertical padding so the card box-shadow is
-            never clipped by the overflow-x-auto track. */}
-        <Reveal
-          delay={150}
-          className="no-scrollbar -mx-6 flex gap-5 overflow-x-auto overflow-y-visible px-6 pb-6 pt-3 md:mx-0 md:px-1 md:py-4"
-        >
-          {shown.map((r, i) => (
-            <ReviewCard key={`${active}-${i}`} review={r} />
-          ))}
-        </Reveal>
-
-        {/* Carousel dots */}
-        {shown.length > 1 ? (
-          <div className="mt-2 flex items-center justify-center gap-1.5" aria-hidden>
-            {shown.map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 rounded-full ${i === 0 ? "w-5 bg-[#142e2a]" : "w-2 bg-[#142e2a]/25"}`}
-              />
+        <Reveal delay={150}>
+          {/* key={active} re-inits the carousel (and resets to the first
+              slide + pagination) whenever the filter changes. Built-in
+              Swiper pagination is clickable and only enabled for 4+ cards. */}
+          <Swiper
+            key={active}
+            modules={[Pagination, A11y]}
+            speed={500}
+            spaceBetween={20}
+            slidesPerView={1.1}
+            breakpoints={{
+              640: { slidesPerView: 1.6 },
+              768: { slidesPerView: 2.2 },
+              1024: { slidesPerView: 3 },
+            }}
+            pagination={showPagination ? { clickable: true } : false}
+            a11y={{ enabled: true }}
+            className="reviews-swiper !overflow-visible !px-1 !py-3"
+          >
+            {shown.map((r, i) => (
+              <SwiperSlide key={`${active}-${i}`} className="!h-auto">
+                <ReviewCard review={r} />
+              </SwiperSlide>
             ))}
-          </div>
-        ) : null}
+          </Swiper>
+        </Reveal>
       </div>
+
+      {/* Pagination styling — static row below the cards, matching Figma. */}
+      <style jsx global>{`
+        .reviews-swiper .swiper-pagination {
+          position: static;
+          margin-top: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .reviews-swiper .swiper-pagination-bullet {
+          width: 8px;
+          height: 8px;
+          margin: 0 !important;
+          background: #142e2a;
+          opacity: 0.2;
+          border-radius: 9999px;
+          transition: width 0.3s ease, opacity 0.3s ease;
+        }
+        .reviews-swiper .swiper-pagination-bullet:hover {
+          opacity: 0.45;
+        }
+        .reviews-swiper .swiper-pagination-bullet-active {
+          width: 26px;
+          opacity: 1;
+        }
+      `}</style>
     </section>
   );
 }
