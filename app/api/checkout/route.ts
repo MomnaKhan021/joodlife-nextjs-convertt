@@ -427,9 +427,12 @@ export async function POST(req: NextRequest) {
   // A 100%/large discount can bring the total to £0. Stripe rejects a £0
   // PaymentIntent, so a free order skips Stripe entirely: it's recorded as
   // already paid here and the client redirects straight to the success page.
+  // Values must match the Orders collection options so the admin dashboard
+  // renders them: status=pending (fulfilment), paymentMethod=test (no charge),
+  // paymentStatus=paid.
   const isFree = finalTotal <= 0;
-  const orderStatus = isFree ? "processing" : "pending";
-  const payMethod = isFree ? "free" : "card";
+  const orderStatus = "pending";
+  const payMethod = isFree ? "test" : "card";
   const payStatus = isFree ? "paid" : "unpaid";
 
   // 8. Insert
