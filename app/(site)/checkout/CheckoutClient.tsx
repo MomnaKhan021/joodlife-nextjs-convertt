@@ -1005,10 +1005,10 @@ function CheckoutForm() {
 
           {/* Total */}
           <div className="mt-4 flex items-center justify-between border-t border-[#142e2a]/10 pt-4">
-            <span className="font-ui text-[16px] font-semibold text-[#142e2a]">
+            <span className="font-ui text-[16.3px] font-semibold tracking-[-0.32px] text-[#142e2a]">
               Today’s total
             </span>
-            <span className="font-ui text-[25px] font-bold tracking-[-0.49px] text-[#142e2a]">
+            <span className="font-ui text-[25px] font-extrabold leading-[25.6px] tracking-[-0.49px] text-[#142e2a]">
               {formatPrice(total)}
             </span>
           </div>
@@ -1026,7 +1026,7 @@ function CheckoutForm() {
           {/* Money back promise */}
           <div className="mt-5 flex items-center gap-4 rounded-[16px] bg-[#f7f9f2] p-5">
             <div className="flex-1">
-              <h3 className="font-ui text-[18px] font-bold leading-[22px] text-[#0c2421]">
+              <h3 className="font-ui text-[20px] font-extrabold leading-[24px] tracking-[-0.32px] text-[#0c2421] md:text-[22px]">
                 Money back promise
               </h3>
               <p className="mt-1.5 font-ui text-[14px] leading-[19px] text-[#0c2421]/90">
@@ -1076,7 +1076,7 @@ function FieldLabel({
   required?: boolean;
 }) {
   return (
-    <span className="mb-1.5 block font-ui text-[16px] font-semibold leading-[19px] tracking-[-0.32px] text-[#0a0a0a]">
+    <span className="mb-1.5 block font-ui text-[16.3px] font-semibold leading-[19.5px] tracking-[-0.32px] text-[#0a0a0a]">
       {children}
       {required ? <span className="text-[#f93232]">*</span> : null}
     </span>
@@ -1139,7 +1139,7 @@ function SummaryRow({
   muted?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between font-ui text-[16px]">
+    <div className="flex items-center justify-between font-ui text-[16.3px] tracking-[-0.32px]">
       <span className="font-semibold text-[#142e2a]">{label}</span>
       <span className={muted ? "font-semibold text-[#767676]" : "font-semibold text-[#142e2a]"}>
         {value}
