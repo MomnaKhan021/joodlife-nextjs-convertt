@@ -163,12 +163,14 @@ function SocialColumn() {
         </span>
       </button>
       <div
-        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-5 ${
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-5 md:overflow-visible ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <div className="overflow-hidden">
-          <div className="flex items-center gap-3 pb-5 md:pb-0">
+        <div className="overflow-hidden md:overflow-visible">
+          {/* py on desktop gives the hover lift + shadow room so icons
+              aren't clipped by the accordion wrappers. */}
+          <div className="flex items-center gap-3 pb-5 md:pb-0 md:py-1.5">
             <SocialButton href="#" label="TikTok">
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11.4 0H8.6v10.7c0 1.3-1 2.3-2.3 2.3a2.3 2.3 0 0 1-2.3-2.3A2.3 2.3 0 0 1 6.3 8.4V5.6A5.1 5.1 0 0 0 1.2 10.7 5.1 5.1 0 0 0 6.3 15.8a5.1 5.1 0 0 0 5.1-5.1V5.3c.9.6 2 1 3.2 1V3.5a3.6 3.6 0 0 1-3.2-3.5z" />
