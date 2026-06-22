@@ -29,6 +29,10 @@ export default function DosagePicker({
 }: DosagePickerProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // The headline price reflects the currently-selected dosage (falling back
+  // to the "from" price only when there are no variants).
+  const selectedPrice = dosages[selectedIndex]?.perPack ?? fromPrice;
+
   return (
     <div className="flex flex-col gap-5">
       <h3 className="font-display text-[18px] font-semibold leading-[22px] tracking-[-0.01em] text-[#142e2a]">
@@ -73,9 +77,8 @@ export default function DosagePicker({
       {/* Price + CTA */}
       <div className="flex flex-col gap-3 pt-2">
         <div className="flex items-baseline gap-2">
-          <span className="font-ui text-[14px] text-[#142e2a]/70">From</span>
           <span className="font-display text-[26px] font-bold tracking-[-0.01em] text-[#142e2a]">
-            {fromPrice}
+            {selectedPrice}
           </span>
           <span className="font-ui text-[14px] text-[#142e2a]/70">/month</span>
         </div>
