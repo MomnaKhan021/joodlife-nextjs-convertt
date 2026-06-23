@@ -106,6 +106,16 @@ function CheckoutForm() {
   const [country, setCountry] = useState("GB");
   const [saveInfo, setSaveInfo] = useState(true);
 
+  // Optional separate delivery address. When off, goods ship to the address
+  // above. When on, the block below is where the order is delivered (the
+  // address above is then treated as billing/contact and saved in notes).
+  const [deliverElsewhere, setDeliverElsewhere] = useState(false);
+  const [dAddress, setDAddress] = useState("");
+  const [dApartment, setDApartment] = useState("");
+  const [dCity, setDCity] = useState("");
+  const [dPostcode, setDPostcode] = useState("");
+  const [dPostcodeValid, setDPostcodeValid] = useState(false);
+
   // Card field state
   const [focusField, setFocusField] = useState<string | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
@@ -215,6 +225,12 @@ function CheckoutForm() {
   // customer pay. `postcodeValid` (the API tick) is treated as a bonus.
   const UK_POSTCODE_RE = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;
   const postcodeOk = postcodeValid || UK_POSTCODE_RE.test(postcode.trim());
+  // When delivering elsewhere, that block must also be a complete UK address.
+  const deliveryOk =
+    !deliverElsewhere ||
+    (dAddress.trim() &&
+      dCity.trim() &&
+      (dPostcodeValid || UK_POSTCODE_RE.test(dPostcode.trim())));
   // A fully-discounted (£0) order is placed without a card — Stripe rejects
   // a £0 charge, so we skip the card requirement and the payment step.
   const isFreeOrder = total <= 0;
@@ -226,6 +242,7 @@ function CheckoutForm() {
     address.trim() &&
     city.trim() &&
     postcodeOk &&
+    deliveryOk &&
     phone.trim() &&
     (isFreeOrder ||
       (cardComplete &&
@@ -241,13 +258,26 @@ function CheckoutForm() {
 
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-      const composedAddress = [
+      const billingAddress = [
         address.trim(),
         apartment.trim(),
         `${city.trim()} ${postcode.trim()}`.trim(),
       ]
         .filter(Boolean)
         .join("\n");
+      const deliveryAddress = [
+        dAddress.trim(),
+        dApartment.trim(),
+        `${dCity.trim()} ${dPostcode.trim()}`.trim(),
+      ]
+        .filter(Boolean)
+        .join("\n");
+      // The order ships to the delivery address when one is given; otherwise to
+      // the main address. The other address is kept in notes for the record.
+      const composedAddress = deliverElsewhere ? deliveryAddress : billingAddress;
+      const orderNotes = deliverElsewhere
+        ? `Billing/contact address:\n${billingAddress}`
+        : "";
 
       // Persist contact for next time (or clear it)
       if (saveInfo) {
@@ -324,7 +354,7 @@ function CheckoutForm() {
             email: email.trim(),
             phone: phone.trim(),
             address: composedAddress,
-            notes: "",
+            notes: orderNotes,
           },
           discountCode: appliedDiscount?.code,
         }),
@@ -447,13 +477,24 @@ function CheckoutForm() {
       setError(null);
 
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-      const composedAddress = [
+      const billingAddress = [
         address.trim(),
         apartment.trim(),
         `${city.trim()} ${postcode.trim()}`.trim(),
       ]
         .filter(Boolean)
         .join("\n");
+      const deliveryAddress = [
+        dAddress.trim(),
+        dApartment.trim(),
+        `${dCity.trim()} ${dPostcode.trim()}`.trim(),
+      ]
+        .filter(Boolean)
+        .join("\n");
+      const composedAddress = deliverElsewhere ? deliveryAddress : billingAddress;
+      const orderNotes = deliverElsewhere
+        ? `Billing/contact address:\n${billingAddress}`
+        : "";
 
       const cleanItems = items
         .filter(
@@ -505,7 +546,7 @@ function CheckoutForm() {
             email: email.trim(),
             phone: phone.trim(),
             address: composedAddress,
-            notes: "",
+            notes: orderNotes,
           },
           discountCode: appliedDiscount?.code,
         }),
@@ -737,6 +778,68 @@ function CheckoutForm() {
                 Save this information for next time
               </span>
             </label>
+
+            {/* Deliver to a different address? */}
+            <label className="mt-1 flex cursor-pointer items-center gap-2.5 select-none">
+              <input
+                type="checkbox"
+                checked={deliverElsewhere}
+                onChange={(e) => setDeliverElsewhere(e.target.checked)}
+                className="h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border-[#142e2a]/30 accent-[#142e2a]"
+              />
+              <span className="font-ui text-[15px] text-[#545454]">
+                Deliver to a different address
+              </span>
+            </label>
+
+            {deliverElsewhere ? (
+              <div className="mt-2 flex flex-col gap-4 rounded-[12px] border border-[#142e2a]/10 bg-[#f7f9f2] p-4">
+                <p className="font-ui text-[15px] font-semibold text-[#142e2a]">
+                  Delivery address
+                </p>
+                <Field label="Address" required>
+                  <UkAddressField
+                    value={dAddress}
+                    setValue={setDAddress}
+                    onPick={({ city: c, postcode: pc }) => {
+                      if (c) setDCity(c);
+                      if (pc) {
+                        setDPostcode(pc);
+                        setDPostcodeValid(true);
+                      }
+                    }}
+                    inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+                  />
+                </Field>
+                <Field label="Apartment, suite, etc. (optional)">
+                  <TextInput
+                    value={dApartment}
+                    onChange={setDApartment}
+                    autoComplete="off"
+                  />
+                </Field>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="City" required>
+                    <TextInput
+                      value={dCity}
+                      onChange={setDCity}
+                      placeholder="London"
+                    />
+                  </Field>
+                  <Field label="Postcode" required>
+                    <UkPostcodeField
+                      postcode={dPostcode}
+                      setPostcode={setDPostcode}
+                      onResolveCity={(c) => {
+                        if (c) setDCity(c);
+                      }}
+                      onValidityChange={setDPostcodeValid}
+                      inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+                    />
+                  </Field>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* 2. Payment */}
