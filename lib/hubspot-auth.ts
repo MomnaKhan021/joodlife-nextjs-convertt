@@ -34,6 +34,8 @@ export async function authorizeAdminOrCron(
     return { ok: true, via: "cron" };
   }
 
+  // Track why admin auth fails so the 403 is actionable instead of opaque.
+  let reason = "no session cookie";
   try {
     const payload = await getPayloadInstance();
     const { user } = await payload.auth({ headers: await nextHeaders() });
@@ -41,9 +43,19 @@ export async function authorizeAdminOrCron(
     if (user && role === "admin") {
       return { ok: true, via: "admin" };
     }
-  } catch {
-    // fall through
+    reason = user
+      ? `signed in but role is "${role ?? "unknown"}", not admin`
+      : "session cookie missing or expired — please sign in again";
+  } catch (err) {
+    reason = `auth check failed: ${err instanceof Error ? err.message : String(err)}`;
   }
 
-  return { ok: false, status: 403, error: "Admin role or CRON_SECRET required" };
+  const cronHint = cronSecret
+    ? ""
+    : " (CRON_SECRET is not set in this deployment, so the scheduled sync can't authenticate either)";
+  return {
+    ok: false,
+    status: 403,
+    error: `Admin role or CRON_SECRET required — ${reason}${cronHint}`,
+  };
 }
