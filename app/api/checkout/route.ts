@@ -21,6 +21,7 @@ import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
+import { sendOrderConfirmationEmail } from "@/lib/account-email";
 import {
   sanitizeText,
   sanitizeMultiline,
@@ -509,6 +510,24 @@ export async function POST(req: NextRequest) {
         )
         .join(", ");
       after(async () => {
+        // Order confirmation email ("thank you for your purchase"). Best-effort:
+        // a mail failure (or missing SMTP config) must never break checkout.
+        try {
+          await sendOrderConfirmationEmail(payload, {
+            email: customer.email,
+            name: customer.name,
+            orderNumber,
+            total: finalTotal,
+            items: repriced.items.map((i) => ({
+              title: i.title,
+              dose: i.dose ?? null,
+              quantity: i.quantity,
+              price: i.price,
+            })),
+          });
+        } catch (err) {
+          payload?.logger?.error?.({ msg: "Order email failed (non-fatal)", err });
+        }
         await fireHubSpot("checkout:contact", () =>
           upsertContact({
             email: customer.email,

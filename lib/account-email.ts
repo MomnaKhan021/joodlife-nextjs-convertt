@@ -111,3 +111,96 @@ If you didn't create this account, please ignore this email.`;
     text,
   });
 }
+
+/**
+ * Order-confirmation ("thank you for your purchase") email. Sent right after
+ * an order is created at checkout. Delivery uses the same configured email
+ * adapter — so it only actually sends when SMTP env vars are present.
+ */
+export type OrderEmailItem = {
+  title: string;
+  dose?: string | null;
+  quantity: number;
+  price?: number | null;
+};
+
+export async function sendOrderConfirmationEmail(
+  payload: Payload,
+  opts: {
+    email: string;
+    name?: string | null;
+    orderNumber: string;
+    total: number;
+    items: OrderEmailItem[];
+  }
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const gbp = (n: number) =>
+    `£${Number(n || 0).toLocaleString("en-GB", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+
+  const rows = opts.items
+    .map((it) => {
+      const name = escapeHtml(
+        `${it.title}${it.dose ? ` — ${it.dose}` : ""}`
+      );
+      const qty = Math.max(1, Number(it.quantity) || 1);
+      const line =
+        it.price != null ? gbp(Number(it.price) * qty) : "";
+      return `<tr>
+        <td style="padding:8px 0;font-size:14px;color:#142e2a">${name} × ${qty}</td>
+        <td style="padding:8px 0;font-size:14px;color:#142e2a;text-align:right">${line}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const consultUrl = `${url}/consultation`;
+  const html = `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
+    <h1 style="font-size:22px;margin:0 0 8px">Thank you for your order, ${escapeHtml(firstName)}</h1>
+    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
+      We've received your order <strong>${escapeHtml(opts.orderNumber)}</strong>.
+      A clinician will review it before anything is dispatched.
+    </p>
+    <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 12px">
+      ${rows}
+    </table>
+    <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right">
+      Total: ${gbp(opts.total)}
+    </p>
+    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
+      <strong>Next step:</strong> complete your medical consultation so our
+      clinicians can approve your treatment.
+    </p>
+    <p style="margin:0 0 24px">
+      <a href="${consultUrl}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
+        Start your consultation
+      </a>
+    </p>
+    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+      Order placed at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
+      Questions? Just reply to this email.
+    </p>
+  </div>`;
+
+  const text = `Thank you for your order, ${firstName}!
+
+Order ${opts.orderNumber}
+${opts.items.map((it) => `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.quantity}`).join("\n")}
+Total: ${gbp(opts.total)}
+
+Next step: complete your medical consultation so our clinicians can approve
+your treatment: ${consultUrl}
+
+Order placed at ${url}. Questions? Just reply to this email.`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: `Thank you for your order — ${opts.orderNumber}`,
+    html,
+    text,
+  });
+}
