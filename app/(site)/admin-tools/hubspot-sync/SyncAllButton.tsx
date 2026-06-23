@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useTransition } from "react";
+
+import { syncAllAction } from "./actions";
 
 /**
- * Single-click "Sync everything from HubSpot" button. Hits
- * /api/hubspot/sync-all, which runs all three pulls (contacts ->
- * users, deals -> orders, consultation custom-objects ->
- * consultations) end-to-end on the server.
+ * Single-click "Sync everything from HubSpot" button. Invokes the
+ * syncAllAction SERVER ACTION (not a client fetch) so the admin session is
+ * read server-side — avoiding the dropped-cookie "session expired" error a
+ * client fetch was hitting.
  */
 type TypeStats = {
   pages: number;
@@ -27,32 +29,26 @@ type SyncAllResponse = {
 };
 
 export default function SyncAllButton() {
-  const [running, setRunning] = useState(false);
+  const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<SyncAllResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const running = pending;
 
-  const run = useCallback(async () => {
-    setRunning(true);
+  const run = useCallback(() => {
     setErr(null);
     setResult(null);
-    try {
-      const res = await fetch("/api/hubspot/sync-all", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      const json = (await res.json()) as SyncAllResponse;
-      if (!res.ok || !json.ok) {
-        setErr(json.error ?? `HTTP ${res.status}`);
-        return;
+    startTransition(async () => {
+      try {
+        const res = await syncAllAction();
+        if (!res.ok) {
+          setErr(res.error);
+          return;
+        }
+        setResult(res);
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : String(e));
       }
-      setResult(json);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setRunning(false);
-    }
+    });
   }, []);
 
   return (
