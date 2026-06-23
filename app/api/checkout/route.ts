@@ -20,7 +20,7 @@ import { headers as nextHeaders } from "next/headers";
 import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
+import { addNoteToContact, createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
 import { sendOrderConfirmationEmail } from "@/lib/account-email";
 import {
   sanitizeText,
@@ -552,6 +552,40 @@ export async function POST(req: NextRequest) {
               jood_payment_method: payMethod,
             },
           }),
+        );
+        // Full order context as a Note on the contact, so the whole order
+        // (items, total, address, customer message) is readable in HubSpot —
+        // not just a bare deal.
+        const gbp = (n: number) =>
+          `£${Number(n || 0).toLocaleString("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`;
+        const itemLines = repriced.items
+          .map(
+            (i) =>
+              `<b>${i.title}${i.dose ? ` (${i.dose})` : ""}</b> × ${i.quantity} — ${gbp(
+                Number(i.price ?? 0) * i.quantity,
+              )}`,
+          )
+          .join("<br/>");
+        const noteBody =
+          `<p><b>JoodLife order ${orderNumber}</b><br/>` +
+          `Status: ${orderStatus} · Payment: ${payMethod}</p>` +
+          `<hr/><p>${itemLines}</p>` +
+          (discountAmount > 0
+            ? `<p>Discount: −${gbp(discountAmount)}</p>`
+            : "") +
+          `<p><b>Total: ${gbp(finalTotal)}</b></p>` +
+          `<hr/><p><b>Ship to:</b><br/>${(customer.address || "—").replace(
+            /\n/g,
+            "<br/>",
+          )}</p>` +
+          (customer.notes
+            ? `<p><b>Customer note:</b><br/>${customer.notes.replace(/\n/g, "<br/>")}</p>`
+            : "");
+        await fireHubSpot("checkout:note", () =>
+          addNoteToContact(customer.email, noteBody),
         );
       });
     }
