@@ -190,6 +190,20 @@ function CheckoutForm() {
     setDiscountMsg(null);
   }
 
+  // Auto-apply: validate the code shortly after the user stops typing, so the
+  // discount lands without needing to press "Apply". Re-checks if the subtotal
+  // changes (e.g. cart edits) so the amount stays correct.
+  useEffect(() => {
+    const code = discountCode.trim().toUpperCase();
+    if (!code) return;
+    if (appliedDiscount?.code === code) return; // already applied
+    const t = setTimeout(() => {
+      void applyDiscount();
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discountCode, subtotal]);
+
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   // A fully-discounted (£0) order is placed without a card — Stripe rejects
   // a £0 charge, so we skip the card requirement and the payment step.

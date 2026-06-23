@@ -428,10 +428,11 @@ export async function POST(req: NextRequest) {
   // PaymentIntent, so a free order skips Stripe entirely: it's recorded as
   // already paid here and the client redirects straight to the success page.
   // Values must match the Orders collection options so the admin dashboard
-  // renders them: status=pending (fulfilment), paymentMethod=test (no charge),
-  // paymentStatus=paid.
+  // renders them. A £0 order has nothing left to collect, so it's a completed
+  // PAID order (status=paid) — not stuck in "pending"/payment-pending limbo.
+  // Card orders still start pending until Stripe confirms the charge.
   const isFree = finalTotal <= 0;
-  const orderStatus = "pending";
+  const orderStatus = isFree ? "paid" : "pending";
   const payMethod = isFree ? "test" : "card";
   const payStatus = isFree ? "paid" : "unpaid";
 
@@ -528,7 +529,7 @@ export async function POST(req: NextRequest) {
             extra: {
               jood_order_number: orderNumber,
               jood_order_items: itemSummary,
-              jood_order_status: "pending",
+              jood_order_status: orderStatus,
               jood_payment_method: payMethod,
             },
           }),
