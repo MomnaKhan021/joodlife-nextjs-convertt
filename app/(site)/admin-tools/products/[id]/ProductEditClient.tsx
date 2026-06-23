@@ -15,7 +15,7 @@ type Variant = {
 type ProductForm = {
   title: string;
   slug: string;
-  category: string;
+  treatment: string;
   tagline: string;
   card_copy: string;
   description: string;
@@ -32,7 +32,7 @@ type ProductForm = {
 const EMPTY: ProductForm = {
   title: "",
   slug: "",
-  category: "",
+  treatment: "",
   tagline: "",
   card_copy: "",
   description: "",
@@ -155,7 +155,7 @@ export default function ProductEditClient({ id }: { id: string }) {
         setForm({
           title: str(r.title),
           slug: str(r.slug),
-          category: str(r.category),
+          treatment: str(r.treatment),
           tagline: str(r.tagline),
           card_copy: str(r.card_copy),
           description: str(r.description),
@@ -194,7 +194,7 @@ export default function ProductEditClient({ id }: { id: string }) {
       const fields: Record<string, unknown> = {
         title: form.title.trim(),
         slug: form.slug.trim(),
-        category: form.category.trim(),
+        treatment: form.treatment.trim() || null,
         tagline: form.tagline.trim(),
         card_copy: form.card_copy,
         description: form.description,
@@ -229,7 +229,12 @@ export default function ProductEditClient({ id }: { id: string }) {
         },
       );
       const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.ok) throw new Error(json?.error ?? `Save failed (HTTP ${res.status})`);
+      if (!res.ok || !json.ok) {
+        const msg = json?.detail
+          ? `${json.error ?? "Save failed"}: ${json.detail}`
+          : json?.error ?? `Save failed (HTTP ${res.status})`;
+        throw new Error(msg);
+      }
       setOk(true);
       if (isNew && json.id) {
         router.replace(`/admin-tools/products/${json.id}`);
@@ -427,10 +432,10 @@ export default function ProductEditClient({ id }: { id: string }) {
             <Card title="Organization">
               <div className="flex flex-col gap-4">
                 <div>
-                  <Label>Category</Label>
+                  <Label>Treatment category</Label>
                   <select
-                    value={form.category}
-                    onChange={(e) => set("category", e.target.value)}
+                    value={form.treatment}
+                    onChange={(e) => set("treatment", e.target.value)}
                     className={inputCls}
                   >
                     <option value="">— Select —</option>
