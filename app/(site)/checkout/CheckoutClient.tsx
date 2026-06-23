@@ -22,6 +22,7 @@ import type {
 import { useCart } from "@/components/cart/CartContext";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
+import UkAddressField from "@/components/checkout/UkAddressField";
 
 const stripePromise = getStripeClient();
 
@@ -663,10 +664,17 @@ function CheckoutForm() {
             </Field>
 
             <Field label="Address" required>
-              <TextInput
+              <UkAddressField
                 value={address}
-                onChange={setAddress}
-                autoComplete="address-line1"
+                setValue={setAddress}
+                onPick={({ city: c, postcode: pc }) => {
+                  if (c) setCity(c);
+                  if (pc) {
+                    setPostcode(pc);
+                    setPostcodeValid(true); // OSM only returns real UK addresses
+                  }
+                }}
+                inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
               />
             </Field>
 
