@@ -197,6 +197,7 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
+  const year = new Date().getFullYear();
 
   const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -356,7 +357,7 @@ export default function Footer() {
           {/* ───── ROW 3 — copyright + payment badges ───── */}
           <div className="flex flex-col gap-6 border-t border-white/10 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-8">
             <p className="max-w-[620px] font-ui text-[12px] leading-[18px] tracking-[-0.01em] text-white/65 md:text-[13px] md:leading-[18px]">
-              © 2025 Jood. All rights reserved. Superintendent Pharmacist:
+              © {year} Jood. All rights reserved. Superintendent Pharmacist:
               Zahhaad Khalil (2228969) Powered by Jood Pharmacy, a
               GPhC-registered pharmacy (9012990) operating under Jood Ltd.
               Clinical, consultation and prescribing services are provided by
