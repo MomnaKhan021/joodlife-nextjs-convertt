@@ -230,7 +230,7 @@ export default function Reviews() {
             }}
             pagination={showPagination ? { clickable: true } : false}
             a11y={{ enabled: true }}
-            className="reviews-swiper !overflow-visible !px-1 !py-3"
+            className="reviews-swiper !overflow-hidden !px-0.5 !py-3"
           >
             {shown.map((r, i) => (
               <SwiperSlide key={`${active}-${i}`} className="!h-auto">
