@@ -191,6 +191,84 @@ function valueLiteral(type: ColumnType, raw: unknown): string {
   }
 }
 
+/**
+ * The storefront prefers variants from the relational `products_variants`
+ * table over the `variants_json` column. The dashboard only edits
+ * `variants_json`, so without this the two drift apart and price edits never
+ * show on the site. After saving a product we rewrite `products_variants`
+ * from the saved JSON so the relational table (the storefront's source of
+ * truth) always matches the dashboard. Best-effort: silently no-ops if the
+ * table doesn't exist on this deployment.
+ */
+type VariantLike = {
+  label?: unknown;
+  price?: unknown;
+  compare_price?: unknown;
+  stock?: unknown;
+};
+
+async function syncProductVariants(
+  drizzle: DrizzleLike,
+  sql: SqlRaw,
+  productId: number,
+  variants: unknown
+): Promise<void> {
+  if (!Number.isFinite(productId)) return;
+  const list = Array.isArray(variants) ? (variants as VariantLike[]) : [];
+  try {
+    // Replace the whole set for this product so removals propagate too.
+    await drizzle.execute(
+      sql.raw(`DELETE FROM products_variants WHERE _parent_id = ${productId};`)
+    );
+    if (list.length === 0) return;
+    const values = list
+      .map((v, i) => {
+        const label = esc(String(v.label ?? "").trim());
+        const price = escNum(Number(v.price));
+        const compare =
+          v.compare_price === null ||
+          v.compare_price === undefined ||
+          v.compare_price === ""
+            ? "NULL"
+            : escNum(Number(v.compare_price));
+        const stock =
+          v.stock === null || v.stock === undefined || v.stock === ""
+            ? "NULL"
+            : escNum(Number(v.stock));
+        return `(${productId}, ${i + 1}, ${label}, ${price}, ${compare}, ${stock})`;
+      })
+      .join(", ");
+    await drizzle.execute(
+      sql.raw(
+        `INSERT INTO products_variants (_parent_id, _order, label, price, compare_price, stock)
+         VALUES ${values};`
+      )
+    );
+  } catch {
+    /* table missing on this deployment → variants_json fallback still works */
+  }
+}
+
+/** Read the relational variants back as the JSON shape the editor expects. */
+async function readProductVariants(
+  drizzle: DrizzleLike,
+  sql: SqlRaw,
+  productId: number
+): Promise<VariantLike[]> {
+  try {
+    const res = await drizzle.execute(
+      sql.raw(
+        `SELECT label, price, compare_price, stock
+         FROM products_variants WHERE _parent_id = ${productId}
+         ORDER BY _order ASC;`
+      )
+    );
+    return readRows<VariantLike>(res);
+  } catch {
+    return [];
+  }
+}
+
 async function authorize() {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
@@ -256,6 +334,19 @@ export async function GET(req: NextRequest) {
       )
     );
     const row = readRows<Record<string, unknown>>(result)[0] ?? null;
+    // For products, the storefront's source of truth is the relational
+    // products_variants table. If variants_json is empty but relational
+    // variants exist, surface those so the editor shows the real current
+    // prices (and a save won't silently wipe them).
+    if (row && type === "products") {
+      const jsonVariants = Array.isArray(row.variants_json)
+        ? (row.variants_json as unknown[])
+        : [];
+      if (jsonVariants.length === 0 && Number.isFinite(Number(row.id))) {
+        const relational = await readProductVariants(drizzle, sql, Number(row.id));
+        if (relational.length > 0) row.variants_json = relational;
+      }
+    }
     return NextResponse.json({
       ok: true,
       row,
@@ -341,6 +432,9 @@ export async function POST(req: NextRequest) {
       `;
       const result = await drizzle.execute(sql.raw(stmt));
       const row = readRows<{ id: number | string }>(result)[0];
+      if (type === "products" && row?.id != null && "variants_json" in fields) {
+        await syncProductVariants(drizzle, sql, Number(row.id), fields.variants_json);
+      }
       return NextResponse.json({ ok: true, id: row?.id ?? null, created: true });
     }
 
@@ -364,6 +458,9 @@ export async function POST(req: NextRequest) {
         { ok: false, error: "Row not found" },
         { status: 404 }
       );
+    }
+    if (type === "products" && "variants_json" in fields) {
+      await syncProductVariants(drizzle, sql, Number(row.id), fields.variants_json);
     }
     return NextResponse.json({ ok: true, id: row.id, created: false });
   } catch (err) {
