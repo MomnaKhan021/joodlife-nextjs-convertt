@@ -97,17 +97,18 @@ export default function CategoryPreview({
                 className="object-contain object-top"
               />
 
-              {/* Dual CTA — overlays the lower torso, sits above the cards */}
-              <div className="absolute bottom-[42%] left-0 z-20 flex w-full flex-wrap items-center justify-start gap-3 md:left-1/2 md:-translate-x-1/2 md:justify-center">
+              {/* Dual CTA — overlays the lower torso, sits above the cards.
+                  Compact + centred on mobile, larger on desktop. */}
+              <div className="absolute bottom-[42%] left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-nowrap items-center justify-center gap-2.5 md:w-full md:gap-3">
                 <Link
                   href={`/consultation?product=${category.key}`}
-                  className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5"
+                  className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-white px-4 font-ui text-[13px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5 md:h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
                   Get Started
                 </Link>
                 <Link
                   href={category.href}
-                  className="inline-flex h-12 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-7 font-ui text-[15px] font-semibold text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/10"
+                  className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-4 font-ui text-[13px] font-semibold text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/10 md:h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
                   Learn More
                 </Link>

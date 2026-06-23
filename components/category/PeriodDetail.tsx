@@ -75,8 +75,9 @@ export default function PeriodDetail() {
           ))}
         </ul>
 
-        {/* portrait at the bottom, sitting left of centre (Figma) */}
-        <div className="pointer-events-none absolute bottom-0 left-[2%] z-[1] h-[300px] w-[62%] max-w-[320px]">
+        {/* portrait at the bottom, sitting left of centre (Figma).
+            Smaller + centred on mobile so she doesn't sink into the heading/tags. */}
+        <div className="pointer-events-none absolute bottom-0 left-1/2 z-[1] h-[190px] w-[68%] max-w-[320px] -translate-x-1/2 md:left-[2%] md:h-[300px] md:w-[62%] md:translate-x-0">
           <Image
             src="/assets/category/period-cycle.png"
             alt="Woman reflecting on her cycle and hormone health"
