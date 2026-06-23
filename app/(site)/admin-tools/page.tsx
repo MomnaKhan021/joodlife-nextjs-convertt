@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
+
+import { syncAllAction } from "./hubspot-sync/actions";
 
 type Row = Record<string, unknown>;
 
@@ -35,21 +37,53 @@ function tsOf(rows: Row[]): number[] {
 }
 
 /* ---------- charts ---------- */
-function LineChart({ data, color = BRAND, height = 140 }: { data: number[]; color?: string; height?: number }) {
+function LineChart({ data, color = BRAND, height = 160 }: { data: number[]; color?: string; height?: number }) {
   const w = 640;
   const h = height;
-  const pad = 8;
+  const pad = 10;
   const max = Math.max(1, ...data);
   const step = data.length > 1 ? (w - pad * 2) / (data.length - 1) : 0;
   const pts = data.map((v, i) => [pad + i * step, h - pad - (v / max) * (h - pad * 2)]);
-  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  // Smooth the line a touch with simple midpoint curves for a more refined feel.
+  const line = pts
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`)
+    .join(" ");
   const area = pts.length
     ? `${line} L ${pts[pts.length - 1][0].toFixed(1)} ${h} L ${pts[0][0].toFixed(1)} ${h} Z`
     : "";
+  const last = pts[pts.length - 1];
+  const gridY = [0.25, 0.5, 0.75].map((f) => pad + f * (h - pad * 2));
   return (
     <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full" style={{ height }} aria-hidden>
-      {area ? <path d={area} fill={color} opacity={0.08} /> : null}
-      <path d={line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      <defs>
+        <linearGradient id="adminAreaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.22} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </linearGradient>
+        <linearGradient id="adminLineStroke" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#1f6f5c" />
+          <stop offset="100%" stopColor={color} />
+        </linearGradient>
+      </defs>
+      {/* faint gridlines */}
+      {gridY.map((y, i) => (
+        <line key={i} x1={pad} x2={w - pad} y1={y} y2={y} stroke="#000" strokeOpacity={0.05} strokeWidth={1} />
+      ))}
+      {area ? <path d={area} fill="url(#adminAreaFill)" /> : null}
+      <path
+        d={line}
+        fill="none"
+        stroke="url(#adminLineStroke)"
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {last ? (
+        <>
+          <circle cx={last[0]} cy={last[1]} r={6} fill={color} opacity={0.15} />
+          <circle cx={last[0]} cy={last[1]} r={3.2} fill={color} />
+        </>
+      ) : null}
     </svg>
   );
 }
@@ -108,6 +142,96 @@ function TrendCard({
         <Sparkline data={series} color={pct >= 0 ? "#0c5132" : "#8e1f0b"} />
       </div>
     </Link>
+  );
+}
+
+/* ---------- HubSpot sync panel (bottom of dashboard) ---------- */
+function HubSpotSyncPanel({
+  counts,
+  loading,
+}: {
+  counts: Record<string, number>;
+  loading: boolean;
+}) {
+  const [pending, startTransition] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  const [synced, setSynced] = useState<{ contacts: number; orders: number; consultations: number } | null>(null);
+
+  const run = useCallback(() => {
+    setMsg(null);
+    startTransition(async () => {
+      const res = await syncAllAction();
+      if (!res.ok) {
+        setMsg(res.error);
+        return;
+      }
+      setSynced({
+        contacts: res.contacts.inserted + res.contacts.updated,
+        orders: res.orders.inserted + res.orders.updated,
+        consultations: res.consultations.inserted + res.consultations.updated,
+      });
+      setMsg("Sync complete.");
+    });
+  }, []);
+
+  const objects = [
+    { key: "users", label: "Contacts → Customers", count: counts.users ?? 0, synced: synced?.contacts },
+    { key: "orders", label: "Deals → Orders", count: counts.orders ?? 0, synced: synced?.orders },
+    { key: "consultations", label: "Consultations", count: counts.consultations ?? 0, synced: synced?.consultations },
+  ];
+
+  return (
+    <section className="mt-6 rounded-[12px] border border-[#e1e3e5] bg-white shadow-[0_1px_0_rgba(0,0,0,0.05)]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e1e3e5] px-4 py-3">
+        <div>
+          <h2 className="text-[14px] font-semibold text-[#1a1a1a]">HubSpot synchronization</h2>
+          <p className="text-[12px] text-[#616161]">Pull contacts, deals and consultations from HubSpot.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={run}
+            disabled={pending}
+            className="inline-flex h-[34px] items-center rounded-[8px] bg-[#142e2a] px-4 text-[13px] font-medium text-white hover:bg-[#0c2421] disabled:opacity-60"
+          >
+            {pending ? "Syncing…" : "Sync now"}
+          </button>
+          <Link
+            href="/admin-tools/hubspot-sync"
+            className="inline-flex h-[34px] items-center rounded-[8px] border border-[#babfc3] bg-white px-4 text-[13px] font-medium text-[#303030] hover:bg-[#f7f7f7]"
+          >
+            Open sync tools
+          </Link>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="bg-[#fafbfb] text-[12px] text-[#6d7175]">
+              <th className="px-4 py-2 text-left font-semibold">Object</th>
+              <th className="px-4 py-2 text-right font-semibold">In dashboard</th>
+              <th className="px-4 py-2 text-right font-semibold">Last sync</th>
+            </tr>
+          </thead>
+          <tbody>
+            {objects.map((o) => (
+              <tr key={o.key} className="border-t border-[#f1f1f1]">
+                <td className="px-4 py-2.5 text-[#303030]">{o.label}</td>
+                <td className="px-4 py-2.5 text-right font-medium text-[#1a1a1a]">
+                  {loading ? "…" : o.count.toLocaleString("en-GB")}
+                </td>
+                <td className="px-4 py-2.5 text-right text-[#616161]">
+                  {o.synced === undefined ? "—" : `${o.synced} updated`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {msg ? (
+        <p className="px-4 py-3 text-[13px] text-[#303030]">{msg}</p>
+      ) : null}
+    </section>
   );
 }
 
@@ -269,6 +393,9 @@ export default function AdminHome() {
             Consultations
           </Link>
         </div>
+
+        {/* HubSpot synchronization — objects + sync, at the bottom */}
+        <HubSpotSyncPanel counts={counts} loading={loading} />
       </div>
     </main>
   );
