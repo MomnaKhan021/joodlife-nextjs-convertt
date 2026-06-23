@@ -506,12 +506,77 @@ export async function POST(req: NextRequest) {
       const itemSummary = repriced.items
         .map(
           (i) =>
-            `${i.title}${i.dose ? ` (${i.dose})` : ""} × ${i.quantity}`
+            `${i.title}${i.dose ? ` (${i.dose})` : ""} × ${i.quantity}`,
         )
         .join(", ");
+      const gbp = (n: number) =>
+        `£${Number(n || 0).toLocaleString("en-GB", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
+      const itemLines = repriced.items
+        .map(
+          (i) =>
+            `<b>${i.title}${i.dose ? ` (${i.dose})` : ""}</b> × ${i.quantity} — ${gbp(
+              Number(i.price ?? 0) * i.quantity,
+            )}`,
+        )
+        .join("<br/>");
+      const noteBody =
+        `<p><b>JoodLife order ${orderNumber}</b><br/>` +
+        `Status: ${orderStatus} · Payment: ${payMethod}</p>` +
+        `<hr/><p>${itemLines}</p>` +
+        (discountAmount > 0 ? `<p>Discount: −${gbp(discountAmount)}</p>` : "") +
+        `<p><b>Total: ${gbp(finalTotal)}</b></p>` +
+        `<hr/><p><b>Ship to:</b><br/>${(customer.address || "—").replace(/\n/g, "<br/>")}</p>` +
+        (customer.notes
+          ? `<p><b>Customer note:</b><br/>${customer.notes.replace(/\n/g, "<br/>")}</p>`
+          : "");
+
+      // HubSpot push is AWAITED (not after()) so it reliably runs during the
+      // request — background after() work was not consistently executing on
+      // Vercel, so orders never reached HubSpot. Bounded by a hard timeout and
+      // wrapped so a HubSpot failure can never break the order itself.
+      try {
+        await Promise.race([
+          (async () => {
+            await fireHubSpot("checkout:contact", () =>
+              upsertContact({
+                email: customer.email,
+                firstName: first || null,
+                lastName: rest.join(" ") || null,
+                phone: customer.phone || null,
+                extra: {
+                  jood_last_order_number: orderNumber,
+                  jood_last_order_total: finalTotal,
+                },
+              }),
+            );
+            await fireHubSpot("checkout:deal", () =>
+              createDeal({
+                name: `JoodLife — ${orderNumber}`,
+                amount: finalTotal,
+                contactEmail: customer.email,
+                extra: {
+                  jood_order_number: orderNumber,
+                  jood_order_items: itemSummary,
+                  jood_order_status: orderStatus,
+                  jood_payment_method: payMethod,
+                },
+              }),
+            );
+            await fireHubSpot("checkout:note", () =>
+              addNoteToContact(customer.email, noteBody),
+            );
+          })(),
+          new Promise((resolve) => setTimeout(resolve, 9000)),
+        ]);
+      } catch (err) {
+        payload?.logger?.error?.({ msg: "HubSpot order push failed (non-fatal)", err });
+      }
+
+      // Confirmation email can stay in the background — it's not time-critical.
       after(async () => {
-        // Order confirmation email ("thank you for your purchase"). Best-effort:
-        // a mail failure (or missing SMTP config) must never break checkout.
         try {
           await sendOrderConfirmationEmail(payload, {
             email: customer.email,
@@ -528,65 +593,6 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           payload?.logger?.error?.({ msg: "Order email failed (non-fatal)", err });
         }
-        await fireHubSpot("checkout:contact", () =>
-          upsertContact({
-            email: customer.email,
-            firstName: first || null,
-            lastName: rest.join(" ") || null,
-            phone: customer.phone || null,
-            extra: {
-              jood_last_order_number: orderNumber,
-              jood_last_order_total: finalTotal,
-            },
-          }),
-        );
-        await fireHubSpot("checkout:deal", () =>
-          createDeal({
-            name: `JoodLife — ${orderNumber}`,
-            amount: finalTotal,
-            contactEmail: customer.email,
-            extra: {
-              jood_order_number: orderNumber,
-              jood_order_items: itemSummary,
-              jood_order_status: orderStatus,
-              jood_payment_method: payMethod,
-            },
-          }),
-        );
-        // Full order context as a Note on the contact, so the whole order
-        // (items, total, address, customer message) is readable in HubSpot —
-        // not just a bare deal.
-        const gbp = (n: number) =>
-          `£${Number(n || 0).toLocaleString("en-GB", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`;
-        const itemLines = repriced.items
-          .map(
-            (i) =>
-              `<b>${i.title}${i.dose ? ` (${i.dose})` : ""}</b> × ${i.quantity} — ${gbp(
-                Number(i.price ?? 0) * i.quantity,
-              )}`,
-          )
-          .join("<br/>");
-        const noteBody =
-          `<p><b>JoodLife order ${orderNumber}</b><br/>` +
-          `Status: ${orderStatus} · Payment: ${payMethod}</p>` +
-          `<hr/><p>${itemLines}</p>` +
-          (discountAmount > 0
-            ? `<p>Discount: −${gbp(discountAmount)}</p>`
-            : "") +
-          `<p><b>Total: ${gbp(finalTotal)}</b></p>` +
-          `<hr/><p><b>Ship to:</b><br/>${(customer.address || "—").replace(
-            /\n/g,
-            "<br/>",
-          )}</p>` +
-          (customer.notes
-            ? `<p><b>Customer note:</b><br/>${customer.notes.replace(/\n/g, "<br/>")}</p>`
-            : "");
-        await fireHubSpot("checkout:note", () =>
-          addNoteToContact(customer.email, noteBody),
-        );
       });
     }
 
