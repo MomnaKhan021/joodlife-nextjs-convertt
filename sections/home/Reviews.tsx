@@ -45,11 +45,19 @@ const REVIEWS: Review[] = [
   },
 ];
 
+// Counts are derived from the actual reviews above (not hardcoded), so the
+// tab labels always match what's really shown.
+const CATEGORY_ORDER: Category[] = [
+  "Weight loss",
+  "Period delay",
+  "Erectile dysfunction",
+];
 const TABS: { label: string; count: number }[] = [
-  { label: "All", count: 100 },
-  { label: "Weight loss", count: 38 },
-  { label: "Period delay", count: 38 },
-  { label: "Erectile dysfunction", count: 24 },
+  { label: "All", count: REVIEWS.length },
+  ...CATEGORY_ORDER.map((c) => ({
+    label: c,
+    count: REVIEWS.filter((r) => r.category === c).length,
+  })),
 ];
 
 const TAG_STYLES: Record<Category, string> = {
