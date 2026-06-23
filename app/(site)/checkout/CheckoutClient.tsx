@@ -111,6 +111,9 @@ function CheckoutForm() {
   const [cardComplete, setCardComplete] = useState(false);
   const [expiryComplete, setExpiryComplete] = useState(false);
   const [cvcComplete, setCvcComplete] = useState(false);
+  // Inline validation message from the Stripe card elements (e.g. "Your card
+  // number is invalid"), shown under the card fields as the user types.
+  const [cardError, setCardError] = useState<string | null>(null);
 
   // Discount code: typed code + the applied result (validated server-side).
   const [showDiscount, setShowDiscount] = useState(false);
@@ -206,6 +209,12 @@ function CheckoutForm() {
   }, [discountCode, subtotal]);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // Gate payment on a valid UK postcode FORMAT (offline regex) — not on the
+  // postcodes.io API call succeeding. The API is only used to autofill/verify;
+  // if it's slow or down, a correctly-formatted UK postcode must still let the
+  // customer pay. `postcodeValid` (the API tick) is treated as a bonus.
+  const UK_POSTCODE_RE = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;
+  const postcodeOk = postcodeValid || UK_POSTCODE_RE.test(postcode.trim());
   // A fully-discounted (£0) order is placed without a card — Stripe rejects
   // a £0 charge, so we skip the card requirement and the payment step.
   const isFreeOrder = total <= 0;
@@ -216,8 +225,7 @@ function CheckoutForm() {
     emailValid &&
     address.trim() &&
     city.trim() &&
-    postcode.trim() &&
-    postcodeValid &&
+    postcodeOk &&
     phone.trim() &&
     (isFreeOrder ||
       (cardComplete &&
@@ -794,7 +802,10 @@ function CheckoutForm() {
                   }}
                   onFocus={() => setFocusField("number")}
                   onBlur={() => setFocusField(null)}
-                  onChange={(e) => setCardComplete(e.complete)}
+                  onChange={(e) => {
+                    setCardComplete(e.complete);
+                    setCardError(e.error?.message ?? null);
+                  }}
                 />
               </div>
               <div className="flex shrink-0 items-center gap-1.5 pl-2">
@@ -815,7 +826,10 @@ function CheckoutForm() {
                     options={{ ...STRIPE_ELEMENT_OPTIONS, placeholder: "MM/YY" }}
                     onFocus={() => setFocusField("expiry")}
                     onBlur={() => setFocusField(null)}
-                    onChange={(e) => setExpiryComplete(e.complete)}
+                    onChange={(e) => {
+                      setExpiryComplete(e.complete);
+                      setCardError(e.error?.message ?? null);
+                    }}
                   />
                 </div>
               </ElementBox>
@@ -828,13 +842,20 @@ function CheckoutForm() {
                     options={{ ...STRIPE_ELEMENT_OPTIONS, placeholder: "CVC" }}
                     onFocus={() => setFocusField("cvc")}
                     onBlur={() => setFocusField(null)}
-                    onChange={(e) => setCvcComplete(e.complete)}
+                    onChange={(e) => {
+                      setCvcComplete(e.complete);
+                      setCardError(e.error?.message ?? null);
+                    }}
                   />
                 </div>
                 <LockGlyph />
               </ElementBox>
             </div>
           </div>
+
+          {cardError ? (
+            <p className="mt-2 font-ui text-[13px] text-[#c0392b]">{cardError}</p>
+          ) : null}
 
           {/* Country */}
           <div className="mt-4">
@@ -846,10 +867,6 @@ function CheckoutForm() {
                 className="h-[52px] w-full appearance-none rounded-[8px] border border-[#e7e8e3] bg-white px-4 pr-10 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
               >
                 <option value="GB">United Kingdom</option>
-                <option value="IE">Ireland</option>
-                <option value="US">United States</option>
-                <option value="FR">France</option>
-                <option value="DE">Germany</option>
               </select>
               <ChevronGlyph className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" />
             </div>
