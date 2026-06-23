@@ -152,8 +152,18 @@ export default function OrderDetailClient({ id }: { id: string }) {
   const [notesDirty, setNotesDirty] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
 
-  const [tags, setTags] = useState<string[]>(["checkify_order"]);
+  const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [savingTags, setSavingTags] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2800);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -172,6 +182,10 @@ export default function OrderDetailClient({ id }: { id: string }) {
         setOrder(row);
         setFulfilled(["shipped", "delivered", "fulfilled"].includes(String(row.status)));
         setNotes(row.notes ?? "");
+        const rawTags = (row as Record<string, unknown>).tags;
+        if (typeof rawTags === "string" && rawTags.trim()) {
+          setTags(rawTags.split(",").map((t) => t.trim()).filter(Boolean));
+        }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -219,10 +233,81 @@ export default function OrderDetailClient({ id }: { id: string }) {
     try {
       await patch({ notes });
       setNotesDirty(false);
+      setToast("Notes saved.");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSavingNotes(false);
+    }
+  }
+
+  async function refund() {
+    if (!order || refunding) return;
+    if (!window.confirm(`Refund ${order.order_number} in full? This cannot be undone.`)) return;
+    setRefunding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin-tools/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j?.error ?? "Refund failed");
+      setOrder({ ...order, payment_status: "refunded", status: "cancelled" });
+      setFulfilled(false);
+      setToast(j.viaStripe ? "Refunded via Stripe." : "Order marked refunded.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRefunding(false);
+    }
+  }
+
+  function printOrder() {
+    if (typeof window !== "undefined") window.print();
+  }
+
+  async function cancelOrder() {
+    if (!order) return;
+    setMoreOpen(false);
+    if (!window.confirm(`Cancel order ${order.order_number}?`)) return;
+    try {
+      await patch({ status: "cancelled" });
+      setOrder({ ...order, status: "cancelled" });
+      setFulfilled(false);
+      setToast("Order cancelled.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function copyLink() {
+    setMoreOpen(false);
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setToast("Order link copied.");
+    } catch {
+      setToast("Couldn't copy link.");
+    }
+  }
+
+  async function saveTags(next: string[]) {
+    if (!order) return;
+    setTags(next);
+    setSavingTags(true);
+    try {
+      await fetch("/api/admin-tools/order-tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderId: order.id, tags: next }),
+      });
+    } catch {
+      /* best-effort */
+    } finally {
+      setSavingTags(false);
     }
   }
 
@@ -256,6 +341,11 @@ export default function OrderDetailClient({ id }: { id: string }) {
 
   return (
     <main className="min-h-screen bg-[#f1f1f1] pb-16 font-ui text-[#303030]">
+      {toast ? (
+        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-[8px] bg-[#303030] px-4 py-2.5 text-[13px] font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
+          {toast}
+        </div>
+      ) : null}
       <div className="mx-auto max-w-[1000px] px-4 pt-5 md:px-6">
         {/* ── Header ── */}
         <div className="flex flex-col gap-3 pb-5 md:flex-row md:items-start md:justify-between">
@@ -281,10 +371,40 @@ export default function OrderDetailClient({ id }: { id: string }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <HeaderBtn>Refund</HeaderBtn>
-            <HeaderBtn>Edit</HeaderBtn>
-            <HeaderBtn>Print ▾</HeaderBtn>
-            <HeaderBtn>More actions ▾</HeaderBtn>
+            <HeaderBtn onClick={refund}>
+              {refunding ? "Refunding…" : "Refund"}
+            </HeaderBtn>
+            <Link
+              href={`/admin-tools/edit/orders/${order.id}`}
+              className="inline-flex h-[32px] items-center justify-center rounded-[8px] border border-[#babfc3] bg-white px-3.5 text-[13px] font-medium text-[#303030] shadow-[0_1px_0_rgba(0,0,0,0.05)] transition-colors hover:bg-[#f7f7f7]"
+            >
+              Edit
+            </Link>
+            <HeaderBtn onClick={printOrder}>Print</HeaderBtn>
+            <div className="relative">
+              <HeaderBtn onClick={() => setMoreOpen((v) => !v)}>More actions ▾</HeaderBtn>
+              {moreOpen ? (
+                <div
+                  className="absolute right-0 z-30 mt-1 w-48 overflow-hidden rounded-[8px] border border-[#e1e3e5] bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                  onMouseLeave={() => setMoreOpen(false)}
+                >
+                  <button
+                    type="button"
+                    onClick={copyLink}
+                    className="block w-full px-3 py-2 text-left text-[13px] text-[#303030] hover:bg-[#f7f7f7]"
+                  >
+                    Copy order link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelOrder}
+                    className="block w-full px-3 py-2 text-left text-[13px] text-[#b42318] hover:bg-[#fff1f0]"
+                  >
+                    Cancel order
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -338,9 +458,14 @@ export default function OrderDetailClient({ id }: { id: string }) {
               </div>
               <div className="flex items-center justify-end gap-2 border-t border-[#e1e3e5] px-5 py-3">
                 <HeaderBtn onClick={markFulfilled}>
-                  {savingFulfil ? "Saving…" : fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled ▾"}
+                  {savingFulfil ? "Saving…" : fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled"}
                 </HeaderBtn>
-                <HeaderBtn primary>Create shipping label</HeaderBtn>
+                <span
+                  title="Connect DPD to enable shipping labels"
+                  className="inline-flex h-[32px] cursor-not-allowed items-center justify-center rounded-[8px] bg-[#303030]/40 px-3.5 text-[13px] font-medium text-white"
+                >
+                  Create shipping label (DPD soon)
+                </span>
               </div>
             </Card>
 
@@ -476,13 +601,16 @@ export default function OrderDetailClient({ id }: { id: string }) {
             {/* Tags */}
             <Card>
               <div className="px-5 py-4">
-                <h2 className="text-[14px] font-semibold">Tags</h2>
+                <h2 className="text-[14px] font-semibold">
+                  Tags{savingTags ? <span className="ml-2 text-[11px] font-normal text-[#8a8a8a]">saving…</span> : null}
+                </h2>
                 <input
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && tagInput.trim()) {
-                      setTags((t) => [...new Set([...t, tagInput.trim()])]);
+                      e.preventDefault();
+                      saveTags([...new Set([...tags, tagInput.trim()])]);
                       setTagInput("");
                     }
                   }}
@@ -498,7 +626,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                       {t}
                       <button
                         type="button"
-                        onClick={() => setTags((arr) => arr.filter((x) => x !== t))}
+                        onClick={() => saveTags(tags.filter((x) => x !== t))}
                         aria-label={`Remove ${t}`}
                         className="text-[#616161] hover:text-[#303030]"
                       >
