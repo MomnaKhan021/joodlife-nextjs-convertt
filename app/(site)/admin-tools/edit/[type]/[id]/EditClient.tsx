@@ -379,11 +379,7 @@ export default function EditClient({
                     <div key={k} className="ed-meta__row">
                       <dt>{fieldLabel(k)}</dt>
                       <dd>
-                        {v === null || v === undefined
-                          ? "—"
-                          : typeof v === "object"
-                            ? JSON.stringify(v)
-                            : String(v)}
+                        <JsonView value={normalizeMaybeJson(v)} />
                       </dd>
                     </div>
                   ))}
@@ -437,5 +433,66 @@ function Field({
       <span className="ed-label">{label}</span>
       {children}
     </label>
+  );
+}
+
+/** Some columns store JSON as a string (e.g. items_json). Parse those so
+ *  they render as a structured tree rather than an escaped blob. */
+function normalizeMaybeJson(v: unknown): unknown {
+  if (typeof v === "string") {
+    const s = v.trim();
+    if ((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {
+      try {
+        return JSON.parse(s);
+      } catch {
+        return v;
+      }
+    }
+  }
+  return v;
+}
+
+/** Renders any JSON value as a clean, readable, nested key/value tree.
+ *  Arrays of objects (like order line items) become labelled cards. */
+function JsonView({ value, depth = 0 }: { value: unknown; depth?: number }) {
+  if (value === null || value === undefined || value === "") {
+    return <span className="jv-empty">—</span>;
+  }
+  if (typeof value === "boolean") {
+    return <span className="jv-bool">{value ? "Yes" : "No"}</span>;
+  }
+  if (typeof value === "number" || typeof value === "string") {
+    return <span className="jv-scalar">{String(value)}</span>;
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return <span className="jv-empty">None</span>;
+    return (
+      <div className="jv-array">
+        {value.map((item, i) => (
+          <div key={i} className="jv-array__item">
+            {typeof item === "object" && item !== null ? (
+              <JsonView value={item} depth={depth + 1} />
+            ) : (
+              <JsonView value={item} depth={depth + 1} />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  // Plain object → label/value rows.
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) return <span className="jv-empty">—</span>;
+  return (
+    <div className="jv-object">
+      {entries.map(([k, v]) => (
+        <div key={k} className="jv-object__row">
+          <span className="jv-key">{fieldLabel(k)}</span>
+          <span className="jv-val">
+            <JsonView value={normalizeMaybeJson(v)} depth={depth + 1} />
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }

@@ -222,3 +222,39 @@ select.ed-input {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* ── Structured JSON viewer (read-only metadata) ───────────── */
+.jv-empty { color: #8a8a8a; }
+.jv-bool { font-weight: 600; color: #303030; }
+.jv-scalar { color: #303030; word-break: break-word; }
+.jv-object {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.jv-object__row {
+  display: grid;
+  grid-template-columns: minmax(110px, 34%) 1fr;
+  gap: 10px;
+  align-items: start;
+}
+.jv-key {
+  font-size: 12px;
+  font-weight: 600;
+  color: #616161;
+}
+.jv-val { font-size: 13px; color: #303030; min-width: 0; word-break: break-word; }
+.jv-array {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.jv-array__item {
+  border: 1px solid #e1e3e5;
+  border-radius: 8px;
+  background: #fbfbfb;
+  padding: 8px 10px;
+}
+@media (max-width: 560px) {
+  .jv-object__row { grid-template-columns: 1fr; gap: 2px; }
+}

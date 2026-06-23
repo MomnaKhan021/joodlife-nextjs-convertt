@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 /**
@@ -261,28 +262,31 @@ function addLabel(label: string): string {
   return `Add ${label.replace(/s$/, "").toLowerCase()}`;
 }
 
-function readInitialTab(): CollectionKey {
-  if (typeof window === "undefined") return "orders";
-  const params = new URLSearchParams(window.location.search);
-  const t = params.get("type") ?? "";
-  if (
-    [
-      "orders",
-      "consultations",
-      "posts",
-      "users",
-      "products",
-      "media",
-      "discounts",
-    ].includes(t)
-  ) {
-    return t as CollectionKey;
-  }
-  return "orders";
+const TAB_KEYS: CollectionKey[] = [
+  "orders",
+  "consultations",
+  "posts",
+  "users",
+  "products",
+  "media",
+  "discounts",
+];
+
+function normalizeTab(t: string | null | undefined): CollectionKey {
+  return t && (TAB_KEYS as string[]).includes(t) ? (t as CollectionKey) : "orders";
 }
 
 export default function DataBrowser() {
-  const [activeTab, setActiveTab] = useState<CollectionKey>("orders");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // The URL's ?type= is the single source of truth for the active tab.
+  // Reading it via useSearchParams() means the tab reacts to sidebar
+  // navigation (which only changes the query string) WITHOUT a reload —
+  // the previous mount-only read left the tab stale until a refresh.
+  const activeTab = normalizeTab(searchParams.get("type"));
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -295,12 +299,16 @@ export default function DataBrowser() {
     [activeTab]
   );
 
-  // Sync the active tab with the ?type= query param on first mount
-  // so dashboard CTAs land on the right collection.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setActiveTab(readInitialTab());
-  }, []);
+  // Switch tab by updating the URL — keeps the sidebar highlight,
+  // back/forward, and shareable links all in sync.
+  const selectTab = useCallback(
+    (key: CollectionKey) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("type", key);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
 
   // Debounce search input so we don't hammer the API on every keystroke.
   useEffect(() => {
@@ -358,7 +366,7 @@ export default function DataBrowser() {
           <button
             key={t.key}
             type="button"
-            onClick={() => setActiveTab(t.key)}
+            onClick={() => selectTab(t.key)}
             className={`db-tab ${activeTab === t.key ? "db-tab--active" : ""}`}
           >
             {t.label}
@@ -427,7 +435,11 @@ export default function DataBrowser() {
                   </tr>
                 ) : null}
                 {rows.map((row, idx) => (
-                  <tr key={String(row.id ?? idx)}>
+                  <tr
+                    key={String(row.id ?? idx)}
+                    className="db-table__row--link"
+                    onClick={() => router.push(detailHref(tab.key, row.id))}
+                  >
                     {tab.columns.map((c) => (
                       <td key={c.key}>
                         {c.render

@@ -172,6 +172,9 @@
 }
 .db-table tbody tr:last-child td { border-bottom: 0; }
 .db-table tbody tr:hover { background: #fafbfb; }
+.db-table__row--link { cursor: pointer; }
+.db-table__row--link:hover { background: #f4f6f8; }
+.db-table__row--link .db-btn--ghost { pointer-events: none; }
 .db-table__edit { text-align: right; width: 1%; white-space: nowrap; }
 .db-table__empty { text-align: center; color: #8a8a8a; padding: 36px 16px; }
 
