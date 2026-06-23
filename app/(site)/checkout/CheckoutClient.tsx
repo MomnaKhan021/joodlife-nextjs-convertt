@@ -21,6 +21,7 @@ import type {
 
 import { useCart } from "@/components/cart/CartContext";
 import { getStripeClient } from "@/lib/stripeClient";
+import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 
 const stripePromise = getStripeClient();
 
@@ -98,6 +99,8 @@ function CheckoutForm() {
   const [apartment, setApartment] = useState("");
   const [city, setCity] = useState("");
   const [postcode, setPostcode] = useState("");
+  // Verified against postcodes.io → guarantees a real UK postcode (UK-only store).
+  const [postcodeValid, setPostcodeValid] = useState(false);
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("GB");
   const [saveInfo, setSaveInfo] = useState(true);
@@ -199,6 +202,7 @@ function CheckoutForm() {
     address.trim() &&
     city.trim() &&
     postcode.trim() &&
+    postcodeValid &&
     phone.trim() &&
     (isFreeOrder ||
       (cardComplete &&
@@ -670,10 +674,14 @@ function CheckoutForm() {
                 />
               </Field>
               <Field label="Postcode" required>
-                <TextInput
-                  value={postcode}
-                  onChange={setPostcode}
-                  autoComplete="postal-code"
+                <UkPostcodeField
+                  postcode={postcode}
+                  setPostcode={setPostcode}
+                  onResolveCity={(c) => {
+                    if (c) setCity(c);
+                  }}
+                  onValidityChange={setPostcodeValid}
+                  inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
                 />
               </Field>
             </div>
@@ -684,7 +692,7 @@ function CheckoutForm() {
                 onChange={setPhone}
                 type="tel"
                 autoComplete="tel"
-                placeholder="+91 -0000-00000"
+                placeholder="+44 7700 900000"
               />
             </Field>
 
