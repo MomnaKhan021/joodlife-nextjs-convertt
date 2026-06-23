@@ -201,39 +201,45 @@ export async function upsertContact(
 ): Promise<HubSpotResult<{ id: string; created: boolean }>> {
   if (!input.email) return { ok: false, status: 400, error: "email required" };
 
-  const properties: Record<string, string> = {};
-  const setIf = (key: string, val: unknown) => {
+  // Standard, always-present HubSpot properties.
+  const standard: Record<string, string> = {};
+  // Custom jood_* properties — these only exist if they've been created in the
+  // HubSpot account. If they haven't, HubSpot rejects the WHOLE write, so we
+  // retry with just the standard fields (below) — the contact still lands.
+  const extra: Record<string, string> = {};
+  const put = (target: Record<string, string>, key: string, val: unknown) => {
     if (val === null || val === undefined) return;
     if (typeof val === "string" && !val.trim()) return;
-    properties[key] = String(val);
+    target[key] = String(val);
   };
-  setIf("email", input.email);
-  setIf("firstname", input.firstName);
-  setIf("lastname", input.lastName);
-  setIf("phone", input.phone);
+  put(standard, "email", input.email);
+  put(standard, "firstname", input.firstName);
+  put(standard, "lastname", input.lastName);
+  put(standard, "phone", input.phone);
   if (input.extra) {
-    for (const [k, v] of Object.entries(input.extra)) setIf(k, v);
+    for (const [k, v] of Object.entries(input.extra)) put(extra, k, v);
   }
 
   const found = await searchContactByEmail(input.email);
-  if (found.ok && found.data) {
-    const updated = await hsFetch<HubSpotContact>(
-      `/crm/v3/objects/contacts/${found.data.id}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ properties }),
-      }
-    );
-    if (!updated.ok) return updated;
-    return { ok: true, data: { id: updated.data.id, created: false } };
-  }
+  const id = found.ok && found.data ? found.data.id : null;
+  const path = id
+    ? `/crm/v3/objects/contacts/${id}`
+    : `/crm/v3/objects/contacts`;
+  const method = id ? "PATCH" : "POST";
 
-  const created = await hsFetch<HubSpotContact>(`/crm/v3/objects/contacts`, {
-    method: "POST",
-    body: JSON.stringify({ properties }),
+  // First attempt with custom props; on failure retry with standard only.
+  let res = await hsFetch<HubSpotContact>(path, {
+    method,
+    body: JSON.stringify({ properties: { ...standard, ...extra } }),
   });
-  if (!created.ok) return created;
-  return { ok: true, data: { id: created.data.id, created: true } };
+  if (!res.ok && Object.keys(extra).length > 0) {
+    res = await hsFetch<HubSpotContact>(path, {
+      method,
+      body: JSON.stringify({ properties: standard }),
+    });
+  }
+  if (!res.ok) return res;
+  return { ok: true, data: { id: res.data.id, created: !id } };
 }
 
 /**
@@ -294,24 +300,35 @@ const DEFAULT_DEAL_STAGE = "appointmentscheduled";
 export async function createDeal(
   input: DealInput
 ): Promise<HubSpotResult<{ id: string }>> {
-  const properties: Record<string, string> = {
+  const standard: Record<string, string> = {
     dealname: input.name,
     amount: String(Math.round(input.amount * 100) / 100),
     pipeline: input.pipeline ?? DEFAULT_PIPELINE,
     dealstage: input.dealStage ?? DEFAULT_DEAL_STAGE,
   };
-  if (input.closeDate) properties.closedate = input.closeDate;
+  if (input.closeDate) standard.closedate = input.closeDate;
+  // Custom jood_* properties — only exist if created in the HubSpot account.
+  // If absent, HubSpot rejects the whole deal, so we retry without them below.
+  const extra: Record<string, string> = {};
   if (input.extra) {
     for (const [k, v] of Object.entries(input.extra)) {
       if (v === null || v === undefined) continue;
-      properties[k] = String(v);
+      extra[k] = String(v);
     }
   }
 
-  const created = await hsFetch<HubSpotDeal>(`/crm/v3/objects/deals`, {
+  let created = await hsFetch<HubSpotDeal>(`/crm/v3/objects/deals`, {
     method: "POST",
-    body: JSON.stringify({ properties }),
+    body: JSON.stringify({ properties: { ...standard, ...extra } }),
   });
+  if (!created.ok && Object.keys(extra).length > 0) {
+    // Retry with just the standard properties so the deal still gets created
+    // even when the custom jood_* properties aren't configured in HubSpot.
+    created = await hsFetch<HubSpotDeal>(`/crm/v3/objects/deals`, {
+      method: "POST",
+      body: JSON.stringify({ properties: standard }),
+    });
+  }
   if (!created.ok) return created;
 
   // Associate to the customer's contact (if email provided)
