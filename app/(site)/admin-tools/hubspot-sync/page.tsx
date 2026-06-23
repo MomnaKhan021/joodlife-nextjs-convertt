@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import DiagPanel from "./DiagPanel";
 import SyncAllButton from "./SyncAllButton";
+import PushOrdersButton from "./PushOrdersButton";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,7 @@ export default async function HubSpotSyncHubPage() {
 
       <div className="mb-8">
         <SyncAllButton />
+        <PushOrdersButton />
       </div>
 
       <div className="grid gap-5 md:grid-cols-3">
