@@ -26,7 +26,7 @@ import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { addNoteToContact, fireHubSpot, upsertContact } from "@/lib/hubspot";
+import { addNoteToContact, createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -163,6 +163,21 @@ export async function POST(req: NextRequest) {
             phone: body.phone ?? null,
             extra: {
               jood_product_interest: body.productSlug ?? null,
+              jood_consultation_status: "submitted",
+              jood_consultation_id: insertedId ?? undefined,
+            },
+          }),
+        );
+        // Create a Deal so the consultation appears in the Patient Order
+        // Lifecycle pipeline alongside any later orders — one timeline per
+        // patient (consult → order → shipped → delivered).
+        await fireHubSpot("consultation:deal", () =>
+          createDeal({
+            name: `Consultation — ${body.productSlug ?? "general"} #${insertedId ?? "?"}`,
+            amount: 0,
+            contactEmail: body.email!,
+            extra: {
+              jood_product_interest: body.productSlug ?? "",
               jood_consultation_status: "submitted",
               jood_consultation_id: insertedId ?? undefined,
             },

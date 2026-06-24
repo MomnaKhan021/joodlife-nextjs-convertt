@@ -294,8 +294,16 @@ export type DealInput = {
   contactEmail?: string;
 };
 
-const DEFAULT_PIPELINE = "default";
-const DEFAULT_DEAL_STAGE = "appointmentscheduled";
+/**
+ * Pipeline routing — overridable via env so we can re-target without a code
+ * change. Defaults to the JoodLife "Patient Order Lifecycle" pipeline
+ * (Internal ID 3772760257) so every order/consultation lands there instead of
+ * the generic Deals pipeline. When no explicit stage is provided, we omit the
+ * `dealstage` property so HubSpot drops the deal on the pipeline's configured
+ * default first stage (no need to hardcode a stage ID we don't have yet).
+ */
+const DEFAULT_PIPELINE = process.env.HUBSPOT_DEALS_PIPELINE || "3772760257";
+const DEFAULT_DEAL_STAGE = process.env.HUBSPOT_DEALS_DEFAULT_STAGE || "";
 
 export async function createDeal(
   input: DealInput
@@ -304,8 +312,9 @@ export async function createDeal(
     dealname: input.name,
     amount: String(Math.round(input.amount * 100) / 100),
     pipeline: input.pipeline ?? DEFAULT_PIPELINE,
-    dealstage: input.dealStage ?? DEFAULT_DEAL_STAGE,
   };
+  const stage = input.dealStage ?? DEFAULT_DEAL_STAGE;
+  if (stage) standard.dealstage = stage;
   if (input.closeDate) standard.closedate = input.closeDate;
   // Custom jood_* properties — only exist if created in the HubSpot account.
   // If absent, HubSpot rejects the whole deal, so we retry without them below.
