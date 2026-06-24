@@ -75,6 +75,23 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+ * Safari-specific navigation paint fix.
+ * Safari on macOS briefly repaints the <body> during App Router client
+ * navigations. Without this, going from the white homepage to /profile
+ * (which uses a cream #f7f9f2 background) flashed black on Macs with system
+ * dark mode and white→cream on light mode.
+ *
+ * `:has()` is supported in Safari 15.4+ / all modern browsers — when the
+ * profile page is mounted, the body paints cream so there's no transition
+ * gap between body bg and page bg. Same idea for other pages with distinct
+ * surfaces.
+ */
+body:has([data-page-bg="cream"]) { background: #f7f9f2; }
+body:has([data-page-bg="admin"]) { background: #f1f1f1; }
+/* Hard-stop any "view transition" Safari may apply by default. */
+@view-transition { navigation: none; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

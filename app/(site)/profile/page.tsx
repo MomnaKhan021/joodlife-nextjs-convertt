@@ -68,7 +68,11 @@ export default async function ProfilePage() {
   const initial = displayName[0]?.toUpperCase() ?? "?";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f9f2]">
+    <div
+      className="flex min-h-screen flex-col bg-[#f7f9f2]"
+      data-page-bg="cream"
+      style={{ background: "#f7f9f2" }}
+    >
       {/* ──────────────  Header: centered Jood logo  ────────────── */}
       <header className="border-b border-[#142e2a]/10 bg-white">
         <div className="mx-auto flex h-[72px] w-full max-w-[1100px] items-center justify-center px-6">
