@@ -154,6 +154,12 @@ export async function POST(req: NextRequest) {
       // Run AFTER the response so the work isn't killed when the serverless
       // function returns (Vercel freezes the function once it responds).
       // Contact first, then the note (which associates by email).
+      // Reorder questionnaire: per spec, do NOT create a new deal — the
+      // customer's existing deal stays as the single source of truth. We just
+      // upsert the contact (with reorder marker properties) and append a Note
+      // with the reorder answers, so it shows on the patient's timeline. The
+      // existing deal moves stage when the next ORDER is placed at checkout.
+      const isReorder = body.productSlug === "reorder";
       after(async () => {
         await fireHubSpot("consultation:contact", () =>
           upsertContact({
@@ -163,27 +169,29 @@ export async function POST(req: NextRequest) {
             phone: body.phone ?? null,
             extra: {
               jood_product_interest: body.productSlug ?? null,
-              jood_consultation_status: "submitted",
+              jood_consultation_status: isReorder ? "reorder_submitted" : "submitted",
               jood_consultation_id: insertedId ?? undefined,
             },
           }),
         );
-        // Create a Deal so the consultation appears in the Patient Order
-        // Lifecycle pipeline alongside any later orders — one timeline per
-        // patient (consult → order → shipped → delivered).
-        await fireHubSpot("consultation:deal", () =>
-          createDeal({
-            name: `Consultation — ${body.productSlug ?? "general"} #${insertedId ?? "?"}`,
-            amount: 0,
-            contactEmail: body.email!,
-            dealStage: mapConsultationStageId("submitted"),
-            extra: {
-              jood_product_interest: body.productSlug ?? "",
-              jood_consultation_status: "submitted",
-              jood_consultation_id: insertedId ?? undefined,
-            },
-          }),
-        );
+        if (!isReorder) {
+          // Create a Deal so the consultation appears in the Patient Order
+          // Lifecycle pipeline alongside any later orders — one timeline per
+          // patient (consult → order → shipped → delivered).
+          await fireHubSpot("consultation:deal", () =>
+            createDeal({
+              name: `Consultation — ${body.productSlug ?? "general"} #${insertedId ?? "?"}`,
+              amount: 0,
+              contactEmail: body.email!,
+              dealStage: mapConsultationStageId("submitted"),
+              extra: {
+                jood_product_interest: body.productSlug ?? "",
+                jood_consultation_status: "submitted",
+                jood_consultation_id: insertedId ?? undefined,
+              },
+            }),
+          );
+        }
         await fireHubSpot("consultation:note", () =>
           addNoteToContact(body.email!, noteBody),
         );

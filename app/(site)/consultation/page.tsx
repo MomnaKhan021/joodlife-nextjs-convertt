@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import ConsultationFlow from "./ConsultationFlow";
+import { getCurrentUser } from "@/lib/auth";
+import { getOrdersForEmail } from "@/lib/accountData";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +20,31 @@ type Props = {
 
 export default async function ConsultationPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const productSlug = Array.isArray(sp.product) ? sp.product[0] : sp.product;
+  const requestedSlug = Array.isArray(sp.product) ? sp.product[0] : sp.product;
   const dose = Array.isArray(sp.dose) ? sp.dose[0] : sp.dose;
+
+  // Returning patient → short reorder form, not the full consultation.
+  //
+  // If the signed-in user has ANY paid order (per the customer's eligibility
+  // rule: "Has any paid order ever"), and they didn't explicitly ask for a
+  // specific product flow, switch the questionnaire to the reorder flow so
+  // they don't repeat the full consultation. They can still force the full
+  // flow by hitting /consultation?product=weight-loss explicitly.
+  let productSlug = requestedSlug;
+  if (!productSlug || productSlug === "reorder") {
+    const user = await getCurrentUser();
+    if (user?.email) {
+      const orders = await getOrdersForEmail(user.email);
+      const hasPaidOrder = orders.some(
+        (o) =>
+          o.paymentStatus === "paid" ||
+          o.status === "paid" ||
+          o.status === "shipped" ||
+          o.status === "delivered",
+      );
+      if (hasPaidOrder) productSlug = "reorder";
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col bg-[#f7f9f2]">
