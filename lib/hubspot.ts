@@ -303,7 +303,57 @@ export type DealInput = {
  * default first stage (no need to hardcode a stage ID we don't have yet).
  */
 const DEFAULT_PIPELINE = process.env.HUBSPOT_DEALS_PIPELINE || "3772760257";
-const DEFAULT_DEAL_STAGE = process.env.HUBSPOT_DEALS_DEFAULT_STAGE || "";
+// First-stage of the Patient Order Lifecycle pipeline. New orders/consultations
+// land here; later events progress them via mapOrderStageId() below.
+const DEFAULT_DEAL_STAGE = process.env.HUBSPOT_DEALS_DEFAULT_STAGE || "5269849324";
+
+/**
+ * Patient Order Lifecycle stage IDs (HubSpot pipeline 3772760257). Centralised
+ * here so order/consultation status → pipeline stage is one source of truth.
+ */
+export const PATIENT_LIFECYCLE_STAGES = {
+  newOrder: "5269849324",
+  needsPhoneNumber: "5269849325",
+  consultationBooked: "5269849326",
+  needsClinicalApproval: "5269849327",
+  clinicallyApproved: "5269849328",
+  clinicallyRejected: "5269849333",
+  dispatched: "5392688315",
+} as const;
+
+/**
+ * Map a JoodLife order's status + payment_method into the right pipeline stage.
+ * - cancelled / refunded → Clinically Rejected (lost)
+ * - shipped / delivered  → Dispatched (won)
+ * - paid                 → Clinically Approved (the moneyed, pre-ship stage)
+ * - everything else      → New Order (first stage)
+ */
+export function mapOrderStageId(
+  status: string | null | undefined,
+  paymentStatus?: string | null | undefined,
+): string {
+  const s = String(status ?? "").toLowerCase();
+  const ps = String(paymentStatus ?? "").toLowerCase();
+  if (s === "cancelled" || ps === "refunded") return PATIENT_LIFECYCLE_STAGES.clinicallyRejected;
+  if (s === "delivered" || s === "shipped" || s === "dispatched") return PATIENT_LIFECYCLE_STAGES.dispatched;
+  if (s === "paid" || ps === "paid") return PATIENT_LIFECYCLE_STAGES.clinicallyApproved;
+  return PATIENT_LIFECYCLE_STAGES.newOrder;
+}
+
+/**
+ * Map a JoodLife consultation status into the right pipeline stage.
+ * - approved → Clinically Approved
+ * - rejected → Clinically Rejected
+ * - submitted / reviewed → Needs clinical approval
+ * - draft / anything else → Consultation Booked
+ */
+export function mapConsultationStageId(status: string | null | undefined): string {
+  const s = String(status ?? "").toLowerCase();
+  if (s === "approved") return PATIENT_LIFECYCLE_STAGES.clinicallyApproved;
+  if (s === "rejected") return PATIENT_LIFECYCLE_STAGES.clinicallyRejected;
+  if (s === "submitted" || s === "reviewed") return PATIENT_LIFECYCLE_STAGES.needsClinicalApproval;
+  return PATIENT_LIFECYCLE_STAGES.consultationBooked;
+}
 
 export async function createDeal(
   input: DealInput

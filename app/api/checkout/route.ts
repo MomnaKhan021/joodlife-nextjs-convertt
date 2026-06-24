@@ -20,7 +20,7 @@ import { headers as nextHeaders } from "next/headers";
 import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { addNoteToContact, createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
+import { addNoteToContact, createDeal, fireHubSpot, mapOrderStageId, upsertContact } from "@/lib/hubspot";
 import { sendOrderConfirmationEmail } from "@/lib/account-email";
 import {
   sanitizeText,
@@ -557,6 +557,7 @@ export async function POST(req: NextRequest) {
                 name: `JoodLife — ${orderNumber}`,
                 amount: finalTotal,
                 contactEmail: customer.email,
+                dealStage: mapOrderStageId(orderStatus, payStatus),
                 extra: {
                   jood_order_number: orderNumber,
                   jood_order_items: itemSummary,

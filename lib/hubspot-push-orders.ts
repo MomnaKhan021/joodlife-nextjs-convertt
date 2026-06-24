@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { addNoteToContact, createDeal, upsertContact } from "@/lib/hubspot";
+import { addNoteToContact, createDeal, mapOrderStageId, upsertContact } from "@/lib/hubspot";
 import { ensureOrdersSchema, type DrizzleLike, type SqlRaw } from "@/lib/hubspot-sync-runners";
 
 /**
@@ -142,6 +142,7 @@ export async function pushAllOrdersToHubSpot(): Promise<PushOrdersResult> {
         name: `JoodLife — ${orderNumber}`,
         amount: total,
         contactEmail: email,
+        dealStage: mapOrderStageId(o.status, null),
         extra: {
           jood_order_number: orderNumber,
           jood_order_items: itemSummary,

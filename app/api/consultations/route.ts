@@ -26,7 +26,7 @@ import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { addNoteToContact, createDeal, fireHubSpot, upsertContact } from "@/lib/hubspot";
+import { addNoteToContact, createDeal, fireHubSpot, mapConsultationStageId, upsertContact } from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -176,6 +176,7 @@ export async function POST(req: NextRequest) {
             name: `Consultation — ${body.productSlug ?? "general"} #${insertedId ?? "?"}`,
             amount: 0,
             contactEmail: body.email!,
+            dealStage: mapConsultationStageId("submitted"),
             extra: {
               jood_product_interest: body.productSlug ?? "",
               jood_consultation_status: "submitted",
