@@ -29,18 +29,16 @@ type Props =
     };
 
 async function uploadFile(file: File): Promise<string> {
-  const fd = new FormData();
-  fd.append("file", file);
-  const res = await fetch("/api/blob-upload", {
-    method: "POST",
-    credentials: "include",
-    body: fd,
+  // Client-direct upload to Vercel Blob — bypasses the 4.5 MB serverless
+  // body limit so large product photos work. /api/blob-upload-token
+  // signs the upload after verifying the caller is an admin.
+  const { upload } = await import("@vercel/blob/client");
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 100);
+  const blob = await upload(`media/${safeName}`, file, {
+    access: "public",
+    handleUploadUrl: "/api/blob-upload-token",
   });
-  const json = (await res.json()) as { ok: boolean; url?: string; error?: string };
-  if (!res.ok || !json.ok || !json.url) {
-    throw new Error(json.error ?? `Upload failed (HTTP ${res.status})`);
-  }
-  return json.url;
+  return blob.url;
 }
 
 function Thumb({ url, onRemove }: { url: string; onRemove: () => void }) {
