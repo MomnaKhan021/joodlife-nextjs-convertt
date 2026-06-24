@@ -58,6 +58,13 @@ html {
      mobile. `clip` (not `hidden`) avoids creating a scroll container, so
      position: sticky keeps working. */
   overflow-x: clip;
+  /* Lock the site to the LIGHT colour scheme. Without this, browsers on
+     Macs with system dark mode briefly paint dark form chrome / dark
+     defaults before our stylesheet applies — visible as a "black screen
+     glitch" on client-side navigations (e.g. clicking the account icon).
+     Declaring color-scheme tells the browser to skip dark defaults entirely. */
+  color-scheme: light;
+  background: #ffffff;
 }
 
 html, body {

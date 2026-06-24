@@ -64,9 +64,18 @@ export default function SiteLayout({
     <html
       lang="en"
       className={`${outfit.variable} ${gilroy.variable} ${clearface.variable}`}
+      // Belt-and-braces: tell the browser to skip dark-mode defaults at the
+      // HTML-element level too. Mac users with system dark mode otherwise see
+      // a brief dark flash before our CSS applies.
+      style={{ colorScheme: "light", background: "#ffffff" }}
     >
+      <head>
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
       <body
         className="min-h-screen bg-white text-[#142e2a] font-ui antialiased"
+        style={{ background: "#ffffff" }}
         suppressHydrationWarning
       >
         <SitePreloader />
