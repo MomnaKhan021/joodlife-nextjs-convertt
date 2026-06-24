@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+import ImageUpload from "@/components/admin/ImageUpload";
+
 /* ------------------------------------------------------------------ */
 type Variant = {
   label: string;
@@ -341,20 +343,31 @@ export default function ProductEditClient({ id }: { id: string }) {
             </Card>
 
             <Card title="Media">
-              <div className="flex flex-col gap-4">
-                <Field label="Hero image URL" value={form.hero_image_url} onChange={(v) => set("hero_image_url", v)} placeholder="https://…" />
-                {form.hero_image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={form.hero_image_url} alt="" className="h-32 w-32 rounded-[8px] border border-[#e1e3e5] object-cover" />
-                ) : null}
+              <div className="flex flex-col gap-6">
                 <div>
-                  <Label>Gallery image URLs (one per line)</Label>
-                  <textarea
-                    value={form.gallery_image_urls}
-                    onChange={(e) => set("gallery_image_urls", e.target.value)}
-                    rows={3}
-                    className={inputCls}
-                    placeholder={"https://…\nhttps://…"}
+                  <Label>Hero image</Label>
+                  <p className="mb-2 text-[12px] text-[#616161]">
+                    The main image shown on the product card and PDP gallery.
+                  </p>
+                  <ImageUpload
+                    mode="single"
+                    value={form.hero_image_url}
+                    onChange={(url) => set("hero_image_url", url)}
+                  />
+                </div>
+                <div>
+                  <Label>Gallery images</Label>
+                  <p className="mb-2 text-[12px] text-[#616161]">
+                    Additional images shown in the PDP gallery slider. Drop
+                    multiple files at once.
+                  </p>
+                  <ImageUpload
+                    mode="gallery"
+                    value={form.gallery_image_urls
+                      .split("\n")
+                      .map((s) => s.trim())
+                      .filter(Boolean)}
+                    onChange={(urls) => set("gallery_image_urls", urls.join("\n"))}
                   />
                 </div>
               </div>
