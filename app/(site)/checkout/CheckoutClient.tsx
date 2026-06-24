@@ -995,6 +995,35 @@ function CheckoutForm() {
             )}
           </button>
 
+          {/* If the Pay button is disabled, list exactly what's still needed.
+              Silent disabled states confuse customers (and just confused us in
+              QA — a non-UK postcode looked like a bug when it was actually
+              the UK-only gate working). */}
+          {!canPay && !busy ? (
+            <ul className="mt-3 space-y-1 font-ui text-[12px] text-[#c0392b]">
+              {items.length === 0 ? <li>• Your cart is empty.</li> : null}
+              {!firstName.trim() || !lastName.trim() ? (
+                <li>• Enter your first and last name.</li>
+              ) : null}
+              {!emailValid ? <li>• Enter a valid email address.</li> : null}
+              {!address.trim() ? <li>• Enter your address.</li> : null}
+              {!city.trim() ? <li>• Enter your city.</li> : null}
+              {!postcodeOk ? (
+                <li>
+                  • Enter a valid <strong>UK postcode</strong> (e.g. SW1A 1AA).
+                  We currently ship to UK addresses only.
+                </li>
+              ) : null}
+              {!deliveryOk ? (
+                <li>• Complete the delivery address (UK postcode required).</li>
+              ) : null}
+              {!phone.trim() ? <li>• Enter your phone number.</li> : null}
+              {!isFreeOrder && (!cardComplete || !expiryComplete || !cvcComplete)
+                ? <li>• Complete the card number, expiry and CVC.</li>
+                : null}
+            </ul>
+          ) : null}
+
           {error ? (
             <p
               role="alert"

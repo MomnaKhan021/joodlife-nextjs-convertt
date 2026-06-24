@@ -33,26 +33,35 @@ export default function CheckoutPage() {
       {/* ── Body ── */}
       <CheckoutClient />
 
-      {/* ── Footer: Trustpilot rating ── */}
-      <footer className="mt-auto flex items-center justify-center gap-3 px-6 py-10">
-        <Image
-          src="/assets/icons/trustpilot-logo.svg"
-          alt="Trustpilot"
-          width={92}
-          height={22}
-          className="h-[22px] w-auto"
-        />
-        <Image
-          src="/assets/icons/trustpilot-stars.svg"
-          alt=""
-          width={110}
-          height={22}
-          className="h-[22px] w-auto"
-        />
-        <span className="font-ui text-[16px] font-semibold text-[#142e2a]">
-          4.4{" "}
-          <span className="font-normal text-[#142e2a]/70">(50+) Reviews</span>
-        </span>
+      {/* ── Footer: Trustpilot rating ──
+          Centred, wraps cleanly on narrow screens (logo+stars on one line,
+          rating text on the next) so it never overflows or looks crammed. */}
+      <footer className="mt-auto px-6 py-10">
+        <a
+          href="https://www.trustpilot.com/review/joodlife.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View Jood Life reviews on Trustpilot"
+          className="mx-auto flex max-w-fit flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-md text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
+        >
+          <Image
+            src="/assets/icons/trustpilot-logo.svg"
+            alt="Trustpilot"
+            width={92}
+            height={20}
+            className="h-5 w-auto shrink-0"
+          />
+          <Image
+            src="/assets/icons/trustpilot-stars.svg"
+            alt="5 stars"
+            width={104}
+            height={20}
+            className="h-5 w-auto shrink-0"
+          />
+          <span className="font-ui text-[14px] font-semibold text-[#142e2a] md:text-[16px]">
+            4.4 <span className="font-normal text-[#142e2a]/70">(50+) Reviews</span>
+          </span>
+        </a>
       </footer>
     </main>
   );
