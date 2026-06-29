@@ -579,11 +579,25 @@ export async function POST(req: NextRequest) {
       // Confirmation email can stay in the background — it's not time-critical.
       after(async () => {
         try {
+          // A reorder is any order beyond the first — check if the customer had
+          // prior orders (the current one is already inserted, so count > 1).
+          let isReorder = false;
+          try {
+            const countRes = (await drizzle.execute(
+              sql.raw(
+                `SELECT COUNT(*) AS n FROM "orders" WHERE lower(customer_email) = lower(${esc(customer.email)}) AND status != 'cancelled'`
+              )
+            )) as { rows?: Array<{ n: string | number }> } | Array<{ n: string | number }>;
+            const countRows = Array.isArray(countRes) ? countRes : (countRes.rows ?? []);
+            isReorder = Number(countRows[0]?.n ?? 0) > 1;
+          } catch { /* non-fatal */ }
+
           await sendOrderConfirmationEmail(payload, {
             email: customer.email,
             name: customer.name,
             orderNumber,
             total: finalTotal,
+            isReorder,
             items: repriced.items.map((i) => ({
               title: i.title,
               dose: i.dose ?? null,

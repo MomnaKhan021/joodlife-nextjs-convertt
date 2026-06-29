@@ -132,6 +132,7 @@ export async function sendOrderConfirmationEmail(
     orderNumber: string;
     total: number;
     items: OrderEmailItem[];
+    isReorder?: boolean;
   }
 ): Promise<void> {
   const url = siteUrl();
@@ -157,7 +158,21 @@ export async function sendOrderConfirmationEmail(
     })
     .join("");
 
-  const consultUrl = `${url}/consultation`;
+  const nextStepHtml = opts.isReorder
+    ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
+        Our pharmacist will review your resupply questionnaire and be in touch shortly.
+        No further action is needed from you right now.
+      </p>`
+    : `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
+        <strong>Next step:</strong> complete your medical consultation so our
+        clinicians can approve your treatment.
+      </p>
+      <p style="margin:0 0 24px">
+        <a href="${url}/consultation" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
+          Start your consultation
+        </a>
+      </p>`;
+
   const html = `
   <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
     <h1 style="font-size:22px;margin:0 0 8px">Thank you for your order, ${escapeHtml(firstName)}</h1>
@@ -171,20 +186,16 @@ export async function sendOrderConfirmationEmail(
     <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right">
       Total: ${gbp(opts.total)}
     </p>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      <strong>Next step:</strong> complete your medical consultation so our
-      clinicians can approve your treatment.
-    </p>
-    <p style="margin:0 0 24px">
-      <a href="${consultUrl}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-        Start your consultation
-      </a>
-    </p>
+    ${nextStepHtml}
     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
       Order placed at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
       Questions? Just reply to this email.
     </p>
   </div>`;
+
+  const nextStepText = opts.isReorder
+    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly.`
+    : `Next step: complete your medical consultation so our clinicians can approve\nyour treatment: ${url}/consultation`;
 
   const text = `Thank you for your order, ${firstName}!
 
@@ -192,8 +203,7 @@ Order ${opts.orderNumber}
 ${opts.items.map((it) => `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.quantity}`).join("\n")}
 Total: ${gbp(opts.total)}
 
-Next step: complete your medical consultation so our clinicians can approve
-your treatment: ${consultUrl}
+${nextStepText}
 
 Order placed at ${url}. Questions? Just reply to this email.`;
 

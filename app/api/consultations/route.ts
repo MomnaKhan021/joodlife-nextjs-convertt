@@ -26,7 +26,38 @@ import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { addNoteToContact, createDeal, fireHubSpot, mapConsultationStageId, upsertContact } from "@/lib/hubspot";
+import { addNoteToContact, createDeal, fireHubSpot, mapConsultationStageId, upsertContact, PATIENT_LIFECYCLE_STAGES } from "@/lib/hubspot";
+
+// Severe symptoms that auto-flag a reorder for clinical review (DEV-02).
+const SEVERE_REORDER_SYMPTOMS = new Set([
+  "Severe stomach (abdominal) pain, especially if it spreads to your back",
+  "Severe pain in the upper-right tummy, yellowing of the skin or eyes, or fever",
+  "Persistent vomiting or diarrhoea, or feeling very dehydrated",
+  "Signs of an allergic reaction — rash, swelling of the face/lips/throat, or difficulty breathing",
+  "New or worsening low mood, or any thoughts of harming yourself",
+  "Any other symptom you would describe as severe",
+]);
+
+function detectReorderRedFlags(answers: Record<string, unknown>): boolean {
+  // Severe or moderate side effects
+  const severity = String(answers.reorder_side_effect_severity ?? "");
+  if (severity === "Severe" || severity === "Moderate") return true;
+
+  // Any severe symptom ticked
+  const sideEffects = answers.reorder_side_effects;
+  if (Array.isArray(sideEffects) && sideEffects.some((s) => SEVERE_REORDER_SYMPTOMS.has(String(s)))) return true;
+
+  // Pregnancy / trying to conceive / breastfeeding
+  if (answers.reorder_pregnancy_flag === "Yes") return true;
+
+  // New medicine, new condition, or hospital admission since last order
+  if (answers.reorder_new_clinical_event === "Yes") return true;
+
+  // Not going well overall
+  if (answers.reorder_progress === "Not well") return true;
+
+  return false;
+}
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -160,6 +191,10 @@ export async function POST(req: NextRequest) {
       // with the reorder answers, so it shows on the patient's timeline. The
       // existing deal moves stage when the next ORDER is placed at checkout.
       const isReorder = body.productSlug === "reorder";
+      const hasRedFlags = isReorder && detectReorderRedFlags(body.answers ?? {});
+      // Red-flagged reorders go to "needs_clinical_approval"; supply is blocked
+      // until a named pharmacist approves/rejects (DEV-02).
+      const reorderStatus = hasRedFlags ? "needs_clinical_approval" : "reorder_submitted";
       after(async () => {
         await fireHubSpot("consultation:contact", () =>
           upsertContact({
@@ -169,8 +204,9 @@ export async function POST(req: NextRequest) {
             phone: body.phone ?? null,
             extra: {
               jood_product_interest: body.productSlug ?? null,
-              jood_consultation_status: isReorder ? "reorder_submitted" : "submitted",
+              jood_consultation_status: isReorder ? reorderStatus : "submitted",
               jood_consultation_id: insertedId ?? undefined,
+              ...(hasRedFlags ? { jood_red_flag: "true" } : {}),
             },
           }),
         );
@@ -188,6 +224,23 @@ export async function POST(req: NextRequest) {
                 jood_product_interest: body.productSlug ?? "",
                 jood_consultation_status: "submitted",
                 jood_consultation_id: insertedId ?? undefined,
+              },
+            }),
+          );
+        } else if (hasRedFlags) {
+          // Reorder with red flags: create a new deal in the Needs Clinical
+          // Approval stage so the pharmacist queue (DEV-03) surfaces it.
+          await fireHubSpot("consultation:deal", () =>
+            createDeal({
+              name: `Reorder (red flag) — #${insertedId ?? "?"}`,
+              amount: 0,
+              contactEmail: body.email!,
+              dealStage: PATIENT_LIFECYCLE_STAGES.needsClinicalApproval,
+              extra: {
+                jood_product_interest: body.productSlug ?? "",
+                jood_consultation_status: "needs_clinical_approval",
+                jood_consultation_id: insertedId ?? undefined,
+                jood_red_flag: "true",
               },
             }),
           );
@@ -273,6 +326,8 @@ export async function PATCH(req: NextRequest) {
         `<p><b>JoodLife consultation submitted</b><br/>` +
         `Reference: #${updatedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
         `<hr/><p>${noteLines}</p>`;
+      const hasRedFlags = isReorder && detectReorderRedFlags(body.answers ?? {});
+      const reorderStatus = hasRedFlags ? "needs_clinical_approval" : "reorder_submitted";
       after(async () => {
         await fireHubSpot("consultation:contact", () =>
           upsertContact({
@@ -282,11 +337,28 @@ export async function PATCH(req: NextRequest) {
             phone: body.phone ?? null,
             extra: {
               jood_product_interest: body.productSlug ?? null,
-              jood_consultation_status: isReorder ? "reorder_submitted" : "submitted",
+              jood_consultation_status: isReorder ? reorderStatus : "submitted",
               jood_consultation_id: updatedId,
+              ...(hasRedFlags ? { jood_red_flag: "true" } : {}),
             },
           }),
         );
+        if (isReorder && hasRedFlags) {
+          await fireHubSpot("consultation:deal", () =>
+            createDeal({
+              name: `Reorder (red flag) — #${updatedId}`,
+              amount: 0,
+              contactEmail: body.email!,
+              dealStage: PATIENT_LIFECYCLE_STAGES.needsClinicalApproval,
+              extra: {
+                jood_product_interest: body.productSlug ?? "",
+                jood_consultation_status: "needs_clinical_approval",
+                jood_consultation_id: updatedId,
+                jood_red_flag: "true",
+              },
+            }),
+          );
+        }
         await fireHubSpot("consultation:note", () =>
           addNoteToContact(body.email!, noteBody),
         );
