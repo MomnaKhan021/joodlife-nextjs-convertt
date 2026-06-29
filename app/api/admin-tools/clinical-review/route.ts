@@ -16,6 +16,8 @@ import {
   fireHubSpot,
   upsertContact,
   addNoteToContact,
+  updateDealStage,
+  findDealsByContactEmail,
   PATIENT_LIFECYCLE_STAGES,
 } from "@/lib/hubspot";
 
@@ -141,6 +143,7 @@ export async function POST(req: NextRequest) {
 
       // Fire-and-forget — don't block the response
       (async () => {
+        // 1. Update contact properties
         await fireHubSpot("review:contact", () =>
           upsertContact({
             email,
@@ -150,6 +153,21 @@ export async function POST(req: NextRequest) {
             },
           }),
         );
+
+        // 2. Find the most recent deal for this patient and move its
+        //    pipeline stage to Clinically Approved or Clinically Rejected
+        //    so the board reflects the pharmacist's decision in real time.
+        await fireHubSpot("review:deal-stage", async () => {
+          const dealsRes = await findDealsByContactEmail(email);
+          if (!dealsRes.ok || dealsRes.data.length === 0) return { ok: true, data: { id: "" } };
+          // Move the newest deal (most recent reorder/consultation deal)
+          const latestDeal = dealsRes.data[0];
+          return updateDealStage(latestDeal.id, dealStage, {
+            jood_consultation_status: hubspotStatus,
+          });
+        });
+
+        // 3. Add decision note to contact timeline
         await fireHubSpot("review:note", () =>
           addNoteToContact(email, decisionNote),
         );

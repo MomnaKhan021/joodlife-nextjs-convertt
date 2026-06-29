@@ -405,6 +405,106 @@ export async function createDeal(
 }
 
 /* ------------------------------------------------------------------ */
+/* Deal stage updates                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Update the pipeline stage of an existing deal by its HubSpot deal ID.
+ * Used by the clinical review flow to move deals when a pharmacist
+ * approves or rejects a patient (DEV-03 / DEV-07).
+ */
+export async function updateDealStage(
+  dealId: string,
+  stageId: string,
+  extraProps?: Record<string, string>,
+): Promise<HubSpotResult<{ id: string }>> {
+  const props: Record<string, string> = { dealstage: stageId, ...extraProps };
+  const res = await hsFetch<{ id: string }>(
+    `/crm/v3/objects/deals/${dealId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ properties: props }),
+    },
+  );
+  return res;
+}
+
+/**
+ * Find all deals associated with a contact (by email) in the Patient Order
+ * Lifecycle pipeline. Returns the most-recently-created active deal first.
+ * Used to locate which deal to move when a pharmacist approves/rejects.
+ */
+export async function findDealsByContactEmail(
+  email: string,
+): Promise<HubSpotResult<HubSpotDealRecord[]>> {
+  // First resolve the contact id
+  const contact = await searchContactByEmail(email);
+  if (!contact.ok) return contact;
+  if (!contact.data) return { ok: true, data: [] };
+
+  const contactId = contact.data.id;
+
+  type RawDeal = {
+    id: string;
+    properties: Record<string, string | undefined>;
+  };
+
+  // Fetch deals associated with this contact
+  const res = await hsFetch<{
+    results: RawDeal[];
+    paging?: { next?: { after: string } };
+  }>(
+    `/crm/v3/objects/deals?limit=10&properties=${DEAL_PROPERTIES.join(",")}&associations=contacts`,
+    { method: "GET" },
+  );
+
+  // HubSpot v3 doesn't support filtering by contact in a simple GET —
+  // use the associations endpoint instead
+  const assocRes = await hsFetch<{
+    results: Array<{ id: string; type: string }>;
+  }>(
+    `/crm/v4/objects/contacts/${contactId}/associations/deals`,
+    { method: "GET" },
+  );
+
+  if (!assocRes.ok) return { ok: true, data: [] };
+
+  const dealIds = (assocRes.data.results ?? []).map((r) => r.id);
+  if (dealIds.length === 0) return { ok: true, data: [] };
+
+  // Fetch full deal records for these IDs (batch read)
+  const batchRes = await hsFetch<{ results: RawDeal[] }>(
+    `/crm/v3/objects/deals/batch/read`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        inputs: dealIds.map((id) => ({ id })),
+        properties: DEAL_PROPERTIES,
+      }),
+    },
+  );
+
+  if (!batchRes.ok) return { ok: true, data: [] };
+
+  const deals: HubSpotDealRecord[] = (batchRes.data.results ?? [])
+    .filter((d) => {
+      const p = d.properties?.pipeline ?? "";
+      return !p || p === DEFAULT_PIPELINE;
+    })
+    .map((d) => ({
+      id: d.id,
+      properties: d.properties ?? {},
+    }))
+    .sort((a, b) => {
+      const ta = a.properties?.createdate ? new Date(a.properties.createdate).getTime() : 0;
+      const tb = b.properties?.createdate ? new Date(b.properties.createdate).getTime() : 0;
+      return tb - ta; // newest first
+    });
+
+  return { ok: true, data: deals };
+}
+
+/* ------------------------------------------------------------------ */
 /* Notes (consultation answers)                                        */
 /* ------------------------------------------------------------------ */
 

@@ -259,9 +259,7 @@ export async function POST(req: NextRequest) {
           }),
         );
         if (!isReorder) {
-          // Create a Deal so the consultation appears in the Patient Order
-          // Lifecycle pipeline alongside any later orders — one timeline per
-          // patient (consult → order → shipped → delivered).
+          // New consultation — create a Deal in "Consultation Booked" stage.
           await fireHubSpot("consultation:deal", () =>
             createDeal({
               name: `Consultation — ${body.productSlug ?? "general"} #${insertedId ?? "?"}`,
@@ -275,20 +273,24 @@ export async function POST(req: NextRequest) {
               },
             }),
           );
-        } else if (hasRedFlags) {
-          // Reorder with red flags: create a new deal in the Needs Clinical
-          // Approval stage so the pharmacist queue (DEV-03) surfaces it.
+        } else {
+          // ALL reorders (clean or red-flagged) → "Needs Clinical Approval"
+          // in the Patient Order Lifecycle pipeline so the pharmacist queue
+          // always shows them. Red-flagged ones get an alert note + jood_red_flag.
+          const dealName = hasRedFlags
+            ? `Reorder 🚨 RED FLAG — #${insertedId ?? "?"}`
+            : `Reorder — #${insertedId ?? "?"}`;
           await fireHubSpot("consultation:deal", () =>
             createDeal({
-              name: `Reorder (red flag) — #${insertedId ?? "?"}`,
+              name: dealName,
               amount: 0,
               contactEmail: body.email!,
               dealStage: PATIENT_LIFECYCLE_STAGES.needsClinicalApproval,
               extra: {
                 jood_product_interest: body.productSlug ?? "",
-                jood_consultation_status: "needs_clinical_approval",
+                jood_consultation_status: reorderStatus,
                 jood_consultation_id: insertedId ?? undefined,
-                jood_red_flag: "true",
+                ...(hasRedFlags ? { jood_red_flag: "true" } : {}),
               },
             }),
           );
@@ -389,18 +391,22 @@ export async function PATCH(req: NextRequest) {
             },
           }),
         );
-        if (isReorder && hasRedFlags) {
+        if (isReorder) {
+          // ALL reorders → Needs Clinical Approval in pipeline (DEV-03)
+          const dealName = hasRedFlags
+            ? `Reorder 🚨 RED FLAG — #${updatedId}`
+            : `Reorder — #${updatedId}`;
           await fireHubSpot("consultation:deal", () =>
             createDeal({
-              name: `Reorder (red flag) — #${updatedId}`,
+              name: dealName,
               amount: 0,
               contactEmail: body.email!,
               dealStage: PATIENT_LIFECYCLE_STAGES.needsClinicalApproval,
               extra: {
                 jood_product_interest: body.productSlug ?? "",
-                jood_consultation_status: "needs_clinical_approval",
+                jood_consultation_status: reorderStatus,
                 jood_consultation_id: updatedId,
-                jood_red_flag: "true",
+                ...(hasRedFlags ? { jood_red_flag: "true" } : {}),
               },
             }),
           );
