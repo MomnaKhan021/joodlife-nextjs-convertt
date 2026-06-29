@@ -29,6 +29,13 @@ const NAV: NavItem[] = [
     icon: I("M4 11l8-7 8 7M6 9.5V20h12V9.5"),
   },
   {
+    label: "Clinical Queue",
+    href: "/admin-tools/clinical-queue",
+    match: (p) => p.startsWith("/admin-tools/clinical-queue"),
+    badgeType: "clinical",
+    icon: I("M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"),
+  },
+  {
     label: "Orders",
     href: "/admin-tools/data-browser?type=orders",
     match: (_p, t) => t === "orders",
@@ -71,19 +78,30 @@ function NavBadge({ type }: { type: string }) {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
     let off = false;
-    fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((j) => {
-        if (!off && j?.ok && typeof j.total === "number") setCount(j.total);
-      })
-      .catch(() => {});
-    return () => {
-      off = true;
-    };
+    if (type === "clinical") {
+      // Show pending count from clinical review queue
+      fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include" })
+        .then((r) => r.json())
+        .then((j) => {
+          if (!off && j?.ok && typeof j.pending === "number" && j.pending > 0) setCount(j.pending);
+        })
+        .catch(() => {});
+    } else {
+      fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include" })
+        .then((r) => r.json())
+        .then((j) => {
+          if (!off && j?.ok && typeof j.total === "number") setCount(j.total);
+        })
+        .catch(() => {});
+    }
+    return () => { off = true; };
   }, [type]);
   if (count === null) return null;
+  const isClinical = type === "clinical";
   return (
-    <span className="ml-auto rounded-md bg-[#e3e3e3] px-1.5 py-0.5 text-[11px] font-semibold text-[#616161]">
+    <span className={`ml-auto rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
+      isClinical ? "bg-[#dc2626] text-white" : "bg-[#e3e3e3] text-[#616161]"
+    }`}>
       {count}
     </span>
   );
