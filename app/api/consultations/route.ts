@@ -38,25 +38,84 @@ const SEVERE_REORDER_SYMPTOMS = new Set([
   "Any other symptom you would describe as severe",
 ]);
 
-function detectReorderRedFlags(answers: Record<string, unknown>): boolean {
-  // Severe or moderate side effects
+/**
+ * Returns a list of human-readable red flag reasons found in the answers.
+ * Empty array = no red flags.
+ */
+function getReorderRedFlags(answers: Record<string, unknown>): string[] {
+  const flags: string[] = [];
+
   const severity = String(answers.reorder_side_effect_severity ?? "");
-  if (severity === "Severe" || severity === "Moderate") return true;
+  if (severity === "Severe")   flags.push("⚠️ Side effect severity reported as SEVERE");
+  if (severity === "Moderate") flags.push("⚠️ Side effect severity reported as MODERATE");
 
-  // Any severe symptom ticked
   const sideEffects = answers.reorder_side_effects;
-  if (Array.isArray(sideEffects) && sideEffects.some((s) => SEVERE_REORDER_SYMPTOMS.has(String(s)))) return true;
+  if (Array.isArray(sideEffects)) {
+    const severe = sideEffects.filter((s) => SEVERE_REORDER_SYMPTOMS.has(String(s)));
+    for (const s of severe) flags.push(`⚠️ Severe symptom: ${s}`);
+  }
 
-  // Pregnancy / trying to conceive / breastfeeding
-  if (answers.reorder_pregnancy_flag === "Yes") return true;
+  if (answers.reorder_pregnancy_flag === "Yes")
+    flags.push("⚠️ Patient is pregnant, trying to conceive, or breastfeeding");
 
-  // New medicine, new condition, or hospital admission since last order
-  if (answers.reorder_new_clinical_event === "Yes") return true;
+  if (answers.reorder_new_clinical_event === "Yes") {
+    const detail = String(answers.reorder_new_clinical_event_details ?? "").trim();
+    flags.push(`⚠️ New clinical event since last order${detail ? `: ${detail}` : ""}`);
+  }
 
-  // Not going well overall
-  if (answers.reorder_progress === "Not well") return true;
+  if (answers.reorder_progress === "Not well")
+    flags.push("⚠️ Patient reports treatment is NOT going well");
 
-  return false;
+  return flags;
+}
+
+function detectReorderRedFlags(answers: Record<string, unknown>): boolean {
+  return getReorderRedFlags(answers).length > 0;
+}
+
+/**
+ * Build the full HubSpot note body. For red-flagged reorders, a bold
+ * alert banner is prepended so pharmacists (and HubSpot AI) see it
+ * immediately without scrolling through the answers.
+ */
+function buildNoteBody(opts: {
+  ref: number | null;
+  productSlug?: string;
+  dose?: string;
+  answers: Record<string, unknown>;
+  redFlags: string[];
+}): string {
+  const { ref, productSlug, dose, answers, redFlags } = opts;
+
+  const answerLines = Object.entries(answers)
+    .filter(([k]) => !k.startsWith("_"))
+    .map(([k, v]) => {
+      const value = Array.isArray(v) ? v.join(", ") : String(v ?? "—");
+      return `<b>${k}</b>: ${value}`;
+    })
+    .join("<br/>");
+
+  const alertBanner = redFlags.length > 0
+    ? `<div style="background:#fff3cd;border:2px solid #e65100;padding:12px 16px;border-radius:6px;margin-bottom:12px">
+        <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#b71c1c">
+          🚨 RED FLAG — CLINICAL REVIEW REQUIRED — DO NOT AUTO-SUPPLY 🚨
+        </p>
+        <p style="margin:0 0 6px;font-size:13px;color:#333">
+          This reorder was automatically flagged. Supply is blocked until a named
+          pharmacist approves or rejects below.
+        </p>
+        <ul style="margin:6px 0 0;padding-left:20px;font-size:13px;color:#333">
+          ${redFlags.map((f) => `<li>${f}</li>`).join("")}
+        </ul>
+      </div>`
+    : "";
+
+  return (
+    alertBanner +
+    `<p><b>JoodLife reorder questionnaire submitted</b><br/>` +
+    `Reference: #${ref ?? "?"} · Product: ${productSlug ?? "—"} · Dose: ${dose ?? "—"}</p>` +
+    `<hr/><p>${answerLines}</p>`
+  );
 }
 
 export const dynamic = "force-dynamic";
@@ -170,31 +229,20 @@ export async function POST(req: NextRequest) {
     // Submit (status === 'submitted'). Drafts churn too much.
     if (status === "submitted" && body.email) {
       const [first, ...rest] = (body.fullName ?? "").split(" ");
-      // Compact answers as a Note so clinicians can read them inside HubSpot
-      const noteLines = Object.entries(body.answers ?? {})
-        .filter(([k]) => !k.startsWith("_")) // skip internal flags
-        .map(([k, v]) => {
-          const value = Array.isArray(v) ? v.join(", ") : String(v ?? "—");
-          return `<b>${k}</b>: ${value}`;
-        })
-        .join("<br/>");
-      const noteBody =
-        `<p><b>JoodLife consultation submitted</b><br/>` +
-        `Reference: #${insertedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
-        `<hr/><p>${noteLines}</p>`;
-      // Run AFTER the response so the work isn't killed when the serverless
-      // function returns (Vercel freezes the function once it responds).
-      // Contact first, then the note (which associates by email).
-      // Reorder questionnaire: per spec, do NOT create a new deal — the
-      // customer's existing deal stays as the single source of truth. We just
-      // upsert the contact (with reorder marker properties) and append a Note
-      // with the reorder answers, so it shows on the patient's timeline. The
-      // existing deal moves stage when the next ORDER is placed at checkout.
       const isReorder = body.productSlug === "reorder";
-      const hasRedFlags = isReorder && detectReorderRedFlags(body.answers ?? {});
-      // Red-flagged reorders go to "needs_clinical_approval"; supply is blocked
-      // until a named pharmacist approves/rejects (DEV-02).
+      const redFlags = isReorder ? getReorderRedFlags(body.answers ?? {}) : [];
+      const hasRedFlags = redFlags.length > 0;
       const reorderStatus = hasRedFlags ? "needs_clinical_approval" : "reorder_submitted";
+
+      // Build the HubSpot note — red-flagged reorders get a bold alert banner
+      // at the top so pharmacists (and HubSpot AI) see the issue immediately.
+      const noteBody = buildNoteBody({
+        ref: insertedId,
+        productSlug: body.productSlug,
+        dose: body.dose,
+        answers: body.answers ?? {},
+        redFlags,
+      });
       after(async () => {
         await fireHubSpot("consultation:contact", () =>
           upsertContact({
@@ -315,19 +363,17 @@ export async function PATCH(req: NextRequest) {
     if (status === "submitted" && body.email) {
       const isReorder = body.productSlug === "reorder";
       const [first, ...rest] = (body.fullName ?? "").split(" ");
-      const noteLines = Object.entries(body.answers ?? {})
-        .filter(([k]) => !k.startsWith("_"))
-        .map(([k, v]) => {
-          const value = Array.isArray(v) ? v.join(", ") : String(v ?? "—");
-          return `<b>${k}</b>: ${value}`;
-        })
-        .join("<br/>");
-      const noteBody =
-        `<p><b>JoodLife consultation submitted</b><br/>` +
-        `Reference: #${updatedId} · Product: ${body.productSlug ?? "—"} · Dose: ${body.dose ?? "—"}</p>` +
-        `<hr/><p>${noteLines}</p>`;
-      const hasRedFlags = isReorder && detectReorderRedFlags(body.answers ?? {});
+      const redFlags = isReorder ? getReorderRedFlags(body.answers ?? {}) : [];
+      const hasRedFlags = redFlags.length > 0;
       const reorderStatus = hasRedFlags ? "needs_clinical_approval" : "reorder_submitted";
+
+      const noteBody = buildNoteBody({
+        ref: updatedId,
+        productSlug: body.productSlug,
+        dose: body.dose,
+        answers: body.answers ?? {},
+        redFlags,
+      });
       after(async () => {
         await fireHubSpot("consultation:contact", () =>
           upsertContact({
