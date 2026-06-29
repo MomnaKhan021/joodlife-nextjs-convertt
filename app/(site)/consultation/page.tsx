@@ -37,10 +37,9 @@ export default async function ConsultationPage({ searchParams }: Props) {
       const orders = await getOrdersForEmail(user.email);
       const hasPaidOrder = orders.some(
         (o) =>
-          o.paymentStatus === "paid" ||
-          o.status === "paid" ||
-          o.status === "shipped" ||
-          o.status === "delivered",
+          o.status !== "cancelled" &&
+          o.paymentStatus !== "refunded" &&
+          o.paymentStatus !== "failed",
       );
       if (hasPaidOrder) productSlug = "reorder";
     }

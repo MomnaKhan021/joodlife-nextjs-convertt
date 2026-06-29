@@ -33,12 +33,13 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   if (user?.email) {
     const orders = await getOrdersForEmail(user.email);
+    // Any order that isn't cancelled/refunded/failed counts — covers
+    // "awaiting", "unpaid", "pending", "paid", "shipped", "delivered".
     isReturningPatient = orders.some(
       (o) =>
-        o.paymentStatus === "paid" ||
-        o.status === "paid" ||
-        o.status === "shipped" ||
-        o.status === "delivered",
+        o.status !== "cancelled" &&
+        o.paymentStatus !== "refunded" &&
+        o.paymentStatus !== "failed",
     );
   }
 
