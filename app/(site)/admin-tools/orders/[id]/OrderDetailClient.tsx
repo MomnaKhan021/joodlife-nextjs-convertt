@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+import { printLabels, dispensingDate, type LabelData } from "./dispensingLabel";
+
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
 /* ------------------------------------------------------------------ */
@@ -269,6 +271,23 @@ export default function OrderDetailClient({ id }: { id: string }) {
     if (typeof window !== "undefined") window.print();
   }
 
+  function printDispensingLabels() {
+    if (!order) return;
+    const lineItems = parseItems(order.items_json);
+    const patient = order.customer_name?.trim() || "—";
+    const date = dispensingDate();
+    const labels: LabelData[] = (lineItems.length ? lineItems : [{}]).map(
+      (it): LabelData => ({
+        productName: it.title?.trim() || "—",
+        packLine: it.dose?.trim() || null,
+        directions: "use as directed",
+        patientName: patient,
+        date,
+      }),
+    );
+    printLabels(labels);
+  }
+
   async function cancelOrder() {
     if (!order) return;
     setMoreOpen(false);
@@ -460,12 +479,9 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 <HeaderBtn onClick={markFulfilled}>
                   {savingFulfil ? "Saving…" : fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled"}
                 </HeaderBtn>
-                <span
-                  title="Connect DPD to enable shipping labels"
-                  className="inline-flex h-[32px] cursor-not-allowed items-center justify-center rounded-[8px] bg-[#303030]/40 px-3.5 text-[13px] font-medium text-white"
-                >
-                  Create shipping label (DPD soon)
-                </span>
+                <HeaderBtn primary onClick={printDispensingLabels}>
+                  Print dispensing label
+                </HeaderBtn>
               </div>
             </Card>
 
