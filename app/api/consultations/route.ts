@@ -260,6 +260,7 @@ export async function PATCH(req: NextRequest) {
 
     // Mirror to HubSpot when this PATCH is the final submit.
     if (status === "submitted" && body.email) {
+      const isReorder = body.productSlug === "reorder";
       const [first, ...rest] = (body.fullName ?? "").split(" ");
       const noteLines = Object.entries(body.answers ?? {})
         .filter(([k]) => !k.startsWith("_"))
@@ -281,7 +282,7 @@ export async function PATCH(req: NextRequest) {
             phone: body.phone ?? null,
             extra: {
               jood_product_interest: body.productSlug ?? null,
-              jood_consultation_status: "submitted",
+              jood_consultation_status: isReorder ? "reorder_submitted" : "submitted",
               jood_consultation_id: updatedId,
             },
           }),
