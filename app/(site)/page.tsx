@@ -14,6 +14,8 @@ import CtaBanner from "@/sections/home/CtaBanner";
 import Footer from "@/sections/home/Footer";
 
 import { CATEGORIES } from "@/lib/categories";
+import { getCurrentUser } from "@/lib/auth";
+import { getOrdersForEmail } from "@/lib/accountData";
 
 // Rendered per-request: the "Recent blog posts" section reads published
 // posts from the CMS (DB), so new/edited articles appear without a rebuild.
@@ -25,15 +27,29 @@ export const dynamic = "force-dynamic";
  * themed preview that links through to the same place. Shared trust /
  * how-it-works / reviews / CTA sections close the page out.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  // Detect returning patients so CTAs switch from "Get Started" to "Reorder".
+  let isReturningPatient = false;
+  const user = await getCurrentUser();
+  if (user?.email) {
+    const orders = await getOrdersForEmail(user.email);
+    isReturningPatient = orders.some(
+      (o) =>
+        o.paymentStatus === "paid" ||
+        o.status === "paid" ||
+        o.status === "shipped" ||
+        o.status === "delivered",
+    );
+  }
+
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
 
-      <HeroGateway />
+      <HeroGateway isReturningPatient={isReturningPatient} />
 
-      <CategoryPreview category={CATEGORIES["weight-loss"]} priority>
+      <CategoryPreview category={CATEGORIES["weight-loss"]} priority isReturningPatient={isReturningPatient}>
         <WeightLossDetail />
       </CategoryPreview>
       <CategoryPreview category={CATEGORIES["erectile-dysfunction"]}>
@@ -48,7 +64,7 @@ export default function HomePage() {
       <HowItWorks />
       <Faq />
       <Blog />
-      <CtaBanner />
+      <CtaBanner isReturningPatient={isReturningPatient} />
       <Footer />
     </main>
   );

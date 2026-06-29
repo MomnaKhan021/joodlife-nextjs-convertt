@@ -23,11 +23,13 @@ export default function CategoryPreview({
   category,
   variant = "preview",
   priority = false,
+  isReturningPatient = false,
   children,
 }: {
   category: Category;
   variant?: "preview" | "hero";
   priority?: boolean;
+  isReturningPatient?: boolean;
   children?: React.ReactNode;
 }) {
   const { theme } = category;
@@ -101,10 +103,10 @@ export default function CategoryPreview({
                   Compact + centred on mobile, larger on desktop. */}
               <div className="absolute bottom-[42%] left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-nowrap items-center justify-center gap-2.5 md:w-full md:gap-3">
                 <Link
-                  href={`/consultation?product=${category.key}`}
+                  href={isReturningPatient && category.key === "weight-loss" ? "/reorder" : `/consultation?product=${category.key}`}
                   className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-white px-4 font-ui text-[13px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5 md:h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
-                  Get Started
+                  {isReturningPatient && category.key === "weight-loss" ? "Reorder" : "Get Started"}
                 </Link>
                 <Link
                   href={category.href}

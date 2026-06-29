@@ -69,7 +69,7 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
 }
 
 /** Primary (weight-loss) card — dark green, fills the left column. */
-function PrimaryCard({ category }: { category: Category }) {
+function PrimaryCard({ category, isReturningPatient }: { category: Category; isReturningPatient?: boolean }) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,#142e2a_0%,#42746d_100%)] p-6 md:p-8 lg:min-h-[450px] lg:bg-[linear-gradient(225deg,#42746d_0%,#142e2a_100%)] lg:p-10">
       {/* Desktop: the two-women cutout fills the card; women sit on the right
@@ -102,10 +102,10 @@ function PrimaryCard({ category }: { category: Category }) {
         </ul>
         <div className="mt-2">
           <Link
-            href={category.href}
+            href={isReturningPatient ? "/reorder" : category.href}
             className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm transition-transform duration-200 hover:-translate-y-0.5"
           >
-            Check Your Eligibility
+            {isReturningPatient ? "Reorder" : "Check Your Eligibility"}
           </Link>
         </div>
       </div>
@@ -167,12 +167,12 @@ function SecondaryCard({ category }: { category: Category }) {
   );
 }
 
-export default function HeroGateway() {
+export default function HeroGateway({ isReturningPatient }: { isReturningPatient?: boolean }) {
   return (
     <section aria-label="Explore our treatments" className="w-full bg-white">
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[857fr_447fr]">
-          <PrimaryCard category={CATEGORIES["weight-loss"]} />
+          <PrimaryCard category={CATEGORIES["weight-loss"]} isReturningPatient={isReturningPatient} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <SecondaryCard category={CATEGORIES["erectile-dysfunction"]} />
             <SecondaryCard category={CATEGORIES["period-delay"]} />
