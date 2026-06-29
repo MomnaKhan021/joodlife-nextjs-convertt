@@ -227,11 +227,20 @@ export async function upsertContact(
     : `/crm/v3/objects/contacts`;
   const method = id ? "PATCH" : "POST";
 
-  // First attempt with custom props; on failure retry with standard only.
+  // First attempt with custom props.
   let res = await hsFetch<HubSpotContact>(path, {
     method,
     body: JSON.stringify({ properties: { ...standard, ...extra } }),
   });
+  if (!res.ok && Object.keys(extra).length > 0) {
+    // Ensure custom properties exist in HubSpot, then retry with them.
+    await ensureConsultationContactProperties();
+    res = await hsFetch<HubSpotContact>(path, {
+      method,
+      body: JSON.stringify({ properties: { ...standard, ...extra } }),
+    });
+  }
+  // If still failing, fall back to standard fields only.
   if (!res.ok && Object.keys(extra).length > 0) {
     res = await hsFetch<HubSpotContact>(path, {
       method,
@@ -551,6 +560,79 @@ export async function addNoteToContact(
 export const WEIGHT_PROP_LATEST = "jood_latest_weight_kg";
 export const WEIGHT_PROP_DATE = "jood_last_weight_logged_at";
 export const WEIGHT_PROP_HISTORY = "jood_weight_log_history";
+
+/**
+ * Create the Jood consultation custom contact properties if they don't exist.
+ * Called automatically inside `upsertContact` before any retry, so the
+ * properties are always registered before we write them.
+ * 409 = already exists (fine). 403 = no schema scope (manual creation needed).
+ */
+let _consultationPropsEnsured = false;
+export async function ensureConsultationContactProperties(): Promise<
+  HubSpotResult<{ ensured: boolean }>
+> {
+  if (_consultationPropsEnsured) return { ok: true, data: { ensured: true } };
+  const defs = [
+    {
+      name: "jood_consultation_status",
+      label: "Jood Consultation Status",
+      description: "Current status of the patient's consultation or reorder",
+      type: "enumeration",
+      fieldType: "select",
+      groupName: "contactinformation",
+      options: [
+        { label: "Submitted", value: "submitted", displayOrder: 0, hidden: false },
+        { label: "Reorder Submitted", value: "reorder_submitted", displayOrder: 1, hidden: false },
+        { label: "Needs Clinical Approval", value: "needs_clinical_approval", displayOrder: 2, hidden: false },
+        { label: "Clinically Approved", value: "clinically_approved", displayOrder: 3, hidden: false },
+        { label: "Clinically Rejected", value: "clinically_rejected", displayOrder: 4, hidden: false },
+        { label: "Approved", value: "approved", displayOrder: 5, hidden: false },
+        { label: "Rejected", value: "rejected", displayOrder: 6, hidden: false },
+      ],
+    },
+    {
+      name: "jood_red_flag",
+      label: "Jood Red Flag",
+      description: "True when a reorder questionnaire has clinical red flags",
+      type: "enumeration",
+      fieldType: "booleancheckbox",
+      groupName: "contactinformation",
+      options: [
+        { label: "Yes", value: "true", displayOrder: 0, hidden: false },
+        { label: "No", value: "false", displayOrder: 1, hidden: false },
+      ],
+    },
+    {
+      name: "jood_consultation_id",
+      label: "Jood Consultation ID",
+      description: "Internal consultation record ID",
+      type: "string",
+      fieldType: "text",
+      groupName: "contactinformation",
+    },
+    {
+      name: "jood_product_interest",
+      label: "Jood Product Interest",
+      description: "Product slug the patient expressed interest in",
+      type: "string",
+      fieldType: "text",
+      groupName: "contactinformation",
+    },
+  ];
+  for (const def of defs) {
+    await hsFetch(`/crm/v3/properties/contacts`, {
+      method: "POST",
+      body: JSON.stringify(def),
+    });
+  }
+  _consultationPropsEnsured = true;
+  return { ok: true, data: { ensured: true } };
+}
+
+// Fire once at cold-start so the properties exist before the first contact write.
+if (typeof process !== "undefined" && process.env.HUBSPOT_ACCESS_TOKEN) {
+  ensureConsultationContactProperties().catch(() => { /* non-fatal */ });
+}
 
 /**
  * Create the weight custom contact properties if they don't exist yet.
