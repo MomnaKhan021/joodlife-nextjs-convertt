@@ -68,7 +68,7 @@ function HeroCopy() {
 
       <a
         href="/consultation"
-        className="mt-7 inline-flex h-[52px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[14px] font-semibold uppercase tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
+        className="mt-7 inline-flex h-[52px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[14px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
       >
         Get Started Today
       </a>

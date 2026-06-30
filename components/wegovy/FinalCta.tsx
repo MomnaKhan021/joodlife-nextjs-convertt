@@ -31,9 +31,9 @@ export default function FinalCta() {
               </p>
               <a
                 href="/consultation"
-                className="inline-flex h-[52px] w-fit items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+                className="inline-flex h-[52px] w-fit items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
               >
-                Get started
+                Get Started
               </a>
             </div>
             <div className="relative min-h-[320px] w-full md:min-h-[440px]">

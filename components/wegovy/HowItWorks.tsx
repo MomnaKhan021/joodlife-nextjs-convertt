@@ -86,15 +86,15 @@ export default function HowItWorks() {
           <div className="mt-7 flex items-center justify-center gap-3">
             <a
               href="/consultation"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-9 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-9 font-ui text-[13px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
             >
-              Get started
+              Get Started
             </a>
             <a
               href="#faq"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/50 px-9 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-white/10"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/50 px-9 font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/10"
             >
-              Learn more
+              Learn More
             </a>
           </div>
         </Reveal>
