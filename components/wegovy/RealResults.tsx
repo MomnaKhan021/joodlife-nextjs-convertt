@@ -49,12 +49,12 @@ export default function RealResults() {
                     <path d="M21 17v-4h-4" stroke="#142e2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-                <span className="font-ui text-[15px] text-white/85">Up to</span>
+                <span className="font-ui text-[18px] text-white/85 md:text-[22px]">Up to</span>
               </span>
-              <p className="mt-1 font-display text-[60px] font-semibold leading-none text-white md:text-[80px]">
+              <p className="mt-1 font-display text-[80px] font-semibold leading-none text-white md:text-[120px] lg:text-[150px]">
                 ~14%
               </p>
-              <p className="mt-3 font-ui text-[15px] text-white/90">
+              <p className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
                 average body weight loss at 64 weeks*
               </p>
               <p className="mt-3 font-ui text-[11px] leading-[16px] text-white/55">
@@ -78,10 +78,10 @@ export default function RealResults() {
                 </svg>
               </span>
               <div>
-                <p className="font-display text-[22px] font-semibold leading-tight text-white md:text-[26px]">
+                <p className="font-display text-[18px] font-semibold leading-tight text-white md:text-[22px]">
                   1 in 4 participants
                 </p>
-                <p className="font-ui text-[14px] text-white/80">
+                <p className="font-ui text-[22px] font-semibold leading-[1.1] text-white/80 md:text-[34px]">
                   lost 20% or more of their body weight
                 </p>
               </div>
@@ -106,10 +106,10 @@ export default function RealResults() {
                 </svg>
               </span>
               <div>
-                <p className="font-ui text-[15px] font-semibold text-white">
+                <p className="font-ui text-[18px] font-semibold text-white md:text-[22px]">
                   Health gains beyond numbers
                 </p>
-                <p className="mt-1 font-ui text-[12.5px] leading-[18px] text-white/80">
+                <p className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
                   The Wegovy Pill contains semaglutide — the same active
                   ingredient as the injectable Wegovy pen — now in a once-daily
                   oral form. Like the pen, it supports cardiometabolic health

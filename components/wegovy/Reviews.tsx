@@ -113,7 +113,7 @@ function ReviewCard({ review }: { review: Review }) {
               className="h-[13px] w-[13px] flex-shrink-0"
               aria-hidden
             />
-            <span className="font-ui text-[12px] font-medium text-[#00b67a]">
+            <span className="font-ui text-[12px] font-normal text-[#142e2a]">
               Verified
             </span>
           </div>

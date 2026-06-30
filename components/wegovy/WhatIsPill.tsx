@@ -114,10 +114,10 @@ function CardView({ c }: { c: Card }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-5 py-5">
-        <h3 className="font-ui text-[18px] font-semibold leading-[24px] text-[#142e2a]">
+        <h3 className="font-ui text-[18px] font-semibold leading-[26px] tracking-[-0.02em] text-[#142e2a] md:text-[25px] md:leading-[25.6px]">
           {c.title}
         </h3>
-        <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/70">
+        <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[19.5px]">
           {c.body}
         </p>
       </div>
@@ -144,7 +144,7 @@ export default function WhatIsPill() {
             href="/consultation"
             className="hidden h-[58px] shrink-0 items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
           >
-            Get Started Today
+            Get started Today
           </a>
         </Reveal>
       </div>
@@ -178,7 +178,7 @@ export default function WhatIsPill() {
           href="/consultation"
           className="mt-6 inline-flex h-[56px] w-full items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
         >
-          Get Started Today
+          Get started Today
         </a>
       </div>
     </section>

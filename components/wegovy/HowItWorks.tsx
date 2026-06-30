@@ -18,7 +18,7 @@ export default function HowItWorks() {
   return (
     <section
       aria-label="How Wegovy pills work"
-      className="relative w-full overflow-hidden bg-[#dfe7d4]"
+      className="relative w-full overflow-hidden rounded-[32px] bg-[#dfe7d4] mx-4 md:mx-8 lg:mx-[60px] py-[60px]"
     >
       <Image
         src="/assets/wegovy/how-pill.png"
@@ -37,12 +37,12 @@ export default function HowItWorks() {
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1100px] px-6 py-16 text-center md:px-10 md:py-24">
+      <div className="relative z-10 mx-auto w-full max-w-[1100px] px-6 text-center md:px-10">
         <Reveal as="div" className="mx-auto max-w-[760px]">
           <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
-            How Do{" "}
-            <span className="font-serif italic font-normal">Wegovy Pills</span>{" "}
-            Work?
+            How do{" "}
+            <span className="font-serif italic font-normal">Wegovy pills</span>{" "}
+            work?
           </h2>
           <p className="mx-auto mt-5 max-w-[680px] font-ui text-[14px] leading-[22px] text-white/85 md:text-[15px]">
             The Wegovy pill contains semaglutide, which is known as a GLP-1
@@ -56,7 +56,7 @@ export default function HowItWorks() {
           {CALLOUTS.map((c) => (
             <p
               key={c.label}
-              className={`absolute ${c.pos} ${c.align} max-w-[190px] font-ui text-[15px] font-semibold leading-[20px] text-white drop-shadow`}
+              className={`absolute ${c.pos} ${c.align} max-w-[190px] font-ui text-[18px] font-semibold leading-[25.6px] text-white drop-shadow md:text-[25px]`}
             >
               {c.label}
             </p>
@@ -68,7 +68,7 @@ export default function HowItWorks() {
           {CALLOUTS.map((c) => (
             <li
               key={c.label}
-              className="rounded-full bg-white/70 px-4 py-2 font-ui text-[14px] font-semibold text-[#142e2a]"
+              className="rounded-full bg-white/70 px-4 py-2 font-ui text-[16px] font-semibold text-[#142e2a]"
             >
               {c.label}
             </li>

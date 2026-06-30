@@ -30,11 +30,11 @@ export default function Dosing() {
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_minmax(0,420px)]">
           <Reveal as="div">
-            <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
+            <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
               <span className="font-serif italic font-normal">Wegovy Pill</span>{" "}
               Dosing &amp; Pricing
             </h2>
-            <p className="mt-4 max-w-[620px] font-ui text-[14px] leading-[22px] text-[#142e2a]/70">
+            <p className="mt-4 max-w-[620px] font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[19.5px]">
               All prices include an initial order discount of £60, plus the £20
               saving we provide to patients who sign up to one of our 6-month
               commit-and-save plans. Pricing for the higher 9mg and 25mg doses

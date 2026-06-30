@@ -8,7 +8,7 @@ type Item = { label: string; icon: React.ReactNode };
 
 const stroke = {
   fill: "none",
-  stroke: "#142e2a",
+  stroke: "#000000",
   strokeWidth: 1.5,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
@@ -80,11 +80,8 @@ export default function UspBar() {
   const track = [...ITEMS, ...ITEMS];
 
   return (
-    <section aria-label="Why patients trust Jood" className="w-full bg-white">
+    <section aria-label="Why patients trust Jood" className="w-full bg-[#87af73]">
       <div className="relative overflow-hidden py-4">
-        {/* Edge fade shadows */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent md:w-24" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent md:w-24" />
 
         <ul className="flex w-max animate-marquee items-center [animation-duration:30s]">
           {track.map((it, i) => (
@@ -94,7 +91,7 @@ export default function UspBar() {
               aria-hidden={i >= ITEMS.length}
             >
               <span className="shrink-0">{it.icon}</span>
-              <span className="whitespace-nowrap font-ui text-[14px] font-medium leading-[18px] text-[#142e2a] md:text-[15px]">
+              <span className="whitespace-nowrap font-ui text-[15px] font-medium leading-[18px] text-black md:text-[18px]">
                 {it.label}
               </span>
             </li>

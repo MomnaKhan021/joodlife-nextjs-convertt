@@ -58,7 +58,7 @@ export default function WhyChoose() {
                 key={b}
                 className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-5 py-4 backdrop-blur-sm"
               >
-                <span className="font-ui text-[15px] font-medium text-white md:text-[16px]">
+                <span className="font-ui text-[16px] font-semibold text-white md:text-[20px]">
                   {b}
                 </span>
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/40 bg-white/10">

@@ -62,7 +62,7 @@ function Card({
       }`}
     >
       <div className={`px-3 py-4 text-center md:px-6 md:py-5 ${dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"}`}>
-        <h3 className="font-ui text-[15px] font-semibold tracking-[-0.01em] md:text-[18px]">{title}</h3>
+        <h3 className="font-ui text-[15px] font-semibold tracking-[-0.01em] md:text-[18.8px]">{title}</h3>
       </div>
       <ul className="flex flex-col">
         {rows.map((r, i) => (
@@ -78,7 +78,7 @@ function Card({
           >
             {r.check ? <Tick dark={dark} /> : null}
             {r.minus ? <Minus /> : null}
-            <span className={`font-ui text-[12.5px] leading-[18px] md:text-[14px] md:leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
+            <span className={`font-ui text-[13px] leading-[20px] md:text-[16px] md:leading-[22px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
               {r.label}
             </span>
           </li>
@@ -94,21 +94,21 @@ export default function Comparison() {
       aria-label="Wegovy pill versus Wegovy injection"
       className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1000px] px-6 md:px-10">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div">
-          <h2 className="mb-10 text-center font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
-            Wegovy Pill Vs{" "}
-            <span className="font-serif italic font-normal">Wegovy Injection</span>
+          <h2 className="mb-10 text-center font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+            Wegovy pill vs{" "}
+            <span className="font-serif italic font-normal">Wegovy injection</span>
           </h2>
         </Reveal>
 
-        <Reveal as="div" delay={100} className="grid grid-cols-2 gap-3 md:gap-5">
+        <Reveal as="div" delay={100} className="grid grid-cols-2 gap-4 md:gap-10">
           <Card title="Wegovy pill" rows={PILL_ROWS} variant="pill" />
           <Card title="Wegovy pen" rows={PEN_ROWS} variant="pen" />
         </Reveal>
 
         <Reveal as="div" delay={150} className="mt-9 flex flex-col items-center gap-6">
-          <p className="max-w-[560px] text-center font-ui text-[14px] leading-[22px] text-[#142e2a]/70">
+          <p className="max-w-[560px] text-center font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px]">
             Wegovy® is available as a daily pill or a weekly injection. Both
             support weight loss, but one might be a better match for you.
           </p>
