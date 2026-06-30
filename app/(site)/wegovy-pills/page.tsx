@@ -33,8 +33,8 @@ export default function WegovyPillsPage() {
     <main className="flex min-h-screen flex-col bg-white">
       {/* Announcement bar — sits above the header, per Figma */}
       <div className="w-full bg-[#142e2a]">
-        <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[12px] font-medium tracking-[0.01em] text-white/90 md:px-10 lg:px-16">
-          New Wegovy® Pills treatment in the UK
+        <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[13px] font-semibold leading-[16.9px] tracking-[-0.02em] text-white md:px-10 lg:px-[60px]">
+          New Wegovy Pills treatment in the UK
         </p>
       </div>
       <Header />

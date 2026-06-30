@@ -136,13 +136,13 @@ export default function WhatIsPill() {
           as="div"
           className="mb-9 flex flex-col items-start justify-between gap-5 md:flex-row md:items-center"
         >
-          <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             What Is The{" "}
             <span className="font-serif italic font-normal">Wegovy Pill?</span>
           </h2>
           <a
             href="/consultation"
-            className="hidden h-[58px] shrink-0 items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
+            className="hidden h-[50px] shrink-0 items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
           >
             Get started Today
           </a>
@@ -173,10 +173,10 @@ export default function WhatIsPill() {
       </Reveal>
 
       {/* Mobile CTA — full-width below the cards, per Figma */}
-      <div className="mx-auto w-full max-w-[1400px] px-6 md:hidden">
+      <div className="mx-auto w-full max-w-[1400px] px-4 md:hidden">
         <a
           href="/consultation"
-          className="mt-6 inline-flex h-[56px] w-full items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+          className="mt-6 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
         >
           Get started Today
         </a>

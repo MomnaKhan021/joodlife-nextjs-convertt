@@ -52,7 +52,7 @@ export default function WegovyFaq() {
 
           {/* LEFT — heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}
           <Reveal as="div">
-            <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+            <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
               Frequently asked{" "}
               <em className="font-serif italic font-normal">questions</em>
             </h2>
@@ -60,11 +60,11 @@ export default function WegovyFaq() {
 
           {/* RIGHT — accordion: list gap=16, each item full border #142e2a */}
           <Reveal as="div" delay={100}>
-            <ul className="flex w-full flex-col gap-4">
+            <ul className="flex w-full flex-col">
               {FAQS.map((f, i) => {
                 const isOpen = open === i;
                 return (
-                  <li key={i} className="border-b border-[#142e2a]/20 bg-white first:border-t first:border-t-[#142e2a]/20">
+                  <li key={i} className="border border-[#142e2a] bg-white -mt-px first:mt-0">
                     <button
                       type="button"
                       onClick={() => setOpen(isOpen ? null : i)}
@@ -75,9 +75,9 @@ export default function WegovyFaq() {
                       <span className="font-ui text-[15px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px]">
                         {f.q}
                       </span>
-                      {/* Plus icon: 28×28, bare + no circle */}
+                      {/* Plus icon: 28×28, r=full, fill=#f7f9f2, border #142e2a */}
                       <span
-                        className="grid h-7 w-7 shrink-0 place-items-center transition-transform duration-300"
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#142e2a] bg-[#f7f9f2] transition-transform duration-300"
                         style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
                         aria-hidden
                       >

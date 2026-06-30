@@ -17,7 +17,7 @@ export default function WhyChoose() {
   return (
     <section
       aria-label="Why choose Jood Life for Wegovy"
-      className="relative flex min-h-[560px] w-full items-end overflow-hidden md:min-h-[640px] md:items-center"
+      className="relative flex min-h-[560px] w-full items-end overflow-hidden md:min-h-[665px] md:items-center"
     >
       <Image
         src="/assets/wegovy/why-runner.png"
@@ -45,9 +45,9 @@ export default function WhyChoose() {
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 py-16 md:px-10 md:py-24 lg:px-[60px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 py-16 md:px-10 md:py-[80px] lg:px-[60px]">
         <Reveal as="div" className="max-w-[560px]">
-          <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
             Why Choose Jood Life{" "}
             <span className="font-serif italic font-normal">For Wegovy</span>
           </h2>
@@ -56,7 +56,7 @@ export default function WhyChoose() {
             {BENEFITS.map((b) => (
               <li
                 key={b}
-                className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-5 py-4 backdrop-blur-sm"
+                className="flex items-center justify-between gap-3 rounded-xl bg-black/[0.23] px-5 py-4 backdrop-blur-sm"
               >
                 <span className="font-ui text-[16px] font-semibold text-white md:text-[20px]">
                   {b}
@@ -70,7 +70,7 @@ export default function WhyChoose() {
             ))}
           </ul>
 
-          <p className="mt-8 max-w-[520px] font-ui text-[11px] leading-[16px] text-white/55">
+          <p className="mt-8 max-w-[520px] font-ui text-[16.3px] leading-[19.5px] text-white/80">
             Wegovy causes thyroid C-cell tumors in rodents. Do not use Wegovy if
             you or your family have a history of medullary thyroid carcinoma
             (MTC) or Multiple Endocrine Neoplasia syndrome type 2 (MEN 2).

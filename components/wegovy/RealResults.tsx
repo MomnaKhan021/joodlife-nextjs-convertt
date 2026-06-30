@@ -14,34 +14,17 @@ export default function RealResults() {
       className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-6 px-6 md:px-10 lg:grid-cols-2 lg:px-[60px]">
-        {/* Left — stat panel over a blurred grassy backdrop */}
+        {/* Left — stat panel: solid purple bg per Figma rgb(74,64,116) */}
         <Reveal as="div" className="h-full">
-          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] p-8 md:min-h-[560px] md:p-10">
-            {/* Blurred grass image (different from the right photo) + Figma
-                linear gradient #FFFFFF 0% → #0B3B3C 100% */}
-            <Image
-              src="/assets/wegovy/why-runner.png"
-              alt=""
-              fill
-              aria-hidden
-              sizes="(max-width:1024px) 100vw, 50vw"
-              className="scale-125 object-cover object-center blur-lg"
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(20,60,57,0.45) 45%, rgba(11,59,60,0.9) 100%)",
-              }}
-            />
+          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#4a4074] p-8 md:min-h-[560px] md:p-10">
 
-            <h2 className="relative font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+            <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
               Real Results{" "}
               <span className="font-serif italic font-normal">With Wegovy</span>
             </h2>
 
             {/* ~14% frosted panel */}
-            <div className="relative rounded-2xl border border-white/20 bg-[#13302a]/35 p-5 backdrop-blur-md md:p-6">
+            <div className="relative rounded-2xl border border-white/20 bg-white/[0.06] p-5 md:p-6">
               <span className="flex items-center gap-2.5">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -68,7 +51,7 @@ export default function RealResults() {
             </div>
 
             {/* 1-in-4 frosted panel */}
-            <div className="relative flex items-start gap-3 rounded-2xl border border-white/20 bg-[#13302a]/35 px-5 py-4 backdrop-blur-md">
+            <div className="relative flex items-start gap-3 rounded-2xl border border-white/20 bg-white/[0.06] px-5 py-4">
               <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M9 3h6M10 3v6.5L5.5 18a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9.5V3" stroke="#142e2a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

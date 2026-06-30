@@ -75,7 +75,7 @@ export default function HowItWorks() {
   return (
     <section
       aria-label="How Wegovy pills work"
-      className="relative mx-4 w-[calc(100%-2rem)] overflow-hidden rounded-[32px] md:mx-8 md:w-[calc(100%-4rem)] lg:mx-[60px] lg:w-[calc(100%-120px)]"
+      className="relative w-full overflow-hidden rounded-[32px]"
       style={{ minHeight: 600 }}
     >
       {/* Background pill image */}
@@ -103,7 +103,7 @@ export default function HowItWorks() {
 
         {/* Heading + subtitle — centred, max-w 580px */}
         <Reveal as="div" className="mx-auto max-w-[580px] text-center">
-          <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
             How Do{" "}
             <em className="font-serif italic font-normal">Wegovy Pills Work?</em>
           </h2>

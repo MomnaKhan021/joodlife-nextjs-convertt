@@ -96,7 +96,7 @@ export default function Comparison() {
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div">
-          <h2 className="mb-10 text-center font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="mb-10 text-center font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Wegovy pill vs{" "}
             <span className="font-serif italic font-normal">Wegovy injection</span>
           </h2>

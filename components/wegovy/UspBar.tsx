@@ -71,7 +71,7 @@ export default function UspBar() {
   const track = [...ITEMS, ...ITEMS];
 
   return (
-    <section aria-label="Why patients trust Jood" className="w-full bg-white">
+    <section aria-label="Why patients trust Jood" className="w-full bg-[#87af73]">
       <div className="relative overflow-hidden py-[10px]">
         <ul
           className="flex w-max animate-marquee items-center"
@@ -83,8 +83,10 @@ export default function UspBar() {
               className="flex shrink-0 items-center gap-3 px-10"
               aria-hidden={i >= ITEMS.length}
             >
-              <span className="shrink-0 text-black">{it.icon}</span>
-              <span className="whitespace-nowrap font-cairo text-[18px] font-medium leading-[25px] text-black">
+              <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-white text-black">
+                {it.icon}
+              </span>
+              <span className="whitespace-nowrap font-cairo text-[16px] font-medium leading-[22.4px] text-black md:text-[18px] md:leading-[25.2px]">
                 {it.label}
               </span>
             </li>

@@ -49,19 +49,19 @@ function HeroCopy() {
           height={16}
           className="h-4 w-auto"
         />
-        <span className="font-ui text-[13px] text-white/90">
+        <span className="font-ui text-[14.2px] text-white/90">
           4.4 (50+) Reviews
         </span>
       </div>
 
-      <h1 className="font-display text-[40px] font-semibold leading-[1.04] tracking-[-0.02em] text-white md:text-[60px]">
+      <h1 className="font-display text-[36px] font-semibold leading-[39.6px] tracking-[-0.02em] text-white md:text-[80px] md:leading-[88px]">
         Uk First.{" "}
         <span className="font-serif italic font-normal">Wegovy Pills</span>
       </h1>
-      <p className="mt-3 font-display text-[19px] font-medium leading-[1.2] text-white md:text-[26px]">
+      <p className="mt-3 font-display text-[16px] font-semibold leading-[17.6px] text-white md:text-[32px] md:leading-[35.2px]">
         A New Way To Lose Weight
       </p>
-      <p className="mt-4 max-w-[500px] font-ui text-[14px] leading-[22px] text-white/85 md:text-[15px]">
+      <p className="mt-4 max-w-[500px] font-ui text-[16px] leading-[22px] text-white/85 md:text-[18.3px] md:leading-[20.77px]">
         Introducing Wegovy® pills in the UK, with clinician-led support tailored
         to you. Same proven formula. No needles. Just real results.
       </p>
@@ -122,7 +122,7 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-12 md:px-10 md:py-20 lg:px-16">
+      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-12 md:px-10 md:py-20 lg:px-[60px] lg:py-[110px]">
         <Reveal as="div" className="max-w-[560px]">
           <HeroCopy />
         </Reveal>

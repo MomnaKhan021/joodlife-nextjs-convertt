@@ -42,13 +42,13 @@ export default function FinalCta() {
                 </span>
 
                 {/* Heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}
-                <h2 className="max-w-[425px] font-display text-[32px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+                <h2 className="max-w-[425px] font-display text-[36px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
                   Ready to start the{" "}
                   <em className="font-serif italic font-normal">Wegovy Pill?</em>
                 </h2>
 
                 {/* Body: Saans 16.3px / lh 19.5px / w380 / ls -0.32px */}
-                <p className="max-w-[397px] font-ui text-[15px] leading-[19.5px] tracking-[-0.02em] text-[#142e2a]/70 md:text-[16.3px]">
+                <p className="max-w-[425px] font-ui text-[15px] leading-[19.5px] tracking-[-0.02em] text-[#142e2a]/70 md:text-[16.3px]">
                   A 2-minute clinical intake. No obligation. No payment until
                   you&apos;re approved.
                 </p>
@@ -70,7 +70,7 @@ export default function FinalCta() {
               <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-0 md:py-0">
                 <a
                   href="/consultation"
-                  className="inline-flex h-[50px] w-full max-w-[183px] cursor-pointer items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[50px] font-ui text-[14px] font-semibold tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white"
+                  className="inline-flex h-[50px] w-full max-w-[183px] cursor-pointer items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white"
                 >
                   Get started
                 </a>
