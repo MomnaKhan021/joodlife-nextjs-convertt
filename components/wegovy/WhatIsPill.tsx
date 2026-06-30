@@ -53,7 +53,7 @@ export default function WhatIsPill() {
           </h2>
           <a
             href="/consultation"
-            className="inline-flex h-[50px] shrink-0 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+            className="inline-flex h-[58px] shrink-0 items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
           >
             Get Started Today
           </a>
@@ -63,14 +63,14 @@ export default function WhatIsPill() {
           {CARDS.map((c, i) => (
             <Reveal as="div" key={c.title} delay={i * 80} className="h-full">
               <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#f7f9f2]">
-                <div className="relative h-[230px] w-full overflow-hidden bg-[#eef2e6]">
+                <div className="relative h-[300px] w-full overflow-hidden bg-[#eef2e6]">
                   {c.image ? (
                     <Image
                       src={c.image}
                       alt={c.title}
                       fill
                       sizes="(max-width:1024px) 50vw, 25vw"
-                      className="object-contain p-4"
+                      className="object-contain p-2"
                     />
                   ) : (
                     <div
@@ -82,16 +82,16 @@ export default function WhatIsPill() {
                     />
                   )}
                   {c.tag ? (
-                    <span className="absolute bottom-3 right-3 rounded-lg bg-[#142e2a] px-3 py-1.5 font-ui text-[11px] font-medium leading-tight text-white">
+                    <span className="absolute bottom-3 right-3 max-w-[160px] rounded-xl border border-white/70 bg-white/55 px-3 py-2 font-ui text-[11px] font-medium leading-tight text-[#142e2a] shadow-sm backdrop-blur-md">
                       {c.tag}
                     </span>
                   ) : null}
                   {c.badge ? (
-                    <span className="absolute right-3 top-3 flex flex-col items-end rounded-xl bg-[#142e2a] px-3 py-2 text-right">
-                      <span className="font-ui text-[10px] font-medium uppercase tracking-wide text-white/70">
+                    <span className="absolute right-3 top-3 flex flex-col items-end rounded-xl border border-white/70 bg-white/55 px-3 py-2 text-right shadow-sm backdrop-blur-md">
+                      <span className="font-ui text-[10px] font-medium uppercase tracking-wide text-[#142e2a]/55">
                         {c.badge.label}
                       </span>
-                      <span className="font-display text-[18px] font-semibold leading-none text-white">
+                      <span className="font-display text-[18px] font-semibold leading-none text-[#142e2a]">
                         {c.badge.value}
                       </span>
                     </span>
