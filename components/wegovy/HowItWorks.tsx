@@ -3,23 +3,82 @@ import Reveal from "@/components/ui/Reveal";
 
 /**
  * "How do Wegovy pills work?" — Figma node 1:1725.
- * Centred copy over a soft gradient pill image, with four mechanism
- * call-outs anchored to the corners on desktop.
+ * 1440×889, r=32. IMAGE bg + GRADIENT overlay: transparent → rgba(104,114,86,0.6).
+ * Heading + subtitle centred at top; 4 callouts with L-shaped connectors;
+ * description + two buttons centred at bottom.
  */
 
-const CALLOUTS = [
-  { label: "Reduces cravings", pos: "left-0 top-[26%]", align: "text-left" },
-  { label: "Slow down your digestion", pos: "right-0 top-[26%]", align: "text-right" },
-  { label: "Regulate your blood sugar⁵", pos: "left-0 bottom-[20%]", align: "text-left" },
-  { label: "Regulate your appetite⁴", pos: "right-0 bottom-[20%]", align: "text-right" },
+type Callout = {
+  label: string;
+  pos: string;
+  align: "text-left" | "text-right";
+  connector: React.ReactNode;
+};
+
+/* SVG L-shaped connectors matching Figma Vector 30-33 (white, ~1.2px stroke) */
+const ConnectorRight = () => (
+  <svg width="120" height="30" viewBox="0 0 120 30" fill="none" className="block">
+    <path d="M0 4 H80 L118 28" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="118" cy="28" r="3" fill="white" />
+  </svg>
+);
+
+const ConnectorLeft = () => (
+  <svg width="120" height="30" viewBox="0 0 120 30" fill="none" className="block">
+    <path d="M120 4 H40 L2 28" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="2" cy="28" r="3" fill="white" />
+  </svg>
+);
+
+const ConnectorRightUp = () => (
+  <svg width="120" height="30" viewBox="0 0 120 30" fill="none" className="block">
+    <path d="M0 26 H80 L118 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="118" cy="2" r="3" fill="white" />
+  </svg>
+);
+
+const ConnectorLeftUp = () => (
+  <svg width="120" height="30" viewBox="0 0 120 30" fill="none" className="block">
+    <path d="M120 26 H40 L2 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="2" cy="2" r="3" fill="white" />
+  </svg>
+);
+
+const CALLOUTS: Callout[] = [
+  {
+    label: "Reduces cravings",
+    pos: "left-[3%] top-[24%]",
+    align: "text-left",
+    connector: <ConnectorRight />,
+  },
+  {
+    label: "Slow down\nyour digestion",
+    pos: "right-[3%] top-[24%]",
+    align: "text-right",
+    connector: <ConnectorLeft />,
+  },
+  {
+    label: "Regulate your blood\nsugar⁵.",
+    pos: "left-[3%] bottom-[17%]",
+    align: "text-left",
+    connector: <ConnectorRightUp />,
+  },
+  {
+    label: "Regulate your\nappetite⁴",
+    pos: "right-[3%] bottom-[17%]",
+    align: "text-right",
+    connector: <ConnectorLeftUp />,
+  },
 ];
 
 export default function HowItWorks() {
   return (
     <section
       aria-label="How Wegovy pills work"
-      className="relative w-full overflow-hidden rounded-[32px] bg-[#dfe7d4] mx-4 md:mx-8 lg:mx-[60px] py-[60px]"
+      className="relative mx-4 w-[calc(100%-2rem)] overflow-hidden rounded-[32px] md:mx-8 md:w-[calc(100%-4rem)] lg:mx-[60px] lg:w-[calc(100%-120px)]"
+      style={{ minHeight: 600 }}
     >
+      {/* Background pill image */}
       <Image
         src="/assets/wegovy/how-pill.png"
         alt=""
@@ -28,76 +87,87 @@ export default function HowItWorks() {
         className="object-cover object-center"
         aria-hidden
       />
+
+      {/* Olive gradient overlay — transparent top → rgba(104,114,86,0.6) bottom */}
       <div
         className="absolute inset-0"
         aria-hidden
         style={{
           background:
-            "linear-gradient(180deg, rgba(20,46,42,0.72) 0%, rgba(20,46,42,0.32) 38%, rgba(20,46,42,0.45) 100%)",
+            "linear-gradient(180deg, rgba(104,114,86,0) 0%, rgba(104,114,86,0.6) 100%)",
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1100px] px-6 text-center md:px-10">
-        <Reveal as="div" className="mx-auto max-w-[760px]">
+      {/* Content */}
+      <div className="relative z-10 px-[60px] py-[60px]">
+
+        {/* Heading + subtitle — centred, max-w 580px */}
+        <Reveal as="div" className="mx-auto max-w-[580px] text-center">
           <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-            How do{" "}
-            <span className="font-serif italic font-normal">Wegovy pills</span>{" "}
-            work?
+            How Do{" "}
+            <em className="font-serif italic font-normal">Wegovy Pills Work?</em>
           </h2>
-          <p className="mx-auto mt-5 max-w-[680px] font-ui text-[14px] leading-[22px] text-white/85 md:text-[15px]">
+          <p className="mx-auto mt-4 font-ui text-[14px] leading-[22px] text-white md:text-[16.3px] md:leading-[24px]">
             The Wegovy pill contains semaglutide, which is known as a GLP-1
             receptor agonist. This means it works by mimicking the natural GLP-1
-            hormone found in your gut. The hormone’s job is to help:
+            hormone found in your gut. The hormone's job is to help:
           </p>
         </Reveal>
 
-        {/* Mechanism call-outs */}
-        <div className="relative mx-auto mt-10 hidden h-[300px] max-w-[920px] md:block">
+        {/* Callouts with connectors — desktop only */}
+        <div className="relative mx-auto hidden h-[340px] max-w-full md:block">
           {CALLOUTS.map((c) => (
-            <p
+            <div
               key={c.label}
-              className={`absolute ${c.pos} ${c.align} max-w-[190px] font-ui text-[18px] font-semibold leading-[25.6px] text-white drop-shadow md:text-[25px]`}
+              className={`absolute ${c.pos} flex max-w-[220px] flex-col gap-1 ${c.align === "text-right" ? "items-end" : "items-start"}`}
             >
-              {c.label}
-            </p>
+              <p
+                className="whitespace-pre-line font-ui text-[20px] font-semibold leading-[26px] text-white md:text-[25px] md:leading-[32px]"
+              >
+                {c.label}
+              </p>
+              {c.connector}
+            </div>
           ))}
         </div>
 
-        {/* Mobile: simple stacked list of the four mechanisms */}
+        {/* Mobile callouts */}
         <ul className="mx-auto mt-8 flex max-w-[320px] flex-col gap-2 md:hidden">
           {CALLOUTS.map((c) => (
             <li
               key={c.label}
-              className="rounded-full bg-white/70 px-4 py-2 font-ui text-[16px] font-semibold text-[#142e2a]"
+              className="rounded-full bg-white/20 px-4 py-2 text-center font-ui text-[15px] font-semibold text-white"
             >
-              {c.label}
+              {c.label.replace("\n", " ")}
             </li>
           ))}
         </ul>
 
-        <Reveal as="div" delay={120}>
-          <p className="mx-auto mt-10 max-w-[680px] font-ui text-[13px] leading-[21px] text-white/75">
+        {/* Description + buttons — centred, max-w 690px */}
+        <Reveal as="div" className="mx-auto mt-8 max-w-[690px] text-center" delay={120}>
+          <p className="font-ui text-[14px] leading-[22px] text-white/90 md:text-[16.3px] md:leading-[24px]">
             The tablet works the same as the Wegovy injection. However, instead
             of semaglutide entering the bloodstream directly via a needle, the
-            pill goes via your stomach in a protective coating that can’t be
+            pill goes via your stomach in a protective coating that can't be
             dissolved by stomach acid and into the bloodstream through the walls
             of the small intestine.
           </p>
-          <div className="mt-7 flex items-center justify-center gap-3">
+          <div className="mt-7 flex items-center justify-center gap-4">
             <a
               href="/consultation"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-9 font-ui text-[13px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
             >
               Get Started
             </a>
             <a
               href="#faq"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/50 px-9 font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/10"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white/[0.06] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/10"
             >
               Learn More
             </a>
           </div>
         </Reveal>
+
       </div>
     </section>
   );
