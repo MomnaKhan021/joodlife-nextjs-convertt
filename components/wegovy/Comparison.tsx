@@ -1,0 +1,125 @@
+import Reveal from "@/components/ui/Reveal";
+
+/**
+ * "Wegovy pill vs Wegovy injection" — Figma node 1:1676.
+ * Two stacked comparison cards (pill = dark green, pen = cream).
+ */
+
+type Row = { label: React.ReactNode; check?: boolean; minus?: boolean };
+
+const PILL_ROWS: Row[] = [
+  { label: (<>Starts at <b>£149/mo</b> billed monthly, membership required*</>) },
+  { label: (<>Taken <span className="font-semibold text-[#00b67a]">Once daily</span></>) },
+  { label: "Semaglutide active ingredient", check: true },
+  { label: "Clinically proven", check: true },
+  { label: "Injection free", check: true },
+];
+
+const PEN_ROWS: Row[] = [
+  { label: (<>Starts at <b>£199/mo</b> billed monthly, membership required*</>) },
+  { label: (<>Taken <span className="font-semibold">Once weekly</span></>) },
+  { label: "Semaglutide active ingredient", check: true },
+  { label: "Clinically proven", check: true },
+  { label: "Injection free", minus: true },
+];
+
+function Tick({ dark }: { dark?: boolean }) {
+  return (
+    <span
+      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${dark ? "bg-white/15" : "bg-[#142e2a]"}`}
+    >
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+        <path d="M2.5 6.2l2.2 2.2L9.5 3.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
+function Minus() {
+  return (
+    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#142e2a]/25">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+        <path d="M3 6h6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    </span>
+  );
+}
+
+function Card({
+  title,
+  rows,
+  variant,
+}: {
+  title: string;
+  rows: Row[];
+  variant: "pill" | "pen";
+}) {
+  const dark = variant === "pill";
+  return (
+    <div
+      className={`flex w-full flex-col overflow-hidden rounded-2xl ${
+        dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
+      }`}
+    >
+      <div className={`px-6 py-5 text-center ${dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"}`}>
+        <h3 className="font-ui text-[18px] font-semibold tracking-[-0.01em]">{title}</h3>
+      </div>
+      <ul className="flex flex-col">
+        {rows.map((r, i) => (
+          <li
+            key={i}
+            className={`flex items-center justify-center gap-2.5 px-6 py-5 text-center ${
+              i < rows.length - 1
+                ? dark
+                  ? "border-b border-white/10"
+                  : "border-b border-[#142e2a]/8"
+                : ""
+            }`}
+          >
+            {r.check ? <Tick dark={dark} /> : null}
+            {r.minus ? <Minus /> : null}
+            <span className={`font-ui text-[14px] leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
+              {r.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function Comparison() {
+  return (
+    <section
+      aria-label="Wegovy pill versus Wegovy injection"
+      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+    >
+      <div className="mx-auto w-full max-w-[1000px] px-6 md:px-10">
+        <Reveal as="div">
+          <h2 className="mb-10 text-center font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
+            Wegovy Pill Vs{" "}
+            <span className="font-serif italic font-normal">Wegovy Injection</span>
+          </h2>
+        </Reveal>
+
+        <Reveal as="div" delay={100} className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <Card title="Wegovy pill" rows={PILL_ROWS} variant="pill" />
+          <Card title="Wegovy pen" rows={PEN_ROWS} variant="pen" />
+        </Reveal>
+
+        <Reveal as="div" delay={150} className="mt-9 flex flex-col items-center gap-6">
+          <p className="max-w-[560px] text-center font-ui text-[14px] leading-[22px] text-[#142e2a]/70">
+            Wegovy® is available as a daily pill or a weekly injection. Both
+            support weight loss, but one might be a better match for you.
+          </p>
+          <a
+            href="/consultation"
+            className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+          >
+            Get started
+          </a>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
