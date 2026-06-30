@@ -81,7 +81,11 @@ export default function UspBar() {
 
   return (
     <section aria-label="Why patients trust Jood" className="w-full bg-white">
-      <div className="overflow-hidden py-4">
+      <div className="relative overflow-hidden py-4">
+        {/* Edge fade shadows */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent md:w-24" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent md:w-24" />
+
         <ul className="flex w-max animate-marquee items-center [animation-duration:30s]">
           {track.map((it, i) => (
             <li
