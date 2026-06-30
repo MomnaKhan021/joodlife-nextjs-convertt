@@ -1,7 +1,7 @@
 /**
  * Trust / USP strip — Figma node 1:1558.
- * White bar with five trust items spread evenly (no scroll, no edge fades).
- * Dark-green outline icons + dark-green labels; items wrap on small screens.
+ * White auto-scrolling marquee of five trust items (no border, no edge fades).
+ * Dark-green outline icons + dark-green labels.
  */
 
 type Item = { label: string; icon: React.ReactNode };
@@ -76,21 +76,27 @@ const ITEMS: Item[] = [
 ];
 
 export default function UspBar() {
+  // Two identical copies so the -50% marquee translate loops seamlessly.
+  const track = [...ITEMS, ...ITEMS];
+
   return (
-    <section
-      aria-label="Why patients trust Jood"
-      className="w-full border-y border-[#142e2a]/10 bg-white"
-    >
-      <ul className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-center gap-x-8 gap-y-3 px-6 py-4 md:flex-nowrap md:justify-between md:px-10 md:py-3.5 lg:px-16">
-        {ITEMS.map((it) => (
-          <li key={it.label} className="flex shrink-0 items-center gap-2.5">
-            <span className="shrink-0">{it.icon}</span>
-            <span className="whitespace-nowrap font-ui text-[14px] font-medium leading-[18px] text-[#142e2a] md:text-[15px]">
-              {it.label}
-            </span>
-          </li>
-        ))}
-      </ul>
+    <section aria-label="Why patients trust Jood" className="w-full bg-white">
+      <div className="overflow-hidden py-4">
+        <ul className="flex w-max animate-marquee items-center [animation-duration:30s]">
+          {track.map((it, i) => (
+            <li
+              key={i}
+              className="flex shrink-0 items-center gap-2.5 px-8 lg:px-12"
+              aria-hidden={i >= ITEMS.length}
+            >
+              <span className="shrink-0">{it.icon}</span>
+              <span className="whitespace-nowrap font-ui text-[14px] font-medium leading-[18px] text-[#142e2a] md:text-[15px]">
+                {it.label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
