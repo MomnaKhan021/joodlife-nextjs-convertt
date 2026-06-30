@@ -17,20 +17,12 @@ export default function RealResults() {
         {/* Left — stat panel over a blurred grassy backdrop */}
         <Reveal as="div" className="h-full">
           <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] p-8 md:min-h-[560px] md:p-10">
-            {/* Blurred nature backdrop + green wash */}
-            <Image
-              src="/assets/wegovy/results-woman.png"
-              alt=""
-              fill
-              aria-hidden
-              sizes="(max-width:1024px) 100vw, 50vw"
-              className="scale-125 object-cover object-center blur-2xl"
-            />
+            {/* Sunlit-grass green gradient backdrop (matches Figma) */}
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(150deg, rgba(28,58,52,0.74) 0%, rgba(20,46,42,0.74) 55%, rgba(12,36,33,0.8) 100%)",
+                  "linear-gradient(160deg, #aab17c 0%, #8e9a68 32%, #5f7d6b 68%, #486a68 100%)",
               }}
             />
 
@@ -40,7 +32,7 @@ export default function RealResults() {
             </h2>
 
             {/* ~14% frosted panel */}
-            <div className="relative rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md md:p-6">
+            <div className="relative rounded-2xl border border-white/20 bg-[#13302a]/35 p-5 backdrop-blur-md md:p-6">
               <span className="flex items-center gap-2.5">
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -67,7 +59,7 @@ export default function RealResults() {
             </div>
 
             {/* 1-in-4 frosted panel */}
-            <div className="relative flex items-start gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-md">
+            <div className="relative flex items-start gap-3 rounded-2xl border border-white/20 bg-[#13302a]/35 px-5 py-4 backdrop-blur-md">
               <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

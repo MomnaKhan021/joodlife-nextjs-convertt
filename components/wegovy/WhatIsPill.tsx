@@ -58,7 +58,7 @@ function CardView({ c }: { c: Card }) {
             alt={c.title}
             fill
             sizes="(max-width:1024px) 50vw, 25vw"
-            className="object-contain p-2"
+            className="object-cover"
           />
         ) : (
           <div
