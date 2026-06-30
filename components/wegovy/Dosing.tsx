@@ -104,7 +104,7 @@ export default function Dosing() {
             </div>
             <a
               href="/consultation"
-              className="inline-flex h-[50px] shrink-0 items-center justify-center rounded-lg bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
+              className="inline-flex h-[50px] shrink-0 items-center justify-center rounded-lg bg-white px-8 font-ui text-[13px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
             >
               Get Started Today
             </a>
