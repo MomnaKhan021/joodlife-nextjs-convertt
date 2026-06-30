@@ -56,15 +56,15 @@ export default function WhyChoose() {
             {BENEFITS.map((b) => (
               <li
                 key={b}
-                className="flex items-center gap-3 rounded-xl bg-white/10 px-5 py-4 backdrop-blur-sm"
+                className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-5 py-4 backdrop-blur-sm"
               >
-                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#00b67a]">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                    <path d="M2.5 6.2l2.2 2.2L9.5 3.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
                 <span className="font-ui text-[15px] font-medium text-white md:text-[16px]">
                   {b}
+                </span>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/40 bg-white/10">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path d="M2.5 6.2l2.2 2.2L9.5 3.6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </span>
               </li>
             ))}
