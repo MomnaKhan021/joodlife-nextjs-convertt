@@ -45,7 +45,7 @@ const REVIEWS: Review[] = [
 
 function ReviewCard({ review }: { review: Review }) {
   return (
-    <article className="flex h-full w-full flex-col justify-between rounded-lg border border-[#142E2A]/12 bg-[#f7f9f2] px-5 py-6 md:h-[301.8px]">
+    <article className="flex h-full w-full flex-col justify-between rounded-lg bg-[#f7f9f2] px-5 py-6 md:h-[301.8px]">
       <div className="flex flex-col gap-4">
         <Image
           src="/assets/figma/stars-5.svg"

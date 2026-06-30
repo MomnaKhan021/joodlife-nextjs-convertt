@@ -14,47 +14,74 @@ export default function RealResults() {
       className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
       <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-6 px-6 md:px-10 lg:grid-cols-2 lg:px-[60px]">
-        {/* Left — stat panel */}
+        {/* Left — stat panel over a blurred grassy backdrop */}
         <Reveal as="div" className="h-full">
-          <div
-            className="flex h-full flex-col justify-between gap-8 rounded-[24px] p-8 md:p-10"
-            style={{
-              background:
-                "linear-gradient(150deg, #1c3a34 0%, #142e2a 55%, #0c2421 100%)",
-            }}
-          >
-            <div>
-              <h2 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[40px]">
-                Real Results{" "}
-                <span className="font-serif italic font-normal">With Wegovy</span>
-              </h2>
-              <div className="mt-8 flex items-end gap-3">
-                <span className="font-ui text-[16px] text-white/70">Up to</span>
-                <span className="font-display text-[64px] font-semibold leading-none text-[#b4ff9f] md:text-[80px]">
-                  ~14%
+          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] p-8 md:min-h-[560px] md:p-10">
+            {/* Blurred nature backdrop + green wash */}
+            <Image
+              src="/assets/wegovy/results-woman.png"
+              alt=""
+              fill
+              aria-hidden
+              sizes="(max-width:1024px) 100vw, 50vw"
+              className="scale-125 object-cover object-center blur-2xl"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(150deg, rgba(28,58,52,0.74) 0%, rgba(20,46,42,0.74) 55%, rgba(12,36,33,0.8) 100%)",
+              }}
+            />
+
+            <h2 className="relative font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[40px]">
+              Real Results{" "}
+              <span className="font-serif italic font-normal">With Wegovy</span>
+            </h2>
+
+            {/* ~14% frosted panel */}
+            <div className="relative rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md md:p-6">
+              <span className="flex items-center gap-2.5">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M3 17l6-6 4 4 8-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M17 7h4v4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </span>
-              </div>
-              <p className="mt-2 font-ui text-[15px] text-white/85">
+                <span className="font-ui text-[15px] text-white/75">Up to</span>
+              </span>
+              <p className="mt-1 font-display text-[60px] font-semibold leading-none text-white md:text-[80px]">
+                ~14%
+              </p>
+              <p className="mt-3 font-ui text-[15px] text-white/90">
                 average body weight loss at 64 weeks*
+              </p>
+              <p className="mt-3 font-ui text-[11px] leading-[16px] text-white/55">
+                *Based on a manufacturer 64-week medical study of 307 adults
+                living with obesity, or with overweight and at least one
+                weight-related medical problem, along with a reduced-calorie diet
+                and increased physical activity. Adults taking Wegovy® Pill lost
+                an average of 14% body weight (~33 lb) compared with people taking
+                placebo (not on medicine) who lost 2.4% (~6 lb).
               </p>
             </div>
 
-            <p className="font-ui text-[11px] leading-[16px] text-white/55">
-              *Based on a manufacturer 64-week medical study of 307 adults living
-              with obesity, or with overweight and at least one weight-related
-              medical problem, along with a reduced-calorie diet and increased
-              physical activity. Adults taking Wegovy® Pill lost an average of 14%
-              body weight (~33 lb) compared with people taking placebo (not on
-              medicine) who lost 2.4% (~6 lb).
-            </p>
-
-            <div className="rounded-2xl bg-white/10 px-5 py-4">
-              <p className="font-display text-[22px] font-semibold leading-tight text-white md:text-[26px]">
-                1 in 4 participants
-              </p>
-              <p className="font-ui text-[14px] text-white/80">
-                lost 20% or more of their body weight
-              </p>
+            {/* 1-in-4 frosted panel */}
+            <div className="relative flex items-start gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-md">
+              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="12" cy="7" r="4" stroke="#fff" strokeWidth="2" />
+                </svg>
+              </span>
+              <div>
+                <p className="font-display text-[22px] font-semibold leading-tight text-white md:text-[26px]">
+                  1 in 4 participants
+                </p>
+                <p className="font-ui text-[14px] text-white/80">
+                  lost 20% or more of their body weight
+                </p>
+              </div>
             </div>
           </div>
         </Reveal>
