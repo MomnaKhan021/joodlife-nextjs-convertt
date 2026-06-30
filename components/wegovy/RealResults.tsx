@@ -17,20 +17,21 @@ export default function RealResults() {
         {/* Left — stat panel over a blurred grassy backdrop */}
         <Reveal as="div" className="h-full">
           <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] p-8 md:min-h-[560px] md:p-10">
-            {/* Blurred sunlit-grass image + light olive gradient (matches Figma) */}
+            {/* Blurred grass image (different from the right photo) + Figma
+                linear gradient #FFFFFF 0% → #0B3B3C 100% */}
             <Image
-              src="/assets/wegovy/results-woman.png"
+              src="/assets/wegovy/why-runner.png"
               alt=""
               fill
               aria-hidden
               sizes="(max-width:1024px) 100vw, 50vw"
-              className="scale-150 object-cover object-center blur-3xl"
+              className="scale-125 object-cover object-center blur-lg"
             />
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(160deg, rgba(120,135,82,0.62) 0%, rgba(100,122,90,0.6) 38%, rgba(80,108,96,0.66) 70%, rgba(64,96,94,0.74) 100%)",
+                  "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(20,60,57,0.45) 45%, rgba(11,59,60,0.9) 100%)",
               }}
             />
 
