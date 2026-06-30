@@ -69,10 +69,10 @@ function Card({
           <li
             key={i}
             className={`flex flex-col items-center justify-center gap-2 px-3 py-4 text-center md:flex-row md:gap-2.5 md:px-6 md:py-5 ${
-              i < rows.length - 1
+              i % 2 === 1
                 ? dark
-                  ? "border-b border-white/10"
-                  : "border-b border-[#142e2a]/8"
+                  ? "bg-white/[0.06]"
+                  : "bg-[#142e2a]/[0.04]"
                 : ""
             }`}
           >
