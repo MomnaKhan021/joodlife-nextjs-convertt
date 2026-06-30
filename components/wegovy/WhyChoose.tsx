@@ -17,14 +17,14 @@ export default function WhyChoose() {
   return (
     <section
       aria-label="Why choose Jood Life for Wegovy"
-      className="relative flex min-h-[520px] w-full items-end overflow-hidden md:min-h-[560px] md:items-center"
+      className="relative flex min-h-[560px] w-full items-end overflow-hidden md:min-h-[640px] md:items-center"
     >
       <Image
         src="/assets/wegovy/why-runner.png"
         alt="Man running outdoors"
         fill
         sizes="100vw"
-        className="object-cover object-[75%_top] md:object-right"
+        className="object-cover object-[75%_top] md:object-[80%_top]"
       />
       {/* Mobile: dark gradient from bottom so the runner stays visible up top */}
       <div

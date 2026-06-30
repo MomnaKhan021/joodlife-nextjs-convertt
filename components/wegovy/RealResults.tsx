@@ -61,13 +61,13 @@ export default function RealResults() {
 
         {/* Right — image with overlay card */}
         <Reveal as="div" delay={120} className="h-full">
-          <div className="relative h-full min-h-[420px] overflow-hidden rounded-[24px]">
+          <div className="relative h-full min-h-[460px] overflow-hidden rounded-[24px] md:min-h-[560px]">
             <Image
               src="/assets/wegovy/results-woman.png"
-              alt="Woman walking outdoors in a sunlit field"
+              alt="Women walking outdoors in a sunlit field"
               fill
               sizes="(max-width:1024px) 100vw, 50vw"
-              className="object-cover"
+              className="object-cover object-center"
             />
             <div className="absolute inset-x-4 bottom-4 flex items-start gap-3 rounded-2xl bg-[#142e2a]/85 px-5 py-4 backdrop-blur-sm">
               <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#00b67a]">

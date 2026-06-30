@@ -36,13 +36,13 @@ export default function FinalCta() {
                 Get started
               </a>
             </div>
-            <div className="relative min-h-[260px] w-full">
+            <div className="relative min-h-[320px] w-full md:min-h-[440px]">
               <Image
                 src="/assets/wegovy/cta-woman.png"
                 alt="Woman looking up, smiling"
                 fill
                 sizes="(max-width:768px) 100vw, 360px"
-                className="object-cover"
+                className="object-cover object-top"
               />
             </div>
           </div>

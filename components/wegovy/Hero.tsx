@@ -97,13 +97,6 @@ export default function Hero() {
       aria-label="Wegovy Pills — a new way to lose weight"
       className="w-full bg-[#f3f1ea]"
     >
-      {/* Announcement bar */}
-      <div className="w-full bg-[#142e2a]">
-        <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[12px] font-medium tracking-[0.01em] text-white/90 md:px-10 lg:px-16">
-          New Wegovy® Pills treatment in the UK
-        </p>
-      </div>
-
       {/* ---------- Mobile: photo on top, copy below ---------- */}
       <div className="md:hidden">
         <div className="relative aspect-[4/5] w-full">
@@ -127,7 +120,7 @@ export default function Hero() {
       </div>
 
       {/* ---------- Desktop: photo right, copy on the light left ---------- */}
-      <div className="relative hidden min-h-[640px] w-full items-center overflow-hidden md:flex">
+      <div className="relative hidden min-h-[700px] w-full items-center overflow-hidden md:flex">
         <Image
           src="/assets/wegovy/hero.png"
           alt="Woman smiling outdoors holding a glass of water"
