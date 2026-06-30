@@ -17,19 +17,19 @@ type Card = {
 const CARDS: Card[] = [
   {
     title: "The first of its kind",
-    body: "is an FDA-approved semaglutide in a pill for weight loss.",
-    image: "/assets/wegovy/what-pills.png",
+    body: "An FDA-approved semaglutide in a once-daily pill for weight loss.",
+    image: "/assets/wegovy/what-bottle.png",
     tag: "Powered by SNAC technology",
   },
   {
     title: "Unpacking Snac",
     body: "The SNAC molecule used by Novo Nordisk™ is the key to the GLP-1 pill.",
-    image: "/assets/wegovy/what-snac.png",
+    image: "/assets/wegovy/what-pills.png",
   },
   {
     title: "Real results",
     body: "Lose up to 20% of your body weight without the shot.",
-    image: "/assets/wegovy/what-results.png",
+    image: "/assets/wegovy/what-man.png",
     badge: { label: "Year 1", value: "↓ 32 lbs" },
   },
   {
@@ -62,14 +62,14 @@ export default function WhatIsPill() {
           {CARDS.map((c, i) => (
             <Reveal as="div" key={c.title} delay={i * 80} className="h-full">
               <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#f7f9f2]">
-                <div className="relative h-[230px] w-full overflow-hidden">
+                <div className="relative h-[230px] w-full overflow-hidden bg-[#eef2e6]">
                   {c.image ? (
                     <Image
                       src={c.image}
                       alt={c.title}
                       fill
                       sizes="(max-width:1024px) 50vw, 25vw"
-                      className="object-cover"
+                      className="object-contain p-4"
                     />
                   ) : (
                     <div

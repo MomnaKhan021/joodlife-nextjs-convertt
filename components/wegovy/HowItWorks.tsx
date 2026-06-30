@@ -21,14 +21,14 @@ export default function HowItWorks() {
       className="relative w-full overflow-hidden bg-[#dfe7d4]"
     >
       <Image
-        src="/assets/wegovy/how-bg.png"
+        src="/assets/wegovy/how-pill.png"
         alt=""
         fill
         sizes="100vw"
-        className="object-cover"
+        className="object-cover object-center opacity-90"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-[#142e2a]/10" aria-hidden />
+      <div className="absolute inset-0 bg-[#dfe7d4]/55" aria-hidden />
 
       <div className="relative z-10 mx-auto w-full max-w-[1100px] px-6 py-16 text-center md:px-10 md:py-24">
         <Reveal as="div" className="mx-auto max-w-[760px]">

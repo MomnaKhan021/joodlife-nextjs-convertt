@@ -20,7 +20,7 @@ export default function WhyChoose() {
       className="relative w-full overflow-hidden"
     >
       <Image
-        src="/assets/wegovy/why-bg.png"
+        src="/assets/wegovy/why-runner.png"
         alt="Man running outdoors"
         fill
         sizes="100vw"
