@@ -17,12 +17,20 @@ export default function RealResults() {
         {/* Left — stat panel over a blurred grassy backdrop */}
         <Reveal as="div" className="h-full">
           <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] p-8 md:min-h-[560px] md:p-10">
-            {/* Sunlit-grass green gradient backdrop (matches Figma) */}
+            {/* Blurred sunlit-grass image + light olive gradient (matches Figma) */}
+            <Image
+              src="/assets/wegovy/results-woman.png"
+              alt=""
+              fill
+              aria-hidden
+              sizes="(max-width:1024px) 100vw, 50vw"
+              className="scale-150 object-cover object-center blur-3xl"
+            />
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(160deg, #aab17c 0%, #8e9a68 32%, #5f7d6b 68%, #486a68 100%)",
+                  "linear-gradient(160deg, rgba(120,135,82,0.62) 0%, rgba(100,122,90,0.6) 38%, rgba(80,108,96,0.66) 70%, rgba(64,96,94,0.74) 100%)",
               }}
             />
 
@@ -34,13 +42,13 @@ export default function RealResults() {
             {/* ~14% frosted panel */}
             <div className="relative rounded-2xl border border-white/20 bg-[#13302a]/35 p-5 backdrop-blur-md md:p-6">
               <span className="flex items-center gap-2.5">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M3 17l6-6 4 4 8-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M17 7h4v4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M3 7l7 7 4-4 7 7" stroke="#142e2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M21 17v-4h-4" stroke="#142e2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-                <span className="font-ui text-[15px] text-white/75">Up to</span>
+                <span className="font-ui text-[15px] text-white/85">Up to</span>
               </span>
               <p className="mt-1 font-display text-[60px] font-semibold leading-none text-white md:text-[80px]">
                 ~14%
@@ -60,10 +68,12 @@ export default function RealResults() {
 
             {/* 1-in-4 frosted panel */}
             <div className="relative flex items-start gap-3 rounded-2xl border border-white/20 bg-[#13302a]/35 px-5 py-4 backdrop-blur-md">
-              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="12" cy="7" r="4" stroke="#fff" strokeWidth="2" />
+              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M9 3h6M10 3v6.5L5.5 18a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9.5V3" stroke="#142e2a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M7.5 14h9" stroke="#142e2a" strokeWidth="1.8" strokeLinecap="round" />
+                  <circle cx="16" cy="6" r="1" fill="#142e2a" />
+                  <circle cx="18" cy="9" r="0.8" fill="#142e2a" />
                 </svg>
               </span>
               <div>
@@ -89,9 +99,9 @@ export default function RealResults() {
               className="object-cover object-center"
             />
             <div className="absolute inset-x-4 bottom-4 flex items-start gap-3 rounded-2xl bg-[#142e2a]/85 px-5 py-4 backdrop-blur-sm">
-              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#00b67a]">
-                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden>
-                  <path d="M2.5 6.2l2.2 2.2L9.5 3.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z" stroke="#142e2a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
               <div>

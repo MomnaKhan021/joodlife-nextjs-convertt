@@ -41,6 +41,31 @@ const REVIEWS: Review[] = [
     name: "Mike",
     initials: "MI",
   },
+  {
+    text: "The pill option made a real difference for me — no needles, easy to take, and the weekly check-ins kept me on track the whole way through.",
+    name: "Sarah Bennett",
+    initials: "SB",
+  },
+  {
+    text: "Brilliant from start to finish. The clinical team answered every question and my order arrived faster than I expected.",
+    name: "David Owusu",
+    initials: "DO",
+  },
+  {
+    text: "I was nervous about starting, but the guidance was clear and reassuring. Down two dress sizes and feeling so much better.",
+    name: "Priya Sharma",
+    initials: "PS",
+  },
+  {
+    text: "Genuinely the easiest healthcare experience I've had. Discreet packaging, fair pricing and no pushy upsells.",
+    name: "Tom Fletcher",
+    initials: "TF",
+  },
+  {
+    text: "Steady, sustainable results without the stress. The support team feels like they actually care about your progress.",
+    name: "Amelia Clarke",
+    initials: "AC",
+  },
 ];
 
 function ReviewCard({ review }: { review: Review }) {
