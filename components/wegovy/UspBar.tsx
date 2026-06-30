@@ -1,15 +1,15 @@
 /**
  * Trust / USP strip — Figma node 1:1558.
- * White auto-scrolling marquee of five trust items (no border, no edge fades).
- * Dark-green outline icons + dark-green labels.
+ * White bg, auto-scrolling marquee, Cairo 500 18px black labels, outline icons.
+ * Section: 60px tall (10px py). Five items, duplicated for seamless loop.
  */
 
 type Item = { label: string; icon: React.ReactNode };
 
-const stroke = {
+const s = {
   fill: "none",
   stroke: "#000000",
-  strokeWidth: 1.5,
+  strokeWidth: 1.4,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
@@ -17,81 +17,74 @@ const stroke = {
 const ITEMS: Item[] = [
   {
     label: "free next-day delivery",
-    // Parcel / package
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" {...stroke}>
-        <path d="m7.5 4.3 9 5.15" />
-        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-        <path d="m3.3 7 8.7 5 8.7-5" />
-        <path d="M12 22V12" />
+      <svg width="26" height="26" viewBox="0 0 26 26" {...s}>
+        <rect x="3" y="8" width="20" height="15" rx="1.5" />
+        <path d="M3 12h20" />
+        <path d="M9 8V5a4 4 0 0 1 8 0v3" />
+        <path d="M10 16h6" />
       </svg>
     ),
   },
   {
     label: "clinically proven medication",
-    // Microscope
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" {...stroke}>
-        <path d="M6 18h8" />
-        <path d="M3 22h18" />
-        <path d="M14 22a7 7 0 1 0 0-14h-1" />
-        <path d="M9 14h2" />
-        <path d="M8 6h4v4a2 2 0 0 1-2 2 2 2 0 0 1-2-2Z" />
-        <path d="M12 6V4a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2" />
+      <svg width="26" height="26" viewBox="0 0 26 26" {...s}>
+        <path d="M9 3h8v6l-4 4-4-4Z" />
+        <path d="M13 13v4" />
+        <circle cx="13" cy="20" r="3" />
+        <path d="M7 23h12" />
+        <path d="M9 3H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2" />
       </svg>
     ),
   },
   {
     label: "Cancel anytime subscription",
-    // Horizontal repeat / swap arrows
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" {...stroke}>
-        <path d="m17 2 4 4-4 4" />
-        <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
-        <path d="m7 22-4-4 4-4" />
-        <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+      <svg width="26" height="26" viewBox="0 0 26 26" {...s}>
+        <path d="M20 8A9 9 0 1 0 22 13" />
+        <path d="M20 4v4h-4" />
       </svg>
     ),
   },
   {
     label: "Medical support",
-    // Chat / messages
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" {...stroke}>
-        <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z" />
-        <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" />
+      <svg width="26" height="26" viewBox="0 0 26 26" {...s}>
+        <path d="M4 5h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-5 4V6a1 1 0 0 1 1-1Z" />
+        <path d="M13 9v6M10 12h6" />
       </svg>
     ),
   },
   {
     label: "Trusted by 100k UK customers",
-    // Person
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" {...stroke}>
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
+      <svg width="26" height="26" viewBox="0 0 26 26" {...s}>
+        <circle cx="13" cy="8" r="4" />
+        <path d="M5 22v-2a8 8 0 0 1 16 0v2" />
       </svg>
     ),
   },
 ];
 
 export default function UspBar() {
-  // Two identical copies so the -50% marquee translate loops seamlessly.
   const track = [...ITEMS, ...ITEMS];
 
   return (
-    <section aria-label="Why patients trust Jood" className="w-full bg-[#87af73]">
-      <div className="relative overflow-hidden py-4">
-
-        <ul className="flex w-max animate-marquee items-center" style={{ animationDuration: "30s" }}>
+    <section aria-label="Why patients trust Jood" className="w-full bg-white">
+      <div className="relative overflow-hidden py-[10px]">
+        <ul
+          className="flex w-max animate-marquee items-center"
+          style={{ animationDuration: "30s" }}
+        >
           {track.map((it, i) => (
             <li
               key={i}
-              className="flex shrink-0 items-center gap-2.5 px-8 lg:px-12"
+              className="flex shrink-0 items-center gap-3 px-10"
               aria-hidden={i >= ITEMS.length}
             >
-              <span className="shrink-0">{it.icon}</span>
-              <span className="whitespace-nowrap font-cairo text-[18px] font-medium leading-[22px] text-[#142e2a]">
+              <span className="shrink-0 text-black">{it.icon}</span>
+              <span className="whitespace-nowrap font-cairo text-[18px] font-medium leading-[25px] text-black">
                 {it.label}
               </span>
             </li>
