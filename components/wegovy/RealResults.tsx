@@ -35,7 +35,7 @@ export default function RealResults() {
               }}
             />
 
-            <h2 className="relative font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[40px]">
+            <h2 className="relative font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
               Real Results{" "}
               <span className="font-serif italic font-normal">With Wegovy</span>
             </h2>
@@ -51,7 +51,7 @@ export default function RealResults() {
                 </span>
                 <span className="font-ui text-[18px] text-white/85 md:text-[22px]">Up to</span>
               </span>
-              <p className="mt-1 font-display text-[80px] font-semibold leading-none text-white md:text-[120px] lg:text-[150px]">
+              <p className="mt-1 font-display text-[80px] font-medium leading-none text-white md:text-[120px] lg:text-[150px]">
                 ~14%
               </p>
               <p className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">

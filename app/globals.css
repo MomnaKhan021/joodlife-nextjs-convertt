@@ -131,6 +131,10 @@ body:has([data-page-bg="admin"]) { background: #f1f1f1; }
   will-change: transform;
 }
 
+.font-cairo {
+  font-family: var(--font-cairo), "Cairo", system-ui, sans-serif;
+}
+
 /* Imported HTML blog content (e.g. from Shopify). The Lexical-based
    render uses Tailwind utility classes per node; this block styles the
    raw-HTML path on /blog/[slug] so imported articles match the brand. */

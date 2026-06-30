@@ -47,7 +47,7 @@ export default function WhyChoose() {
 
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 py-16 md:px-10 md:py-24 lg:px-[60px]">
         <Reveal as="div" className="max-w-[560px]">
-          <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
+          <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
             Why Choose Jood Life{" "}
             <span className="font-serif italic font-normal">For Wegovy</span>
           </h2>

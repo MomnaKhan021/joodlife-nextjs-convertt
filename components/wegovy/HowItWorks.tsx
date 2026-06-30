@@ -39,7 +39,7 @@ export default function HowItWorks() {
 
       <div className="relative z-10 mx-auto w-full max-w-[1100px] px-6 text-center md:px-10">
         <Reveal as="div" className="mx-auto max-w-[760px]">
-          <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
+          <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
             How do{" "}
             <span className="font-serif italic font-normal">Wegovy pills</span>{" "}
             work?

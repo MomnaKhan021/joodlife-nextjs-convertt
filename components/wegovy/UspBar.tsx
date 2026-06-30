@@ -83,7 +83,7 @@ export default function UspBar() {
     <section aria-label="Why patients trust Jood" className="w-full bg-[#87af73]">
       <div className="relative overflow-hidden py-4">
 
-        <ul className="flex w-max animate-marquee items-center [animation-duration:30s]">
+        <ul className="flex w-max animate-marquee items-center" style={{ animationDuration: "30s" }}>
           {track.map((it, i) => (
             <li
               key={i}
@@ -91,7 +91,7 @@ export default function UspBar() {
               aria-hidden={i >= ITEMS.length}
             >
               <span className="shrink-0">{it.icon}</span>
-              <span className="whitespace-nowrap font-ui text-[15px] font-medium leading-[18px] text-black md:text-[18px]">
+              <span className="whitespace-nowrap font-cairo text-[18px] font-medium leading-[22px] text-[#142e2a]">
                 {it.label}
               </span>
             </li>

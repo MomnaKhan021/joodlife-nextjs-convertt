@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Cairo } from "next/font/google";
 import localFont from "next/font/local";
 
 import { CartProvider } from "@/components/cart/CartContext";
@@ -11,6 +11,13 @@ const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
   display: "swap",
+});
+
+const cairo = Cairo({
+  subsets: ["latin"],
+  variable: "--font-cairo",
+  display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 // Gilroy — the brand heading font, self-hosted from joodlife.com's own
@@ -63,7 +70,7 @@ export default function SiteLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${gilroy.variable} ${clearface.variable}`}
+      className={`${outfit.variable} ${gilroy.variable} ${clearface.variable} ${cairo.variable}`}
       // Belt-and-braces: tell the browser to skip dark-mode defaults at the
       // HTML-element level too. Mac users with system dark mode otherwise see
       // a brief dark flash before our CSS applies.
