@@ -1,8 +1,5 @@
 "use client";
 
-"use client";
-
-import { useState } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, A11y } from "swiper/modules";
@@ -12,16 +9,13 @@ import Reveal from "@/components/ui/Reveal";
 
 /**
  * Wegovy reviews — Figma node 1:1746.
- * Filter tabs (All / per-category) above a swipeable row of review cards:
- * five-star rating, quote, divider, then author with verified tick.
+ * Swipeable row of review cards (no filter tabs): five-star rating, quote,
+ * divider, then author with verified tick, plus swiper pagination dots.
  */
-
-type Category = "Weight loss" | "Period delay" | "Erectile dysfunction";
 
 type Review = {
   text: string;
   name: string;
-  category: Category;
   avatar?: string;
   initials?: string;
 };
@@ -30,40 +24,23 @@ const REVIEWS: Review[] = [
   {
     text: "My medication always arrives well packaged and promptly and I don't have to answer hundreds of questions to receive it",
     name: "Hayley Churchyard",
-    category: "Weight loss",
     initials: "HC",
   },
   {
     text: "“Exactly what I needed” The process was quick, easy, and very discreet. It gave me peace of mind before an important event and everything worked exactly as expected.",
     name: "Gillian Rhodes",
-    category: "Period delay",
     avatar: "/assets/figma/avatar-gillian.png",
   },
   {
     text: "I've had a fantastic experience with Jood life, quick service, support on hand 24/7, reasonable prices and no pressure to constantly buy injections",
     name: "Jacqueline Riley",
-    category: "Weight loss",
     initials: "JR",
   },
   {
     text: "“A huge improvement overall” I no longer worry the way I used to. I feel more in control, more relaxed, and more confident in intimate situations.",
     name: "Mike",
-    category: "Erectile dysfunction",
     initials: "MI",
   },
-];
-
-const CATEGORY_ORDER: Category[] = [
-  "Weight loss",
-  "Period delay",
-  "Erectile dysfunction",
-];
-const TABS: { label: string; count: number }[] = [
-  { label: "All", count: REVIEWS.length },
-  ...CATEGORY_ORDER.map((c) => ({
-    label: c,
-    count: REVIEWS.filter((r) => r.category === c).length,
-  })),
 ];
 
 function ReviewCard({ review }: { review: Review }) {
@@ -122,12 +99,6 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 export default function Reviews() {
-  const [active, setActive] = useState<string>("All");
-  const shown =
-    active === "All"
-      ? REVIEWS
-      : REVIEWS.filter((r) => r.category === active);
-
   return (
     <section
       id="reviews"
@@ -175,31 +146,8 @@ export default function Reviews() {
           </p>
         </Reveal>
 
-        {/* Filter tabs (All / per-category) */}
-        <Reveal
-          as="div"
-          delay={80}
-          className="mb-8 flex flex-wrap items-center justify-center gap-2.5"
-        >
-          {TABS.map((t) => (
-            <button
-              key={t.label}
-              type="button"
-              onClick={() => setActive(t.label)}
-              className={`cursor-pointer rounded-full px-4 py-2 font-ui text-[13px] font-medium transition-colors md:text-[14px] ${
-                active === t.label
-                  ? "bg-[#142e2a] text-white"
-                  : "border border-[#142e2a]/15 bg-white text-[#142e2a] hover:border-[#142e2a]/40"
-              }`}
-            >
-              {t.label} ({t.count})
-            </button>
-          ))}
-        </Reveal>
-
         <Reveal delay={120}>
           <Swiper
-            key={active}
             modules={[Pagination, A11y]}
             speed={500}
             spaceBetween={20}
@@ -213,7 +161,7 @@ export default function Reviews() {
             a11y={{ enabled: true }}
             className="reviews-swiper !overflow-hidden !px-0.5 !py-3"
           >
-            {shown.map((r, i) => (
+            {REVIEWS.map((r, i) => (
               <SwiperSlide key={i} className="!h-auto">
                 <ReviewCard review={r} />
               </SwiperSlide>
