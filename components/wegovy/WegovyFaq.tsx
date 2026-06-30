@@ -64,7 +64,7 @@ export default function WegovyFaq() {
               {FAQS.map((f, i) => {
                 const isOpen = open === i;
                 return (
-                  <li key={i} className="rounded-sm border border-[#142e2a] bg-white">
+                  <li key={i} className="border border-[#142e2a] bg-white">
                     <button
                       type="button"
                       onClick={() => setOpen(isOpen ? null : i)}

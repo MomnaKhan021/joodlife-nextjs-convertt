@@ -13,7 +13,7 @@ export default function FinalCta() {
   return (
     <section
       aria-label="Ready to start the Wegovy Pill"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full bg-white pb-14 md:pb-16 lg:pb-[80px]"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div">
