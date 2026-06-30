@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
 import Header from "@/components/layout/Header";
-import Reviews from "@/sections/home/Reviews";
 import Footer from "@/sections/home/Footer";
 
 import Hero from "@/components/wegovy/Hero";
 import UspBar from "@/components/wegovy/UspBar";
 import WhatIsPill from "@/components/wegovy/WhatIsPill";
 import Comparison from "@/components/wegovy/Comparison";
+import Reviews from "@/components/wegovy/Reviews";
 import HowItWorks from "@/components/wegovy/HowItWorks";
 import RealResults from "@/components/wegovy/RealResults";
 import Dosing from "@/components/wegovy/Dosing";
