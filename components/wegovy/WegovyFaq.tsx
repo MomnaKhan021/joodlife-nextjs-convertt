@@ -5,7 +5,10 @@ import Reveal from "@/components/ui/Reveal";
 
 /**
  * Wegovy FAQ — Figma node 1:2097.
- * Heading on the left, accordion on the right (Wegovy-specific questions).
+ * 1440×600, bg white, py=80, inner layout=HORIZONTAL gap=40 px=60.
+ * Two equal 640px columns: heading left, accordion right.
+ * Each listitem: 640×60, full border #142e2a sw=1, gap=16 between items, p=16.
+ * Plus icon: 28×28, r=full, fill=#f7f9f2, border #142e2a sw=1.
  */
 
 const FAQS: { q: string; a: string }[] = [
@@ -36,7 +39,7 @@ const FAQS: { q: string; a: string }[] = [
 ];
 
 export default function WegovyFaq() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
     <section
@@ -44,55 +47,65 @@ export default function WegovyFaq() {
       aria-label="Frequently asked questions"
       className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-10 px-6 md:px-10 lg:grid-cols-[minmax(0,420px)_1fr] lg:px-[60px]">
-        <Reveal as="div">
-          <h2 className="font-display text-[32px] font-semibold leading-[1.05] tracking-[-0.02em] text-[#142e2a] md:text-[52px] md:leading-[1.02]">
-            Frequently asked{" "}
-            <span className="font-serif italic font-normal">questions</span>
-          </h2>
-        </Reveal>
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-10">
 
-        <Reveal as="div" delay={100} className="w-full">
-          <ul className="flex w-full flex-col">
-            {FAQS.map((f, i) => {
-              const isOpen = open === i;
-              return (
-                <li key={i} className="border-b border-[#142e2a]/12">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                    className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
-                  >
-                    <span className="font-ui text-[15px] font-medium leading-[22px] text-[#142e2a] md:text-[16px]">
-                      {f.q}
-                    </span>
-                    <span
-                      className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#f7f9f2] transition-transform duration-300"
-                      style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
-                      aria-hidden
+          {/* LEFT — heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}
+          <Reveal as="div">
+            <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+              Frequently asked{" "}
+              <em className="font-serif italic font-normal">questions</em>
+            </h2>
+          </Reveal>
+
+          {/* RIGHT — accordion: list gap=16, each item full border #142e2a */}
+          <Reveal as="div" delay={100}>
+            <ul className="flex w-full flex-col gap-4">
+              {FAQS.map((f, i) => {
+                const isOpen = open === i;
+                return (
+                  <li key={i} className="rounded-sm border border-[#142e2a] bg-white">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(isOpen ? null : i)}
+                      aria-expanded={isOpen}
+                      className="flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left"
                     >
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M7 2v10M2 7h10" stroke="#142e2a" strokeWidth="1.6" strokeLinecap="round" />
-                      </svg>
-                    </span>
-                  </button>
-                  <div
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <p className="pb-5 pr-10 font-ui text-[14px] leading-[22px] text-[#142e2a]/70">
-                        {f.a}
-                      </p>
+                      {/* Question: Saans 16.3px w=570 lh=19.5 ls=-0.02em */}
+                      <span className="font-ui text-[15px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px]">
+                        {f.q}
+                      </span>
+                      {/* Plus icon: 28×28, circle, fill=#f7f9f2, border #142e2a */}
+                      <span
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#142e2a] bg-[#f7f9f2] transition-transform duration-300"
+                        style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
+                        aria-hidden
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M7 2v10M2 7h10" stroke="#142e2a" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                    </button>
+
+                    {/* Answer panel */}
+                    <div
+                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                        isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="px-4 pb-4 font-ui text-[14px] leading-[22px] tracking-[-0.02em] text-[#142e2a]/70">
+                          {f.a}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </Reveal>
+                  </li>
+                );
+              })}
+            </ul>
+          </Reveal>
+
+        </div>
       </div>
     </section>
   );
