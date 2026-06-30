@@ -1,8 +1,7 @@
-import Reveal from "@/components/ui/Reveal";
-
 /**
  * Trust / USP strip — Figma node 1:1558.
- * Five thin-line icon + label items in a single centred row.
+ * Green marquee bar: the five trust items scroll continuously, with fade
+ * shadows masking both edges.
  */
 
 type Item = { label: string; icon: React.ReactNode };
@@ -65,20 +64,35 @@ const ITEMS: Item[] = [
 ];
 
 export default function UspBar() {
+  // Two identical copies of the row so the -50% marquee translate loops seamlessly.
+  const track = [...ITEMS, ...ITEMS];
+
   return (
-    <section aria-label="Why patients trust Jood" className="w-full bg-white">
-      <Reveal as="div">
-        <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6 py-6 md:px-10 lg:px-16">
-          {ITEMS.map((it) => (
-            <div key={it.label} className="flex items-center gap-2.5">
+    <section
+      aria-label="Why patients trust Jood"
+      className="w-full bg-[#87af73]"
+    >
+      <div className="relative overflow-hidden py-3.5">
+        {/* Edge fade shadows */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-[#87af73] to-transparent md:w-24" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[#87af73] to-transparent md:w-24" />
+
+        <ul className="flex w-max animate-marquee items-center [animation-duration:34s]">
+          {track.map((it, i) => (
+            <li
+              key={i}
+              className="flex shrink-0 items-center gap-2.5 px-6"
+              aria-hidden={i >= ITEMS.length}
+            >
               <span className="shrink-0">{it.icon}</span>
-              <span className="font-ui text-[14px] font-medium leading-[18px] text-[#142e2a] md:text-[15px]">
+              <span className="whitespace-nowrap font-ui text-[14px] font-medium leading-[18px] text-[#142e2a] md:text-[15px]">
                 {it.label}
               </span>
-            </div>
+              <span className="ml-6 h-1.5 w-1.5 rounded-full bg-[#142e2a]/40" aria-hidden />
+            </li>
           ))}
-        </div>
-      </Reveal>
+        </ul>
+      </div>
     </section>
   );
 }
