@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, A11y } from "swiper/modules";
+import { A11y } from "swiper/modules";
 import "swiper/css";
 import Reveal from "@/components/ui/Reveal";
 
 /**
  * "What is the Wegovy pill?" — Figma node 1:1610.
- * Heading row with a CTA, then a swipeable explainer carousel: cards peek off
- * the right edge, auto-scroll, and fade shadows mask both edges.
+ * Heading row with a CTA, then a manually swipeable explainer carousel: cards
+ * peek off the right edge (zero right gutter). Mobile shows the CTA full-width
+ * below the cards.
  */
 
 type Card = {
@@ -141,35 +142,27 @@ export default function WhatIsPill() {
           </h2>
           <a
             href="/consultation"
-            className="inline-flex h-[58px] shrink-0 items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+            className="hidden h-[58px] shrink-0 items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
           >
             Get Started Today
           </a>
         </Reveal>
       </div>
 
-      {/* Full-bleed carousel so cards peek off the right edge, with edge fades */}
-      <Reveal as="div" delay={120} className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-white to-transparent md:w-16" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent md:w-16" />
-
+      {/* Carousel: manual swipe, cards peek off the right edge with no gutter */}
+      <Reveal as="div" delay={120}>
         <Swiper
-          modules={[Autoplay, A11y]}
-          speed={650}
+          modules={[A11y]}
+          speed={500}
           spaceBetween={20}
           slidesPerView={1.15}
-          loop
-          autoplay={{
-            delay: 2600,
-            disableOnInteraction: false,
-            pauseOnMouseEnter: true,
-          }}
+          slidesOffsetAfter={0}
           breakpoints={{
             640: { slidesPerView: 2.1 },
             1024: { slidesPerView: 3.3 },
           }}
           a11y={{ enabled: true }}
-          className="!px-6 !py-2 md:!px-10 lg:!px-[60px]"
+          className="!py-2 !pl-6 !pr-0 md:!pl-10 lg:!pl-[60px]"
         >
           {CARDS.map((c) => (
             <SwiperSlide key={c.title} className="!h-auto">
@@ -178,6 +171,16 @@ export default function WhatIsPill() {
           ))}
         </Swiper>
       </Reveal>
+
+      {/* Mobile CTA — full-width below the cards, per Figma */}
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:hidden">
+        <a
+          href="/consultation"
+          className="mt-6 inline-flex h-[56px] w-full items-center justify-center rounded-2xl bg-[#142e2a] px-9 font-ui text-[16px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+        >
+          Get Started Today
+        </a>
+      </div>
     </section>
   );
 }
