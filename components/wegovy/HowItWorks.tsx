@@ -25,19 +25,26 @@ export default function HowItWorks() {
         alt=""
         fill
         sizes="100vw"
-        className="object-cover object-center opacity-90"
+        className="object-cover object-center"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-[#dfe7d4]/55" aria-hidden />
+      <div
+        className="absolute inset-0"
+        aria-hidden
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(20,46,42,0.72) 0%, rgba(20,46,42,0.32) 38%, rgba(20,46,42,0.45) 100%)",
+        }}
+      />
 
       <div className="relative z-10 mx-auto w-full max-w-[1100px] px-6 py-16 text-center md:px-10 md:py-24">
         <Reveal as="div" className="mx-auto max-w-[760px]">
-          <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
+          <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
             How Do{" "}
             <span className="font-serif italic font-normal">Wegovy Pills</span>{" "}
             Work?
           </h2>
-          <p className="mx-auto mt-5 max-w-[680px] font-ui text-[14px] leading-[22px] text-[#142e2a]/80 md:text-[15px]">
+          <p className="mx-auto mt-5 max-w-[680px] font-ui text-[14px] leading-[22px] text-white/85 md:text-[15px]">
             The Wegovy pill contains semaglutide, which is known as a GLP-1
             receptor agonist. This means it works by mimicking the natural GLP-1
             hormone found in your gut. The hormone’s job is to help:
@@ -49,7 +56,7 @@ export default function HowItWorks() {
           {CALLOUTS.map((c) => (
             <p
               key={c.label}
-              className={`absolute ${c.pos} ${c.align} max-w-[190px] font-ui text-[15px] font-semibold leading-[20px] text-[#142e2a]`}
+              className={`absolute ${c.pos} ${c.align} max-w-[190px] font-ui text-[15px] font-semibold leading-[20px] text-white drop-shadow`}
             >
               {c.label}
             </p>
@@ -69,7 +76,7 @@ export default function HowItWorks() {
         </ul>
 
         <Reveal as="div" delay={120}>
-          <p className="mx-auto mt-10 max-w-[680px] font-ui text-[13px] leading-[21px] text-[#142e2a]/70">
+          <p className="mx-auto mt-10 max-w-[680px] font-ui text-[13px] leading-[21px] text-white/75">
             The tablet works the same as the Wegovy injection. However, instead
             of semaglutide entering the bloodstream directly via a needle, the
             pill goes via your stomach in a protective coating that can’t be
@@ -79,13 +86,13 @@ export default function HowItWorks() {
           <div className="mt-7 flex items-center justify-center gap-3">
             <a
               href="/consultation"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-9 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
             >
               Get started
             </a>
             <a
               href="#faq"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg border border-[#142e2a]/30 bg-white/60 px-9 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-white"
+              className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/50 px-9 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-white/10"
             >
               Learn more
             </a>

@@ -2,10 +2,13 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 
 /**
- * Wegovy Pills landing hero — Figma node 1:1506.
+ * Wegovy Pills landing hero — Figma node 1:1506 (desktop) / 1:2362 (mobile).
  *
- * Full-bleed lifestyle photo with a left-anchored gradient so the dark-green
- * headline, Trustpilot rating, CTA and the three proof bullets stay legible.
+ * Desktop: full-bleed light lifestyle photo on the right, with the dark-green
+ * headline / Trustpilot / CTA / proof bullets sitting on the lighter left side
+ * over a soft cream gradient.
+ * Mobile: photo stacks on top, copy sits below on white — matching the Figma
+ * mobile frame.
  */
 
 const STATS = [
@@ -30,99 +33,125 @@ function CheckBadge() {
   );
 }
 
+function TrustRow() {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Image
+        src="/assets/icons/trustpilot-logo-dark.svg"
+        alt="Trustpilot"
+        width={74}
+        height={18}
+        className="h-[18px] w-auto"
+      />
+      <Image
+        src="/assets/icons/trustpilot-stars.svg"
+        alt="4.4 stars"
+        width={86}
+        height={16}
+        className="h-4 w-auto"
+      />
+      <span className="font-ui text-[13px] text-[#142e2a]/80">
+        4.4 (50+) Reviews
+      </span>
+    </div>
+  );
+}
+
 export default function Hero() {
+  const Copy = (
+    <>
+      <h1 className="font-display text-[40px] font-semibold leading-[1.04] tracking-[-0.02em] text-[#142e2a] md:text-[60px]">
+        Uk First.{" "}
+        <span className="font-serif italic font-normal">Wegovy Pills</span>
+      </h1>
+      <p className="mt-3 font-display text-[19px] font-medium leading-[1.2] text-[#142e2a] md:text-[26px]">
+        A New Way To Lose Weight
+      </p>
+      <p className="mt-4 max-w-[500px] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
+        Introducing Wegovy® pills in the UK, with clinician-led support tailored
+        to you. Same proven formula. No needles. Just real results.
+      </p>
+
+      <a
+        href="/consultation"
+        className="mt-7 inline-flex h-[52px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[14px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] sm:w-auto"
+      >
+        Get Started Today
+      </a>
+
+      <ul className="mt-7 flex flex-col gap-3">
+        {STATS.map((s) => (
+          <li key={s} className="flex items-center gap-3">
+            <CheckBadge />
+            <span className="font-ui text-[14px] leading-[20px] text-[#142e2a]/85 md:text-[15px]">
+              {s}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+
   return (
     <section
       aria-label="Wegovy Pills — a new way to lose weight"
-      className="relative w-full overflow-hidden bg-[#142e2a]"
+      className="w-full bg-[#f3f1ea]"
     >
-      {/* Background photo */}
-      <Image
-        src="/assets/wegovy/hero.png"
-        alt="Woman smiling outdoors holding a glass of water"
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-right"
-      />
-      {/* Left-anchored gradient for text legibility */}
-      <div
-        className="absolute inset-0"
-        aria-hidden
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(20,46,42,0.92) 0%, rgba(20,46,42,0.78) 38%, rgba(20,46,42,0.18) 66%, rgba(20,46,42,0) 88%)",
-        }}
-      />
+      {/* Announcement bar */}
+      <div className="w-full bg-[#142e2a]">
+        <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[12px] font-medium tracking-[0.01em] text-white/90 md:px-10 lg:px-16">
+          New Wegovy® Pills treatment in the UK
+        </p>
+      </div>
 
-      {/* New treatment banner */}
-      <div className="relative z-10 w-full border-b border-white/15">
-        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-6 py-3 md:px-10 lg:px-16">
-          <p className="font-ui text-[13px] font-medium tracking-[-0.01em] text-white/90 md:text-[14px]">
-            New Wegovy Pills treatment in the UK
-          </p>
-          <a
-            href="/consultation"
-            className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-white px-5 font-ui text-[12px] font-semibold uppercase tracking-[0.02em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
-          >
-            Get started
-          </a>
+      {/* ---------- Mobile: photo on top, copy below ---------- */}
+      <div className="md:hidden">
+        <div className="relative aspect-[4/5] w-full">
+          <Image
+            src="/assets/wegovy/hero.png"
+            alt="Woman smiling outdoors holding a glass of water"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-top"
+          />
+        </div>
+        <div className="bg-white px-6 py-8">
+          <Reveal as="div">
+            <div className="mb-4">
+              <TrustRow />
+            </div>
+            {Copy}
+          </Reveal>
         </div>
       </div>
 
-      {/* Hero content */}
-      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-16 md:px-10 md:py-24 lg:px-16 lg:py-28">
-        <Reveal as="div" className="max-w-[620px]">
-          <div className="mb-5 flex items-center gap-2">
-            <Image
-              src="/assets/icons/trustpilot-logo-dark.svg"
-              alt="Trustpilot"
-              width={80}
-              height={20}
-              className="h-5 w-auto brightness-0 invert"
-            />
-            <Image
-              src="/assets/icons/trustpilot-stars.svg"
-              alt="4.4 stars"
-              width={86}
-              height={16}
-              className="h-4 w-auto"
-            />
-            <span className="font-ui text-[14px] text-white/90">
-              4.4 (50+) Reviews
-            </span>
-          </div>
-
-          <h1 className="font-display text-[44px] font-semibold leading-[1.05] tracking-[-0.02em] text-white md:text-[64px] md:leading-[1.04]">
-            Uk First.{" "}
-            <span className="font-serif italic font-normal">Wegovy Pills</span>
-          </h1>
-          <p className="mt-3 font-display text-[22px] font-medium leading-[1.2] text-white md:text-[28px]">
-            A New Way To Lose Weight
-          </p>
-          <p className="mt-5 max-w-[520px] font-ui text-[15px] leading-[24px] text-white/85 md:text-[16px]">
-            Introducing Wegovy® pills in the UK, with clinician-led support
-            tailored to you. Same proven formula. No needles. Just real results.
-          </p>
-
-          <a
-            href="/consultation"
-            className="mt-8 inline-flex h-[54px] items-center justify-center rounded-lg bg-white px-9 font-ui text-[14px] font-semibold uppercase tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0]"
-          >
-            Get Started Today
-          </a>
-
-          <ul className="mt-9 flex flex-col gap-3">
-            {STATS.map((s) => (
-              <li key={s} className="flex items-center gap-3">
-                <CheckBadge />
-                <span className="font-ui text-[14px] leading-[20px] text-white/90 md:text-[15px]">
-                  {s}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Reveal>
+      {/* ---------- Desktop: photo right, copy on the light left ---------- */}
+      <div className="relative hidden min-h-[640px] w-full items-center overflow-hidden md:flex">
+        <Image
+          src="/assets/wegovy/hero.png"
+          alt="Woman smiling outdoors holding a glass of water"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-right"
+        />
+        <div
+          className="absolute inset-0"
+          aria-hidden
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(243,241,234,0.96) 0%, rgba(243,241,234,0.9) 34%, rgba(243,241,234,0.45) 52%, rgba(243,241,234,0) 70%)",
+          }}
+        />
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-10 py-20 lg:px-16">
+          <Reveal as="div" className="max-w-[560px]">
+            <div className="mb-5">
+              <TrustRow />
+            </div>
+            {Copy}
+          </Reveal>
+        </div>
       </div>
     </section>
   );

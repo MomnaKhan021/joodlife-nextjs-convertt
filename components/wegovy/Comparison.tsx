@@ -61,14 +61,14 @@ function Card({
         dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
       }`}
     >
-      <div className={`px-6 py-5 text-center ${dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"}`}>
-        <h3 className="font-ui text-[18px] font-semibold tracking-[-0.01em]">{title}</h3>
+      <div className={`px-3 py-4 text-center md:px-6 md:py-5 ${dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"}`}>
+        <h3 className="font-ui text-[15px] font-semibold tracking-[-0.01em] md:text-[18px]">{title}</h3>
       </div>
       <ul className="flex flex-col">
         {rows.map((r, i) => (
           <li
             key={i}
-            className={`flex items-center justify-center gap-2.5 px-6 py-5 text-center ${
+            className={`flex flex-col items-center justify-center gap-2 px-3 py-4 text-center md:flex-row md:gap-2.5 md:px-6 md:py-5 ${
               i < rows.length - 1
                 ? dark
                   ? "border-b border-white/10"
@@ -78,7 +78,7 @@ function Card({
           >
             {r.check ? <Tick dark={dark} /> : null}
             {r.minus ? <Minus /> : null}
-            <span className={`font-ui text-[14px] leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
+            <span className={`font-ui text-[12.5px] leading-[18px] md:text-[14px] md:leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
               {r.label}
             </span>
           </li>
@@ -102,7 +102,7 @@ export default function Comparison() {
           </h2>
         </Reveal>
 
-        <Reveal as="div" delay={100} className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <Reveal as="div" delay={100} className="grid grid-cols-2 gap-3 md:gap-5">
           <Card title="Wegovy pill" rows={PILL_ROWS} variant="pill" />
           <Card title="Wegovy pen" rows={PEN_ROWS} variant="pen" />
         </Reveal>

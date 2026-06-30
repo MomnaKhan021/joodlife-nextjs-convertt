@@ -17,14 +17,14 @@ type Card = {
 const CARDS: Card[] = [
   {
     title: "The first of its kind",
-    body: "An FDA-approved semaglutide in a once-daily pill for weight loss.",
-    image: "/assets/wegovy/what-bottle.png",
+    body: "is an FDA-approved semaglutide in a pill for weight loss.",
+    image: "/assets/wegovy/what-pills.png",
     tag: "Powered by SNAC technology",
   },
   {
     title: "Unpacking Snac",
     body: "The SNAC molecule used by Novo Nordisk™ is the key to the GLP-1 pill.",
-    image: "/assets/wegovy/what-pills.png",
+    image: "/assets/wegovy/what-snac.png",
   },
   {
     title: "Real results",
@@ -35,6 +35,7 @@ const CARDS: Card[] = [
   {
     title: "Lose weight your way",
     body: "With Wegovy® in a pill or pen and a range of dosages, you’ve got options.",
+    image: "/assets/wegovy/what-bottle.png",
   },
 ];
 
