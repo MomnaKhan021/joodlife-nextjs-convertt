@@ -60,24 +60,24 @@ export default function WegovyFaq() {
 
           {/* RIGHT — accordion: list gap=16, each item full border #142e2a */}
           <Reveal as="div" delay={100}>
-            <ul className="flex w-full flex-col gap-4">
+            <ul className="flex w-full flex-col">
               {FAQS.map((f, i) => {
                 const isOpen = open === i;
                 return (
-                  <li key={i} className="border border-[#142e2a] bg-white">
+                  <li key={i} className="border-b border-[#142e2a]/20 bg-white first:border-t first:border-t-[#142e2a]/20">
                     <button
                       type="button"
                       onClick={() => setOpen(isOpen ? null : i)}
                       aria-expanded={isOpen}
-                      className="flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left"
+                      className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
                     >
                       {/* Question: Saans 16.3px w=570 lh=19.5 ls=-0.02em */}
                       <span className="font-ui text-[15px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px]">
                         {f.q}
                       </span>
-                      {/* Plus icon: 28×28, circle, fill=#f7f9f2, border #142e2a */}
+                      {/* Plus icon: bare + no circle */}
                       <span
-                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#142e2a] bg-[#f7f9f2] transition-transform duration-300"
+                        className="grid h-6 w-6 shrink-0 place-items-center transition-transform duration-300"
                         style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
                         aria-hidden
                       >
