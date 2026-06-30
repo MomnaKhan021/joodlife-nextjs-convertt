@@ -15,7 +15,7 @@ export default function FinalCta() {
       aria-label="Ready to start the Wegovy Pill"
       className="w-full bg-white pb-14 md:pb-16 lg:pb-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div">
           <div className="relative overflow-hidden rounded-[24px] bg-[#f7f9f2] md:h-[430px]">
 

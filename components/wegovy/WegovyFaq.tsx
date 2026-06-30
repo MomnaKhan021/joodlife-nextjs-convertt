@@ -60,7 +60,7 @@ export default function WegovyFaq() {
 
           {/* RIGHT — accordion: list gap=16, each item full border #142e2a */}
           <Reveal as="div" delay={100}>
-            <ul className="flex w-full flex-col">
+            <ul className="flex w-full flex-col gap-4">
               {FAQS.map((f, i) => {
                 const isOpen = open === i;
                 return (
@@ -69,15 +69,15 @@ export default function WegovyFaq() {
                       type="button"
                       onClick={() => setOpen(isOpen ? null : i)}
                       aria-expanded={isOpen}
-                      className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
+                      className="flex w-full cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left"
                     >
                       {/* Question: Saans 16.3px w=570 lh=19.5 ls=-0.02em */}
                       <span className="font-ui text-[15px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px]">
                         {f.q}
                       </span>
-                      {/* Plus icon: bare + no circle */}
+                      {/* Plus icon: 28×28, bare + no circle */}
                       <span
-                        className="grid h-6 w-6 shrink-0 place-items-center transition-transform duration-300"
+                        className="grid h-7 w-7 shrink-0 place-items-center transition-transform duration-300"
                         style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
                         aria-hidden
                       >
