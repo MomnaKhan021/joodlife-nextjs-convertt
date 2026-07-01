@@ -11,12 +11,23 @@ export default function RealResults() {
   return (
     <section
       aria-label="Real results with Wegovy"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full bg-white"
     >
-      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-6 px-6 md:px-10 lg:grid-cols-2 lg:px-[60px]">
-        {/* Left — stat panel: solid purple bg per Figma rgb(74,64,116) */}
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 px-6 py-14 md:px-10 md:py-16 lg:grid-cols-2 lg:px-[60px] lg:py-[80px]">
+        {/* Left — solid purple #4a4074 per Figma, carousel image overlay */}
         <Reveal as="div" className="h-full">
-          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#4a4074] p-8 md:min-h-[560px] md:p-10">
+          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#4a4074] py-10 px-5 md:min-h-[560px]">
+            {/* Carousel image — blurred outdoor scene sits on top of purple like Figma */}
+            <Image
+              src="/assets/wegovy/why-runner.png"
+              alt=""
+              fill
+              aria-hidden
+              sizes="(max-width:1024px) 100vw, 50vw"
+              className="object-cover object-center opacity-50 mix-blend-luminosity"
+            />
+            {/* Subtle dark veil so text stays legible */}
+            <div className="absolute inset-0 bg-[#4a4074]/40" aria-hidden />
 
             <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
               Real Results{" "}

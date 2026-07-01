@@ -47,7 +47,7 @@ export default function WegovyFaq() {
       aria-label="Frequently asked questions"
       className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-10">
 
           {/* LEFT — heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}

@@ -130,7 +130,7 @@ export default function Reviews() {
       aria-label="Reviews"
       className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <Reveal
           as="div"
           className="flex flex-col items-center gap-3 pb-9 text-center"
