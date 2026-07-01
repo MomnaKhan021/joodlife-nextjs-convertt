@@ -144,7 +144,7 @@ export default function WhatIsPill() {
             href="/consultation"
             className="hidden h-[50px] shrink-0 items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
           >
-            Get started Today
+            Get Started Today
           </a>
         </Reveal>
       </div>

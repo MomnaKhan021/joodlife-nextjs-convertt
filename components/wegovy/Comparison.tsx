@@ -57,7 +57,7 @@ function Card({
   const dark = variant === "pill";
   return (
     <div
-      className={`flex w-full flex-col overflow-hidden rounded-2xl ${
+      className={`flex w-full flex-col overflow-hidden rounded-xl ${
         dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
       }`}
     >

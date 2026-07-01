@@ -76,7 +76,7 @@ export default function HowItWorks() {
     <section
       aria-label="How Wegovy pills work"
       className="relative w-full overflow-hidden rounded-[32px]"
-      style={{ minHeight: 600 }}
+      style={{ minHeight: 889 }}
     >
       {/* Background pill image */}
       <Image

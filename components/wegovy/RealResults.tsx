@@ -37,7 +37,7 @@ export default function RealResults() {
             {/* ~14% frosted panel */}
             <div className="relative rounded-2xl border border-white/20 bg-white/[0.06] p-5 md:p-6">
               <span className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
+                <span className="grid h-[50px] w-[50px] shrink-0 place-items-center rounded-full bg-white">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M3 7l7 7 4-4 7 7" stroke="#142e2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     <path d="M21 17v-4h-4" stroke="#142e2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

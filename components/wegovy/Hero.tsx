@@ -58,7 +58,7 @@ function HeroCopy() {
         Uk First.{" "}
         <span className="font-serif italic font-normal">Wegovy Pills</span>
       </h1>
-      <p className="mt-3 font-display text-[16px] font-semibold leading-[17.6px] text-white md:text-[32px] md:leading-[35.2px]">
+      <p className="mt-3 font-ui text-[16px] font-normal leading-[17.6px] text-white md:text-[32px] md:leading-[35.2px]">
         A New Way To Lose Weight
       </p>
       <p className="mt-4 max-w-[500px] font-ui text-[16px] leading-[22px] text-white/85 md:text-[18.3px] md:leading-[20.77px]">
@@ -68,7 +68,7 @@ function HeroCopy() {
 
       <a
         href="/consultation"
-        className="mt-7 inline-flex h-[52px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[14px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
+        className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
       >
         Get Started Today
       </a>

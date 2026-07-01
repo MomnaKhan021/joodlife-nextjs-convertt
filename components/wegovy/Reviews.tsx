@@ -156,7 +156,7 @@ export default function Reviews() {
               height={16}
               className="h-4 w-auto"
             />
-            <span className="font-inter text-[18px] text-[#142e2a]">
+            <span className="font-ui text-[18px] text-[#142e2a]">
               4.4 (50+) Reviews
             </span>
           </a>
