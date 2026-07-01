@@ -2,13 +2,14 @@ import Reveal from "@/components/ui/Reveal";
 
 /**
  * "Wegovy pill vs Wegovy injection" — Figma node 1:1676.
- * Two stacked comparison cards (pill = dark green, pen = cream).
+ * Cards container: 690px total (340px each + 10px gap), centred on page.
+ * Card rows have fixed heights matching Figma exactly.
  */
 
 type Row = { label: React.ReactNode; check?: boolean; minus?: boolean };
 
 const PILL_ROWS: Row[] = [
-  { label: (<>Starts at <b>£149/mo</b> billed monthly, membership required*</>) },
+  { label: (<>Starts at <b>£149/mo</b> billed monthly,<br />membership required*</>) },
   { label: (<>Taken <span className="font-semibold text-[#00b67a]">Once daily</span></>) },
   { label: "Semaglutide active ingredient", check: true },
   { label: "Clinically proven", check: true },
@@ -16,12 +17,15 @@ const PILL_ROWS: Row[] = [
 ];
 
 const PEN_ROWS: Row[] = [
-  { label: (<>Starts at <b>£199/mo</b> billed monthly, membership required*</>) },
+  { label: (<>Starts at <b>£199/mo</b> billed monthly,<br />membership required*</>) },
   { label: (<>Taken <span className="font-semibold">Once weekly</span></>) },
   { label: "Semaglutide active ingredient", check: true },
   { label: "Clinically proven", check: true },
   { label: "Injection free", minus: true },
 ];
+
+/* Row heights from Figma — header=87, pricing=127, taken=81, feature=97 */
+const ROW_HEIGHTS = [127, 81, 97, 97, 97];
 
 function PillIcon({ dark }: { dark?: boolean }) {
   return (
@@ -48,9 +52,7 @@ function PenIcon({ dark }: { dark?: boolean }) {
 
 function Tick({ dark }: { dark?: boolean }) {
   return (
-    <span
-      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${dark ? "bg-white/15" : "bg-[#142e2a]"}`}
-    >
+    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${dark ? "bg-white/15" : "bg-[#142e2a]"}`}>
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
         <path d="M2.5 6.2l2.2 2.2L9.5 3.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -79,19 +81,20 @@ function Card({
 }) {
   const dark = variant === "pill";
   return (
-    <div
-      className={`flex w-full flex-col overflow-hidden rounded-xl ${
-        dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
-      }`}
-    >
-      {/* Card title header */}
-      <div className={`px-3 py-4 text-center md:px-6 md:py-5 ${dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"}`}>
-        <h3 className="font-ui text-[18.8px] font-semibold tracking-[-0.01em]">{title}</h3>
+    <div className={`flex w-full flex-col overflow-hidden rounded-xl ${
+      dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
+    }`}>
+      {/* Title header — 87px */}
+      <div
+        className={`flex h-[87px] items-center justify-center px-4 text-center ${
+          dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"
+        }`}
+      >
+        <h3 className="font-ui text-[15px] font-semibold tracking-[-0.01em] md:text-[18.8px]">{title}</h3>
       </div>
 
       <ul className="flex flex-col">
         {rows.map((r, i) => {
-          const isFirst = i === 0;
           const divider = i < rows.length - 1
             ? dark ? "border-b border-white/10" : "border-b border-[#142e2a]/8"
             : "";
@@ -99,22 +102,17 @@ function Card({
           return (
             <li
               key={i}
-              className={`flex flex-col items-center justify-center gap-2 px-3 py-4 text-center md:px-6 md:py-5 ${
-                !isFirst && (r.check || r.minus) ? "md:flex-row md:gap-2.5" : ""
-              } ${divider}`}
+              className={`flex flex-col items-center justify-center gap-2 px-4 text-center ${divider}`}
+              style={{ minHeight: ROW_HEIGHTS[i] }}
             >
-              {/* Row 0: product icon above text */}
-              {isFirst && (
-                variant === "pill"
-                  ? <PillIcon dark={dark} />
-                  : <PenIcon dark={dark} />
-              )}
+              {/* Row 0 (pricing): product icon above text */}
+              {i === 0 && (variant === "pill" ? <PillIcon dark={dark} /> : <PenIcon dark={dark} />)}
 
-              {/* Rows 2+: check / minus icon */}
-              {!isFirst && r.check ? <Tick dark={dark} /> : null}
-              {!isFirst && r.minus ? <Minus /> : null}
+              {/* Rows 1+ check / minus */}
+              {i > 0 && r.check ? <Tick dark={dark} /> : null}
+              {i > 0 && r.minus ? <Minus /> : null}
 
-              <span className={`font-ui text-[14px] leading-[20px] md:text-[16px] md:leading-[22px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
+              <span className={`font-ui text-[12px] leading-[18px] md:text-[14px] md:leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
                 {r.label}
               </span>
             </li>
@@ -132,30 +130,39 @@ export default function Comparison() {
       className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
+
+        {/* Heading — 846px wide in Figma, centred */}
         <Reveal as="div">
-          <h2 className="mb-10 text-center font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 className="mb-10 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             Wegovy pill vs{" "}
             <span className="font-serif italic font-normal">Wegovy injection</span>
           </h2>
         </Reveal>
 
-        <Reveal as="div" delay={100} className="grid grid-cols-2 gap-4 md:gap-10">
-          <Card title="Wegovy pill" rows={PILL_ROWS} variant="pill" />
-          <Card title="Wegovy pen" rows={PEN_ROWS} variant="pen" />
+        {/* Cards — 690px total (340 + 10 gap + 340), centred */}
+        <Reveal as="div" delay={100}>
+          <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
+            <Card title="Wegovy pill" rows={PILL_ROWS} variant="pill" />
+            <Card title="Wegovy pen" rows={PEN_ROWS} variant="pen" />
+          </div>
         </Reveal>
 
-        <Reveal as="div" delay={150} className="mt-9 flex flex-col items-center gap-6">
-          <p className="max-w-[560px] text-center font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px]">
-            Wegovy® is available as a daily pill or a weekly injection. Both
-            support weight loss, but one might be a better match for you.
-          </p>
-          <a
-            href="/consultation"
-            className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
-          >
-            Get Started
-          </a>
+        {/* Footer — 690px wide, centred */}
+        <Reveal as="div" delay={150}>
+          <div className="mx-auto mt-9 flex max-w-[690px] flex-col items-center gap-6">
+            <p className="max-w-[522px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
+              Wegovy® is available as a daily pill or a weekly injection. Both
+              support weight loss, but one might be a better match for you.
+            </p>
+            <a
+              href="/consultation"
+              className="inline-flex h-[50px] w-[183px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+            >
+              Get Started
+            </a>
+          </div>
         </Reveal>
+
       </div>
     </section>
   );
