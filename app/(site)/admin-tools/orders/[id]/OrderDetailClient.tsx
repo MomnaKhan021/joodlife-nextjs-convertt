@@ -161,6 +161,10 @@ export default function OrderDetailClient({ id }: { id: string }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  // DPD dispatch label
+  const [printingDpd, setPrintingDpd] = useState(false);
+  const [dpdTracking, setDpdTracking] = useState<string | null>(null);
+
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2800);
@@ -286,6 +290,38 @@ export default function OrderDetailClient({ id }: { id: string }) {
       }),
     );
     printLabels(labels);
+  }
+
+  async function printDpdLabel() {
+    if (!order || printingDpd) return;
+    setPrintingDpd(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin-tools/dpd-label", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to generate DPD label");
+
+      // Open the PDF label in a new tab for printing
+      const pdfBytes = Uint8Array.from(atob(j.labelBase64), (c) => c.charCodeAt(0));
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+
+      setDpdTracking(j.trackingNumber);
+      // Reflect the status change (route sets it to 'shipped')
+      setOrder({ ...order, status: "shipped" });
+      setFulfilled(true);
+      setToast(`DPD label created · Tracking: ${j.trackingNumber}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPrintingDpd(false);
+    }
   }
 
   async function cancelOrder() {
@@ -475,14 +511,40 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-end gap-2 border-t border-[#e1e3e5] px-5 py-3">
+              <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#e1e3e5] px-5 py-3">
                 <HeaderBtn onClick={markFulfilled}>
                   {savingFulfil ? "Saving…" : fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled"}
                 </HeaderBtn>
                 <HeaderBtn primary onClick={printDispensingLabels}>
                   Print dispensing label
                 </HeaderBtn>
+                {/* DPD dispatching label */}
+                <button
+                  onClick={printDpdLabel}
+                  disabled={printingDpd}
+                  className="inline-flex items-center gap-1.5 rounded-[6px] border border-[#cc0000] bg-[#cc0000] px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#a80000] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {/* DPD red diamond logo mark */}
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+                    <path d="M10 1 L19 10 L10 19 L1 10 Z" fill="white" opacity="0.9" />
+                    <path d="M10 5 L15 10 L10 15 L5 10 Z" fill="#cc0000" />
+                  </svg>
+                  {printingDpd ? "Generating…" : "Print dispatching label"}
+                </button>
               </div>
+              {/* DPD tracking badge — shown after a label has been printed this session */}
+              {dpdTracking && (
+                <div className="flex items-center gap-2 border-t border-[#e1e3e5] px-5 py-2.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M2 6.5h11v9H2zM13 9.5h4l3 3v3h-7z" stroke="#616161" strokeWidth="1.6" strokeLinejoin="round" />
+                    <circle cx="6.5" cy="17.5" r="1.6" stroke="#616161" strokeWidth="1.6" />
+                    <circle cx="16.5" cy="17.5" r="1.6" stroke="#616161" strokeWidth="1.6" />
+                  </svg>
+                  <span className="text-[12px] text-[#616161]">
+                    DPD tracking: <span className="font-medium text-[#303030]">{dpdTracking}</span>
+                  </span>
+                </div>
+              )}
             </Card>
 
             {/* Payment */}
