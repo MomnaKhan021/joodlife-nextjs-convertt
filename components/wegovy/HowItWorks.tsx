@@ -15,6 +15,8 @@ type Callout = {
   align: "text-left" | "text-right";
   connector: React.ReactNode;
   mobileConnector: React.ReactNode;
+  /** Bottom callouts: render connector above text so line points UP toward pill */
+  connectorFirst?: boolean;
 };
 
 /* Desktop L-connectors (white, 1.2px stroke, dot at bend) */
@@ -96,6 +98,7 @@ const CALLOUTS: Callout[] = [
     align: "text-left",
     connector: <ConnectorRightUp />,
     mobileConnector: <MobileConnectorRightUp />,
+    connectorFirst: true,
   },
   {
     label: "Regulate your\nappetite⁴",
@@ -105,6 +108,7 @@ const CALLOUTS: Callout[] = [
     align: "text-right",
     connector: <ConnectorLeftUp />,
     mobileConnector: <MobileConnectorLeftUp />,
+    connectorFirst: true,
   },
 ];
 
@@ -159,10 +163,11 @@ export default function HowItWorks() {
                 c.align === "text-right" ? "items-end" : "items-start"
               }`}
             >
+              {c.connectorFirst && c.connector}
               <p className="whitespace-pre-line font-ui text-[20px] font-semibold leading-[26px] text-white md:text-[25px] md:leading-[30px]">
                 {c.label}
               </p>
-              {c.connector}
+              {!c.connectorFirst && c.connector}
             </div>
           ))}
 
@@ -174,10 +179,11 @@ export default function HowItWorks() {
                 c.align === "text-right" ? "items-end" : "items-start"
               }`}
             >
+              {c.connectorFirst && c.mobileConnector}
               <p className={`whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white ${c.align}`}>
                 {c.label}
               </p>
-              {c.mobileConnector}
+              {!c.connectorFirst && c.mobileConnector}
             </div>
           ))}
         </div>
