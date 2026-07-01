@@ -23,6 +23,29 @@ const PEN_ROWS: Row[] = [
   { label: "Injection free", minus: true },
 ];
 
+function PillIcon({ dark }: { dark?: boolean }) {
+  return (
+    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${dark ? "bg-white/15" : "bg-[#142e2a]/10"}`}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <ellipse cx="9" cy="12" rx="5" ry="8" stroke={dark ? "#fff" : "#142e2a"} strokeWidth="1.6" strokeLinecap="round" opacity="0.8" />
+        <ellipse cx="15" cy="12" rx="5" ry="8" stroke={dark ? "#fff" : "#142e2a"} strokeWidth="1.6" strokeLinecap="round" opacity="0.8" />
+      </svg>
+    </span>
+  );
+}
+
+function PenIcon({ dark }: { dark?: boolean }) {
+  const c = dark ? "#fff" : "#142e2a";
+  return (
+    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${dark ? "bg-white/15" : "bg-[#142e2a]/10"}`}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="M9 3h6M10 3v6.5L5.5 18a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9.5V3" stroke={c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+        <path d="M7.5 14h9" stroke={c} strokeWidth="1.6" strokeLinecap="round" opacity="0.8" />
+      </svg>
+    </span>
+  );
+}
+
 function Tick({ dark }: { dark?: boolean }) {
   return (
     <span
@@ -61,28 +84,42 @@ function Card({
         dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
       }`}
     >
+      {/* Card title header */}
       <div className={`px-3 py-4 text-center md:px-6 md:py-5 ${dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"}`}>
         <h3 className="font-ui text-[18.8px] font-semibold tracking-[-0.01em]">{title}</h3>
       </div>
+
       <ul className="flex flex-col">
-        {rows.map((r, i) => (
-          <li
-            key={i}
-            className={`flex flex-col items-center justify-center gap-2 px-3 py-4 text-center md:flex-row md:gap-2.5 md:px-6 md:py-5 ${
-              i < rows.length - 1
-                ? dark
-                  ? "border-b border-white/10"
-                  : "border-b border-[#142e2a]/8"
-                : ""
-            }`}
-          >
-            {r.check ? <Tick dark={dark} /> : null}
-            {r.minus ? <Minus /> : null}
-            <span className={`font-ui text-[14px] leading-[20px] md:text-[16px] md:leading-[22px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
-              {r.label}
-            </span>
-          </li>
-        ))}
+        {rows.map((r, i) => {
+          const isFirst = i === 0;
+          const divider = i < rows.length - 1
+            ? dark ? "border-b border-white/10" : "border-b border-[#142e2a]/8"
+            : "";
+
+          return (
+            <li
+              key={i}
+              className={`flex flex-col items-center justify-center gap-2 px-3 py-4 text-center md:px-6 md:py-5 ${
+                !isFirst && (r.check || r.minus) ? "md:flex-row md:gap-2.5" : ""
+              } ${divider}`}
+            >
+              {/* Row 0: product icon above text */}
+              {isFirst && (
+                variant === "pill"
+                  ? <PillIcon dark={dark} />
+                  : <PenIcon dark={dark} />
+              )}
+
+              {/* Rows 2+: check / minus icon */}
+              {!isFirst && r.check ? <Tick dark={dark} /> : null}
+              {!isFirst && r.minus ? <Minus /> : null}
+
+              <span className={`font-ui text-[14px] leading-[20px] md:text-[16px] md:leading-[22px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
+                {r.label}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -114,7 +151,7 @@ export default function Comparison() {
           </p>
           <a
             href="/consultation"
-            className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+            className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
           >
             Get Started
           </a>
