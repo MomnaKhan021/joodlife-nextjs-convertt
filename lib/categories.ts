@@ -54,6 +54,17 @@ export type Category = {
   heroImage: string;
   /** Accessible alt text for the imagery. */
   imageAlt: string;
+  /**
+   * Optional photographic backdrop covering the top of the hero, fading
+   * into the section background (e.g. ED's cloud sky). Decorative only.
+   */
+  heroBackdrop?: string;
+  /**
+   * Optional transparent overlay of floating UI cards rendered *behind*
+   * the hero portrait (e.g. PD's Cycle Window / Eligibility cards).
+   * Decorative only.
+   */
+  heroCards?: string;
   theme: CategoryTheme;
 };
 
@@ -99,6 +110,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     ],
     cardImage: "/assets/category/ed-card.png",
     heroImage: "/assets/category/ed-hero.png",
+    heroBackdrop: "/assets/category/ed-clouds.png",
     imageAlt: "Man considering his options for erectile-dysfunction treatment",
     theme: {
       base: "#1a8ec1",
@@ -126,6 +138,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     ],
     cardImage: "/assets/category/pd-card.png",
     heroImage: "/assets/category/period-hero.png",
+    heroCards: "/assets/category/pd-cards.png",
     imageAlt: "Woman holding a clock and calendar, planning her cycle",
     theme: {
       base: "#ec1f63",

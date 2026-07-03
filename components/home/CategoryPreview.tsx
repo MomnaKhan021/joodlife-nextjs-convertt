@@ -58,6 +58,31 @@ export default function CategoryPreview({
           color: theme.onBase,
         }}
       >
+        {/* Optional photographic sky backdrop (ED clouds) — covers the top
+            of the hero and fades into the section gradient below. */}
+        {category.heroBackdrop && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[55%] md:h-[60%]"
+          >
+            <Image
+              src={category.heroBackdrop}
+              alt=""
+              fill
+              quality={85}
+              sizes="100vw"
+              className="object-cover object-top"
+            />
+            {/* Fade clouds into the section base colour */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(180deg, rgba(0,0,0,0) 45%, ${theme.base} 100%)`,
+              }}
+            />
+          </div>
+        )}
+
         {/* Decorative wavy connector — spans full width, draws on scroll */}
         <CategoryCurve
           color={theme.onBase}
@@ -89,6 +114,25 @@ export default function CategoryPreview({
               delay={160}
               className="relative mx-auto mt-6 h-[380px] w-full max-w-[460px] md:mt-8 md:h-[540px] md:max-w-[520px]"
             >
+              {/* Optional floating UI cards (PD) — fan out behind the
+                  portrait, wider than the figure and centred on her. */}
+              {category.heroCards && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute left-1/2 top-[44%] z-0 w-[230%] max-w-[1240px] -translate-x-1/2 -translate-y-1/2"
+                >
+                  <Image
+                    src={category.heroCards}
+                    alt=""
+                    width={3632}
+                    height={1489}
+                    quality={85}
+                    sizes="(max-width: 768px) 150vw, 1240px"
+                    className="h-auto w-full"
+                  />
+                </div>
+              )}
+
               <Image
                 src={category.heroImage}
                 alt={category.imageAlt}
@@ -96,7 +140,7 @@ export default function CategoryPreview({
                 priority={priority}
                 quality={90}
                 sizes="(max-width: 768px) 80vw, 520px"
-                className="object-contain object-top"
+                className="relative z-10 object-contain object-top"
               />
 
               {/* Dual CTA — overlays the lower torso, sits above the cards.
