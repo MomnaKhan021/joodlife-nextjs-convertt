@@ -139,23 +139,54 @@ function requestedDose(c: Consultation): string {
     (c.answers.requested_dose as string) ||
     (c.answers.reorder_dose_choice as string) ||
     c.dose ||
-    "—"
+    ""
   );
 }
 
+/** Which medicine the patient selected / is on. */
+function medicationName(c: Consultation): string {
+  return (
+    (c.answers.intended_medicine_v2 as string) ||
+    (c.answers.most_recent_injection_used_v2 as string) ||
+    (c.productSlug && c.productSlug !== "reorder" ? c.productSlug : "") ||
+    ""
+  );
+}
+
+/** Medicine + dose combined, e.g. "Mounjaro · 7.2 mg". */
+function medicationAndDose(c: Consultation): string {
+  const med = medicationName(c);
+  const dose = requestedDose(c);
+  if (med && dose) return `${med} · ${dose}`;
+  return med || dose || "—";
+}
+
+/** Age from the stored value, falling back to a calc from date of birth. */
 function ageOf(a: Record<string, unknown>): string {
-  const age = a._age;
-  return typeof age === "number" ? `${age}` : "—";
+  const stored = a._age;
+  if (typeof stored === "number") return `${stored}`;
+  const dob = a.date_of_birth_consultation as string | undefined;
+  if (dob) {
+    const birth = new Date(dob);
+    if (!Number.isNaN(birth.getTime())) {
+      const now = new Date();
+      let age = now.getFullYear() - birth.getFullYear();
+      const m = now.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+      if (age >= 0 && age < 130) return `${age}`;
+    }
+  }
+  return "—";
 }
 
 function eligibilityStatus(c: Consultation): { label: string; tone: string } {
   if (c.reviewed) {
     return c.reviewDecision === "approved"
-      ? { label: "Approved", tone: "text-[#047857]" }
+      ? { label: "Approved", tone: "text-[#2f5d2a]" }
       : { label: "Rejected", tone: "text-[#b91c1c]" };
   }
   if (c.hasRedFlags) return { label: "Needs review", tone: "text-[#b45309]" };
-  return { label: "Eligible", tone: "text-[#047857]" };
+  return { label: "Eligible", tone: "text-[#2f5d2a]" };
 }
 
 function treatmentStage(a: Record<string, unknown>): string {
@@ -176,10 +207,10 @@ function tabOf(c: Consultation): TabKey {
 /* ------------------------------------------------------------------ */
 
 function StatusBadge({ status, decision }: { status: string; decision: string | null }) {
-  if (decision === "approved") return <span className="rounded-full bg-[#d1fae5] px-2.5 py-0.5 text-[12px] font-semibold text-[#065f46]">Approved</span>;
+  if (decision === "approved") return <span className="rounded-full bg-[#dff49f] px-2.5 py-0.5 text-[12px] font-semibold text-[#142e2a]">Approved</span>;
   if (decision === "rejected") return <span className="rounded-full bg-[#fee2e2] px-2.5 py-0.5 text-[12px] font-semibold text-[#991b1b]">Rejected</span>;
-  if (status === "submitted") return <span className="rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-[12px] font-semibold text-[#92400e]">Pending</span>;
-  return <span className="rounded-full bg-[#e5e7eb] px-2.5 py-0.5 text-[12px] font-semibold text-[#374151] capitalize">{status}</span>;
+  if (status === "submitted") return <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">Pending</span>;
+  return <span className="rounded-full bg-[#e7efe0] px-2.5 py-0.5 text-[12px] font-semibold text-[#142e2a] capitalize">{status}</span>;
 }
 
 /** One label/value row — label bold, value regular. */
@@ -238,18 +269,18 @@ function SummaryBar({ c }: { c: Consultation }) {
       label: "Current weight",
       value: c.answers.current_weight_kg ? `${c.answers.current_weight_kg} kg` : "—",
     },
-    { label: "Requested dose", value: requestedDose(c) },
+    { label: "Medication & dose", value: medicationAndDose(c) },
     { label: "Eligibility", value: elig.label, tone: elig.tone },
     { label: "Age", value: ageOf(c.answers) },
   ];
   return (
-    <div className="sticky top-0 z-10 -mx-4 mb-3 flex flex-wrap gap-x-8 gap-y-2 border-b border-[#e5e7eb] bg-[#f8fafb]/95 px-4 py-3 backdrop-blur">
+    <div className="sticky top-0 z-10 -mx-4 mb-3 flex flex-wrap gap-x-8 gap-y-2 border-b border-[#cdd8bf] bg-[#eef3e6]/95 px-4 py-3 backdrop-blur">
       {stats.map((s) => (
         <div key={s.label} className="flex flex-col">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-[#4a5c46]">
             {s.label}
           </span>
-          <span className={`text-[14px] font-medium ${s.tone ?? "text-[#111827]"}`}>
+          <span className={`text-[14px] font-semibold ${s.tone ?? "text-[#142e2a]"}`}>
             {s.value}
           </span>
         </div>
@@ -326,7 +357,7 @@ function PatientDetails({ c }: { c: Consultation }) {
   const patientItems: Item[] = [
     { label: "Name", value: c.fullName },
     { label: "Date of birth", value: a.date_of_birth_consultation },
-    { label: "Age", value: typeof a._age === "number" ? a._age : undefined },
+    { label: "Age", value: ageOf(a) !== "—" ? ageOf(a) : undefined },
     { label: "Height", value: a.height_cm ? `${a.height_cm} cm` : undefined },
     { label: "Weight", value: a.current_weight_kg ? `${a.current_weight_kg} kg` : undefined },
     { label: "BMI", value: bmi != null ? `${bmi}` : undefined },
@@ -493,7 +524,7 @@ function ConsultationCard({
             </span>
             <StatusBadge status={c.status} decision={c.reviewDecision} />
             {c.isReorder && (
-              <span className="rounded-full bg-[#dbeafe] px-2.5 py-0.5 text-[11px] font-semibold text-[#1d4ed8]">
+              <span className="rounded-full bg-[#e7efe0] px-2.5 py-0.5 text-[11px] font-semibold text-[#142e2a]">
                 Reorder
               </span>
             )}
@@ -703,7 +734,9 @@ export default function ClinicalQueuePage() {
               }`}
             >
               {t.label}
-              <span className="ml-1.5 rounded-full bg-[#e5e7eb] px-1.5 py-0.5 text-[11px] font-medium text-[#374151]">
+              <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+                tab === t.key ? "bg-[#dff49f] text-[#142e2a]" : "bg-[#e7efe0] text-[#4a5c46]"
+              }`}>
                 {counts[t.key]}
               </span>
             </button>
