@@ -214,7 +214,17 @@ export const SLIDES: SlideDef[] = [
     field: "is_this_consultation_for_you_v2",
     options: ["Yes", "No"],
     auto: true,
-    next: (a) => (a.is_this_consultation_for_you_v2 === "No" ? "s_block_third_party" : "s2"),
+    next: (a) => (a.is_this_consultation_for_you_v2 === "No" ? "s_block_third_party" : "s_name"),
+  },
+  // ── Slide 1b: Full name ──────────────────────────────────────
+  {
+    id: "s_name",
+    type: "name",
+    step: 1,
+    title: "What is your full name?",
+    subtitle:
+      "Please double-check your name — we check it to confirm you're over 18, so even small spelling mistakes can delay your order.",
+    next: () => "s2",
   },
   // ── Slide 2: Which treatment? ────────────────────────────────
   {
