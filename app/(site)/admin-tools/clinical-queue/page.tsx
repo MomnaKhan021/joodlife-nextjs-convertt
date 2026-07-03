@@ -3,13 +3,17 @@
 /**
  * DEV-03 / DEV-04 — Clinical Approval Queue
  *
- * Shows all consultations and reorders waiting for pharmacist review.
- * Red-flagged submissions are sorted to the top and highlighted.
+ * Shows all consultations and reorders waiting for pharmacist review,
+ * organised into three tabs (Video consultation booked / Consultation
+ * not booked / Reorder) with a name search. Each patient expands into a
+ * clean, sectioned clinical summary with a sticky summary bar.
+ *
  * Pharmacist can approve or reject each one with a mandatory reason.
- * Decisions are logged (reviewer + timestamp + reason) and mirrored to HubSpot.
+ * Decisions are logged (reviewer + timestamp + reason) and mirrored to
+ * HubSpot (server-side — untouched by this UI).
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Consultation = {
   id: number;
@@ -31,6 +35,12 @@ type Consultation = {
   answers: Record<string, unknown>;
 };
 
+type TabKey = "booked" | "notbooked" | "reorder";
+
+/* ------------------------------------------------------------------ */
+/* Formatting helpers                                                  */
+/* ------------------------------------------------------------------ */
+
 function fmt(iso: string | null | undefined) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("en-GB", {
@@ -39,56 +49,336 @@ function fmt(iso: string | null | undefined) {
   });
 }
 
+const isUrl = (v: unknown): v is string =>
+  typeof v === "string" && /^https?:\/\//i.test(v.trim());
+
+/** Turn a raw answer value into a readable string. */
+function fmtValue(v: unknown): string {
+  if (v === null || v === undefined || v === "") return "—";
+  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  const s = String(v);
+  if (s === "true") return "Yes";
+  if (s === "false") return "No";
+  return s;
+}
+
+/** snake_case / prefixed keys → readable Title Case fallback label. */
+function prettify(key: string): string {
+  return key
+    .replace(/_v2$/i, "")
+    .replace(/^(reorder|ed|pd)_/i, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+/** Human-friendly labels for known questionnaire keys. */
+const LABELS: Record<string, string> = {
+  // Prescription
+  intended_medicine_v2: "Requested medication",
+  requested_dose: "Requested dose",
+  current_glp_1_use_status: "Previous GLP-1 use",
+  current_dose: "Current / last dose",
+  last_injection_date: "Last injection date",
+  missed_more_than_2_doses: "Missed 2+ doses in a row",
+  most_recent_injection_used_v2: "Most recent injection",
+  switching_intention: "Switching intention",
+  reorder_dose_choice: "Requested dose",
+  // Safety
+  safety_flags: "Medical conditions / safety flags",
+  comorbidities: "Weight-related conditions",
+  wegovy_72_current_symptoms_v2: "Current symptoms",
+  reorder_has_side_effects: "Has side effects",
+  reorder_side_effects: "Side effects reported",
+  reorder_side_effect_severity: "Side-effect severity",
+  reorder_new_clinical_event: "New clinical event",
+  reorder_new_clinical_event_details: "New event details",
+  reorder_pregnancy_flag: "Pregnant / breastfeeding",
+  prescription_evidence_upload: "Prescription evidence",
+  // Patient
+  which_ethnicity_are_you: "Ethnicity",
+  height_cm: "Height",
+  current_weight_kg: "Current weight",
+  date_of_birth_consultation: "Date of birth",
+  consultation_mobile_number_v2: "Mobile",
+  // GP
+  gp_practice_name: "GP practice",
+  gp_practice_full_address: "GP address",
+  // Consultation
+  video_consultation_preference: "Video booking",
+  consultation_consent_confirmed: "Consent confirmed",
+  reorder_consent_confirmed: "Consent confirmed",
+  willing_to_follow_reduced_calorie_diet_and_increase_physical_activity:
+    "Lifestyle commitment",
+  // Goals
+  motivation: "Motivation",
+  why_joodlife: "Why they chose Jood",
+  // Reorder progress
+  reorder_progress: "Treatment progress",
+  reorder_progress_note: "Progress note",
+  reorder_pharmacist_question: "Question for pharmacist",
+};
+
+const labelFor = (key: string) => LABELS[key] ?? prettify(key);
+
+/* ------------------------------------------------------------------ */
+/* Derived clinical values                                             */
+/* ------------------------------------------------------------------ */
+
+function computeBmi(a: Record<string, unknown>): number | null {
+  const w = Number(a.current_weight_kg);
+  const h = Number(a.height_cm);
+  if (!w || !h) return null;
+  const bmi = w / Math.pow(h / 100, 2);
+  return Math.round(bmi * 10) / 10;
+}
+
+function requestedDose(c: Consultation): string {
+  return (
+    (c.answers.requested_dose as string) ||
+    (c.answers.reorder_dose_choice as string) ||
+    c.dose ||
+    "—"
+  );
+}
+
+function ageOf(a: Record<string, unknown>): string {
+  const age = a._age;
+  return typeof age === "number" ? `${age}` : "—";
+}
+
+function eligibilityStatus(c: Consultation): { label: string; tone: string } {
+  if (c.reviewed) {
+    return c.reviewDecision === "approved"
+      ? { label: "Approved", tone: "text-[#047857]" }
+      : { label: "Rejected", tone: "text-[#b91c1c]" };
+  }
+  if (c.hasRedFlags) return { label: "Needs review", tone: "text-[#b45309]" };
+  return { label: "Eligible", tone: "text-[#047857]" };
+}
+
+function treatmentStage(a: Record<string, unknown>): string {
+  const usage = a.current_glp_1_use_status as string | undefined;
+  if (usage === "No, I have never used one") return "New patient";
+  if (a.switching_intention === "Switch to the other one") return "Switching";
+  if (usage) return "Maintenance / continuing";
+  return "—";
+}
+
+function tabOf(c: Consultation): TabKey {
+  if (c.isReorder) return "reorder";
+  return c.answers.video_consultation_preference ? "booked" : "notbooked";
+}
+
+/* ------------------------------------------------------------------ */
+/* Small presentational pieces                                         */
+/* ------------------------------------------------------------------ */
+
 function StatusBadge({ status, decision }: { status: string; decision: string | null }) {
-  if (decision === "approved") return <span className="rounded-full bg-[#d1fae5] px-2.5 py-0.5 text-[12px] font-semibold text-[#065f46]">✓ Approved</span>;
-  if (decision === "rejected") return <span className="rounded-full bg-[#fee2e2] px-2.5 py-0.5 text-[12px] font-semibold text-[#991b1b]">✗ Rejected</span>;
+  if (decision === "approved") return <span className="rounded-full bg-[#d1fae5] px-2.5 py-0.5 text-[12px] font-semibold text-[#065f46]">Approved</span>;
+  if (decision === "rejected") return <span className="rounded-full bg-[#fee2e2] px-2.5 py-0.5 text-[12px] font-semibold text-[#991b1b]">Rejected</span>;
   if (status === "submitted") return <span className="rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-[12px] font-semibold text-[#92400e]">Pending</span>;
   return <span className="rounded-full bg-[#e5e7eb] px-2.5 py-0.5 text-[12px] font-semibold text-[#374151] capitalize">{status}</span>;
 }
 
-function RedFlagBanner({ flags }: { flags: string[] }) {
-  if (flags.length === 0) return null;
+/** One label/value row — label bold, value regular. */
+function Row({ label, value }: { label: string; value: unknown }) {
+  const node = isUrl(value) ? (
+    <a
+      href={value}
+      target="_blank"
+      rel="noreferrer"
+      className="font-medium text-[#1450b0] underline underline-offset-2 hover:text-[#0f3d86]"
+    >
+      View image
+    </a>
+  ) : (
+    fmtValue(value)
+  );
   return (
-    <div className="mb-3 rounded-lg border border-[#fca5a5] bg-[#fff1f2] px-4 py-3">
-      <p className="mb-1.5 text-[13px] font-bold text-[#b91c1c]">🚨 RED FLAG — Clinical review required</p>
-      <ul className="space-y-0.5">
-        {flags.map((f, i) => (
-          <li key={i} className="text-[12px] text-[#7f1d1d]">⚠️ {f}</li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-0.5 py-[5px] sm:flex-row sm:gap-4">
+      <dt className="w-[210px] shrink-0 text-[13px] font-semibold text-[#1f2937]">{label}</dt>
+      <dd className="text-[13px] leading-[20px] text-[#4b5563] break-words">{node}</dd>
     </div>
   );
 }
 
-function AnswersSummary({ answers }: { answers: Record<string, unknown> }) {
-  const [open, setOpen] = useState(false);
-  const entries = Object.entries(answers).filter(([k]) => !k.startsWith("_"));
-  if (entries.length === 0) return null;
+type Item = { label: string; value: unknown };
+
+function Section({ title, items }: { title: string; items: Item[] }) {
+  const visible = items.filter(
+    (i) => i.value !== undefined && i.value !== null && i.value !== "",
+  );
+  if (visible.length === 0) return null;
   return (
-    <div className="mt-2">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="text-[12px] font-medium text-[#1450b0] hover:underline"
-      >
-        {open ? "Hide answers ▲" : `View ${entries.length} questionnaire answers ▼`}
-      </button>
-      {open && (
-        <div className="mt-2 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-3">
-          <dl className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-            {entries.map(([k, v]) => (
-              <div key={k} className="flex gap-2">
-                <dt className="text-[11px] font-semibold text-[#6b7280] shrink-0">{k}:</dt>
-                <dd className="text-[11px] text-[#374151] break-words">
-                  {Array.isArray(v) ? v.join(", ") : String(v ?? "—")}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
+    <div className="border-t border-[#eceef1] pt-3">
+      <h4 className="mb-1 text-[12px] font-bold uppercase tracking-[0.04em] text-[#111827]">
+        {title}
+      </h4>
+      <dl className="divide-y divide-[#f3f4f6]">
+        {visible.map((i, idx) => (
+          <Row key={idx} label={i.label} value={i.value} />
+        ))}
+      </dl>
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Sticky summary bar                                                  */
+/* ------------------------------------------------------------------ */
+
+function SummaryBar({ c }: { c: Consultation }) {
+  const bmi = computeBmi(c.answers);
+  const elig = eligibilityStatus(c);
+  const stats: { label: string; value: React.ReactNode; tone?: string }[] = [
+    { label: "BMI", value: bmi != null ? `${bmi}` : "—" },
+    {
+      label: "Current weight",
+      value: c.answers.current_weight_kg ? `${c.answers.current_weight_kg} kg` : "—",
+    },
+    { label: "Requested dose", value: requestedDose(c) },
+    { label: "Eligibility", value: elig.label, tone: elig.tone },
+    { label: "Age", value: ageOf(c.answers) },
+  ];
+  return (
+    <div className="sticky top-0 z-10 -mx-4 mb-3 flex flex-wrap gap-x-8 gap-y-2 border-b border-[#e5e7eb] bg-[#f8fafb]/95 px-4 py-3 backdrop-blur">
+      {stats.map((s) => (
+        <div key={s.label} className="flex flex-col">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">
+            {s.label}
+          </span>
+          <span className={`text-[14px] font-medium ${s.tone ?? "text-[#111827]"}`}>
+            {s.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Full clinical detail (replaces the raw answer dump)                 */
+/* ------------------------------------------------------------------ */
+
+const SECTION_KEYS = new Set<string>([
+  // prescription
+  "intended_medicine_v2", "requested_dose", "current_glp_1_use_status",
+  "current_dose", "last_injection_date", "missed_more_than_2_doses",
+  "most_recent_injection_used_v2", "switching_intention", "reorder_dose_choice",
+  // safety
+  "safety_flags", "comorbidities", "wegovy_72_current_symptoms_v2",
+  "reorder_has_side_effects", "reorder_side_effects",
+  "reorder_side_effect_severity", "reorder_new_clinical_event",
+  "reorder_new_clinical_event_details", "reorder_pregnancy_flag",
+  "prescription_evidence_upload",
+  // patient
+  "which_ethnicity_are_you", "height_cm", "current_weight_kg",
+  "date_of_birth_consultation", "consultation_mobile_number_v2",
+  "firstName", "lastName",
+  // gp
+  "gp_practice_name", "gp_practice_full_address",
+  // consultation
+  "video_consultation_preference", "consultation_consent_confirmed",
+  "reorder_consent_confirmed",
+  "willing_to_follow_reduced_calorie_diet_and_increase_physical_activity",
+  // goals
+  "motivation", "why_joodlife",
+  // reorder progress
+  "reorder_progress", "reorder_progress_note", "reorder_pharmacist_question",
+]);
+
+function PatientDetails({ c }: { c: Consultation }) {
+  const a = c.answers;
+  const bmi = computeBmi(a);
+
+  const eligItems: Item[] = [
+    { label: "BMI", value: bmi != null ? `${bmi}` : undefined },
+    { label: "Clinical review required", value: c.hasRedFlags ? "Yes" : "No" },
+    { label: "Eligible under PGD", value: c.hasRedFlags ? "Pending clinical review" : "Yes" },
+    { label: "Patient stage", value: treatmentStage(a) },
+  ];
+
+  const prescriptionItems: Item[] = [
+    { label: "Requested medication", value: a.intended_medicine_v2 },
+    { label: "Requested dose", value: a.requested_dose ?? a.reorder_dose_choice },
+    { label: "Previous GLP-1 use", value: a.current_glp_1_use_status },
+    { label: "Current / last dose", value: a.current_dose },
+    { label: "Last injection date", value: a.last_injection_date },
+    { label: "Missed 2+ doses in a row", value: a.missed_more_than_2_doses },
+    { label: "Most recent injection", value: a.most_recent_injection_used_v2 },
+    { label: "Switching intention", value: a.switching_intention },
+  ];
+
+  const safetyItems: Item[] = [
+    { label: "Medical conditions", value: a.safety_flags ?? a.comorbidities },
+    { label: "Current symptoms", value: a.wegovy_72_current_symptoms_v2 },
+    { label: "Side effects", value: a.reorder_side_effects },
+    { label: "Side-effect severity", value: a.reorder_side_effect_severity },
+    { label: "New clinical event", value: a.reorder_new_clinical_event },
+    { label: "New event details", value: a.reorder_new_clinical_event_details },
+    { label: "Pregnancy / breastfeeding", value: a.reorder_pregnancy_flag },
+    { label: "Prescription evidence", value: a.prescription_evidence_upload },
+    ...(c.redFlags.length ? [{ label: "Red flags", value: c.redFlags }] : []),
+  ];
+
+  const patientItems: Item[] = [
+    { label: "Name", value: c.fullName },
+    { label: "Date of birth", value: a.date_of_birth_consultation },
+    { label: "Age", value: typeof a._age === "number" ? a._age : undefined },
+    { label: "Height", value: a.height_cm ? `${a.height_cm} cm` : undefined },
+    { label: "Weight", value: a.current_weight_kg ? `${a.current_weight_kg} kg` : undefined },
+    { label: "BMI", value: bmi != null ? `${bmi}` : undefined },
+    { label: "Mobile", value: a.consultation_mobile_number_v2 ?? c.phone },
+    { label: "Email", value: c.email },
+    { label: "Ethnicity", value: a.which_ethnicity_are_you },
+  ];
+
+  const gpItems: Item[] = [
+    { label: "GP practice", value: a.gp_practice_name },
+    { label: "GP address", value: a.gp_practice_full_address },
+  ];
+
+  const consultationItems: Item[] = [
+    { label: "Video booking", value: a.video_consultation_preference },
+    { label: "Consent", value: a.consultation_consent_confirmed ?? a.reorder_consent_confirmed },
+    {
+      label: "Lifestyle commitment",
+      value: a.willing_to_follow_reduced_calorie_diet_and_increase_physical_activity,
+    },
+  ];
+
+  const goalItems: Item[] = [
+    { label: "Motivation", value: a.motivation },
+    { label: "Why they chose Jood", value: a.why_joodlife },
+  ];
+
+  // Anything not already surfaced — shown cleanly rather than dropped.
+  const otherItems: Item[] = Object.entries(a)
+    .filter(([k]) => !k.startsWith("_") && !SECTION_KEYS.has(k) && k !== "email")
+    .map(([k, v]) => ({ label: labelFor(k), value: v }));
+
+  return (
+    <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-white px-4 pb-4">
+      <SummaryBar c={c} />
+      <div className="space-y-3">
+        <Section title="Eligibility snapshot" items={eligItems} />
+        <Section title="Prescription" items={prescriptionItems} />
+        <Section title="Safety checks" items={safetyItems} />
+        <Section title="Patient" items={patientItems} />
+        <Section title="GP" items={gpItems} />
+        <Section title="Consultation" items={consultationItems} />
+        <Section title="Goals" items={goalItems} />
+        <Section title="Other answers" items={otherItems} />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Review form                                                         */
+/* ------------------------------------------------------------------ */
 
 function ReviewForm({
   id,
@@ -137,7 +427,7 @@ function ReviewForm({
               : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#059669]"
           }`}
         >
-          ✓ Approve supply
+          Approve supply
         </button>
         <button
           onClick={() => setDecision("rejected")}
@@ -147,7 +437,7 @@ function ReviewForm({
               : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#dc2626]"
           }`}
         >
-          ✗ Reject supply
+          Reject supply
         </button>
       </div>
 
@@ -172,6 +462,10 @@ function ReviewForm({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Patient card                                                        */
+/* ------------------------------------------------------------------ */
+
 function ConsultationCard({
   c,
   onDecision,
@@ -180,6 +474,7 @@ function ConsultationCard({
   onDecision: (id: number, decision: string, reason: string) => void;
 }) {
   const [showReview, setShowReview] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
     <div
@@ -189,12 +484,12 @@ function ConsultationCard({
           : "border-[#e5e7eb] bg-white"
       }`}
     >
-      {/* Header row */}
+      {/* Header row — name first, email underneath */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[15px] font-semibold text-[#1a1a1a]">
-              {c.fullName || c.email || `#${c.id}`}
+            <span className="text-[16px] font-bold text-[#111827]">
+              {c.fullName || `Patient #${c.id}`}
             </span>
             <StatusBadge status={c.status} decision={c.reviewDecision} />
             {c.isReorder && (
@@ -204,31 +499,45 @@ function ConsultationCard({
             )}
             {c.hasRedFlags && (
               <span className="rounded-full bg-[#fef2f2] px-2.5 py-0.5 text-[11px] font-bold text-[#b91c1c]">
-                🚨 Red flag
+                Red flag
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-[#6b7280]">
-            {c.email}
-            {c.phone ? ` · ${c.phone}` : ""}
-            {" · "}
-            {c.productSlug ?? "—"}
-            {c.dose ? ` (${c.dose})` : ""}
+          {c.email && (
+            <p className="mt-0.5 text-[12px] text-[#6b7280]">{c.email}</p>
+          )}
+          <p className="text-[11px] text-[#9ca3af]">
+            Submitted: {fmt(c.createdAt)}
+            {c.productSlug ? ` · ${c.productSlug}` : ""}
           </p>
-          <p className="text-[11px] text-[#9ca3af]">Submitted: {fmt(c.createdAt)}</p>
         </div>
         <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
       </div>
 
       {/* Red flag banner */}
-      {c.hasRedFlags && !c.reviewed && (
-        <div className="mt-3">
-          <RedFlagBanner flags={c.redFlags} />
+      {c.hasRedFlags && !c.reviewed && c.redFlags.length > 0 && (
+        <div className="mt-3 rounded-lg border border-[#fca5a5] bg-[#fff1f2] px-4 py-3">
+          <p className="mb-1.5 text-[13px] font-bold text-[#b91c1c]">
+            Red flag — clinical review required
+          </p>
+          <ul className="space-y-0.5">
+            {c.redFlags.map((f, i) => (
+              <li key={i} className="text-[12px] text-[#7f1d1d]">• {f}</li>
+            ))}
+          </ul>
         </div>
       )}
 
-      {/* Questionnaire answers (collapsed) */}
-      <AnswersSummary answers={c.answers} />
+      {/* Expandable clinical detail */}
+      <div className="mt-2">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="text-[12px] font-semibold text-[#1450b0] hover:underline"
+        >
+          {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
+        </button>
+        {open && <PatientDetails c={c} />}
+      </div>
 
       {/* Decision already recorded */}
       {c.reviewed && (
@@ -238,7 +547,7 @@ function ConsultationCard({
             : "border-[#fca5a5] bg-[#fff1f2]"
         }`}>
           <p className="text-[13px] font-semibold text-[#1a1a1a]">
-            {c.reviewDecision === "approved" ? "✓ Approved" : "✗ Rejected"} by {c.reviewedBy ?? "pharmacist"}
+            {c.reviewDecision === "approved" ? "Approved" : "Rejected"} by {c.reviewedBy ?? "pharmacist"}
           </p>
           <p className="text-[12px] text-[#6b7280]">{fmt(c.reviewedAt ?? null)}</p>
           {c.reviewReason && (
@@ -272,11 +581,23 @@ function ConsultationCard({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "booked", label: "Video consultation booked" },
+  { key: "notbooked", label: "Consultation not booked" },
+  { key: "reorder", label: "Reorder" },
+];
+
 export default function ClinicalQueuePage() {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [tab, setTab] = useState<TabKey>("booked");
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async (all: boolean) => {
     setLoading(true);
@@ -296,7 +617,10 @@ export default function ClinicalQueuePage() {
     }
   }, []);
 
-  useEffect(() => { load(showAll); }, [showAll, load]);
+  useEffect(() => {
+    const t = setTimeout(() => load(showAll), 0);
+    return () => clearTimeout(t);
+  }, [showAll, load]);
 
   const handleDecision = useCallback((id: number, decision: string, reason: string) => {
     setConsultations((prev) =>
@@ -316,41 +640,88 @@ export default function ClinicalQueuePage() {
     );
   }, []);
 
-  const pending = consultations.filter((c) => !c.reviewed);
-  const flagged = pending.filter((c) => c.hasRedFlags);
-  const done = consultations.filter((c) => c.reviewed);
+  // Counts per tab (respecting the pending/all toggle, before search).
+  const counts = useMemo(() => {
+    const base: Record<TabKey, number> = { booked: 0, notbooked: 0, reorder: 0 };
+    for (const c of consultations) base[tabOf(c)] += 1;
+    return base;
+  }, [consultations]);
+
+  // Rows for the active tab, filtered by the search query.
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return consultations
+      .filter((c) => tabOf(c) === tab)
+      .filter((c) => {
+        if (!q) return true;
+        return (
+          (c.fullName ?? "").toLowerCase().includes(q) ||
+          (c.email ?? "").toLowerCase().includes(q) ||
+          String(c.id).includes(q)
+        );
+      })
+      // Red-flagged, unreviewed patients first, then newest.
+      .sort((x, y) => {
+        const xf = x.hasRedFlags && !x.reviewed ? 1 : 0;
+        const yf = y.hasRedFlags && !y.reviewed ? 1 : 0;
+        if (xf !== yf) return yf - xf;
+        return +new Date(y.createdAt) - +new Date(x.createdAt);
+      });
+  }, [consultations, tab, query]);
+
+  const flaggedTotal = consultations.filter((c) => c.hasRedFlags && !c.reviewed).length;
 
   return (
     <main className="min-h-screen bg-[#f1f1f1] px-4 py-6 md:px-8">
-      <div className="mx-auto max-w-[860px]">
+      <div className="mx-auto max-w-[900px]">
 
         {/* Header */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-[20px] font-semibold text-[#1a1a1a]">Clinical Approval Queue</h1>
             <p className="mt-0.5 text-[13px] text-[#6b7280]">
-              Review and approve or reject patient reorders and flagged consultations before supply.
+              Review and approve or reject patient consultations and reorders before supply.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {flagged.length > 0 && (
-              <span className="inline-flex items-center rounded-full bg-[#dc2626] px-3 py-1 text-[13px] font-bold text-white">
-                🚨 {flagged.length} red flag{flagged.length !== 1 ? "s" : ""}
-              </span>
-            )}
-            {pending.length > 0 && (
-              <span className="inline-flex items-center rounded-full bg-[#fef3c7] px-3 py-1 text-[13px] font-semibold text-[#92400e]">
-                {pending.length} pending
-              </span>
-            )}
-          </div>
+          {flaggedTotal > 0 && (
+            <span className="inline-flex items-center rounded-full bg-[#dc2626] px-3 py-1 text-[13px] font-bold text-white">
+              {flaggedTotal} red flag{flaggedTotal !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
 
-        {/* Toggle */}
-        <div className="mb-4 flex gap-2">
+        {/* Tabs */}
+        <div className="mb-4 flex flex-wrap gap-2 border-b border-[#e5e7eb]">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`-mb-px border-b-2 px-4 py-2 text-[13px] font-semibold transition-colors ${
+                tab === t.key
+                  ? "border-[#142e2a] text-[#142e2a]"
+                  : "border-transparent text-[#6b7280] hover:text-[#374151]"
+              }`}
+            >
+              {t.label}
+              <span className="ml-1.5 rounded-full bg-[#e5e7eb] px-1.5 py-0.5 text-[11px] font-medium text-[#374151]">
+                {counts[t.key]}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search + status toggle */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, email or #ID…"
+            className="h-9 flex-1 min-w-[220px] rounded-lg border border-[#d1d5db] bg-white px-3 text-[13px] text-[#374151] placeholder:text-[#9ca3af] focus:border-[#142e2a] focus:outline-none"
+          />
           <button
             onClick={() => setShowAll(false)}
-            className={`h-8 rounded-lg px-4 text-[13px] font-medium transition-colors ${
+            className={`h-9 rounded-lg px-4 text-[13px] font-medium transition-colors ${
               !showAll ? "bg-[#142e2a] text-white" : "border border-[#d1d5db] bg-white text-[#374151] hover:bg-[#f3f4f6]"
             }`}
           >
@@ -358,11 +729,11 @@ export default function ClinicalQueuePage() {
           </button>
           <button
             onClick={() => setShowAll(true)}
-            className={`h-8 rounded-lg px-4 text-[13px] font-medium transition-colors ${
+            className={`h-9 rounded-lg px-4 text-[13px] font-medium transition-colors ${
               showAll ? "bg-[#142e2a] text-white" : "border border-[#d1d5db] bg-white text-[#374151] hover:bg-[#f3f4f6]"
             }`}
           >
-            All ({consultations.length})
+            All
           </button>
         </div>
 
@@ -384,55 +755,24 @@ export default function ClinicalQueuePage() {
               Retry
             </button>
           </div>
-        ) : pending.length === 0 && !showAll ? (
+        ) : rows.length === 0 ? (
           <div className="rounded-[12px] border border-[#d1fae5] bg-[#f0fdf4] p-10 text-center">
-            <p className="text-[18px]">✅</p>
-            <p className="mt-2 text-[15px] font-semibold text-[#065f46]">All clear — no patients pending review</p>
-            <p className="mt-1 text-[13px] text-[#6b7280]">No reorders or consultations are waiting for clinical approval.</p>
+            <p className="text-[15px] font-semibold text-[#065f46]">
+              {query ? "No patients match your search" : "Nothing in this tab"}
+            </p>
+            <p className="mt-1 text-[13px] text-[#6b7280]">
+              {query
+                ? "Try a different name, email or ID."
+                : showAll
+                  ? "No records here yet."
+                  : "No patients are waiting for review in this tab."}
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Red-flagged first */}
-            {flagged.length > 0 && (
-              <div>
-                <h2 className="mb-2 text-[13px] font-bold uppercase tracking-wide text-[#b91c1c]">
-                  🚨 Red flags — action required immediately
-                </h2>
-                <div className="space-y-3">
-                  {flagged.map((c) => (
-                    <ConsultationCard key={c.id} c={c} onDecision={handleDecision} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Normal pending */}
-            {pending.filter((c) => !c.hasRedFlags).length > 0 && (
-              <div>
-                <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-[#6b7280]">
-                  Pending review
-                </h2>
-                <div className="space-y-3">
-                  {pending.filter((c) => !c.hasRedFlags).map((c) => (
-                    <ConsultationCard key={c.id} c={c} onDecision={handleDecision} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Completed */}
-            {showAll && done.length > 0 && (
-              <div>
-                <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-[#6b7280]">
-                  Reviewed ({done.length})
-                </h2>
-                <div className="space-y-3">
-                  {done.map((c) => (
-                    <ConsultationCard key={c.id} c={c} onDecision={handleDecision} />
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="space-y-3">
+            {rows.map((c) => (
+              <ConsultationCard key={c.id} c={c} onDecision={handleDecision} />
+            ))}
           </div>
         )}
       </div>
