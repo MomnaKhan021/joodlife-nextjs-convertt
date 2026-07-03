@@ -60,11 +60,23 @@ export type Category = {
    */
   heroBackdrop?: string;
   /**
+   * Colour the hero backdrop fades into at its lower edge. Should match the
+   * section background at that vertical point so there's no visible band.
+   * Defaults to `theme.base`.
+   */
+  heroBackdropFade?: string;
+  /**
    * Optional transparent overlay of floating UI cards rendered *behind*
    * the hero portrait (e.g. PD's Cycle Window / Eligibility cards).
    * Decorative only.
    */
   heroCards?: string;
+  /**
+   * Optional scale factor applied to the hero portrait so a category can
+   * present a more zoomed-in cut-out (e.g. ED's boy, per Figma) without
+   * changing the shared layout box. Defaults to 1 (no zoom).
+   */
+  heroImageScale?: number;
   theme: CategoryTheme;
 };
 
@@ -99,8 +111,8 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     href: "/erectile-dysfunction",
     eyebrow: "Men's health",
     cardTitle: "Erectile\ndysfunction",
-    title: "Take control of erectile health",
-    titleAccent: "safely and confidently",
+    title: "Take Control of Erectile Health",
+    titleAccent: "Safely and Confidently",
     blurb:
       "Clinically approved treatments for erectile dysfunction, delivered discreetly to your door so you can regain confidence and performance.",
     bullets: [
@@ -111,6 +123,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     cardImage: "/assets/category/ed-card.png",
     heroImage: "/assets/category/ed-hero.png",
     heroBackdrop: "/assets/category/ed-clouds.png",
+    heroImageScale: 1.28,
     imageAlt: "Man considering his options for erectile-dysfunction treatment",
     theme: {
       base: "#1a8ec1",
@@ -139,6 +152,8 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     cardImage: "/assets/category/pd-card.png",
     heroImage: "/assets/category/period-hero.png",
     heroCards: "/assets/category/pd-cards.png",
+    heroBackdrop: "/assets/category/pd-backdrop.png",
+    heroBackdropFade: "#e3a6bb",
     imageAlt: "Woman holding a clock and calendar, planning her cycle",
     theme: {
       base: "#ec1f63",

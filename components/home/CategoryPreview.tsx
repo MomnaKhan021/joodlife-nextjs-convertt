@@ -73,21 +73,26 @@ export default function CategoryPreview({
               sizes="100vw"
               className="object-cover object-top"
             />
-            {/* Fade clouds into the section base colour */}
+            {/* Fade the backdrop into the section colour at its lower edge */}
             <div
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(180deg, rgba(0,0,0,0) 45%, ${theme.base} 100%)`,
+                background: `linear-gradient(180deg, rgba(0,0,0,0) 45%, ${category.heroBackdropFade ?? theme.base} 100%)`,
               }}
             />
           </div>
         )}
 
-        {/* Decorative wavy connector — spans full width, draws on scroll */}
-        <CategoryCurve
-          color={theme.onBase}
-          className="pointer-events-none absolute inset-x-0 top-[120px] z-0 aspect-[1444/372] w-full opacity-70 md:top-[150px] md:opacity-80 lg:top-[170px]"
-        />
+        {/* Decorative wavy connector — spans full width, draws on scroll.
+            The themed hero sections (ED clouds, PD dark backdrop) drop the
+            connector per the new Figma; only the plain weight-loss section
+            keeps it. */}
+        {!category.heroBackdrop && (
+          <CategoryCurve
+            color={theme.onBase}
+            className="pointer-events-none absolute inset-x-0 top-[120px] z-0 aspect-[1444/372] w-full opacity-70 md:top-[150px] md:opacity-80 lg:top-[170px]"
+          />
+        )}
 
         <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 md:px-8">
           <div className="flex flex-col items-start text-left md:items-center md:text-center">
@@ -141,6 +146,14 @@ export default function CategoryPreview({
                 quality={90}
                 sizes="(max-width: 768px) 80vw, 520px"
                 className="relative z-10 object-contain object-top"
+                style={
+                  category.heroImageScale
+                    ? {
+                        transform: `scale(${category.heroImageScale})`,
+                        transformOrigin: "top center",
+                      }
+                    : undefined
+                }
               />
 
               {/* Dual CTA — overlays the lower torso, sits above the cards.
