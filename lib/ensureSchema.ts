@@ -273,6 +273,19 @@ const STATEMENTS: string[] = [
   "CREATE INDEX IF NOT EXISTS weight_logs_customer_email_idx ON public.weight_logs USING btree (customer_email)",
   "CREATE INDEX IF NOT EXISTS weight_logs_updated_at_idx ON public.weight_logs USING btree (updated_at)",
   "CREATE INDEX IF NOT EXISTS weight_logs_created_at_idx ON public.weight_logs USING btree (created_at)",
+  // Inventory — pharmacy stock batches.
+  "CREATE TABLE IF NOT EXISTS \"inventory\" (\n  \"id\" serial,\n  \"medicine_name\" varchar NOT NULL,\n  \"batch_number\" varchar NOT NULL,\n  \"batch_quantity\" numeric NOT NULL,\n  \"expiry_date\" timestamptz NOT NULL,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+  "ALTER TABLE \"inventory\" ADD COLUMN IF NOT EXISTS \"medicine_name\" varchar",
+  "ALTER TABLE \"inventory\" ADD COLUMN IF NOT EXISTS \"batch_number\" varchar",
+  "ALTER TABLE \"inventory\" ADD COLUMN IF NOT EXISTS \"batch_quantity\" numeric",
+  "ALTER TABLE \"inventory\" ADD COLUMN IF NOT EXISTS \"expiry_date\" timestamptz",
+  "ALTER TABLE \"inventory\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"inventory\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
+  "CREATE INDEX IF NOT EXISTS inventory_medicine_name_idx ON public.inventory USING btree (medicine_name)",
+  "CREATE INDEX IF NOT EXISTS inventory_batch_number_idx ON public.inventory USING btree (batch_number)",
+  "CREATE INDEX IF NOT EXISTS inventory_created_at_idx ON public.inventory USING btree (created_at)",
+  "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"inventory_id\" integer",
+  "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_inventory_id_idx ON public.payload_locked_documents_rels USING btree (inventory_id)",
   // Seed a starter discount code (WELCOME20 → 20% off) once. Idempotent: only
   // inserts when absent, so editing/disabling it in the dashboard sticks. To
   // retire it, set it inactive in the admin rather than deleting the row.

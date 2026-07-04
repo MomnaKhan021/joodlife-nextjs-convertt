@@ -144,16 +144,10 @@ export default function SuccessClient({ orderNumber }: { orderNumber: string }) 
 
       <div className="mt-10 flex flex-col items-center gap-3 md:flex-row md:justify-center">
         <Link
-          href="/consultation"
+          href="/login?next=/profile"
           className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421] md:w-auto"
         >
-          Start consultation
-        </Link>
-        <Link
-          href="/shop"
-          className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2] md:w-auto"
-        >
-          Continue shopping
+          Go to dashboard
         </Link>
       </div>
     </section>

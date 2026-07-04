@@ -36,6 +36,12 @@ const NAV: NavItem[] = [
     icon: I("M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"),
   },
   {
+    label: "Dispensing Queue",
+    href: "/admin-tools/dispensing-queue",
+    match: (p) => p.startsWith("/admin-tools/dispensing-queue"),
+    icon: I("M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M8 14h8v6H8v-6z"),
+  },
+  {
     label: "Orders",
     href: "/admin-tools/data-browser?type=orders",
     match: (_p, t) => t === "orders",
@@ -47,6 +53,12 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=products",
     match: (p, t) => t === "products" || p.startsWith("/admin-tools/products"),
     icon: I("M20.6 13.4L13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6zM7.5 7.5h.01"),
+  },
+  {
+    label: "Inventory",
+    href: "/admin-tools/inventory",
+    match: (p) => p.startsWith("/admin-tools/inventory"),
+    icon: I("M4 7l8-4 8 4M4 7v10l8 4 8-4V7M4 7l8 4 8-4M12 11v10"),
   },
   {
     label: "Customers",

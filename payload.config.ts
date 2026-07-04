@@ -14,6 +14,7 @@ import { Media } from "./src/payload/collections/Media";
 import { Consultations } from "./src/payload/collections/Consultations";
 import { Posts } from "./src/payload/collections/Posts";
 import { WeightLogs } from "./src/payload/collections/WeightLogs";
+import { Inventory } from "./src/payload/collections/Inventory";
 import { applyDiscountEndpoint } from "./src/payload/endpoints/applyDiscount";
 
 const filename = fileURLToPath(import.meta.url);
@@ -258,7 +259,7 @@ export default buildConfig({
     // /admin is the default route for Payload 3.x with the Next.js plugin.
   },
   editor: lexicalEditor(),
-  collections: [Users, Products, Orders, Discounts, Media, Consultations, Posts, WeightLogs],
+  collections: [Users, Products, Orders, Discounts, Media, Consultations, Posts, WeightLogs, Inventory],
   endpoints: [applyDiscountEndpoint],
   secret: resolveSecret(),
   typescript: {
