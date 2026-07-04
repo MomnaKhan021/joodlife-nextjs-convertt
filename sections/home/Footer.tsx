@@ -16,12 +16,24 @@ import PaymentBadges from "@/components/footer/PaymentBadges";
  * Mobile collapses each link column into an accordion.
  */
 
-const JOOD_LINKS = ["Log in", "Treatments", "How it work", "About us", "Library", "Support"];
-const TREATMENTS = ["Mounjaro", "Wegovy", "Saxenda"];
-const POLICY = [
-  "Terms & conditions",
-  "Refund & Complaints Procedure",
-  "Cookies policy",
+type FooterLink = { label: string; href: string; external?: boolean };
+
+const JOOD_LINKS: FooterLink[] = [
+  { label: "Log in", href: "/login" },
+  { label: "Treatments", href: "/shop" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Library", href: "/blogs" },
+  { label: "Support", href: "mailto:support@joodlife.com" },
+];
+const TREATMENTS: FooterLink[] = [
+  { label: "Mounjaro", href: "/weight-loss" },
+  { label: "Wegovy", href: "/weight-loss" },
+  { label: "Saxenda", href: "/weight-loss" },
+];
+const POLICY: FooterLink[] = [
+  { label: "Terms & conditions", href: "https://joodlife.com/policies/terms-of-service", external: true },
+  { label: "Refund & Complaints Procedure", href: "https://joodlife.com/policies/refund-policy", external: true },
+  { label: "Cookies policy", href: "https://joodlife.com/policies/privacy-policy", external: true },
 ];
 
 const STORAGE_KEY = "jood:newsletter-subscribers";
@@ -63,16 +75,17 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
-function FooterLinks({ items }: { items: string[] }) {
+function FooterLinks({ items }: { items: FooterLink[] }) {
   return (
     <ul className="flex flex-col gap-3 md:gap-[14px]">
       {items.map((l) => (
-        <li key={l}>
+        <li key={l.label}>
           <a
-            href="#"
+            href={l.href}
+            {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             className="inline-block font-ui text-[15px] leading-[20px] tracking-[-0.02em] text-white/85 transition-colors duration-200 hover:text-white md:text-[16.3px]"
           >
-            {l}
+            {l.label}
           </a>
         </li>
       ))}
@@ -85,7 +98,7 @@ function AccordionColumn({
   items,
 }: {
   title: string;
-  items: string[];
+  items: FooterLink[];
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -171,17 +184,17 @@ function SocialColumn() {
           {/* py on desktop gives the hover lift + shadow room so icons
               aren't clipped by the accordion wrappers. */}
           <div className="flex items-center gap-3 pb-5 md:pb-0 md:py-1.5">
-            <SocialButton href="#" label="TikTok">
+            <SocialButton href="https://www.tiktok.com/@myjoodlife" label="TikTok">
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11.4 0H8.6v10.7c0 1.3-1 2.3-2.3 2.3a2.3 2.3 0 0 1-2.3-2.3A2.3 2.3 0 0 1 6.3 8.4V5.6A5.1 5.1 0 0 0 1.2 10.7 5.1 5.1 0 0 0 6.3 15.8a5.1 5.1 0 0 0 5.1-5.1V5.3c.9.6 2 1 3.2 1V3.5a3.6 3.6 0 0 1-3.2-3.5z" />
               </svg>
             </SocialButton>
-            <SocialButton href="#" label="Facebook">
+            <SocialButton href="https://www.facebook.com/myjoodlife/" label="Facebook">
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M16 8a8 8 0 1 0-9.25 7.9V10.3H4.72V8h2.03V6.24c0-2 1.2-3.1 3-3.1.87 0 1.78.15 1.78.15v1.96h-1c-.99 0-1.3.61-1.3 1.25V8h2.2l-.35 2.3H9.23v5.6A8 8 0 0 0 16 8z" />
               </svg>
             </SocialButton>
-            <SocialButton href="#" label="Instagram">
+            <SocialButton href="https://www.instagram.com/myjoodlife" label="Instagram">
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 1.4c2.13 0 2.39 0 3.23.05.78.04 1.2.17 1.49.28.37.14.64.32.92.6.28.27.46.54.6.91.11.29.24.71.28 1.5.04.84.05 1.1.05 3.22 0 2.14 0 2.39-.05 3.23-.04.78-.17 1.2-.28 1.49-.14.37-.32.64-.6.92a2.48 2.48 0 0 1-.92.6c-.29.11-.71.24-1.49.28-.84.04-1.1.05-3.23.05-2.14 0-2.39 0-3.23-.05-.78-.04-1.2-.17-1.49-.28-.37-.14-.64-.32-.92-.6a2.48 2.48 0 0 1-.6-.92c-.11-.29-.24-.71-.28-1.49C1.4 10.4 1.4 10.13 1.4 8c0-2.14 0-2.39.05-3.23.04-.78.17-1.2.28-1.49.14-.37.32-.64.6-.92.27-.28.54-.46.91-.6.29-.11.71-.24 1.5-.28C5.6 1.4 5.86 1.4 8 1.4M8 0C5.83 0 5.55 0 4.7.05c-.85.04-1.43.17-1.94.37-.53.2-.97.48-1.42.92-.44.45-.72.9-.92 1.42-.2.51-.33 1.09-.37 1.94C0 5.55 0 5.83 0 8c0 2.17 0 2.45.05 3.3.04.85.17 1.43.37 1.94.2.53.48.97.92 1.42.45.44.9.72 1.42.92.51.2 1.09.33 1.94.37C5.55 16 5.83 16 8 16c2.17 0 2.45 0 3.3-.05.85-.04 1.43-.17 1.94-.37.53-.2.97-.48 1.42-.92.44-.45.72-.9.92-1.42.2-.51.33-1.09.37-1.94.05-.85.05-1.13.05-3.3 0-2.17 0-2.45-.05-3.3-.04-.85-.17-1.43-.37-1.94a3.88 3.88 0 0 0-.92-1.42 3.88 3.88 0 0 0-1.42-.92c-.51-.2-1.09-.33-1.94-.37C10.45 0 10.17 0 8 0zM8 3.9a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2zm0 6.77a2.67 2.67 0 1 1 0-5.34 2.67 2.67 0 0 1 0 5.34zm5.22-6.93a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z" />
               </svg>
@@ -251,10 +264,10 @@ export default function Footer() {
                     Phone
                   </span>
                   <a
-                    href="tel:01494424435"
+                    href="tel:07756099075"
                     className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80 transition-colors duration-200 hover:text-[#142e2a]"
                   >
-                    01494 424435
+                    07756 099075
                   </a>
                 </div>
               </div>
@@ -265,22 +278,11 @@ export default function Footer() {
                     Email
                   </span>
                   <a
-                    href="mailto:Joodlife@info.com"
+                    href="mailto:support@joodlife.com"
                     className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80 transition-colors duration-200 hover:text-[#142e2a]"
                   >
-                    Joodlife@info.com
+                    support@joodlife.com
                   </a>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <Image src="/assets/figma/icon-chat.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
-                <div className="flex flex-col">
-                  <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
-                    Address
-                  </span>
-                  <span className="font-ui text-[14px] leading-[20px] text-[#142e2a]/80">
-                    8 Devonshire Pl, London W1G 6HP
-                  </span>
                 </div>
               </div>
             </div>
