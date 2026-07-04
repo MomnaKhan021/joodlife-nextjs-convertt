@@ -231,10 +231,9 @@ export async function GET(req: NextRequest) {
          ORDER BY
            CASE
              WHEN answers->>'_review_decision' IS NULL AND
-                  (answers->>'reorder_side_effect_severity' IN ('Severe','Moderate')
-                   OR answers->>'reorder_pregnancy_flag' = 'Yes'
-                   OR answers->>'reorder_new_clinical_event' = 'Yes'
-                   OR answers->>'reorder_progress' = 'Not well')
+                  (answers->>'reorder_side_effect_severity' = 'Severe'
+                   OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
+                   OR answers->>'reorder_new_clinical_event' = 'Yes')
              THEN 0
              ELSE 1
            END,
@@ -258,10 +257,21 @@ export async function GET(req: NextRequest) {
       const flags: string[] = [];
       const sev = String(answers.reorder_side_effect_severity ?? "");
       if (sev === "Severe") flags.push("Severe side effects");
-      if (sev === "Moderate") flags.push("Moderate side effects");
-      if (answers.reorder_pregnancy_flag === "Yes") flags.push("Pregnant / breastfeeding");
-      if (answers.reorder_new_clinical_event === "Yes") flags.push("New clinical event");
-      if (answers.reorder_progress === "Not well") flags.push("Treatment not going well");
+      const SERIOUS = new Set([
+        "Severe stomach pain",
+        "Pain under the ribs or yellow skin/eyes",
+        "Severe dehydration",
+        "Rash, swelling or difficulty breathing",
+        "New or worsening low mood",
+        "Something else that feels serious",
+      ]);
+      const se = answers.reorder_side_effects;
+      if (Array.isArray(se) && se.some((s) => SERIOUS.has(String(s))))
+        flags.push("Serious symptom reported");
+      const preg = String(answers.reorder_pregnancy_flag ?? "");
+      if (["Pregnant", "Trying for a baby", "Breastfeeding"].includes(preg))
+        flags.push("Pregnancy / breastfeeding");
+      if (answers.reorder_new_clinical_event === "Yes") flags.push("Something changed since last order");
 
       const isReorder = String(r.product_slug ?? "") === "reorder";
       const reviewed = answers._review_decision != null;

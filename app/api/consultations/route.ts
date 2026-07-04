@@ -28,14 +28,15 @@ import { headers as nextHeaders } from "next/headers";
 import { getPayloadInstance } from "@/lib/payload";
 import { addNoteToContact, createDeal, fireHubSpot, mapConsultationStageId, upsertContact, PATIENT_LIFECYCLE_STAGES } from "@/lib/hubspot";
 
-// Severe symptoms that auto-flag a reorder for clinical review (DEV-02).
+// Serious symptoms that auto-flag a reorder for High Priority Pharmacist
+// Review (matches REORDER_SERIOUS_SIDE_EFFECTS in flow-reorder.ts).
 const SEVERE_REORDER_SYMPTOMS = new Set([
-  "Severe stomach (abdominal) pain, especially if it spreads to your back",
-  "Severe pain in the upper-right tummy, yellowing of the skin or eyes, or fever",
-  "Persistent vomiting or diarrhoea, or feeling very dehydrated",
-  "Signs of an allergic reaction — rash, swelling of the face/lips/throat, or difficulty breathing",
-  "New or worsening low mood, or any thoughts of harming yourself",
-  "Any other symptom you would describe as severe",
+  "Severe stomach pain",
+  "Pain under the ribs or yellow skin/eyes",
+  "Severe dehydration",
+  "Rash, swelling or difficulty breathing",
+  "New or worsening low mood",
+  "Something else that feels serious",
 ]);
 
 /**
@@ -46,25 +47,24 @@ function getReorderRedFlags(answers: Record<string, unknown>): string[] {
   const flags: string[] = [];
 
   const severity = String(answers.reorder_side_effect_severity ?? "");
-  if (severity === "Severe")   flags.push("⚠️ Side effect severity reported as SEVERE");
-  if (severity === "Moderate") flags.push("⚠️ Side effect severity reported as MODERATE");
+  if (severity === "Severe") flags.push("⚠️ Side effect severity reported as SEVERE");
 
   const sideEffects = answers.reorder_side_effects;
   if (Array.isArray(sideEffects)) {
     const severe = sideEffects.filter((s) => SEVERE_REORDER_SYMPTOMS.has(String(s)));
-    for (const s of severe) flags.push(`⚠️ Severe symptom: ${s}`);
+    for (const s of severe) flags.push(`⚠️ Serious symptom: ${s}`);
   }
 
-  if (answers.reorder_pregnancy_flag === "Yes")
-    flags.push("⚠️ Patient is pregnant, trying to conceive, or breastfeeding");
+  // Pregnancy is a hard stop under the PGDs — any of the first three
+  // pregnancy answers blocks supply pending pharmacist review.
+  const pregnancy = String(answers.reorder_pregnancy_flag ?? "");
+  if (["Pregnant", "Trying for a baby", "Breastfeeding"].includes(pregnancy))
+    flags.push(`⚠️ Patient is ${pregnancy.toLowerCase()} — supply blocked pending review`);
 
   if (answers.reorder_new_clinical_event === "Yes") {
     const detail = String(answers.reorder_new_clinical_event_details ?? "").trim();
-    flags.push(`⚠️ New clinical event since last order${detail ? `: ${detail}` : ""}`);
+    flags.push(`⚠️ Something changed since last order${detail ? `: ${detail}` : ""}`);
   }
-
-  if (answers.reorder_progress === "Not well")
-    flags.push("⚠️ Patient reports treatment is NOT going well");
 
   return flags;
 }
@@ -95,6 +95,18 @@ function buildNoteBody(opts: {
     })
     .join("<br/>");
 
+  const wantsCallback = String(answers.reorder_callback_request ?? "").startsWith("Yes");
+  const callbackBanner = wantsCallback
+    ? `<div style="background:#e7efe0;border:2px solid #2f5d2a;padding:10px 14px;border-radius:6px;margin-bottom:12px">
+        <p style="margin:0;font-size:14px;font-weight:700;color:#2f5d2a">
+          📞 CLINICIAN CALLBACK REQUESTED
+        </p>
+        <p style="margin:6px 0 0;font-size:13px;color:#333">
+          The patient asked for a clinician to call them. Please add to the callback list.
+        </p>
+      </div>`
+    : "";
+
   const alertBanner = redFlags.length > 0
     ? `<div style="background:#fff3cd;border:2px solid #e65100;padding:12px 16px;border-radius:6px;margin-bottom:12px">
         <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#b71c1c">
@@ -112,6 +124,7 @@ function buildNoteBody(opts: {
 
   return (
     alertBanner +
+    callbackBanner +
     `<p><b>JoodLife reorder questionnaire submitted</b><br/>` +
     `Reference: #${ref ?? "?"} · Product: ${productSlug ?? "—"} · Dose: ${dose ?? "—"}</p>` +
     `<hr/><p>${answerLines}</p>`

@@ -92,9 +92,11 @@ const LABELS: Record<string, string> = {
   reorder_has_side_effects: "Has side effects",
   reorder_side_effects: "Side effects reported",
   reorder_side_effect_severity: "Side-effect severity",
-  reorder_new_clinical_event: "New clinical event",
-  reorder_new_clinical_event_details: "New event details",
-  reorder_pregnancy_flag: "Pregnant / breastfeeding",
+  reorder_new_clinical_event: "Anything changed since last order",
+  reorder_new_clinical_event_details: "What changed",
+  reorder_pregnancy_flag: "Pregnancy status",
+  reorder_four_weeks_complete: "4+ weeks on current dose",
+  reorder_callback_request: "Clinician callback requested",
   prescription_evidence_upload: "Prescription evidence",
   // Patient
   which_ethnicity_are_you: "Ethnicity",
@@ -298,6 +300,7 @@ const SECTION_KEYS = new Set<string>([
   "intended_medicine_v2", "requested_dose", "current_glp_1_use_status",
   "current_dose", "last_injection_date", "missed_more_than_2_doses",
   "most_recent_injection_used_v2", "switching_intention", "reorder_dose_choice",
+  "reorder_four_weeks_complete",
   // safety
   "safety_flags", "comorbidities", "wegovy_72_current_symptoms_v2",
   "reorder_has_side_effects", "reorder_side_effects",
@@ -318,6 +321,7 @@ const SECTION_KEYS = new Set<string>([
   "motivation", "why_joodlife",
   // reorder progress
   "reorder_progress", "reorder_progress_note", "reorder_pharmacist_question",
+  "reorder_callback_request",
 ]);
 
 function PatientDetails({ c }: { c: Consultation }) {
@@ -340,6 +344,7 @@ function PatientDetails({ c }: { c: Consultation }) {
     { label: "Missed 2+ doses in a row", value: a.missed_more_than_2_doses },
     { label: "Most recent injection", value: a.most_recent_injection_used_v2 },
     { label: "Switching intention", value: a.switching_intention },
+    { label: "4+ weeks on current dose", value: a.reorder_four_weeks_complete },
   ];
 
   const safetyItems: Item[] = [
@@ -347,9 +352,9 @@ function PatientDetails({ c }: { c: Consultation }) {
     { label: "Current symptoms", value: a.wegovy_72_current_symptoms_v2 },
     { label: "Side effects", value: a.reorder_side_effects },
     { label: "Side-effect severity", value: a.reorder_side_effect_severity },
-    { label: "New clinical event", value: a.reorder_new_clinical_event },
-    { label: "New event details", value: a.reorder_new_clinical_event_details },
-    { label: "Pregnancy / breastfeeding", value: a.reorder_pregnancy_flag },
+    { label: "Anything changed since last order", value: a.reorder_new_clinical_event },
+    { label: "What changed", value: a.reorder_new_clinical_event_details },
+    { label: "Pregnancy status", value: a.reorder_pregnancy_flag },
     { label: "Prescription evidence", value: a.prescription_evidence_upload },
     ...(c.redFlags.length ? [{ label: "Red flags", value: c.redFlags }] : []),
   ];
@@ -378,6 +383,7 @@ function PatientDetails({ c }: { c: Consultation }) {
       label: "Lifestyle commitment",
       value: a.willing_to_follow_reduced_calorie_diet_and_increase_physical_activity,
     },
+    { label: "Clinician callback requested", value: a.reorder_callback_request },
   ];
 
   const goalItems: Item[] = [
