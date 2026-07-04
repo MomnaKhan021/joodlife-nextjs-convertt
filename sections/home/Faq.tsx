@@ -34,7 +34,7 @@ export default function Faq() {
     <section
       id="faq"
       aria-label="FAQ"
-      className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full scroll-mt-28 bg-white py-12 md:py-14 lg:py-[56px]"
     >
       <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-8 px-6 md:gap-10 md:px-10 lg:px-[60px]">
         <Reveal as="div">

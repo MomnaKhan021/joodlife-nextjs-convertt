@@ -16,7 +16,7 @@ export default function CtaBanner({ isReturningPatient }: { isReturningPatient?:
   return (
     <section
       aria-label="Call to action"
-      className="w-full bg-white pb-6 pt-14 md:pb-8 md:pt-16 lg:pb-10 lg:pt-[80px]"
+      className="w-full bg-white pb-6 pt-12 md:pb-8 md:pt-14 lg:pb-10 lg:pt-[56px]"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal

@@ -66,7 +66,7 @@ export default async function Blog() {
   return (
     <section
       aria-label="Recent blog posts"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full bg-white py-12 md:py-14 lg:py-[56px]"
     >
       <BlogCarousel posts={posts} />
     </section>
