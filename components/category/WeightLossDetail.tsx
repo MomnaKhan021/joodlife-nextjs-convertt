@@ -131,7 +131,7 @@ function WegovyIntroCard() {
 
           <div className="mt-7">
             <Link
-              href="/weight-loss#assessment"
+              href="/wegovy-pills"
               className="btn-cta inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white hover:bg-white/15"
             >
               How Wegovy® works
