@@ -115,8 +115,16 @@ export function buildLabelsDocument(labels: LabelData[]): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Dispensing label</title>
 <style>
   @page { size: 72mm 36mm; margin: 0; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: #fff; }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  html, body {
+    margin: 0; padding: 0; background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .label {
     position: relative;
     width: 72mm; height: 36mm;
