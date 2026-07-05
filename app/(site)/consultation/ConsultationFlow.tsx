@@ -249,7 +249,13 @@ export default function ConsultationFlow({
       <SuccessScreen
         productSlug={productSlug}
         consultationId={consultationId}
-        onShop={() => router.push("/final-product-page")}
+        onShop={() =>
+          router.push(
+            productSlug
+              ? `/final-product-page?category=${encodeURIComponent(productSlug)}`
+              : "/final-product-page",
+          )
+        }
       />
     );
   }

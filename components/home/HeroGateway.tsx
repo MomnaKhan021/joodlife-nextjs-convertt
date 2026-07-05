@@ -95,9 +95,9 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
           <br />
           Tailored to You.
         </h1>
-        <p className="font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
-          Personalised weight-loss plans from UK clinicians—the latest
-          injections and tablets, fully supported throughout.
+        <p className="max-w-[42ch] font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
+          Personalised weight-loss plans from UK clinicians—injections
+          and tablets, fully supported.
         </p>
         <ul className="flex flex-col gap-2.5">
           <CheckBullet>Personalised treatment plans</CheckBullet>
@@ -173,11 +173,19 @@ function SecondaryCard({ category }: { category: Category }) {
 
 export default function HeroGateway({ isReturningPatient }: { isReturningPatient?: boolean }) {
   return (
-    <section aria-label="Explore our treatments" className="w-full bg-white">
+    <section
+      aria-label="Explore our treatments"
+      className="w-full overflow-x-hidden bg-white"
+    >
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[857fr_447fr]">
-          <PrimaryCard category={CATEGORIES["weight-loss"]} isReturningPatient={isReturningPatient} />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
+          <div className="min-w-0">
+            <PrimaryCard
+              category={CATEGORIES["weight-loss"]}
+              isReturningPatient={isReturningPatient}
+            />
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <SecondaryCard category={CATEGORIES["erectile-dysfunction"]} />
             <SecondaryCard category={CATEGORIES["period-delay"]} />
           </div>
