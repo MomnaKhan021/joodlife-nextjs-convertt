@@ -811,6 +811,69 @@ export type HubSpotDealRecord = {
 };
 
 /**
+ * Orders synced from Shopify (via the Checkify integration) don't use our
+ * `jood_shipping_address` property — they store the delivery address in their
+ * own deal property (e.g. "Shipping/billing address"). We can't hardcode that
+ * internal name safely (requesting a non-existent property 400s the whole
+ * fetch), so discover the deal's address-type property names at runtime and
+ * cache them. Returns internal names to add to the requested property list.
+ */
+let _cachedDealAddressProps: string[] | null = null;
+
+async function discoverDealAddressProps(): Promise<string[]> {
+  if (_cachedDealAddressProps) return _cachedDealAddressProps;
+  const res = await hsFetch<{ results: Array<{ name: string }> }>(
+    `/crm/v3/properties/deals`,
+    { method: "GET" },
+  );
+  if (!res.ok) {
+    // Don't cache a failure — allow a later retry.
+    return [];
+  }
+  const re = /(ship|shipping|delivery|billing).*address|address.*(ship|delivery|billing)|^address$|_address$/i;
+  const names = (res.data.results ?? [])
+    .map((p) => p.name)
+    .filter((n) => re.test(n) && n !== "jood_shipping_address");
+  _cachedDealAddressProps = names;
+  return names;
+}
+
+/**
+ * Picks the best delivery address from a deal's properties. Prefers our own
+ * `jood_shipping_address`, then falls back to any address-type property the
+ * integration populated (Shopify/Checkify orders), ranked shipping > delivery
+ * > billing/other. Returns "" when no address exists.
+ */
+export function pickDealShippingAddress(
+  props: Record<string, string | undefined>,
+): string {
+  const direct = (props.jood_shipping_address ?? "").trim();
+  if (direct) return direct;
+
+  const rank = (k: string): number => {
+    const l = k.toLowerCase();
+    if (/shipping.*address|shipping_billing|ship_to|ship.*address/.test(l)) return 3;
+    if (/delivery.*address/.test(l)) return 2;
+    if (/billing.*address|_address$|^address$/.test(l)) return 1;
+    return 0;
+  };
+
+  let best = "";
+  let bestRank = 0;
+  for (const key of Object.keys(props)) {
+    const r = rank(key);
+    if (r > bestRank) {
+      const v = (props[key] ?? "").trim();
+      if (v) {
+        best = v;
+        bestRank = r;
+      }
+    }
+  }
+  return best;
+}
+
+/**
  * Paginated list of deals with their `jood_*` order properties +
  * the email of the first associated contact (used as the customer
  * email fallback when the deal lacks `jood_customer_email`).
@@ -824,9 +887,10 @@ export async function listDeals(
     nextAfter: string | null;
   }>
 > {
+  const extraAddressProps = await discoverDealAddressProps();
   const params = new URLSearchParams({
     limit: String(limit),
-    properties: DEAL_PROPERTIES.join(","),
+    properties: [...DEAL_PROPERTIES, ...extraAddressProps].join(","),
     associations: "contacts",
   });
   if (after) params.set("after", after);

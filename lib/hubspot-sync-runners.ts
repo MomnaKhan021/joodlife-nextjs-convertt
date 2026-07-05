@@ -4,6 +4,7 @@ import crypto from "crypto";
 
 import {
   getContactById,
+  pickDealShippingAddress,
   type HubSpotConsultationRecord,
   type HubSpotDealRecord,
 } from "@/lib/hubspot";
@@ -278,12 +279,12 @@ export async function runDealsPage(
 
       if (!customerEmail && d.contactEmail) customerEmail = d.contactEmail.trim();
 
-      // The delivery address usually lives on the deal (jood_shipping_address).
-      // Orders synced from Shopify, though, carry the address on the contact's
-      // standard fields instead — so pull the contact when the deal lacks an
-      // address (or name/phone) and compose the delivery address from it.
+      // The delivery address may live on our jood_shipping_address property or
+      // on an integration property (Shopify/Checkify "Shipping/billing
+      // address"). pickDealShippingAddress finds whichever is populated. If the
+      // deal has none, fall back to the contact's standard address fields.
       let contactAddress = "";
-      const dealAddress = (p.jood_shipping_address ?? "").trim();
+      const dealAddress = pickDealShippingAddress(p).trim();
       if ((!customerName || !customerPhone || !dealAddress) && d.contactId) {
         const c = await getContactById(d.contactId);
         if (c.ok && c.data) {
