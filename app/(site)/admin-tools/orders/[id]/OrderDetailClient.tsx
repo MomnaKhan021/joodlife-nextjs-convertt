@@ -306,11 +306,14 @@ export default function OrderDetailClient({ id }: { id: string }) {
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to generate DPD label");
 
-      // Open the PDF label in a new tab for printing
-      const pdfBytes = Uint8Array.from(atob(j.labelBase64), (c) => c.charCodeAt(0));
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
+      // Open the HTML label (DPD Local returns HTML for A4) in a new tab and print
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.write(j.labelHtml);
+        win.document.close();
+        win.focus();
+        win.print();
+      }
 
       setDpdTracking(j.trackingNumber);
       // Reflect the status change (route sets it to 'shipped')

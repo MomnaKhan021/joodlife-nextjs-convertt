@@ -22,7 +22,9 @@
  *   DPD_NETWORK_CODE        — service code     (defaults to "1^12" = Next Day)
  *   DPD_PARCEL_WEIGHT_KG    — default parcel weight in kg (defaults to "0.5")
  *
- * DPD UK REST API base: https://api.dpd.co.uk
+ *   DPD_API_BASE            — API host (defaults to "https://api.dpdlocal.co.uk")
+ *
+ * DPD Local REST API base: https://api.dpdlocal.co.uk
  */
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -121,7 +123,7 @@ function parseShippingAddress(raw: string): ParsedAddress {
 /* ------------------------------------------------------------------ */
 /* DPD REST API helpers                                                */
 /* ------------------------------------------------------------------ */
-const DPD_BASE = "https://api.dpd.co.uk";
+const DPD_BASE = process.env.DPD_API_BASE ?? "https://api.dpdlocal.co.uk";
 
 type DpdAuthResponse = {
   data?: {
@@ -134,12 +136,9 @@ type DpdAuthResponse = {
 type DpdShipmentResponse = {
   data?: {
     shipmentId?: number;
-    consignment?: Array<{
-      parcel?: Array<{
-        parcelId?: number;
-        parcelNumber?: string;
-        parcelNumberHumanReadable?: string;
-      }>;
+    consignmentDetail?: Array<{
+      consignmentNumber?: string;
+      parcelNumbers?: string[];
     }>;
   };
   error?: { errorMessage?: string };
@@ -151,10 +150,11 @@ async function dpdAuth(): Promise<{ session: string; account: string }> {
   if (!user || !pass) throw new Error("DPD_API_USER / DPD_API_PASS environment variables not set");
 
   const credentials = Buffer.from(`${user}:${pass}`).toString("base64");
-  const res = await fetch(`${DPD_BASE}/user/`, {
+  const res = await fetch(`${DPD_BASE}/user/?action=login`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${credentials}`,
+      "Content-Type": "application/json",
       Accept: "application/json",
     },
   });
@@ -247,8 +247,8 @@ async function dpdCreateShipment(opts: {
   const res = await fetch(`${DPD_BASE}/shipping/shipment`, {
     method: "POST",
     headers: {
-      Authorization: opts.session,
       GeoClient: `account/${opts.account}`,
+      GeoSession: opts.session,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
@@ -266,9 +266,9 @@ async function dpdCreateShipment(opts: {
   const shipmentId = json?.data?.shipmentId;
   if (!shipmentId) throw new Error("DPD: no shipmentId in response");
 
-  const parcel = json?.data?.consignment?.[0]?.parcel?.[0];
+  const detail = json?.data?.consignmentDetail?.[0];
   const trackingNumber =
-    parcel?.parcelNumberHumanReadable ?? parcel?.parcelNumber ?? String(shipmentId);
+    detail?.parcelNumbers?.[0] ?? detail?.consignmentNumber ?? String(shipmentId);
 
   return { shipmentId, trackingNumber };
 }
@@ -278,15 +278,16 @@ async function dpdGetLabel(opts: {
   account: string;
   shipmentId: number;
 }): Promise<string> {
-  // Returns label as base64-encoded PDF string
+  // DPD Local returns the label as HTML (for A4 laser). CLP/EPL are the only
+  // other options; there is no PDF endpoint in the DPD Local spec.
   const res = await fetch(
-    `${DPD_BASE}/shipping/shipment/${opts.shipmentId}/label/?paperSize=PDF`,
+    `${DPD_BASE}/shipping/shipment/${opts.shipmentId}/label/`,
     {
       method: "GET",
       headers: {
-        Authorization: opts.session,
         GeoClient: `account/${opts.account}`,
-        Accept: "application/pdf",
+        GeoSession: opts.session,
+        Accept: "text/html",
       },
     },
   );
@@ -296,8 +297,7 @@ async function dpdGetLabel(opts: {
     throw new Error(`DPD get label failed (HTTP ${res.status}): ${text.slice(0, 200)}`);
   }
 
-  const buffer = await res.arrayBuffer();
-  return Buffer.from(buffer).toString("base64");
+  return res.text();
 }
 
 /* ------------------------------------------------------------------ */
@@ -351,7 +351,7 @@ export async function POST(req: NextRequest) {
   const address = parseShippingAddress(order.shipping_address);
 
   /* 5. Call DPD API */
-  let labelBase64: string;
+  let labelHtml: string;
   let trackingNumber: string;
   let shipmentId: number;
 
@@ -373,8 +373,8 @@ export async function POST(req: NextRequest) {
     shipmentId = result.shipmentId;
     trackingNumber = result.trackingNumber;
 
-    /* 5c. Fetch label PDF */
-    labelBase64 = await dpdGetLabel({ session, account, shipmentId });
+    /* 5c. Fetch label HTML */
+    labelHtml = await dpdGetLabel({ session, account, shipmentId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[dpd-label]", msg);
@@ -403,7 +403,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    labelBase64,
+    labelHtml,
     trackingNumber,
     shipmentId,
   });
