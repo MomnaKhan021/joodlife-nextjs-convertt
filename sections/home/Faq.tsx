@@ -104,7 +104,7 @@ export default function Faq() {
 
         <a
           href="/consultation"
-          className="inline-flex h-[50px] cursor-pointer items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+          className="btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white hover:bg-[#0c2421]"
         >
           Get started
         </a>

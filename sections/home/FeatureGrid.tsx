@@ -71,13 +71,13 @@ export default function FeatureGrid() {
             <div className="mt-7 flex flex-wrap gap-4">
               <Link
                 href="/shop"
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-white/40 bg-white/5 px-7 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-white/15"
+                className="btn-cta inline-flex h-12 items-center justify-center rounded-lg border border-white/40 bg-white/5 px-7 font-ui text-[14px] font-semibold text-white hover:bg-white/15"
               >
                 Start Your Journey
               </Link>
               <Link
                 href="/wegovy-pills"
-                className="inline-flex h-12 items-center justify-center rounded-lg bg-[#dff49f] px-7 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors duration-200 hover:bg-[#cbe886]"
+                className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#dff49f] px-7 font-ui text-[14px] font-semibold text-[#142e2a] hover:bg-[#cbe886]"
               >
                 Discover Wegovy® Tablets
               </Link>

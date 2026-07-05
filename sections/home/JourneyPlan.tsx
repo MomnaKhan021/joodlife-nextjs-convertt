@@ -249,7 +249,7 @@ function TransformationCard() {
       {/* CTA — translucent button matching Figma's GET PERSONALIZED PLAN */}
       <a
         href="#get-personalized"
-        className="mx-auto mt-2 inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md transition-colors duration-200 hover:bg-black/35"
+        className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
       >
         Get personalized plan
       </a>
@@ -363,7 +363,7 @@ function ExpertGuidanceCard() {
 
       <a
         href="/consultation"
-        className="mx-auto mt-2 inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md transition-colors duration-200 hover:bg-black/35"
+        className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
       >
         Get started
       </a>

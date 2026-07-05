@@ -104,6 +104,33 @@ body:has([data-page-bg="admin"]) { background: #f1f1f1; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Buttons: one consistent feel across the whole site ──────────────────
+   Tailwind v4 preflight no longer forces a pointer cursor on <button>, so
+   declare it once here — every interactive control shows a pointer. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href] {
+  cursor: pointer;
+}
+
+/* `.btn-cta` — the single shared hover animation used by every call-to-action
+   button/link so they all behave identically: a small lift, a soft shadow and
+   a subtle brightness lift. Respects prefers-reduced-motion (handled above). */
+.btn-cta {
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease,
+    filter 200ms ease, background-color 200ms ease;
+}
+.btn-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -6px rgba(20, 46, 42, 0.35);
+  filter: brightness(1.05);
+}
+.btn-cta:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
 /* Reviews hover — no transform so the card never visually shifts.
    Border colour, background and a soft shadow change instead. The
    parent uses overflow-y-visible + py padding so the shadow draws

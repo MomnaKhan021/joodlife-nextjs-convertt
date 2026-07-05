@@ -260,7 +260,7 @@ export default function BmiCalculator() {
 
               <button
                 type="button"
-                className="mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors hover:bg-[#0c2421]"
+                className="btn-cta mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white hover:bg-[#0c2421]"
               >
                 Calculate BMI
               </button>

@@ -71,7 +71,7 @@ export default function EdDetail() {
         </div>
         <Link
           href="/consultation?product=erectile-dysfunction"
-          className="inline-flex h-12 items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-[#08222f] md:justify-self-end"
+          className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white hover:bg-[#08222f] md:justify-self-end"
         >
           Get Started
         </Link>

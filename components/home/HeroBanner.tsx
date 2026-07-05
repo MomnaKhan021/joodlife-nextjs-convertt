@@ -121,13 +121,13 @@ export default function HeroBanner() {
                 {/* Figma: primary 200×50, secondary 279×50 */}
                 <a
                   href="/consultation"
-                  className="inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+                  className="btn-cta inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
                 >
                   Get started
                 </a>
                 <a
                   href="#eligibility"
-                  className="inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white transition-colors duration-200 hover:bg-white/10"
+                  className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
                 >
                   See if you are eligible
                 </a>
@@ -182,7 +182,7 @@ export default function HeroBanner() {
 
             <a
               href="/consultation"
-              className="mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#d3dabe]"
+              className="btn-cta mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
             >
               Get started
             </a>

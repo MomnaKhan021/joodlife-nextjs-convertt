@@ -95,10 +95,9 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
           <br />
           Tailored to You.
         </h1>
-        <p className="font-ui text-[15px] leading-snug text-[#d3dabe] md:text-[16px]">
-          Personalised treatment plans from UK clinicians, with access to the
-          latest prescription weight-loss injections and tablets—all supported
-          throughout your journey.
+        <p className="font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
+          Personalised weight-loss plans from UK clinicians—the latest
+          injections and tablets, fully supported throughout.
         </p>
         <ul className="flex flex-col gap-2.5">
           <CheckBullet>Personalised treatment plans</CheckBullet>
@@ -108,7 +107,7 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
         <div className="mt-2">
           <Link
             href={isReturningPatient ? "/reorder" : category.href}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm transition-transform duration-200 hover:-translate-y-0.5"
+            className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm"
           >
             {isReturningPatient ? "Reorder" : "Check Your Eligibility"}
           </Link>
@@ -163,7 +162,7 @@ function SecondaryCard({ category }: { category: Category }) {
         <Link
           href={category.href}
           aria-label={`${category.eyebrow}: ${title} — get started`}
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white transition-colors duration-200 hover:bg-[#0c2421]"
+          className="btn-cta inline-flex h-10 items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white hover:bg-[#0c2421]"
         >
           Get Started
         </Link>

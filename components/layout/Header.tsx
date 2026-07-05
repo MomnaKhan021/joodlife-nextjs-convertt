@@ -307,7 +307,7 @@ export default function Header() {
                 <Link
                   href="/consultation"
                   onClick={closeMobile}
-                  className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-base font-bold text-white transition-colors hover:bg-[#142e2a]/90"
+                  className="btn-cta inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-base font-bold text-white hover:bg-[#142e2a]/90"
                 >
                   Get started
                 </Link>
@@ -358,7 +358,7 @@ export default function Header() {
               <Link
                 href="/shop"
                 onClick={closeMobile}
-                className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[15px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+                className="btn-cta mt-auto inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
               >
                 Explore Treatment
               </Link>

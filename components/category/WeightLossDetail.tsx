@@ -56,7 +56,7 @@ function GhostButton({ href, children }: { href: string; children: React.ReactNo
   return (
     <Link
       href={href}
-      className="inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white transition-colors duration-200 hover:bg-white/15"
+      className="btn-cta inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white hover:bg-white/15"
     >
       {children}
     </Link>
@@ -132,7 +132,7 @@ function WegovyIntroCard() {
           <div className="mt-7">
             <Link
               href="/weight-loss#assessment"
-              className="inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white transition-colors duration-200 hover:bg-white/15"
+              className="btn-cta inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white hover:bg-white/15"
             >
               How Wegovy® works
             </Link>

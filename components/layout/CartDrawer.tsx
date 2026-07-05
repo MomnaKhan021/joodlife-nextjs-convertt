@@ -113,7 +113,7 @@ export default function CartDrawer() {
             <Link
               href="/shop"
               onClick={closeDrawer}
-              className="inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421]"
+              className="btn-cta inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white hover:bg-[#0c2421]"
             >
               Browse shop
             </Link>
@@ -221,14 +221,14 @@ export default function CartDrawer() {
             <Link
               href="/checkout"
               onClick={closeDrawer}
-              className="mt-3 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421]"
+              className="btn-cta mt-3 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white hover:bg-[#0c2421]"
             >
               Checkout
             </Link>
             <Link
               href="/consultation"
               onClick={closeDrawer}
-              className="mt-2 inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-6 font-ui text-[12px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
+              className="btn-cta mt-2 inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-6 font-ui text-[12px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] hover:bg-[#f7f9f2]"
             >
               Start consultation
             </Link>
