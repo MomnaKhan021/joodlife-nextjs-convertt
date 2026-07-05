@@ -77,6 +77,33 @@ type ParsedAddress = {
   countryCode: string;
 };
 
+/**
+ * Returns the raw address string to ship to. Prefers the order's
+ * shipping_address; if that is empty, extracts the "Billing/contact address"
+ * block that checkout stores in notes so we still dispatch to the address the
+ * customer provided. Returns null only when no usable address exists anywhere.
+ */
+function resolveDeliveryAddress(
+  shippingAddress: string | null,
+  notes: string | null,
+): string | null {
+  const primary = (shippingAddress ?? "").trim();
+  if (primary && primary !== "—") return primary;
+
+  const raw = (notes ?? "").trim();
+  if (!raw) return null;
+  // notes format: "Billing/contact address:\n<line1>\n<line2>\n..."
+  const marker = raw.toLowerCase().indexOf("address:");
+  const block = marker >= 0 ? raw.slice(marker + "address:".length) : raw;
+  const cleaned = block
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.toLowerCase().startsWith("dpd tracking"))
+    .join("\n")
+    .trim();
+  return cleaned || null;
+}
+
 function parseShippingAddress(raw: string): ParsedAddress {
   // Split on comma or newline; trim each part
   const parts = raw
@@ -341,14 +368,20 @@ export async function POST(req: NextRequest) {
   }
   const order = orderRows[0];
 
-  /* 4. Parse the shipping address */
-  if (!order.shipping_address) {
+  /* 4. Resolve the delivery address.
+   *    The label always ships to the address the customer entered. Checkout
+   *    stores the delivery address (or the single address, when the customer
+   *    didn't add a separate one) in shipping_address. For older/edge orders
+   *    where that column is empty, fall back to the "Billing/contact address"
+   *    block kept in notes, so we still dispatch to the address on record. */
+  const shipTo = resolveDeliveryAddress(order.shipping_address, order.notes);
+  if (!shipTo) {
     return NextResponse.json(
-      { ok: false, error: "Order has no shipping address" },
+      { ok: false, error: "Order has no delivery address on record" },
       { status: 422 },
     );
   }
-  const address = parseShippingAddress(order.shipping_address);
+  const address = parseShippingAddress(shipTo);
 
   /* 5. Call DPD API */
   let labelHtml: string;
