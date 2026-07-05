@@ -54,13 +54,13 @@ function HeroCopy() {
         </span>
       </div>
 
-      <h1 className="font-display text-[36px] font-semibold leading-[39.6px] tracking-[-0.02em] text-white md:text-[80px] md:leading-[88px]">
+      <h1 className="font-display text-[30px] font-semibold leading-[1.08] tracking-[-0.02em] text-white sm:text-[36px] md:text-[44px] lg:text-[54px] lg:leading-[1.07]">
         A New Era of Weight Loss.{" "}
         <span className="font-serif italic font-normal">
-          Introducing the Wegovy® Tablet
+          Introducing the Wegovy® Tablet.
         </span>
       </h1>
-      <p className="mt-4 max-w-[500px] font-ui text-[16px] leading-[22px] text-white/85 md:text-[18.3px] md:leading-[20.77px]">
+      <p className="mt-4 max-w-[480px] font-ui text-[15px] leading-[1.5] text-white/85 sm:text-[16px] md:text-[17px] md:leading-[1.5]">
         A once-daily prescription treatment for weight loss with personalised
         clinician-led care. The same trusted active ingredient, now without
         weekly injections.
