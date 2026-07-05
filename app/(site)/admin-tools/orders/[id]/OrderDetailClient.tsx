@@ -397,6 +397,23 @@ export default function OrderDetailClient({ id }: { id: string }) {
   const paid = order.payment_status === "paid";
   const created = order.created_at;
 
+  // A DPD dispatch label can only be printed for a live, payable order that
+  // has a delivery address. Mirror the server-side guards so the button
+  // explains why it's unavailable instead of failing on click.
+  const hasAddress =
+    (!!order.shipping_address &&
+      order.shipping_address.trim() !== "" &&
+      order.shipping_address.trim() !== "—") ||
+    (!!order.notes && /address:/i.test(order.notes));
+  const dpdBlockedReason: string | null =
+    String(order.status).toLowerCase() === "cancelled"
+      ? "Order is cancelled — dispatch label unavailable."
+      : total <= 0
+        ? "Order total is £0 — dispatch label unavailable."
+        : !hasAddress
+          ? "No delivery address on record — dispatch label unavailable."
+          : null;
+
   return (
     <main className="min-h-screen bg-[#f1f1f1] pb-16 font-ui text-[#303030]">
       {toast ? (
@@ -524,7 +541,8 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 {/* DPD dispatching label */}
                 <button
                   onClick={printDpdLabel}
-                  disabled={printingDpd}
+                  disabled={printingDpd || !!dpdBlockedReason}
+                  title={dpdBlockedReason ?? undefined}
                   className="inline-flex items-center gap-1.5 rounded-[6px] border border-[#cc0000] bg-[#cc0000] px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#a80000] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {/* DPD red diamond logo mark */}
@@ -535,6 +553,11 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   {printingDpd ? "Generating…" : "Print dispatching label"}
                 </button>
               </div>
+              {dpdBlockedReason && (
+                <div className="border-t border-[#e1e3e5] px-5 py-2.5">
+                  <span className="text-[12px] text-[#8a6d00]">{dpdBlockedReason}</span>
+                </div>
+              )}
               {/* DPD tracking badge — shown after a label has been printed this session */}
               {dpdTracking && (
                 <div className="flex items-center gap-2 border-t border-[#e1e3e5] px-5 py-2.5">

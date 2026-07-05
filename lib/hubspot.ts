@@ -903,7 +903,7 @@ export async function getContactById(
   contactId: string
 ): Promise<HubSpotResult<HubSpotContact | null>> {
   const res = await hsFetch<HubSpotContact>(
-    `/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,phone`,
+    `/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,phone,address,city,state,zip,country`,
     { method: "GET" }
   );
   if (!res.ok) return res;

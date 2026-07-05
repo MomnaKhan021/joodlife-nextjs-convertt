@@ -278,20 +278,31 @@ export async function runDealsPage(
 
       if (!customerEmail && d.contactEmail) customerEmail = d.contactEmail.trim();
 
-      if ((!customerName || !customerPhone) && d.contactId) {
+      // The delivery address usually lives on the deal (jood_shipping_address).
+      // Orders synced from Shopify, though, carry the address on the contact's
+      // standard fields instead — so pull the contact when the deal lacks an
+      // address (or name/phone) and compose the delivery address from it.
+      let contactAddress = "";
+      const dealAddress = (p.jood_shipping_address ?? "").trim();
+      if ((!customerName || !customerPhone || !dealAddress) && d.contactId) {
         const c = await getContactById(d.contactId);
         if (c.ok && c.data) {
+          const cp = c.data.properties;
           if (!customerName) {
-            const fn = (c.data.properties.firstname ?? "").trim();
-            const ln = (c.data.properties.lastname ?? "").trim();
+            const fn = (cp.firstname ?? "").trim();
+            const ln = (cp.lastname ?? "").trim();
             customerName = [fn, ln].filter(Boolean).join(" ").trim();
           }
           if (!customerPhone) {
-            customerPhone = (c.data.properties.phone ?? "").trim();
+            customerPhone = (cp.phone ?? "").trim();
           }
           if (!customerEmail) {
-            customerEmail = (c.data.properties.email ?? "").trim();
+            customerEmail = (cp.email ?? "").trim();
           }
+          contactAddress = [cp.address, cp.city, cp.state, cp.zip, cp.country]
+            .map((v) => (v ?? "").trim())
+            .filter(Boolean)
+            .join("\n");
         }
       }
 
@@ -305,7 +316,7 @@ export async function runDealsPage(
       const status = mapOrderStatus(p.jood_order_status, p.dealstage);
       const paymentMethod = mapPaymentMethod(p.jood_payment_method);
       const itemsJson = parseItemsJson(p.jood_order_items);
-      const shippingAddress = p.jood_shipping_address ?? null;
+      const shippingAddress = dealAddress || contactAddress || null;
       const orderNotes = p.jood_order_notes ?? null;
 
       let userId: number | null = null;

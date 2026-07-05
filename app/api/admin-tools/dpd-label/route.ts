@@ -357,16 +357,33 @@ export async function POST(req: NextRequest) {
     shipping_address: string | null;
     notes: string | null;
     status: string | null;
+    total_amount: string | number | null;
   };
 
   const orderResult = await drizzle.execute(
-    sql.raw(`SELECT id, order_number, customer_name, customer_phone, shipping_address, notes, status FROM orders WHERE id = ${orderId} LIMIT 1`),
+    sql.raw(`SELECT id, order_number, customer_name, customer_phone, shipping_address, notes, status, total_amount FROM orders WHERE id = ${orderId} LIMIT 1`),
   );
   const orderRows = rows<OrderRow>(orderResult);
   if (!orderRows.length) {
     return NextResponse.json({ ok: false, error: "Order not found" }, { status: 404 });
   }
   const order = orderRows[0];
+
+  /* 3a. Guard order state — no label for cancelled or zero-value orders. */
+  const orderStatus = (order.status ?? "").toLowerCase();
+  if (orderStatus === "cancelled") {
+    return NextResponse.json(
+      { ok: false, error: "Order is cancelled — cannot print a dispatch label" },
+      { status: 409 },
+    );
+  }
+  const orderTotal = Number(order.total_amount ?? 0) || 0;
+  if (orderTotal <= 0) {
+    return NextResponse.json(
+      { ok: false, error: "Order total is £0 — cannot print a dispatch label" },
+      { status: 409 },
+    );
+  }
 
   /* 4. Resolve the delivery address.
    *    The label always ships to the address the customer entered. Checkout
