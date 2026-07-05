@@ -123,7 +123,7 @@ export default function Hero() {
       />
 
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-12 md:px-10 md:py-20 lg:px-[60px] lg:py-[110px]">
-        <Reveal as="div" className="max-w-[560px]">
+        <Reveal as="div" className="max-w-[660px]">
           <HeroCopy />
         </Reveal>
       </div>
