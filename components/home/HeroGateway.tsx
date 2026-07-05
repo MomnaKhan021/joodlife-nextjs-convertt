@@ -93,7 +93,7 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
         <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[42px] md:leading-[1.06]">
           Medical Weight Loss,
           <br />
-          Tailored to You.
+          <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
         <p className="max-w-[42ch] font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
           Personalised weight-loss plans from UK clinicians—injections
