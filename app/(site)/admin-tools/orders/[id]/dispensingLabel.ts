@@ -10,12 +10,10 @@
 /* ------------------------------------------------------------------ */
 
 export type LabelData = {
-  /** Product name + strength, e.g. "Mounjaro KwikPen soln for inj 5mg/0.6ml". */
+  /** Bold brand prefix, e.g. "Mounjaro" / "Wegovy". Optional. */
+  brand?: string | null;
+  /** Product line after the brand, e.g. "KwikPen solution for injection 5 mg/0.6 mL". */
   productName: string;
-  /** Pack / format line, e.g. "2.4ml p/f pen". Optional. */
-  packLine?: string | null;
-  /** Dosage instruction, e.g. "use as directed". */
-  directions: string;
   /** Patient (customer) name. */
   patientName: string;
   /** Dispensing date, already formatted (dd/MM/yyyy). */
@@ -23,10 +21,48 @@ export type LabelData = {
 };
 
 /* Static text that appears on every label. */
-const CAUTION_TEXT =
-  "READ THE ADDITIONAL INFORMATION GIVEN WITH THIS MEDICINE. DO NOT SWALLOW. STORE IN A FRIDGE";
+const INSTRUCTION_TEXT =
+  "Inject ONE dose under the skin ONCE every week, on the same day each week, as advised by your clinician.";
 const VERTICAL_TEXT = "Keep out of sight and reach of children";
 const PHARMACY_ADDRESS = "Jood Pharmacy | 7 Lime Avenue | Northwich | CW8 3DE";
+const BRAND_GREEN = "#142E2A";
+
+/**
+ * Builds the medicine name shown on the label from an order line item. The
+ * brand (Mounjaro / Wegovy) is returned separately so it can be rendered bold;
+ * the device + "solution for injection" text is static per brand, and the
+ * strength is taken from the order (dose field, or parsed from the title).
+ */
+export function composeMedicine(
+  title?: string | null,
+  dose?: string | null,
+): { brand: string; productLine: string } {
+  const raw = (title ?? "").trim();
+  const t = raw.toLowerCase();
+  const strength = extractStrength(raw, dose);
+  const suffix = strength ? ` ${strength}` : "";
+
+  if (t.includes("mounjaro")) {
+    return { brand: "Mounjaro", productLine: `KwikPen solution for injection${suffix}` };
+  }
+  if (t.includes("wegovy")) {
+    return { brand: "Wegovy", productLine: `FlexTouch solution for injection${suffix}` };
+  }
+
+  // Unknown product — show the raw title, appending the dose if it's not
+  // already part of the title.
+  const d = (dose ?? "").trim();
+  const productLine =
+    d && !t.includes(d.toLowerCase()) ? `${raw} ${d}`.trim() : raw;
+  return { brand: "", productLine: productLine || "—" };
+}
+
+function extractStrength(title: string, dose?: string | null): string {
+  const d = (dose ?? "").trim();
+  if (d) return d;
+  const m = title.match(/(\d+(?:\.\d+)?\s*mg(?:\s*\/\s*\d+(?:\.\d+)?\s*m?l)?)/i);
+  return m ? m[1].replace(/\s+/g, " ").trim() : "";
+}
 
 /* Official JOOD wordmark (brand colour #142E2A). Inlined so it needs no
  * network load. The clipPath/defs from the source export are dropped to
@@ -54,14 +90,14 @@ export function dispensingDate(d: Date = new Date()): string {
 }
 
 function labelMarkup(l: LabelData): string {
-  const pack = l.packLine ? `<div class="pname">${esc(l.packLine)}</div>` : "";
+  const brand = l.brand?.trim()
+    ? `<span class="brand">${esc(l.brand.trim())}</span> `
+    : "";
   return `<div class="label"><div class="content">
     <div class="top">
-      <div class="pname">${esc(l.productName)}</div>
-      ${pack}
-      <div class="directed">${esc(l.directions)}</div>
+      <div class="pname">${brand}${esc(l.productName)}</div>
+      <div class="instruction">${esc(INSTRUCTION_TEXT)}</div>
     </div>
-    <div class="caution">${esc(CAUTION_TEXT)}</div>
     <div class="spacer"></div>
     <div class="who">
       <span class="patient">${esc(l.patientName)}</span>
@@ -94,25 +130,25 @@ export function buildLabelsDocument(labels: LabelData[]): string {
     padding: 1.6mm 6mm 1.4mm 2.5mm;
     display: flex; flex-direction: column;
   }
-  .top { text-align: center; line-height: 1.12; }
-  .pname { font-size: 8pt; font-weight: 700; text-decoration: underline; }
-  .directed { font-size: 6.5pt; margin-top: 0.4mm; }
-  .caution {
-    text-align: center; font-size: 5pt; line-height: 1.25;
-    margin-top: 1mm; color: #1a1a1a;
+  .top { text-align: center; line-height: 1.15; }
+  .pname { font-size: 7.5pt; font-weight: 500; color: ${BRAND_GREEN}; }
+  .pname .brand { font-weight: 800; }
+  .instruction {
+    font-size: 5.6pt; line-height: 1.3; margin-top: 1.1mm;
+    color: ${BRAND_GREEN};
   }
   .spacer { flex: 1 1 auto; }
   .who {
     display: flex; justify-content: space-between; align-items: flex-end;
-    border-bottom: 0.3mm solid #000; padding-bottom: 0.6mm;
+    border-bottom: 0.4mm solid ${BRAND_GREEN}; padding-bottom: 0.6mm;
   }
-  .patient { font-size: 7.5pt; font-weight: 700; }
-  .date { font-size: 6.5pt; }
+  .patient { font-size: 7.5pt; font-weight: 700; color: ${BRAND_GREEN}; }
+  .date { font-size: 6.5pt; color: ${BRAND_GREEN}; }
   .foot {
     display: flex; flex-direction: column; align-items: center;
     margin-top: 0.8mm;
   }
-  .addr { font-size: 5pt; margin-top: 0.2mm; }
+  .addr { font-size: 5pt; margin-top: 0.2mm; color: ${BRAND_GREEN}; }
   .side {
     position: absolute; top: 0; right: 0; bottom: 0; width: 5mm;
     display: flex; align-items: center; justify-content: center;
@@ -120,6 +156,7 @@ export function buildLabelsDocument(labels: LabelData[]): string {
   .side span {
     writing-mode: vertical-rl;
     font-size: 5pt; letter-spacing: -0.1pt; white-space: nowrap;
+    color: ${BRAND_GREEN};
   }
 </style></head><body>${body}</body></html>`;
 }

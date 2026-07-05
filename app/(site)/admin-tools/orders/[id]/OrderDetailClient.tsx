@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { printLabels, dispensingDate, type LabelData } from "./dispensingLabel";
+import { printLabels, dispensingDate, composeMedicine, type LabelData } from "./dispensingLabel";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -281,13 +281,15 @@ export default function OrderDetailClient({ id }: { id: string }) {
     const patient = order.customer_name?.trim() || "—";
     const date = dispensingDate();
     const labels: LabelData[] = (lineItems.length ? lineItems : [{}]).map(
-      (it): LabelData => ({
-        productName: it.title?.trim() || "—",
-        packLine: it.dose?.trim() || null,
-        directions: "use as directed",
-        patientName: patient,
-        date,
-      }),
+      (it): LabelData => {
+        const { brand, productLine } = composeMedicine(it.title, it.dose);
+        return {
+          brand,
+          productName: productLine,
+          patientName: patient,
+          date,
+        };
+      },
     );
     printLabels(labels);
   }
