@@ -9,8 +9,11 @@ import Reveal from "@/components/ui/Reveal";
 
 const BENEFITS = [
   "MHRA-approved prescription treatment",
-  "UK-licensed prescribers",
-  "24/7 care team support",
+  "UK clinician review",
+  "Ongoing support throughout treatment",
+  "Fast, discreet UK delivery",
+  "Regular progress check-ins",
+  "Dedicated patient support",
 ];
 
 export default function WhyChoose() {
@@ -48,8 +51,10 @@ export default function WhyChoose() {
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-16 md:px-10 md:py-[80px] lg:px-[60px]">
         <Reveal as="div" className="max-w-[560px]">
           <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-            Why Choose Jood Life{" "}
-            <span className="font-serif italic font-normal">For Wegovy</span>
+            Why Choose Jood Life for your{" "}
+            <span className="font-serif italic font-normal">
+              Wegovy® journey
+            </span>
           </h2>
 
           <ul className="mt-8 flex flex-col gap-3">
@@ -70,11 +75,17 @@ export default function WhyChoose() {
             ))}
           </ul>
 
-          <p className="mt-8 max-w-[520px] font-ui text-[16.3px] leading-[19.5px] text-white/80">
-            Wegovy causes thyroid C-cell tumors in rodents. Do not use Wegovy if
-            you or your family have a history of medullary thyroid carcinoma
-            (MTC) or Multiple Endocrine Neoplasia syndrome type 2 (MEN 2).
-          </p>
+          <div className="mt-8 max-w-[520px]">
+            <p className="font-ui text-[16px] font-semibold text-white md:text-[18px]">
+              Important Safety Information
+            </p>
+            <p className="mt-2 font-ui text-[15px] leading-[21px] text-white/80 md:text-[16.3px]">
+              The Wegovy® tablet is not suitable for everyone. Before treatment,
+              one of our UK clinicians will review your medical history to ensure
+              it is appropriate for you. Please read the Patient Information
+              Leaflet before starting treatment.
+            </p>
+          </div>
         </Reveal>
       </div>
     </section>

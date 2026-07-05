@@ -44,6 +44,8 @@ export type Category = {
   title: string;
   /** Italicised serif accent that completes the title. */
   titleAccent: string;
+  /** Optional label for the primary hero CTA (defaults to "Get Started"). */
+  ctaLabel?: string;
   /** One-line supporting sentence. */
   blurb: string;
   /** Up to three short proof points. */
@@ -109,12 +111,13 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
   "erectile-dysfunction": {
     key: "erectile-dysfunction",
     href: "/erectile-dysfunction",
-    eyebrow: "Men's health",
-    cardTitle: "Erectile\ndysfunction",
-    title: "Take Control of Erectile Health",
+    eyebrow: "Men's Health",
+    cardTitle: "Erectile\nDysfunction",
+    title: "Take Control of Your Erectile Health",
     titleAccent: "Safely and Confidently",
+    ctaLabel: "Start Your Assessment",
     blurb:
-      "Clinically approved treatments for erectile dysfunction, delivered discreetly to your door so you can regain confidence and performance.",
+      "Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.",
     bullets: [
       "Clinically approved treatments",
       "Discreet, next-day delivery",
@@ -138,12 +141,13 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
   "period-delay": {
     key: "period-delay",
     href: "/period-delay",
-    eyebrow: "Women's health",
-    cardTitle: "Period delay",
-    title: "Adjust your periods",
-    titleAccent: "on your schedule",
+    eyebrow: "Women's Health",
+    cardTitle: "Period Delay",
+    title: "Delay Your Period",
+    titleAccent: "On Your Schedule",
+    ctaLabel: "Start Your Assessment",
     blurb:
-      "Whether it's for holidays, weddings or important events, Norethisterone is clinically approved and delivered discreetly to help you stay in control.",
+      "Delay your period safely and discreetly when you need to. Whether you're travelling, attending a special event or planning ahead, our UK clinicians can assess whether norethisterone is appropriate for you.",
     bullets: [
       "Clinically approved Norethisterone",
       "Delay your period reliably",

@@ -10,8 +10,8 @@ import Reveal from "@/components/ui/Reveal";
  */
 
 const STATS = [
-  "16.6% average weight loss in 64 weeks",
-  "MHRA approved for use in UK on 11 June 2026",
+  "Average weight loss of up to 16.6% at 64 weeks*",
+  "MHRA-approved in the UK",
   "Once-daily oral semaglutide",
 ];
 
@@ -55,22 +55,22 @@ function HeroCopy() {
       </div>
 
       <h1 className="font-display text-[36px] font-semibold leading-[39.6px] tracking-[-0.02em] text-white md:text-[80px] md:leading-[88px]">
-        Uk First.{" "}
-        <span className="font-serif italic font-normal">Wegovy Pills</span>
+        A New Era of Weight Loss.{" "}
+        <span className="font-serif italic font-normal">
+          Introducing the Wegovy® Tablet
+        </span>
       </h1>
-      <p className="mt-3 font-ui text-[16px] font-normal leading-[17.6px] text-white md:text-[32px] md:leading-[35.2px]">
-        A New Way To Lose Weight
-      </p>
       <p className="mt-4 max-w-[500px] font-ui text-[16px] leading-[22px] text-white/85 md:text-[18.3px] md:leading-[20.77px]">
-        Introducing Wegovy® pills in the UK, with clinician-led support tailored
-        to you. Same proven formula. No needles. Just real results.
+        A once-daily prescription treatment for weight loss with personalised
+        clinician-led care. The same trusted active ingredient, now without
+        weekly injections.
       </p>
 
       <a
         href="/consultation"
         className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
       >
-        Get Started Today
+        Check Your Eligibility
       </a>
 
       <ul className="mt-7 flex flex-col gap-3">

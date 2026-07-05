@@ -5,9 +5,9 @@ interface ComparisonTableProps {
 }
 
 const COLUMNS = [
-  { key: "mounjaro", label: "Mounjaro", color: "#b39bb3" }, // lavender
-  { key: "wegovy",   label: "Wegovy",   color: "#c9a78a" }, // tan
-  { key: "saxenda",  label: "Saxenda",  color: "#84988b" }, // sage
+  { key: "mounjaro",     label: "Mounjaro® KwikPen", color: "#b39bb3" }, // lavender
+  { key: "wegovy",       label: "Wegovy® Injection", color: "#c9a78a" }, // tan
+  { key: "wegovyTablet", label: "Wegovy® Tablet",    color: "#84988b" }, // sage
 ] as const;
 
 /**
@@ -22,15 +22,10 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
     <div className="rounded-[24px] bg-[#f7f9f2] p-6 md:p-10 lg:p-12">
       <div className="flex flex-col items-center gap-2 pb-8 text-center md:pb-10">
         <h2 className="font-display text-[26px] font-semibold leading-[32px] tracking-[-0.025em] text-[#142e2a] md:text-[36px] md:leading-[44px]">
-          Evidence-based comparison:
+          Which treatment is right for you?
         </h2>
-        <p className="font-serif italic text-[22px] leading-[28px] text-[#142e2a]/85 md:text-[30px] md:leading-[38px]">
-          mounjaro, wegovy, and saxenda
-        </p>
         <p className="mt-3 max-w-[640px] font-ui text-[14px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:text-[15px] md:leading-[22px]">
-          Review clinical insights on each treatment&rsquo;s effectiveness,
-          typical weight-loss outcomes, and safety profile, all to help you
-          make an informed choice.
+          Compare our most popular weight loss treatments.
         </p>
       </div>
 
@@ -82,7 +77,7 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                     {row.label}
                   </td>
                   {COLUMNS.map((c) => {
-                    const value = row[c.key];
+                    const value = row[c.key] ?? "";
                     const isActive = c.key === active;
                     return (
                       <td
@@ -136,6 +131,11 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
           </tbody>
         </table>
       </div>
+
+      <p className="mt-6 max-w-[720px] font-ui text-[13px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:mt-8 md:text-[14px]">
+        Our UK clinicians will recommend the most appropriate treatment
+        following an individual clinical assessment.
+      </p>
     </div>
   );
 }

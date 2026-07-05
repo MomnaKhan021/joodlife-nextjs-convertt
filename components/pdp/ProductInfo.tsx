@@ -4,11 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import DosagePicker from "./DosagePicker";
-import {
-  CheckCircleIcon,
-  ICON_MAP,
-  PlusIcon,
-} from "./PdpIcons";
+import { PlusIcon } from "./PdpIcons";
 import { useCart } from "@/components/cart/CartContext";
 import type { Dosage, PDPProduct } from "@/lib/pdp-products";
 
@@ -96,7 +92,7 @@ export default function ProductInfo({ product, productId }: ProductInfoProps) {
           ))}
         </span>
         <span className="font-ui text-[12px] font-medium text-[#142e2a]">
-          {product.ratingLabel}
+          {product.ratingLabel.replace(/\s*Trustpilot\s*/i, "").trim()}
         </span>
       </a>
 
@@ -111,29 +107,7 @@ export default function ProductInfo({ product, productId }: ProductInfoProps) {
         {product.lede}
       </p>
 
-      {/* 4 features */}
-      <div className="flex flex-col gap-3">
-        <p className="font-ui text-[13px] font-semibold text-[#142e2a]/70">
-          Why start your journey with joodlife
-        </p>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
-          {product.features.map((f) => {
-            const Icon = ICON_MAP[f.icon as keyof typeof ICON_MAP];
-            return (
-              <div key={f.label} className="flex flex-col items-start gap-1.5">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f7f9f2]">
-                  {Icon ? <Icon /> : null}
-                </span>
-                <span className="font-ui text-[11px] font-medium leading-[14px] tracking-[-0.01em] text-[#142e2a] md:text-[12px] md:leading-[15px]">
-                  {f.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Dosage picker */}
+      {/* Dosage picker (strength + price + CTA) — moved above benefits */}
       <DosagePicker
         dosages={product.dosages}
         fromPrice={product.fromPrice}
@@ -141,24 +115,54 @@ export default function ProductInfo({ product, productId }: ProductInfoProps) {
         onEligibilityCheck={handleEligibility}
       />
 
+      {/* Trust line — directly below the price */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-ui text-[12px] font-medium text-[#142e2a]">
+        {product.trustLine.map((t, i) => (
+          <span key={t} className="inline-flex items-center gap-4">
+            <span>{t}</span>
+            {i < product.trustLine.length - 1 ? (
+              <span aria-hidden className="text-[#142e2a]/30">
+                &middot;
+              </span>
+            ) : null}
+          </span>
+        ))}
+      </div>
+
       {/* 3 service chips */}
       <div className="flex flex-wrap gap-2">
-        {product.serviceChips.map((c) => {
-          const Icon = ICON_MAP[c.icon as keyof typeof ICON_MAP];
-          return (
-            <span
-              key={c.label}
-              className="inline-flex items-center gap-2 rounded-full bg-[#f7f9f2] px-3 py-2"
-            >
-              <span className="grid h-5 w-5 place-items-center">
-                {Icon ? <Icon /> : null}
-              </span>
-              <span className="font-ui text-[12px] font-medium text-[#142e2a]">
-                {c.label}
-              </span>
+        {product.serviceChips.map((c) => (
+          <span
+            key={c.label}
+            className="inline-flex items-center gap-2 rounded-full bg-[#f7f9f2] px-3 py-2"
+          >
+            <span aria-hidden className="text-[15px] leading-none">
+              {c.icon}
             </span>
-          );
-        })}
+            <span className="font-ui text-[12px] font-medium text-[#142e2a]">
+              {c.label}
+            </span>
+          </span>
+        ))}
+      </div>
+
+      {/* Why choose Jood? — benefits (moved below CTA) */}
+      <div className="flex flex-col gap-3">
+        <p className="font-ui text-[13px] font-semibold text-[#142e2a]/70">
+          Why choose Jood?
+        </p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
+          {product.features.map((f) => (
+            <div key={f.label} className="flex items-start gap-2">
+              <span aria-hidden className="text-[15px] leading-[18px]">
+                {f.icon}
+              </span>
+              <span className="font-ui text-[11px] font-medium leading-[14px] tracking-[-0.01em] text-[#142e2a] md:text-[12px] md:leading-[15px]">
+                {f.label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Accordions: How it works / Is X safe? / Side effects (always-open) */}

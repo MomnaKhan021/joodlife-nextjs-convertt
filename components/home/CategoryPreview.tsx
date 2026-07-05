@@ -163,7 +163,9 @@ export default function CategoryPreview({
                   href={isReturningPatient && category.key === "weight-loss" ? "/reorder" : `/consultation?product=${category.key}`}
                   className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-white px-4 font-ui text-[13px] font-semibold text-[#142e2a] shadow-lg transition-transform duration-200 hover:-translate-y-0.5 md:h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
-                  {isReturningPatient && category.key === "weight-loss" ? "Reorder" : "Get Started"}
+                  {isReturningPatient && category.key === "weight-loss"
+                    ? "Reorder"
+                    : category.ctaLabel ?? "Get Started"}
                 </Link>
                 <Link
                   href={category.href}

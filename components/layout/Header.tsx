@@ -20,6 +20,7 @@ const NAV_LINKS: NavLink[] = [
   { label: "Treatments", href: "/weight-loss", mega: true },
   { label: "FAQs", href: "/#faq" },
   { label: "Reviews", href: "/#reviews" },
+  { label: "Support", href: "/support" },
 ];
 
 function PersonIcon() {

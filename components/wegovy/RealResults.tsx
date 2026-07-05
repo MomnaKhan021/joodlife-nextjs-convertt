@@ -30,8 +30,10 @@ export default function RealResults() {
             <div className="absolute inset-0 bg-[#4a4074]/40" aria-hidden />
 
             <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-              Real Results{" "}
-              <span className="font-serif italic font-normal">With Wegovy</span>
+              Real Results with the{" "}
+              <span className="font-serif italic font-normal">
+                Wegovy® Tablet
+              </span>
             </h2>
 
             {/* ~14% frosted panel */}
@@ -46,18 +48,10 @@ export default function RealResults() {
                 <span className="font-ui text-[18px] text-white/85 md:text-[22px]">Up to</span>
               </span>
               <p className="mt-1 font-display text-[80px] font-medium leading-none text-white md:text-[120px] lg:text-[150px]">
-                ~14%
+                16.6%
               </p>
               <p className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
                 average body weight loss at 64 weeks*
-              </p>
-              <p className="mt-3 font-ui text-[11px] leading-[16px] text-white/55">
-                *Based on a manufacturer 64-week medical study of 307 adults
-                living with obesity, or with overweight and at least one
-                weight-related medical problem, along with a reduced-calorie diet
-                and increased physical activity. Adults taking Wegovy® Pill lost
-                an average of 14% body weight (~33 lb) compared with people taking
-                placebo (not on medicine) who lost 2.4% (~6 lb).
               </p>
             </div>
 
@@ -71,10 +65,11 @@ export default function RealResults() {
               </span>
               <div>
                 <p className="font-display text-[18px] font-semibold leading-tight text-white md:text-[22px]">
-                  1 in 4 participants
+                  Clinical Study
                 </p>
-                <p className="font-ui text-[22px] font-semibold leading-[1.1] text-white/80 md:text-[34px]">
-                  lost 20% or more of their body weight
+                <p className="font-ui text-[16px] font-semibold leading-[1.2] text-white/80 md:text-[22px]">
+                  Around 1 in 4 participants lost 20% or more of their body
+                  weight when combined with lifestyle changes.*
                 </p>
               </div>
             </div>
@@ -103,13 +98,13 @@ export default function RealResults() {
               </span>
               <div>
                 <p className="font-ui text-[18px] font-semibold text-white md:text-[22px]">
-                  Health gains beyond numbers
+                  Beyond Weight Loss
                 </p>
                 <p className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
-                  The Wegovy Pill contains semaglutide — the same active
-                  ingredient as the injectable Wegovy pen — now in a once-daily
-                  oral form. Like the pen, it supports cardiometabolic health
-                  alongside weight loss.
+                  The Wegovy® tablet contains the same active ingredient as the
+                  Wegovy® injection and may help improve appetite control while
+                  supporting long-term weight management alongside healthy
+                  lifestyle changes.
                 </p>
               </div>
             </div>

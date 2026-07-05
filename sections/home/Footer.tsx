@@ -23,7 +23,7 @@ const JOOD_LINKS: FooterLink[] = [
   { label: "Treatments", href: "/shop" },
   { label: "How it works", href: "/#how-it-works" },
   { label: "Library", href: "/blogs" },
-  { label: "Support", href: "mailto:support@joodlife.com" },
+  { label: "Support", href: "/support" },
 ];
 const TREATMENTS: FooterLink[] = [
   { label: "Mounjaro", href: "/weight-loss" },

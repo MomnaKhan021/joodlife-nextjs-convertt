@@ -9,19 +9,19 @@ import Reveal from "@/components/ui/Reveal";
 type Row = { label: React.ReactNode; check?: boolean; minus?: boolean };
 
 const PILL_ROWS: Row[] = [
-  { label: (<>Starts at <b>£149/mo</b> billed monthly,<br />membership required*</>) },
-  { label: (<>Taken <span className="font-semibold text-[#00b67a]">Once daily</span></>) },
-  { label: "Semaglutide active ingredient", check: true },
-  { label: "Clinically proven", check: true },
-  { label: "Injection free", check: true },
+  { label: (<span className="font-semibold text-[#00b67a]">Once daily</span>) },
+  { label: "Oral tablet", check: true },
+  { label: "Semaglutide", check: true },
+  { label: "Clinically studied", check: true },
+  { label: "Needle-free", check: true },
 ];
 
 const PEN_ROWS: Row[] = [
-  { label: (<>Starts at <b>£199/mo</b> billed monthly,<br />membership required*</>) },
-  { label: (<>Taken <span className="font-semibold">Once weekly</span></>) },
-  { label: "Semaglutide active ingredient", check: true },
-  { label: "Clinically proven", check: true },
-  { label: "Injection free", minus: true },
+  { label: (<span className="font-semibold">Once weekly</span>) },
+  { label: "Injection pen", check: true },
+  { label: "Semaglutide", check: true },
+  { label: "Clinically studied", check: true },
+  { label: "Weekly injection", minus: true },
 ];
 
 /* Row heights from Figma — header=87, pricing=127, taken=81, feature=97 */
@@ -133,32 +133,35 @@ export default function Comparison() {
 
         {/* Heading — 846px wide in Figma, centred */}
         <Reveal as="div">
-          <h2 className="mb-10 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            Wegovy pill vs{" "}
-            <span className="font-serif italic font-normal">Wegovy injection</span>
+          <h2 className="mb-5 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+            Wegovy® Tablet vs{" "}
+            <span className="font-serif italic font-normal">
+              Wegovy® Injection
+            </span>
           </h2>
+          <p className="mx-auto mb-10 max-w-[620px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
+            Both treatments contain semaglutide and are prescribed following a
+            clinical assessment. The best option depends on your lifestyle,
+            preferences and clinical suitability.
+          </p>
         </Reveal>
 
         {/* Cards — 690px total (340 + 10 gap + 340), centred */}
         <Reveal as="div" delay={100}>
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
-            <Card title="Wegovy pill" rows={PILL_ROWS} variant="pill" />
-            <Card title="Wegovy pen" rows={PEN_ROWS} variant="pen" />
+            <Card title="Wegovy® Tablet" rows={PILL_ROWS} variant="pill" />
+            <Card title="Wegovy® Injection" rows={PEN_ROWS} variant="pen" />
           </div>
         </Reveal>
 
         {/* Footer — 690px wide, centred */}
         <Reveal as="div" delay={150}>
           <div className="mx-auto mt-9 flex max-w-[690px] flex-col items-center gap-6">
-            <p className="max-w-[522px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
-              Wegovy® is available as a daily pill or a weekly injection. Both
-              support weight loss, but one might be a better match for you.
-            </p>
             <a
               href="/consultation"
-              className="inline-flex h-[50px] w-[183px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+              className="inline-flex h-[50px] w-[220px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
             >
-              Get Started
+              Compare Treatments
             </a>
           </div>
         </Reveal>

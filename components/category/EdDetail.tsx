@@ -14,17 +14,18 @@ import TestimonialCarousel, {
  */
 
 const GOALS = [
-  "Address erectile difficulties",
-  "Improve sexual confidence",
-  "All the above",
+  "Improve erections",
+  "Boost sexual confidence",
+  "Improve intimacy",
+  "All of the above",
 ];
 
 const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      "This treatment completely restored my confidence. I no longer worry about performance, and I feel in control.",
+      "Treatment helped restore my confidence. I feel more in control and no longer worry about my erections.",
     name: "Jordan, 42",
-    meta: "2 months completed",
+    meta: "2 months into treatment",
   },
   {
     quote:

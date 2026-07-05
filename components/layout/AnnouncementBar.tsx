@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function AnnouncementBar() {
   return (
@@ -14,9 +15,9 @@ export default function AnnouncementBar() {
             className="h-[18px] w-[18px] flex-shrink-0"
             aria-hidden
           />
-          <p className="font-outfit text-sm leading-snug text-white">
-            <span className="font-semibold">Limited-Time Offer:</span> Buy 1 Month, Get 1 Month FREE!
-          </p>
+          <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
+            The New Wegovy® Tablet Is Here – Learn More
+          </Link>
         </div>
       </div>
 
@@ -31,9 +32,9 @@ export default function AnnouncementBar() {
             className="h-[18px] w-[18px] flex-shrink-0"
             aria-hidden
           />
-          <p className="font-outfit text-sm leading-snug text-white">
-            <span className="font-semibold">Limited-Time Offer:</span> Buy 1 Month, Get 1 Month FREE!
-          </p>
+          <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
+            The New Wegovy® Tablet Is Here – Learn More
+          </Link>
         </div>
       </div>
     </div>

@@ -4,20 +4,20 @@ import Reveal from "@/components/ui/Reveal";
 const STEPS = [
   {
     step: "Step 01",
-    title: "Health assessment",
-    copy: "Choose a treatment and complete a short questionnaire to find the best option for you.",
+    title: "Complete your assessment",
+    copy: "Answer a few quick questions about your health, medical history and treatment goals.",
     img: "/assets/figma/hiw-step1.png",
   },
   {
     step: "Step 02",
-    title: "Expert review",
-    copy: "Licensed providers in your state review your info and recommend the best course of action.",
+    title: "Clinical review",
+    copy: "One of our experienced UK clinicians will review your assessment and recommend the most appropriate treatment, where clinically suitable.",
     img: "/assets/figma/hiw-step2.png",
   },
   {
     step: "Step 03",
-    title: "Get medication",
-    copy: "Order affordable meds from vetted pharmacies or brand names.",
+    title: "Treatment delivered",
+    copy: "If approved, your treatment will be prepared by our pharmacy and delivered quickly, discreetly and securely to your door.",
     img: "/assets/figma/hiw-step3.png",
   },
 ];
@@ -35,8 +35,9 @@ export default function HowItWorks() {
             How it <em className="font-serif italic font-normal">works</em>
           </h2>
           <p className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
-            Address symptoms, treat root causes, and adjust your behaviours, for
-            immediate relief and long-term optimal health.
+            Getting started takes just a few minutes. Our clinicians review
+            every assessment to ensure your treatment is safe and appropriate
+            for you.
           </p>
         </Reveal>
 

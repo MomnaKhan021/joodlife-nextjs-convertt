@@ -1,6 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
-
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/sections/home/Footer";
@@ -11,174 +8,97 @@ import CtaBanner from "@/sections/home/CtaBanner";
 import ComparisonTable from "@/components/pdp/ComparisonTable";
 
 import { PDP_PRODUCTS } from "@/lib/pdp-products";
+import { getStorefrontProduct } from "@/lib/products";
+import FinalProductClient, { type FlowProduct } from "./FinalProductClient";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Choose your treatment — JoodLife",
   description:
-    "You're a candidate for weight-loss treatment. Pick the medication that best fits your goals.",
+    "You're a candidate for weight-loss treatment. Pick the medication and dose that best fits your goals.",
 };
 
+/** Fallback numeric IDs if the DB product can't be resolved (matches PDP). */
+const FALLBACK_ID: Record<string, number> = {
+  mounjaro: 1001,
+  wegovy: 1002,
+  saxenda: 1003,
+};
+
+/** "£90.00" → 90 */
+function parsePrice(formatted: string): number {
+  const m = formatted.match(/(\d[\d,]*\.?\d*)/);
+  return m ? Number.parseFloat(m[1].replace(/,/g, "")) || 0 : 0;
+}
+
 /**
- * Post-consultation landing — mirrors the shape of
- * joodlife.com/pages/final-product-page: an "eligible, now choose" banner
- * followed by a treatment selection grid (Mounjaro / Wegovy / Saxenda),
- * an evidence-based comparison table, a how-it-works strip, social
- * proof, and the standard footer CTA.
+ * Post-consultation "Choose your treatment" page.
  *
- * Each product card surfaces the lowest dose, the lowest "from"
- * monthly price, and a single CTA that deep-links to the PDP for that
- * product so the user can pick a dose and add to cart.
+ * Flow: consultation → (this page: pick treatment + dose) → Continue →
+ * /final-product-page/plan (choose frequency) → Checkout → /checkout.
+ *
+ * Doses + prices come from the dashboard-managed product variants where
+ * available, falling back to the editorial PDP data so the page always
+ * renders.
  */
-export default function FinalProductPage() {
-  const products = ["mounjaro", "wegovy", "saxenda"] as const;
+export default async function FinalProductPage() {
+  const slugs = ["mounjaro", "wegovy", "saxenda"] as const;
+
+  const dbProducts = await Promise.all(
+    slugs.map((s) => getStorefrontProduct(s).catch(() => null)),
+  );
+
+  const products: FlowProduct[] = slugs.map((slug, i) => {
+    const editorial = PDP_PRODUCTS[slug];
+    const db = dbProducts[i];
+    const doses =
+      db && db.variants.length > 0
+        ? db.variants.map((v) => ({ label: v.label, price: v.price }))
+        : editorial.dosages.map((d) => ({
+            label: d.label,
+            price: parsePrice(d.perPack),
+          }));
+    return {
+      slug,
+      productId: db?.id ?? FALLBACK_ID[slug] ?? 0,
+      title: editorial.title,
+      italicWord: editorial.italicWord,
+      image: editorial.gallery[0]?.src ?? db?.heroImageUrl ?? "",
+      lede: editorial.lede,
+      doses,
+    };
+  });
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
 
-      {/* ─────────  Eligibility hero  ───────── */}
+      {/* ─────────  Hero  ───────── */}
       <section
         aria-label="You are eligible"
-        className="bg-[#f7f9f2] px-6 pb-10 pt-12 md:px-10 md:pt-16 md:pb-14 lg:px-[60px]"
+        className="bg-[#f7f9f2] px-6 pb-8 pt-10 text-center md:px-10 md:pb-12 md:pt-14 lg:px-[60px]"
       >
-        <div className="mx-auto w-full max-w-[1400px] text-center">
+        <div className="mx-auto w-full max-w-[880px]">
           <span className="inline-flex items-center rounded-full bg-[#dff49f] px-3 py-1 font-ui text-[12px] font-semibold uppercase tracking-[0.06em] text-[#142e2a]">
             Eligible
           </span>
-          <h1 className="mt-4 font-display text-[32px] font-bold leading-[38px] tracking-[-0.02em] text-[#142e2a] md:text-[44px] md:leading-[52px]">
-            Choose your treatment
+          <h1 className="mt-4 font-display text-[30px] font-bold leading-[36px] tracking-[-0.02em] text-[#142e2a] md:text-[44px] md:leading-[52px]">
+            Choose your{" "}
+            <em className="font-serif font-normal italic">
+              weight loss treatment
+            </em>
           </h1>
-          <p className="mx-auto mt-3 max-w-[640px] font-ui text-[15px] leading-[24px] text-[#142e2a]/75 md:text-[16px] md:leading-[26px]">
+          <p className="mx-auto mt-3 max-w-[560px] font-ui text-[14px] leading-[22px] text-[#142e2a]/75 md:text-[16px] md:leading-[26px]">
             Based on your consultation, you can start any of the treatments
-            below. A UK-licensed clinician reviews every order before
-            dispatch.
+            below. A UK-licensed clinician reviews every order before dispatch.
           </p>
         </div>
       </section>
 
-      {/* ─────────  Treatment cards  ───────── */}
-      <section
-        aria-label="Treatment options"
-        className="bg-white px-6 py-12 md:px-10 md:py-16 lg:px-[60px]"
-      >
-        <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
-          {products.map((slug) => {
-            const product = PDP_PRODUCTS[slug];
-            if (!product) return null;
-            const primary = product.gallery[0];
-            return (
-              <article
-                key={slug}
-                className="flex flex-col gap-5 rounded-[24px] border border-[#142e2a]/10 bg-white p-5 transition-shadow duration-200 hover:shadow-[0_8px_28px_-12px_rgba(20,46,42,0.18)] md:p-6"
-              >
-                <div className="relative aspect-square w-full overflow-hidden rounded-[18px] bg-[#e5d3e5]">
-                  {primary ? (
-                    <Image
-                      src={primary.src}
-                      alt={primary.alt}
-                      fill
-                      sizes="(max-width: 768px) 90vw, (max-width: 1024px) 45vw, 28vw"
-                      quality={90}
-                      className="object-cover"
-                    />
-                  ) : null}
-                  {product.discountBadge ? (
-                    <span className="absolute right-4 top-4 inline-flex h-[52px] w-[52px] items-center justify-center rounded-full bg-white font-display text-[13px] font-bold text-[#142e2a] shadow-md">
-                      {product.discountBadge}
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <span className="inline-flex w-fit items-center rounded-full bg-[#f7f9f2] px-2.5 py-1 font-ui text-[11px] font-semibold uppercase tracking-[0.05em] text-[#142e2a]/70">
-                    Clinically Recommended
-                  </span>
-                  <h2 className="font-display text-[26px] font-bold leading-[30px] tracking-[-0.01em] text-[#142e2a] md:text-[28px] md:leading-[34px]">
-                    {product.title}{" "}
-                    <em className="font-serif italic font-normal">
-                      {product.italicWord}
-                    </em>
-                  </h2>
-                  <p className="font-ui text-[13px] leading-[20px] text-[#142e2a]/70">
-                    {product.lede.slice(0, 140)}
-                    {product.lede.length > 140 ? "…" : ""}
-                  </p>
-                </div>
-
-                {/* Key efficacy stat */}
-                {product.cardStat ? (
-                  <div className="flex items-start gap-3 rounded-[14px] bg-[#f7f9f2] p-3.5">
-                    <span className="font-display text-[26px] font-bold leading-none tracking-[-0.02em] text-[#142e2a]">
-                      {product.cardStat.percent}
-                    </span>
-                    <span className="font-ui text-[12px] leading-[17px] text-[#142e2a]/70">
-                      {product.cardStat.text}
-                    </span>
-                  </div>
-                ) : null}
-
-                {/* Benefits */}
-                {product.cardBenefits?.length ? (
-                  <ul className="flex flex-col gap-2">
-                    {product.cardBenefits.map((benefit) => (
-                      <li
-                        key={benefit}
-                        className="flex items-start gap-2 font-ui text-[13px] leading-[19px] text-[#142e2a]/80"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 20 20"
-                          className="mt-0.5 h-4 w-4 shrink-0 text-[#142e2a]"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.7-9.3a1 1 0 0 0-1.4-1.4L9 10.58l-1.3-1.3a1 1 0 0 0-1.4 1.42l2 2a1 1 0 0 0 1.4 0l4-4Z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="font-ui text-[13px] text-[#142e2a]/70">
-                    From
-                  </span>
-                  <span className="font-display text-[24px] font-bold tracking-[-0.01em] text-[#142e2a]">
-                    {product.fromPrice}
-                  </span>
-                  <span className="font-ui text-[13px] text-[#142e2a]/70">
-                    /month
-                  </span>
-                </div>
-
-                {/* Quick-glance dosages */}
-                <div className="flex flex-wrap gap-1.5">
-                  {product.dosages.slice(0, 6).map((d) => (
-                    <span
-                      key={d.label}
-                      className="inline-flex items-center rounded-md bg-[#f7f9f2] px-2 py-1 font-ui text-[11px] font-medium text-[#142e2a]/80"
-                    >
-                      {d.label}
-                    </span>
-                  ))}
-                </div>
-
-                <Link
-                  href={`/shop/${slug}`}
-                  className="mt-auto inline-flex h-[48px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-5 font-ui text-[13px] font-bold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142e2a]"
-                >
-                  Continue with {product.title}
-                </Link>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+      {/* ─────────  Interactive selector + sticky bar  ───────── */}
+      <FinalProductClient products={products} />
 
       {/* ─────────  USP marquee  ───────── */}
       <UspStrip />
@@ -198,6 +118,8 @@ export default function FinalProductPage() {
       <HowItWorks />
       <CtaBanner />
 
+      {/* Spacer so the sticky bar never covers the footer's last row */}
+      <div aria-hidden className="h-20 bg-white md:h-0" />
       <Footer />
     </main>
   );

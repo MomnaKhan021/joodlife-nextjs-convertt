@@ -1,5 +1,5 @@
 import WeightLossGraph from "./WeightLossGraph";
-import { CheckCircleIcon, MeasureIcon } from "./PdpIcons";
+import { MeasureIcon } from "./PdpIcons";
 import type { PDPProduct } from "@/lib/pdp-products";
 
 interface WhatIsSectionProps {
@@ -35,9 +35,16 @@ export default function WhatIsSection({ product }: WhatIsSectionProps) {
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white">
             <MeasureIcon />
           </span>
-          <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/85 md:text-[15px] md:leading-[22px]">
-            {product.whatIsCallout}
-          </p>
+          <div className="flex flex-col gap-1">
+            {product.whatIsCalloutTitle ? (
+              <p className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a] md:text-[15px] md:leading-[22px]">
+                {product.whatIsCalloutTitle}
+              </p>
+            ) : null}
+            <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/85 md:text-[15px] md:leading-[22px]">
+              {product.whatIsCallout}
+            </p>
+          </div>
         </div>
 
         {/* Bullets — 2 column grid */}
@@ -47,9 +54,6 @@ export default function WhatIsSection({ product }: WhatIsSectionProps) {
               key={b}
               className="flex items-start gap-2 font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a] md:text-[15px]"
             >
-              <span className="mt-0.5 shrink-0">
-                <CheckCircleIcon size={18} />
-              </span>
               {b}
             </li>
           ))}

@@ -21,27 +21,27 @@ type Callout = {
 
 /* Desktop L-connectors (white, 1.2px stroke, dot at bend) */
 const ConnectorRightDown = () => (
-  <svg width="200" height="30" viewBox="0 0 200 30" fill="none" className="block">
-    <path d="M0 4 H140 L192 28" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="192" cy="28" r="3" fill="white" />
+  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
+    <path d="M0 4 H80 L104 22" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="104" cy="22" r="2.5" fill="white" />
   </svg>
 );
 const ConnectorRightUp = () => (
-  <svg width="200" height="30" viewBox="0 0 200 30" fill="none" className="block">
-    <path d="M0 26 H140 L192 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="192" cy="2" r="3" fill="white" />
+  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
+    <path d="M0 22 H80 L104 4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="104" cy="4" r="2.5" fill="white" />
   </svg>
 );
 const ConnectorLeftDown = () => (
-  <svg width="200" height="30" viewBox="0 0 200 30" fill="none" className="block">
-    <path d="M200 4 H60 L8 28" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="8" cy="28" r="3" fill="white" />
+  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
+    <path d="M110 4 H30 L6 22" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="6" cy="22" r="2.5" fill="white" />
   </svg>
 );
 const ConnectorLeftUp = () => (
-  <svg width="200" height="30" viewBox="0 0 200 30" fill="none" className="block">
-    <path d="M200 26 H60 L8 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="8" cy="2" r="3" fill="white" />
+  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
+    <path d="M110 22 H30 L6 4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <circle cx="6" cy="4" r="2.5" fill="white" />
   </svg>
 );
 
@@ -73,7 +73,7 @@ const MobileConnectorLeftUp = () => (
 
 const CALLOUTS: Callout[] = [
   {
-    label: "Reduces cravings",
+    label: "Reduce food\ncravings",
     /* Figma: x=18.7%, y=24.6% — top-left */
     pos: "left-[18%] top-[24%]",
     mobilePos: "left-[2%] top-[22%]",
@@ -82,7 +82,7 @@ const CALLOUTS: Callout[] = [
     mobileConnector: <MobileConnectorRightDown />,
   },
   {
-    label: "Slow down\nyour digestion",
+    label: "Increase feelings\nof fullness",
     /* Figma: right text at x=74%, y=24.5% — top-right */
     pos: "right-[14%] top-[24%]",
     mobilePos: "right-[2%] top-[22%]",
@@ -91,7 +91,7 @@ const CALLOUTS: Callout[] = [
     mobileConnector: <MobileConnectorLeftDown />,
   },
   {
-    label: "Regulate your blood\nsugar⁵.",
+    label: "Slow stomach\nemptying",
     /* Figma: x=18.7%, y=58% — bottom-left */
     pos: "left-[18%] bottom-[18%]",
     mobilePos: "left-[2%] bottom-[16%]",
@@ -101,7 +101,7 @@ const CALLOUTS: Callout[] = [
     connectorFirst: true,
   },
   {
-    label: "Regulate your\nappetite⁴",
+    label: "Help regulate\nappetite",
     /* Figma: right text at x=71%, y=58% — bottom-right */
     pos: "right-[14%] bottom-[18%]",
     mobilePos: "right-[2%] bottom-[16%]",
@@ -144,13 +144,13 @@ export default function HowItWorks() {
         {/* Heading + subtitle — centred, max-w 580px */}
         <Reveal as="div" className="mx-auto max-w-[640px] text-center">
           <h2 className="font-display text-[30px] font-normal leading-[1.15] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-            How Do{" "}
-            <em className="font-serif italic">Wegovy Pills Work?</em>
+            How the{" "}
+            <em className="font-serif italic">Wegovy® Tablet Works</em>
           </h2>
           <p className="mx-auto mt-4 max-w-[580px] font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
-            The Wegovy pill contains semaglutide, which is known as a GLP-1
-            receptor agonist. This means it works by mimicking the natural GLP-1
-            hormone found in your gut. The hormone's job is to help:
+            The Wegovy® tablet contains semaglutide, a GLP-1 receptor agonist
+            that works with your body&apos;s natural appetite hormones to
+            support weight loss. Helps to:
           </p>
         </Reveal>
 
@@ -164,7 +164,7 @@ export default function HowItWorks() {
               }`}
             >
               {c.connectorFirst && c.connector}
-              <p className="whitespace-pre-line font-ui text-[20px] font-semibold leading-[26px] text-white md:text-[25px] md:leading-[30px]">
+              <p className="whitespace-pre-line font-ui text-[15px] font-semibold leading-[20px] text-white md:text-[18px] md:leading-[24px]">
                 {c.label}
               </p>
               {!c.connectorFirst && c.connector}
@@ -191,18 +191,16 @@ export default function HowItWorks() {
         {/* Description + buttons — centred */}
         <Reveal as="div" className="mx-auto mt-4 max-w-[690px] text-center" delay={120}>
           <p className="font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
-            The tablet works the same as the Wegovy injection. However, instead
-            of semaglutide entering the bloodstream directly via a needle, the
-            pill goes via your stomach in a protective coating that can't be
-            dissolved by stomach acid and into the bloodstream through the walls
-            of the small intestine.
+            Like the Wegovy® injection, the tablet contains semaglutide. The
+            difference is simply how it&apos;s taken — one as a daily tablet and
+            the other as a once-weekly injection.
           </p>
           <div className="mt-7 flex items-center justify-center gap-4">
             <a
               href="/consultation"
               className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
             >
-              Get Started
+              Check Your Eligibility
             </a>
             <a
               href="#faq"

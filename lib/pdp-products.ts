@@ -21,6 +21,8 @@ export type ComparisonRow = {
   mounjaro: string;
   wegovy: string;
   saxenda: string;
+  /** Wegovy tablet column for the 3-product comparison table */
+  wegovyTablet?: string;
 };
 
 export type PDPProduct = {
@@ -43,9 +45,12 @@ export type PDPProduct = {
   fromPrice: string;         // "£112.00"
   /** Three USP chips under the CTA */
   serviceChips: { icon: string; label: string }[];
+  /** Trust line shown directly under the price (⭐ rating + proof points) */
+  trustLine: string[];
   /** Description for the "What is X?" section */
   whatIsTitle: string;       // "What is Mounjaro?"
   whatIsBody: string;        // HTML-flavoured: <strong>…</strong>
+  whatIsCalloutTitle?: string; // e.g. "How Mounjaro® may help"
   whatIsCallout: string;
   whatIsBullets: string[];
   /** Animated weight-loss graph */
@@ -73,28 +78,41 @@ export type PDPProduct = {
 };
 
 const SHARED_COMPARISON: ComparisonRow[] = [
-  { label: "How often?",        mounjaro: "Weekly",      wegovy: "Weekly",          saxenda: "Daily" },
-  { label: "Appetite control",  mounjaro: "Strong",      wegovy: "Moderate–strong", saxenda: "Moderate" },
-  { label: "Typical results (1 year)", mounjaro: "≈20–27%", wegovy: "≈14–16%",      saxenda: "≈8–10%" },
-  { label: "Fullness feeling",  mounjaro: "Longer-lasting", wegovy: "Longer-lasting", saxenda: "Shorter" },
-  { label: "Fits busy routines",mounjaro: "★★★",        wegovy: "★★★",            saxenda: "★★" },
-  { label: "Lifestyle impact",  mounjaro: "Minimal",     wegovy: "Low",             saxenda: "Higher" },
-  { label: "Active ingredient", mounjaro: "Tirzepatide", wegovy: "Semaglutide",     saxenda: "Liraglutide" },
+  { label: "How it's taken",           mounjaro: "Weekly injection",          wegovy: "Weekly injection",   saxenda: "Daily injection", wegovyTablet: "Daily tablet" },
+  { label: "Frequency",                mounjaro: "Once weekly",               wegovy: "Once weekly",        saxenda: "Once daily",      wegovyTablet: "Once daily" },
+  { label: "Active ingredient",        mounjaro: "Tirzepatide",               wegovy: "Semaglutide",        saxenda: "Liraglutide",     wegovyTablet: "Semaglutide" },
+  { label: "Needle-free",              mounjaro: "❌",                        wegovy: "❌",                 saxenda: "❌",              wegovyTablet: "✅" },
+  { label: "May help regulate appetite", mounjaro: "★★★★★",                  wegovy: "★★★★☆",             saxenda: "★★★☆☆",          wegovyTablet: "★★★★☆" },
+  { label: "Feeling of fullness",      mounjaro: "Longer lasting",            wegovy: "Longer lasting",     saxenda: "Longer lasting",  wegovyTablet: "Longer lasting" },
+  { label: "Convenience",              mounjaro: "★★★★★",                     wegovy: "★★★★★",             saxenda: "★★★★☆",          wegovyTablet: "★★★★★" },
+  { label: "Best suited for",          mounjaro: "Maximum weight loss potential", wegovy: "Proven weekly treatment", saxenda: "Daily routine", wegovyTablet: "Needle-free treatment" },
 ];
 
 export const COMPARISON_TABLE = SHARED_COMPARISON;
 
-const SHARED_FEATURES = [
-  { icon: "consultation", label: "Online clinical consultation" },
-  { icon: "personalized", label: "Personalized Medication" },
-  { icon: "support",      label: "Ongoing medical support" },
-  { icon: "checkin",      label: "Regular progress check-ins" },
+// "Why choose Jood?" bullets. `icon` here is an emoji rendered inline
+// (the client copy specifies emoji/checkmarks verbatim).
+const MOUNJARO_FEATURES = [
+  { icon: "✔", label: "Clinician assessment" },
+  { icon: "✔", label: "Personalised treatment plan" },
+  { icon: "✔", label: "Ongoing support" },
+  { icon: "✔", label: "Progress reviews" },
 ];
 
+const WEGOVY_FEATURES = [
+  { icon: "🩺", label: "Clinician assessment" },
+  { icon: "💚", label: "Personalised treatment plan" },
+  { icon: "📈", label: "Ongoing clinician support" },
+  { icon: "📅", label: "Regular progress reviews" },
+];
+
+const SHARED_FEATURES = MOUNJARO_FEATURES;
+
+// Delivery / trust chips under the CTA. `icon` is an emoji rendered inline.
 const SHARED_SERVICE_CHIPS = [
-  { icon: "truck",    label: "Next day delivery" },
-  { icon: "shield",   label: "Standard UK Delivery" },
-  { icon: "lock",     label: "Safe Payment" },
+  { icon: "🚚", label: "Free next-day delivery*" },
+  { icon: "💬", label: "Ongoing clinician support" },
+  { icon: "🔒", label: "Secure checkout" },
 ];
 
 const SHARED_ACCORDIONS = [
@@ -113,11 +131,11 @@ const SHARED_FAQS = [
 export const PDP_PRODUCTS: Record<string, PDPProduct> = {
   mounjaro: {
     slug: "mounjaro",
-    title: "Mounjaro",
-    italicWord: "injection",
-    ratingLabel: "4.5 Rated Excellence",
+    title: "Mounjaro®",
+    italicWord: "Weight Loss Pen",
+    ratingLabel: "4.4 Trustpilot",
     lede:
-      "Sustainable weight loss with Mounjaro — Reduce appetite, support weight loss, and improve overall metabolic health with a once-weekly Mounjaro injection — prescribed and monitored by UK clinicians.",
+      "A once-weekly prescription treatment for weight management. Every order includes an individual clinician assessment, ongoing support and fast UK delivery.",
     gallery: [
       { src: "/assets/figma/pdp/mounjaro-1.png", alt: "Jood Mounjaro injection pen on a lavender background" },
       { src: "/assets/figma/pdp/mounjaro-2.png", alt: "Mounjaro injection pen close-up" },
@@ -125,7 +143,7 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       { src: "/assets/figma/pdp/mounjaro-4.png", alt: "Mounjaro injection pen on a desk" },
     ],
     discountBadge: "26%",
-    features: SHARED_FEATURES,
+    features: MOUNJARO_FEATURES,
     dosages: [
       { label: "2.5 mg",  perPack: "£90.00" },
       { label: "5 mg",    perPack: "£135.00" },
@@ -136,16 +154,22 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
     ],
     fromPrice: "£112.00",
     serviceChips: SHARED_SERVICE_CHIPS,
-    whatIsTitle: "What is Mounjaro?",
+    trustLine: [
+      "⭐⭐⭐⭐⭐ 4.4 Trustpilot",
+      "Over 2,000 patients treated",
+      "GPhC Registered Pharmacy",
+    ],
+    whatIsTitle: "What is Mounjaro®?",
     whatIsBody:
-      "Mounjaro (tirzepatide) is a <strong>prescription-only weight-loss medication</strong> available in the UK. It works by activating the body's natural GLP-1 and GIP hormones, helping to reduce appetite, increase feelings of fullness, and support steady, sustainable weight loss when used alongside lifestyle changes.",
+      "Mounjaro® (tirzepatide) is a prescription-only treatment for weight management. It helps regulate appetite, increase feelings of fullness and support sustainable weight loss when combined with healthy lifestyle changes.",
+    whatIsCalloutTitle: "How Mounjaro® may help",
     whatIsCallout:
-      "Most patients experience reduced appetite and early weight loss within the first few months of treatment.",
+      "Many patients notice reduced appetite and increased fullness during the early stages of treatment.",
     whatIsBullets: [
-      "Reduced appetite and cravings",
-      "Supports long-term weight management",
-      "May improve metabolic health",
-      "Clinician-led, medically supervised treatment",
+      "✔ Helps regulate appetite",
+      "✔ Increases feelings of fullness",
+      "✔ Supports long-term weight management",
+      "✔ Clinician-led, personalised care",
     ],
     graph: {
       points: [
@@ -182,11 +206,11 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
 
   wegovy: {
     slug: "wegovy",
-    title: "Wegovy",
-    italicWord: "injection",
-    ratingLabel: "4.5 Rated Excellence",
+    title: "Wegovy®",
+    italicWord: "Injection",
+    ratingLabel: "4.4 Trustpilot",
     lede:
-      "Sustainable weight loss with Wegovy — A clinically proven once-weekly GLP-1 injection that helps reduce appetite, support steady weight loss and improve long-term metabolic health.",
+      "A once-weekly prescription treatment for weight management. Every order includes an individual clinician assessment, ongoing support and fast UK delivery.",
     gallery: [
       { src: "/assets/figma/pdp/wegovy-1.png", alt: "Wegovy injection pen on a soft background" },
       { src: "/assets/figma/pdp/wegovy-2.png", alt: "Wegovy injection pen close-up" },
@@ -194,7 +218,7 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       { src: "/assets/figma/pdp/wegovy-4.png", alt: "Wegovy injection pen" },
     ],
     discountBadge: "20%",
-    features: SHARED_FEATURES,
+    features: WEGOVY_FEATURES,
     dosages: [
       { label: "0.25 mg", perPack: "£70.00" },
       { label: "0.5 mg",  perPack: "£105.00" },
@@ -204,16 +228,22 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
     ],
     fromPrice: "£99.00",
     serviceChips: SHARED_SERVICE_CHIPS,
-    whatIsTitle: "What is Wegovy?",
+    trustLine: [
+      "⭐⭐⭐⭐⭐ 4.4 Trustpilot",
+      "Over 2,000 patients treated",
+      "GPhC Registered Pharmacy",
+    ],
+    whatIsTitle: "What is Wegovy®?",
     whatIsBody:
-      "Wegovy (semaglutide) is a <strong>prescription-only weight-loss medication</strong> available in the UK. It mimics the body's GLP-1 hormone to help control appetite and improve blood-sugar regulation, supporting steady weight loss alongside lifestyle changes.",
+      "Wegovy® (semaglutide) is a prescription-only treatment for weight management. It works by mimicking the natural GLP-1 hormone to help regulate appetite, increase feelings of fullness and support sustainable weight loss alongside healthy lifestyle changes.",
+    whatIsCalloutTitle: "How Wegovy® may help",
     whatIsCallout:
-      "Many patients see meaningful appetite changes and weight loss within the first three months of treatment.",
+      "Many patients notice reduced appetite and increased fullness during the early stages of treatment, alongside ongoing lifestyle changes.",
     whatIsBullets: [
-      "Helps control appetite and cravings",
-      "Backed by large-scale clinical trials",
-      "May support cardiovascular health",
-      "Clinician-led, medically supervised treatment",
+      "✔ Helps regulate appetite",
+      "✔ Increases feelings of fullness",
+      "✔ Supports long-term weight management",
+      "✔ Clinician-led, personalised care",
     ],
     graph: {
       points: [
@@ -229,11 +259,11 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       xLabels: ["Start", "Month 3", "Month 4", "Month 5", "Month 6"],
       callout: "-18%",
     },
-    safetyTitle: "Is Wegovy safe?",
+    safetyTitle: "Is Wegovy® safe?",
     safetyBody:
-      "Wegovy (semaglutide) is approved by the MHRA for chronic weight management. It is prescribed only after a clinical assessment to ensure it is appropriate for you, and your treatment is monitored throughout.",
+      "Wegovy® (semaglutide) is licensed by the MHRA for weight management. It is prescribed following an individual clinical assessment to ensure it's appropriate for you.",
     safetySideEffects:
-      "Side effects can include nausea, vomiting, diarrhoea, constipation, and abdominal discomfort, usually mild and short-lived. Your clinician will help you manage these and adjust the dose if needed.",
+      "Like all medicines, Wegovy® can cause side effects. The most common include nausea, diarrhoea, constipation and vomiting, particularly when starting treatment. Your clinician will guide you throughout your journey and help manage any side effects if they occur.",
     accordions: SHARED_ACCORDIONS,
     comparisonActive: "wegovy",
     cardStat: {
@@ -272,6 +302,11 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
     ],
     fromPrice: "£75.00",
     serviceChips: SHARED_SERVICE_CHIPS,
+    trustLine: [
+      "⭐⭐⭐⭐⭐ 4.4 Trustpilot",
+      "Over 2,000 patients treated",
+      "GPhC Registered Pharmacy",
+    ],
     whatIsTitle: "What is Saxenda?",
     whatIsBody:
       "Saxenda (liraglutide) is a <strong>prescription-only daily weight-loss injection</strong> that mimics the GLP-1 hormone to help reduce hunger and support gradual weight loss alongside diet and exercise.",

@@ -24,27 +24,19 @@ type Card = {
 
 const CARDS: Card[] = [
   {
-    title: "The first of its kind",
-    body: "is an FDA-approved semaglutide in a pill for weight loss.",
+    title: "Daily Treatment",
+    body: "A convenient once-daily tablet for people looking to lose weight without weekly injections.",
     image: "/assets/wegovy/what-pills.png",
-    tag: "Powered by SNAC technology",
   },
   {
-    title: "Unpacking Snac",
-    body: "The SNAC molecule used by Novo Nordisk™ is the key to the GLP-1 pill.",
+    title: "Advanced Tablet Technology",
+    body: "Special absorption technology allows semaglutide to be absorbed effectively as a tablet.",
     image: "/assets/wegovy/what-snac.png",
   },
   {
-    title: "Real results",
-    body: "Lose up to 20% of your body weight without the shot.",
+    title: "Clinically Studied",
+    body: "Clinical trials have shown meaningful weight loss when combined with diet and physical activity.*",
     image: "/assets/wegovy/what-man.png",
-    badge: { label: "Year 1", value: "↓ 32 lbs" },
-    line: true,
-  },
-  {
-    title: "Lose weight your way",
-    body: "With Wegovy® in a pill or pen and a range of dosages, you’ve got options.",
-    image: "/assets/wegovy/what-bottle.png",
   },
 ];
 
@@ -134,17 +126,30 @@ export default function WhatIsPill() {
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <Reveal
           as="div"
-          className="mb-9 flex flex-col items-start justify-between gap-5 md:flex-row md:items-center"
+          className="mb-9 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end"
         >
-          <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            What Is The{" "}
-            <span className="font-serif italic font-normal">Wegovy Pill?</span>
-          </h2>
+          <div className="max-w-[720px]">
+            <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+              What is the{" "}
+              <span className="font-serif italic font-normal">
+                Wegovy® Tablet?
+              </span>
+            </h2>
+            <p className="mt-4 font-ui text-[18px] font-semibold leading-[24px] tracking-[-0.02em] text-[#142e2a] md:text-[20px]">
+              Daily oral weight-loss treatment.
+            </p>
+            <p className="mt-3 font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[24px]">
+              The Wegovy® tablet contains semaglutide, a GLP-1 receptor agonist
+              that works with your body&apos;s natural appetite signals to help
+              reduce hunger, increase fullness and support sustainable weight
+              loss alongside healthy lifestyle changes.
+            </p>
+          </div>
           <a
             href="/consultation"
             className="hidden h-[50px] shrink-0 items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
           >
-            Get Started Today
+            Start Your Assessment
           </a>
         </Reveal>
       </div>
@@ -178,7 +183,7 @@ export default function WhatIsPill() {
           href="/consultation"
           className="mt-6 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
         >
-          Get started Today
+          Start Your Assessment
         </a>
       </div>
     </section>

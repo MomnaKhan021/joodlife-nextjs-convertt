@@ -91,14 +91,19 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
       <div className="relative z-10 flex flex-col gap-5 lg:max-w-[54%]">
         <TrustpilotRow />
         <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[48px] md:leading-[1.06]">
-          Weight loss, now
+          Medical Weight Loss,
           <br />
-          <em className="font-serif font-normal italic">with Wegovy Pills</em>
+          Tailored to You.
         </h1>
+        <p className="font-ui text-[15px] leading-snug text-[#d3dabe] md:text-[16px]">
+          Personalised treatment plans from UK clinicians, with access to the
+          latest prescription weight-loss injections and tablets—all supported
+          throughout your journey.
+        </p>
         <ul className="flex flex-col gap-2.5">
-          {category.bullets.map((b) => (
-            <CheckBullet key={b}>{b}</CheckBullet>
-          ))}
+          <CheckBullet>Personalised treatment plans</CheckBullet>
+          <CheckBullet>Injections &amp; tablets available</CheckBullet>
+          <CheckBullet>Ongoing clinician support</CheckBullet>
         </ul>
         <div className="mt-2">
           <Link
