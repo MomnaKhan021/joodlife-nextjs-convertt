@@ -90,7 +90,7 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
           the women. */}
       <div className="relative z-10 flex flex-col gap-5 lg:max-w-[54%]">
         <TrustpilotRow />
-        <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[48px] md:leading-[1.06]">
+        <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[42px] md:leading-[1.06]">
           Medical Weight Loss,
           <br />
           Tailored to You.
