@@ -35,7 +35,7 @@ function ReviewCard({ review }: { review: Review }) {
           alt="5 out of 5 stars"
           width={84}
           height={16}
-          className="h-4 w-auto"
+          className="h-4 w-[84px] self-start"
         />
         <p className="font-ui text-[15.5px] leading-[22px] text-[#2a2929]">
           {review.text}
