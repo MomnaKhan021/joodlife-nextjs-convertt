@@ -147,6 +147,12 @@ function ShopCard({
         />
       ) : null}
 
+      {/* Top scrim — keeps the title/copy legible in white over any image. */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-[1] h-1/2 bg-gradient-to-b from-black/50 via-black/20 to-transparent"
+      />
+
       {/* Top-left content stack */}
       <div className="relative z-10 flex flex-1 flex-col gap-3 p-5 pr-2 md:p-6 md:pr-3">
         {p.tagline ? (
@@ -159,11 +165,11 @@ function ShopCard({
           </span>
         ) : null}
 
-        <h2 className="font-display text-[22px] font-bold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[28px]">
+        <h2 className="font-display text-[22px] font-bold leading-[26px] tracking-[-0.01em] text-white [text-shadow:0_1px_8px_rgba(20,46,42,0.35)] md:text-[24px] md:leading-[28px]">
           {p.title}
         </h2>
 
-        <p className="max-w-[60%] font-ui text-[13px] leading-[19px] text-[#142e2a]/85 md:text-[14px] md:leading-[20px]">
+        <p className="max-w-[60%] font-ui text-[13px] leading-[19px] text-white/90 [text-shadow:0_1px_6px_rgba(20,46,42,0.3)] md:text-[14px] md:leading-[20px]">
           {cardCopy}
         </p>
       </div>
