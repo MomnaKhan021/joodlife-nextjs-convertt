@@ -28,10 +28,39 @@ const PHARMACY_ADDRESS = "Jood Pharmacy | 7 Lime Avenue | Northwich | CW8 3DE";
 const BRAND_GREEN = "#142E2A";
 
 /**
+ * Canonical pack descriptor per brand + mg strength. The pharmacy label must
+ * show the FULL medicine name, including the volume + pen text that comes AFTER
+ * the strength (e.g. "…2.5 mg/0.6 mL - 2.4 mL pre-filled pen"). That tail is
+ * static per medicine but is frequently missing from the order's stored title
+ * (short synced titles like "Mounjaro 5 mg"), so we reconstruct it here.
+ */
+const MOUNJARO_PACK = "/0.6 mL - 2.4 mL pre-filled pen";
+const MOUNJARO_STRENGTHS = new Set(["2.5", "5", "7.5", "10", "12.5", "15"]);
+const WEGOVY_PACK: Record<string, string> = {
+  "0.25": "/0.5 mL pre-filled pen",
+  "0.5": "/0.5 mL pre-filled pen",
+  "1": "/0.5 mL pre-filled pen",
+  "1.7": "/0.75 mL pre-filled pen",
+  "2.4": "/0.75 mL pre-filled pen",
+};
+
+/** Normalised mg number ("5.0" → "5", "2.50" → "2.5") from a strength string. */
+function mgOf(s: string): string {
+  const m = s.match(/(\d+(?:\.\d+)?)\s*mg/i);
+  return m ? String(parseFloat(m[1])) : "";
+}
+
+function canonicalPack(brand: "Mounjaro" | "Wegovy", mg: string): string {
+  if (brand === "Mounjaro") return MOUNJARO_STRENGTHS.has(mg) ? MOUNJARO_PACK : "";
+  return WEGOVY_PACK[mg] ?? "";
+}
+
+/**
  * Builds the medicine name shown on the label from an order line item. The
  * brand (Mounjaro / Wegovy) is returned separately so it can be rendered bold;
  * the device + "solution for injection" text is static per brand, and the
- * strength is taken from the order (dose field, or parsed from the title).
+ * strength — including the volume/pen pack tail — is reconstructed so the full
+ * canonical name always shows.
  */
 export function composeMedicine(
   title?: string | null,
@@ -40,23 +69,27 @@ export function composeMedicine(
   const raw = (title ?? "").trim();
   const t = raw.toLowerCase();
   const strength = extractStrength(raw, dose);
-  const suffix = strength ? ` ${strength}` : "";
 
   const brandOf = t.includes("mounjaro")
-    ? { brand: "Mounjaro", device: "KwikPen solution for injection" }
+    ? { brand: "Mounjaro" as const, device: "KwikPen solution for injection" }
     : t.includes("wegovy")
-      ? { brand: "Wegovy", device: "FlexTouch solution for injection" }
+      ? { brand: "Wegovy" as const, device: "FlexTouch solution for injection" }
       : null;
 
   if (brandOf) {
-    // Strip the leading brand word (it's rendered bold separately). If the
-    // title already carries the full descriptor + pack (e.g. "KwikPen solution
-    // for injection 2.5 mg/0.6 mL - 2.4 mL pre-filled pen"), show it verbatim
-    // and in full — do NOT truncate. Otherwise (short synced titles like
-    // "Mounjaro 5 mg") build the standard device + strength line.
+    // Strip the leading brand word (it's rendered bold separately).
     const rest = raw.replace(new RegExp(`^\\s*${brandOf.brand}\\s*`, "i"), "").trim();
-    const hasDescriptor = /solution for injection|kwikpen|flextouch/i.test(rest);
-    const productLine = hasDescriptor ? rest : `${brandOf.device}${suffix}`;
+    // If the title already carries the full pack tail ("…pre-filled pen"), it's
+    // complete — show it verbatim, do NOT truncate.
+    if (/pre-filled pen/i.test(rest)) {
+      return { brand: brandOf.brand, productLine: rest };
+    }
+    // Otherwise rebuild the full canonical line: device + strength + the static
+    // volume/pen tail looked up from the mg strength.
+    const mg = mgOf(strength || raw);
+    const pack = mg ? canonicalPack(brandOf.brand, mg) : "";
+    const strengthFull = mg ? `${mg} mg${pack}` : strength;
+    const productLine = `${brandOf.device}${strengthFull ? ` ${strengthFull}` : ""}`;
     return { brand: brandOf.brand, productLine };
   }
 
