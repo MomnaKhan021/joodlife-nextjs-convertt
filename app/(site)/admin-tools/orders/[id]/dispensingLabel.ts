@@ -42,11 +42,22 @@ export function composeMedicine(
   const strength = extractStrength(raw, dose);
   const suffix = strength ? ` ${strength}` : "";
 
-  if (t.includes("mounjaro")) {
-    return { brand: "Mounjaro", productLine: `KwikPen solution for injection${suffix}` };
-  }
-  if (t.includes("wegovy")) {
-    return { brand: "Wegovy", productLine: `FlexTouch solution for injection${suffix}` };
+  const brandOf = t.includes("mounjaro")
+    ? { brand: "Mounjaro", device: "KwikPen solution for injection" }
+    : t.includes("wegovy")
+      ? { brand: "Wegovy", device: "FlexTouch solution for injection" }
+      : null;
+
+  if (brandOf) {
+    // Strip the leading brand word (it's rendered bold separately). If the
+    // title already carries the full descriptor + pack (e.g. "KwikPen solution
+    // for injection 2.5 mg/0.6 mL - 2.4 mL pre-filled pen"), show it verbatim
+    // and in full — do NOT truncate. Otherwise (short synced titles like
+    // "Mounjaro 5 mg") build the standard device + strength line.
+    const rest = raw.replace(new RegExp(`^\\s*${brandOf.brand}\\s*`, "i"), "").trim();
+    const hasDescriptor = /solution for injection|kwikpen|flextouch/i.test(rest);
+    const productLine = hasDescriptor ? rest : `${brandOf.device}${suffix}`;
+    return { brand: brandOf.brand, productLine };
   }
 
   // Unknown product — show the raw title, appending the dose if it's not
@@ -97,9 +108,15 @@ function labelMarkup(l: LabelData): string {
   const brand = l.brand?.trim()
     ? `<span class="brand">${esc(l.brand.trim())}</span> `
     : "";
+  // Bold the strength (e.g. "2.5 mg/0.6 mL") within the product line, matching
+  // the bold brand, so both stand out on the printed label.
+  const nameHtml = esc(l.productName).replace(
+    /(\d+(?:\.\d+)?\s*mg(?:\s*\/\s*\d+(?:\.\d+)?\s*m?l)?)/i,
+    '<span class="strength">$1</span>',
+  );
   return `<div class="label"><div class="content">
     <div class="top">
-      <div class="pname">${brand}${esc(l.productName)}</div>
+      <div class="pname">${brand}${nameHtml}</div>
       <div class="instruction">${esc(INSTRUCTION_TEXT)}</div>
     </div>
     <div class="spacer"></div>
@@ -142,9 +159,10 @@ export function buildLabelsDocument(labels: LabelData[]): string {
     padding: 1.6mm 6mm 1.4mm 2.5mm;
     display: flex; flex-direction: column;
   }
-  .top { text-align: center; line-height: 1.15; }
-  .pname { font-size: 6.8pt; font-weight: 500; color: ${BRAND_GREEN}; }
+  .top { text-align: center; line-height: 1.12; }
+  .pname { font-size: 6.4pt; font-weight: 500; color: ${BRAND_GREEN}; }
   .pname .brand { font-weight: 800; }
+  .pname .strength { font-weight: 800; }
   .instruction {
     font-size: 5.6pt; line-height: 1.3; margin-top: 1.1mm;
     color: ${BRAND_GREEN};
