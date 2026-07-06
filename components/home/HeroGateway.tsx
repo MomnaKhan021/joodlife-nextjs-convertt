@@ -48,7 +48,7 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-2.5">
       <span
-        className="grid h-5 w-5 shrink-0 place-items-center rounded-[6px] bg-white"
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white"
         aria-hidden
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -81,13 +81,13 @@ function PrimaryCard({
       className="group relative flex flex-col overflow-hidden rounded-[24px] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12"
       style={{
         backgroundImage:
-          "linear-gradient(90deg, rgba(20,46,42,0.94) 0%, rgba(20,46,42,0.5) 44%, rgba(20,46,42,0) 64%), linear-gradient(135deg, #42746d 0%, #142e2a 100%)",
+          "linear-gradient(90deg, #142e2a 0%, #142e2a 40%, rgba(20,46,42,0.65) 50%, rgba(20,46,42,0) 70%), linear-gradient(135deg, #42746d 0%, #142e2a 100%)",
       }}
     >
-      {/* Desktop: two-women cutout fills the full card height, bottom-right. */}
+      {/* Desktop: two-women cutout fills the full card height on the right. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[56%] lg:block"
+        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[54%] lg:block"
       >
         <Image
           src="/assets/home/hero-two-women.png"
@@ -100,15 +100,15 @@ function PrimaryCard({
         />
       </div>
 
-      {/* Text — left half on desktop so it never overlaps the women. */}
-      <div className="relative z-10 flex flex-col gap-4 lg:max-w-[47%]">
+      {/* Text — kept clear of the women (left ~42%) so nothing overlaps. */}
+      <div className="relative z-10 flex flex-col gap-4 lg:max-w-[42%]">
         <TrustpilotRow />
-        <h1 className="font-display text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-white sm:text-[38px] lg:text-[46px] lg:leading-[1.08]">
+        <h1 className="font-display text-[28px] font-medium leading-[1.12] tracking-[-0.02em] text-white sm:text-[34px] lg:text-[40px] lg:leading-[1.1]">
           Medical Weight Loss,
           <br />
           <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
-        <p className="max-w-[42ch] font-ui text-[14px] leading-[1.5] text-white/85 md:text-[15px]">
+        <p className="max-w-[36ch] font-ui text-[13px] leading-[1.5] text-white/85 md:text-[14px]">
           Personalised treatment plans from UK clinicians, with access to the
           latest prescription weight-loss injections and tablets—all supported
           throughout your journey.
