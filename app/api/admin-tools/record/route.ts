@@ -737,22 +737,45 @@ export async function DELETE(req: NextRequest) {
 
     // Clear rows that reference this user before deleting it. The live DB's
     // FK constraints may be NO ACTION (not CASCADE/SET NULL as declared), so
-    // an orphaned reference would otherwise block the delete. Each statement
-    // is guarded so a missing table/column doesn't abort the whole delete.
-    if (type === "users") {
-      const cleanups = [
-        `DELETE FROM "payload_locked_documents_rels" WHERE users_id = ${numId}`,
-        `DELETE FROM "payload_preferences_rels" WHERE users_id = ${numId}`,
-        `UPDATE "orders" SET user_id = NULL WHERE user_id = ${numId}`,
-        `UPDATE "weight_logs" SET user_id = NULL WHERE user_id = ${numId}`,
-      ];
-      if (Number.isFinite(numId)) {
-        for (const stmt of cleanups) {
-          try {
-            await drizzle.execute(sql.raw(stmt + ";"));
-          } catch {
-            // table/column may not exist in this environment — ignore
-          }
+    // any orphaned reference blocks the delete. Discover every FK pointing at
+    // "users" from the catalog and null it (nullable) or delete the row.
+    if (type === "users" && Number.isFinite(numId)) {
+      const fkRows = readRows<{
+        child_table: string;
+        child_column: string;
+        is_nullable: string;
+      }>(
+        await drizzle.execute(
+          sql.raw(`
+            SELECT tc.table_name AS child_table,
+                   kcu.column_name AS child_column,
+                   col.is_nullable AS is_nullable
+            FROM information_schema.table_constraints tc
+            JOIN information_schema.key_column_usage kcu
+              ON tc.constraint_name = kcu.constraint_name
+             AND tc.table_schema = kcu.table_schema
+            JOIN information_schema.constraint_column_usage ccu
+              ON tc.constraint_name = ccu.constraint_name
+             AND tc.table_schema = ccu.table_schema
+            JOIN information_schema.columns col
+              ON col.table_schema = tc.table_schema
+             AND col.table_name = tc.table_name
+             AND col.column_name = kcu.column_name
+            WHERE tc.constraint_type = 'FOREIGN KEY'
+              AND ccu.table_name = 'users'
+              AND tc.table_schema = 'public';
+          `)
+        )
+      );
+      for (const fk of fkRows) {
+        const stmt =
+          fk.is_nullable === "YES"
+            ? `UPDATE "${fk.child_table}" SET "${fk.child_column}" = NULL WHERE "${fk.child_column}" = ${numId}`
+            : `DELETE FROM "${fk.child_table}" WHERE "${fk.child_column}" = ${numId}`;
+        try {
+          await drizzle.execute(sql.raw(stmt + ";"));
+        } catch {
+          // best-effort — a later cascade or the final delete may still handle it
         }
       }
     }
@@ -771,11 +794,21 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ ok: true, hubspot });
   } catch (err) {
+    // Drizzle wraps the pg error and hides the real reason (e.g. FK violation)
+    // in .cause — surface both so the failure is actually diagnosable.
+    const base = err instanceof Error ? err.message : String(err);
+    const cause = (err as { cause?: unknown })?.cause;
+    const causeMsg =
+      cause instanceof Error
+        ? cause.message
+        : cause
+          ? String(cause)
+          : "";
     return NextResponse.json(
       {
         ok: false,
         error: "Delete failed",
-        detail: err instanceof Error ? err.message : String(err),
+        detail: [base, causeMsg].filter(Boolean).join(" | "),
       },
       { status: 500 }
     );
