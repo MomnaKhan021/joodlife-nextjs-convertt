@@ -59,9 +59,13 @@ export function composeMedicine(
 
 function extractStrength(title: string, dose?: string | null): string {
   const d = (dose ?? "").trim();
-  if (d) return d;
   const m = title.match(/(\d+(?:\.\d+)?\s*mg(?:\s*\/\s*\d+(?:\.\d+)?\s*m?l)?)/i);
-  return m ? m[1].replace(/\s+/g, " ").trim() : "";
+  const fromTitle = m ? m[1].replace(/\s+/g, " ").trim() : "";
+  // Prefer the fuller strength (including volume, e.g. "2.5 mg/0.6 mL") taken
+  // from the product title; fall back to the order's short dose field.
+  if (fromTitle.includes("/")) return fromTitle;
+  if (d) return d;
+  return fromTitle;
 }
 
 /* Official JOOD wordmark (brand colour #142E2A). Inlined so it needs no
