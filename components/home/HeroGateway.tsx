@@ -48,13 +48,13 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-2.5">
       <span
-        className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white"
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/25"
         aria-hidden
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path
             d="M2.5 6.2l2.2 2.2L9.5 3.6"
-            stroke="#142e2a"
+            stroke="#ffffff"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -84,10 +84,12 @@ function PrimaryCard({
           "linear-gradient(90deg, #142e2a 0%, #142e2a 40%, rgba(20,46,42,0.65) 50%, rgba(20,46,42,0) 70%), linear-gradient(135deg, #42746d 0%, #142e2a 100%)",
       }}
     >
-      {/* Desktop: two-women cutout fills the full card height on the right. */}
+      {/* Desktop: two-women cutout — full height, anchored bottom-right,
+          object-contain so the figures are never cropped (the PNG's left
+          side is transparent, so it can safely share space with the text). */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[54%] lg:block"
+        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[66%] lg:block"
       >
         <Image
           src="/assets/home/hero-two-women.png"
@@ -95,20 +97,20 @@ function PrimaryCard({
           fill
           priority
           quality={90}
-          sizes="600px"
-          className="object-cover object-bottom"
+          sizes="620px"
+          className="object-contain object-right-bottom"
         />
       </div>
 
-      {/* Text — kept clear of the women (left ~42%) so nothing overlaps. */}
-      <div className="relative z-10 flex flex-col gap-4 lg:max-w-[42%]">
+      {/* Text — left column; the women's bodies stay right of it. */}
+      <div className="relative z-10 flex flex-col gap-4 lg:max-w-[54%]">
         <TrustpilotRow />
-        <h1 className="font-display text-[28px] font-medium leading-[1.12] tracking-[-0.02em] text-white sm:text-[34px] lg:text-[40px] lg:leading-[1.1]">
+        <h1 className="font-display text-[28px] font-medium leading-[1.12] tracking-[-0.02em] text-white sm:text-[34px] lg:text-[36px] lg:leading-[1.16]">
           Medical Weight Loss,
           <br />
           <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
-        <p className="max-w-[36ch] font-ui text-[13px] leading-[1.5] text-white/85 md:text-[14px]">
+        <p className="max-w-[38ch] font-ui text-[13px] leading-[1.55] text-[#d3dabe] md:text-[15px]">
           Personalised treatment plans from UK clinicians, with access to the
           latest prescription weight-loss injections and tablets—all supported
           throughout your journey.
@@ -151,15 +153,16 @@ function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
   return (
     <div className="group relative flex min-h-[210px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
-      {/* Person cutout — fills the full card height on the right. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[54%]">
+      {/* Person cutout — full card height, anchored bottom-right (the
+          cutouts keep their transparent left side, so nothing is clipped). */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[48%]">
         <Image
           src={category.cardImage}
           alt={category.imageAlt}
           fill
           quality={95}
-          sizes="(max-width: 1024px) 55vw, 300px"
-          className="object-cover object-bottom"
+          sizes="(max-width: 1024px) 50vw, 280px"
+          className="object-cover object-right-bottom"
         />
       </div>
 
