@@ -14,20 +14,29 @@ export default function RealResults() {
       className="w-full bg-white"
     >
       <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 px-6 py-[30px] md:px-10 md:py-10 lg:grid-cols-2 lg:px-[60px]">
-        {/* Left — solid purple #4a4074 per Figma, carousel image overlay */}
+        {/* Left — green gradient panel per Figma (base #0b3b3c with a
+            transparent→#0b3b3c overlay over a blurred outdoor scene). */}
         <Reveal as="div" className="h-full">
-          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#4a4074] py-10 px-5 md:min-h-[560px]">
-            {/* Carousel image — blurred outdoor scene sits on top of purple like Figma */}
+          <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#0b3b3c] py-10 px-5 md:min-h-[560px]">
+            {/* Carousel image — blurred green outdoor scene sits on the base */}
             <Image
               src="/assets/wegovy/why-runner.png"
               alt=""
               fill
               aria-hidden
               sizes="(max-width:1024px) 100vw, 50vw"
-              className="object-cover object-center opacity-50 mix-blend-luminosity"
+              className="object-cover object-center opacity-45 mix-blend-luminosity"
             />
-            {/* Subtle dark veil so text stays legible */}
-            <div className="absolute inset-0 bg-[#4a4074]/40" aria-hidden />
+            {/* Green gradient veil — lighter at top, deep green at the bottom
+                so the frosted stat cards stay legible (Figma #0b3b3c). */}
+            <div
+              className="absolute inset-0"
+              aria-hidden
+              style={{
+                background:
+                  "linear-gradient(174deg, rgba(11,59,60,0.25) 0%, rgba(11,59,60,0.7) 55%, rgba(11,59,60,0.94) 100%)",
+              }}
+            />
 
             <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
               Real Results with the{" "}

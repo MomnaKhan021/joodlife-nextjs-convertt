@@ -88,7 +88,7 @@ function Card({
   const dark = variant === "pill";
   return (
     <div className={`flex w-full flex-col overflow-hidden rounded-xl ${
-      dark ? "bg-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
+      dark ? "bg-gradient-to-br from-[#42746d] to-[#142e2a] text-white" : "border border-[#142e2a]/12 bg-[#f7f9f2] text-[#142e2a]"
     }`}>
       {/* Title header — 87px */}
       <div
