@@ -57,6 +57,163 @@ function escBool(b: unknown) {
   return b ? "TRUE" : "FALSE";
 }
 
+/* ------------------------------------------------------------------ */
+/* Order items: reconstruct + enrich                                   */
+/*                                                                     */
+/* Orders reach the DB two ways:                                       */
+/*   - Native checkout: items_json is a proper array of                */
+/*     { title, dose, price, quantity, imageUrl }.                     */
+/*   - HubSpot sync: the deal's jood_order_items was historically a    */
+/*     human summary ("Mounjaro (0.25 mg) × 1, ..."), which the sync   */
+/*     stored as [{ note:"raw", body:"..." }] — losing title, price    */
+/*     and image. This reconstructs structured items from either shape */
+/*     and backfills missing image/price from the products table so    */
+/*     the order page and the dispensing label always have full data.  */
+/* ------------------------------------------------------------------ */
+type NormItem = {
+  title: string;
+  dose: string | null;
+  price: number | null;
+  quantity: number;
+  imageUrl: string | null;
+};
+
+function firstStr(...vals: unknown[]): string {
+  for (const v of vals) {
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "";
+}
+
+function toNum(v: unknown): number | null {
+  const n = typeof v === "string" ? parseFloat(v) : (v as number);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Parse one "Title (dose) × 2" summary fragment into a structured item. */
+function parseSummaryLine(s: string): NormItem | null {
+  const t = s.trim();
+  if (!t) return null;
+  const m = t.match(/^(.*?)(?:\s*\(([^)]*)\))?\s*[x×]\s*(\d+)\s*$/i);
+  if (m) {
+    return {
+      title: m[1].trim(),
+      dose: (m[2] ?? "").trim() || null,
+      price: null,
+      quantity: Number(m[3]) || 1,
+      imageUrl: null,
+    };
+  }
+  return { title: t, dose: null, price: null, quantity: 1, imageUrl: null };
+}
+
+type LooseItem = Record<string, unknown>;
+
+function normalizeItems(raw: unknown): NormItem[] {
+  let arr: unknown[] = [];
+  if (Array.isArray(raw)) {
+    arr = raw;
+  } else if (typeof raw === "string") {
+    try {
+      const p = JSON.parse(raw);
+      arr = Array.isArray(p) ? p : [p];
+    } catch {
+      arr = [raw];
+    }
+  } else if (raw && typeof raw === "object") {
+    arr = [raw];
+  }
+
+  const out: NormItem[] = [];
+  for (const el of arr) {
+    if (typeof el === "string") {
+      for (const part of el.split(",")) {
+        const p = parseSummaryLine(part);
+        if (p && p.title) out.push(p);
+      }
+      continue;
+    }
+    if (el && typeof el === "object") {
+      const it = el as LooseItem;
+      const title = firstStr(it.title, it.name, it.product);
+      const body = firstStr(it.body);
+      // Legacy sync shape: { note:"raw", body:"summary, summary" }
+      if (!title && body) {
+        for (const part of body.split(",")) {
+          const p = parseSummaryLine(part);
+          if (p && p.title) out.push(p);
+        }
+        continue;
+      }
+      if (!title) continue;
+      out.push({
+        title,
+        dose: firstStr(it.dose, it.variant) || null,
+        price: toNum(it.price),
+        quantity: toNum(it.quantity ?? it.qty) ?? 1,
+        imageUrl: firstStr(it.imageUrl, it.image, it.image_url) || null,
+      });
+    }
+  }
+  return out;
+}
+
+type ProductLite = {
+  title: string | null;
+  hero_image_url: string | null;
+  from_price: number | string | null;
+};
+
+function bestProductMatch(title: string, products: ProductLite[]): ProductLite | null {
+  const t = title.toLowerCase();
+  let m = products.find((p) => (p.title ?? "").toLowerCase() === t);
+  if (m) return m;
+  m = products.find((p) => {
+    const pt = (p.title ?? "").toLowerCase();
+    return pt !== "" && (pt.includes(t) || t.includes(pt));
+  });
+  if (m) return m;
+  const brand = t.split(/\s+/)[0];
+  if (brand) {
+    m = products.find((p) => (p.title ?? "").toLowerCase().includes(brand));
+    if (m) return m;
+  }
+  return null;
+}
+
+async function enrichOrderItems(
+  drizzle: DrizzleLike,
+  sql: SqlRaw,
+  raw: unknown
+): Promise<NormItem[]> {
+  const items = normalizeItems(raw);
+  if (items.length === 0) return items;
+  const needsEnrich = items.some((i) => !i.imageUrl || i.price == null);
+  if (!needsEnrich) return items;
+
+  let products: ProductLite[] = [];
+  try {
+    const res = await drizzle.execute(
+      sql.raw(`SELECT title, hero_image_url, from_price FROM "products";`)
+    );
+    products = readRows<ProductLite>(res);
+  } catch {
+    /* products table missing on this deployment → skip enrichment */
+  }
+  if (products.length === 0) return items;
+
+  for (const it of items) {
+    if (it.imageUrl && it.price != null) continue;
+    const match = bestProductMatch(it.title, products);
+    if (!match) continue;
+    if (!it.imageUrl && match.hero_image_url) it.imageUrl = match.hero_image_url;
+    if (it.price == null && match.from_price != null) {
+      it.price = toNum(match.from_price);
+    }
+  }
+  return items;
+}
+
 type ColumnType = "text" | "textarea" | "number" | "boolean" | "date" | "json";
 
 type Spec = {
@@ -346,6 +503,16 @@ export async function GET(req: NextRequest) {
       if (jsonVariants.length === 0 && Number.isFinite(Number(row.id))) {
         const relational = await readProductVariants(drizzle, sql, Number(row.id));
         if (relational.length > 0) row.variants_json = relational;
+      }
+    }
+    // Reconstruct structured line items (name/dose/qty/price/image) for both
+    // native and HubSpot-synced orders so the order page and dispensing label
+    // always have full data instead of a lossy summary string.
+    if (row && type === "orders") {
+      try {
+        row.items_json = await enrichOrderItems(drizzle, sql, row.items_json);
+      } catch {
+        /* leave items_json as-is if enrichment fails */
       }
     }
     return NextResponse.json({

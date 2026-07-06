@@ -66,7 +66,13 @@ type OrderRow = {
   payment_method: string | null;
 };
 
-type Item = { title?: string; dose?: string | null; quantity?: number; price?: number };
+type Item = {
+  title?: string;
+  dose?: string | null;
+  quantity?: number;
+  price?: number;
+  imageUrl?: string | null;
+};
 
 function parseItems(v: unknown): Item[] {
   if (Array.isArray(v)) return v as Item[];
@@ -135,9 +141,18 @@ export async function pushAllOrdersToHubSpot(): Promise<PushOrdersResult> {
         },
       });
 
-      const itemSummary = items
-        .map((i) => `${i.title}${i.dose ? ` (${i.dose})` : ""} × ${i.quantity ?? 1}`)
-        .join(", ");
+      // Store the structured line items as JSON so the pull-side sync
+      // round-trips full data (name, dose, price, quantity, image) instead
+      // of a lossy human summary that reconstructs poorly.
+      const itemsPayload = JSON.stringify(
+        items.map((i) => ({
+          title: i.title ?? "",
+          dose: i.dose ?? null,
+          price: i.price ?? null,
+          quantity: i.quantity ?? 1,
+          imageUrl: i.imageUrl ?? null,
+        })),
+      );
       const deal = await createDeal({
         name: `JoodLife — ${orderNumber}`,
         amount: total,
@@ -145,7 +160,7 @@ export async function pushAllOrdersToHubSpot(): Promise<PushOrdersResult> {
         dealStage: mapOrderStageId(o.status, null),
         extra: {
           jood_order_number: orderNumber,
-          jood_order_items: itemSummary,
+          jood_order_items: itemsPayload,
           jood_order_status: o.status ?? "",
           jood_payment_method: o.payment_method ?? "",
         },
