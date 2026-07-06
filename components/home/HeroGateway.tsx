@@ -47,14 +47,20 @@ function TrustpilotRow() {
 function CheckBullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-2.5">
-      <Image
-        src="/assets/home/tick.png"
-        alt=""
-        width={20}
-        height={20}
-        className="h-5 w-5 shrink-0"
+      <span
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-[6px] bg-white"
         aria-hidden
-      />
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path
+            d="M2.5 6.2l2.2 2.2L9.5 3.6"
+            stroke="#142e2a"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
       <span className="font-ui text-[15px] leading-snug text-white md:text-[16px]">
         {children}
       </span>
@@ -122,8 +128,10 @@ function PrimaryCard({
         </div>
       </div>
 
-      {/* Mobile: the centred two-women cutout sits full-width BELOW the text. */}
-      <div className="relative z-10 mt-6 h-[300px] w-full lg:hidden">
+      {/* Mobile: two-women cutout bleeds to the card's bottom + side edges
+          (negative margins cancel the card padding) so it sits flush to the
+          bottom bar with no gap. */}
+      <div className="relative z-10 -mx-6 -mb-6 mt-6 h-[320px] lg:hidden">
         <Image
           src="/assets/home/hero-two-women.png"
           alt={category.imageAlt}
@@ -131,7 +139,7 @@ function PrimaryCard({
           priority
           quality={90}
           sizes="100vw"
-          className="object-contain object-bottom"
+          className="object-cover object-bottom"
         />
       </div>
     </div>
@@ -166,7 +174,7 @@ function SecondaryCard({ category }: { category: Category }) {
 
       <div className="relative z-10 mt-5">
         <Link
-          href={category.href}
+          href={`/consultation?product=${category.key}`}
           aria-label={`${category.eyebrow}: ${title} — get started`}
           className="btn-cta inline-flex h-10 items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white hover:bg-[#0c2421]"
         >
