@@ -13,13 +13,14 @@ import { CATEGORIES, type Category } from "@/lib/categories";
  *  │                           │ Women's health│
  *  └──────────────────────────┴───────────────┘
  *
- * Desktop: 2-column grid (857 / 447 ≈ 1.85fr / 1fr, 16px gap).
+ * Desktop: 2-column grid (857 / 447 ≈ 1.85fr / 1fr, 16px gap). Card art
+ * fills the full card height (Figma STRETCH), anchored bottom-right.
  * Mobile: the three cards stack full-width.
  */
 
 function TrustpilotRow() {
   return (
-    <span className="inline-flex items-center gap-1.5 text-white">
+    <span className="inline-flex flex-wrap items-center gap-1.5 text-white">
       <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden>
         <path
           d="M10 0l2.45 6.18L19 6.7l-4.97 4.06L15.6 17 10 13.4 4.4 17l1.57-6.24L1 6.7l6.55-.52L10 0z"
@@ -71,16 +72,16 @@ function PrimaryCard({
 }) {
   return (
     <div
-      className="group relative flex flex-col overflow-hidden rounded-[24px] p-6 md:p-8 lg:min-h-[450px] lg:p-12"
+      className="group relative flex flex-col overflow-hidden rounded-[24px] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12"
       style={{
         backgroundImage:
-          "linear-gradient(90deg, rgba(20,46,42,0.92) 0%, rgba(20,46,42,0.4) 46%, rgba(20,46,42,0) 66%), linear-gradient(135deg, #42746d 0%, #142e2a 100%)",
+          "linear-gradient(90deg, rgba(20,46,42,0.94) 0%, rgba(20,46,42,0.5) 44%, rgba(20,46,42,0) 64%), linear-gradient(135deg, #42746d 0%, #142e2a 100%)",
       }}
     >
-      {/* Desktop: two-women transparent cutout, anchored bottom-right. */}
+      {/* Desktop: two-women cutout fills the full card height, bottom-right. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[58%] lg:block"
+        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[56%] lg:block"
       >
         <Image
           src="/assets/home/hero-two-women.png"
@@ -88,24 +89,30 @@ function PrimaryCard({
           fill
           priority
           quality={90}
-          sizes="500px"
-          className="object-contain object-bottom"
+          sizes="600px"
+          className="object-cover object-bottom"
         />
       </div>
 
       {/* Text — left half on desktop so it never overlaps the women. */}
-      <div className="relative z-10 flex flex-col gap-5 lg:max-w-[48%]">
+      <div className="relative z-10 flex flex-col gap-4 lg:max-w-[47%]">
         <TrustpilotRow />
-        <h1 className="font-display text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-white sm:text-[36px] lg:text-[48px] lg:leading-[1.15]">
-          Weight loss, now{" "}
-          <em className="font-serif font-normal italic">with Wegovy Pills</em>
+        <h1 className="font-display text-[30px] font-medium leading-[1.1] tracking-[-0.02em] text-white sm:text-[38px] lg:text-[46px] lg:leading-[1.08]">
+          Medical Weight Loss,
+          <br />
+          <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
-        <ul className="flex flex-col gap-3">
-          <CheckBullet>Lose up to 27% body weight</CheckBullet>
-          <CheckBullet>Plans tailored to you</CheckBullet>
-          <CheckBullet>Guidance for lasting results</CheckBullet>
+        <p className="max-w-[42ch] font-ui text-[14px] leading-[1.5] text-white/85 md:text-[15px]">
+          Personalised treatment plans from UK clinicians, with access to the
+          latest prescription weight-loss injections and tablets—all supported
+          throughout your journey.
+        </p>
+        <ul className="flex flex-col gap-2.5">
+          <CheckBullet>Personalised treatment plans</CheckBullet>
+          <CheckBullet>Injections &amp; tablets available</CheckBullet>
+          <CheckBullet>Ongoing clinician support</CheckBullet>
         </ul>
-        <div className="mt-2">
+        <div className="mt-1">
           <Link
             href={isReturningPatient ? "/reorder" : `/consultation?product=${category.key}`}
             className="btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-7 font-ui text-[16px] font-semibold text-[#142e2a] shadow-sm hover:bg-[#f0f4ea]"
@@ -116,7 +123,7 @@ function PrimaryCard({
       </div>
 
       {/* Mobile: the centred two-women cutout sits full-width BELOW the text. */}
-      <div className="relative z-10 mt-6 h-[270px] w-full lg:hidden">
+      <div className="relative z-10 mt-6 h-[300px] w-full lg:hidden">
         <Image
           src="/assets/home/hero-two-women.png"
           alt={category.imageAlt}
@@ -131,24 +138,24 @@ function PrimaryCard({
   );
 }
 
-/** Secondary category card — cream, transparent person cutout on the right, CTA. */
+/** Secondary category card — cream, person cutout fills the right side. */
 function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
   return (
-    <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
-      {/* Transparent cut-out portrait, anchored bottom-right. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[52%] md:w-[50%]">
+    <div className="group relative flex min-h-[210px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
+      {/* Person cutout — fills the full card height on the right. */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[54%]">
         <Image
           src={category.cardImage}
           alt={category.imageAlt}
           fill
           quality={95}
           sizes="(max-width: 1024px) 55vw, 300px"
-          className="object-contain object-right-bottom"
+          className="object-cover object-bottom"
         />
       </div>
 
-      <div className="relative z-10 max-w-[56%]">
+      <div className="relative z-10 max-w-[52%]">
         <p className="font-ui text-[14px] font-normal text-[#142e2a]/65 md:text-[16px]">
           {category.eyebrow}
         </p>
