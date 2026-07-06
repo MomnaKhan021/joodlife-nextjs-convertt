@@ -19,55 +19,56 @@ type Callout = {
   connectorFirst?: boolean;
 };
 
-/* Desktop L-connectors (white, 1.2px stroke, dot at bend) */
+/* Desktop L-connectors — clean right-angle bend (vertical + horizontal),
+   dot at the pill end, matching Figma. */
 const ConnectorRightDown = () => (
-  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
-    <path d="M0 4 H80 L104 22" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="104" cy="22" r="2.5" fill="white" />
+  <svg width="200" height="46" viewBox="0 0 200 46" fill="none" className="block">
+    <path d="M1 2 V32 H188" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="188" cy="32" r="2.5" fill="white" />
   </svg>
 );
 const ConnectorRightUp = () => (
-  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
-    <path d="M0 22 H80 L104 4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="104" cy="4" r="2.5" fill="white" />
+  <svg width="200" height="46" viewBox="0 0 200 46" fill="none" className="block">
+    <path d="M1 44 V14 H188" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="188" cy="14" r="2.5" fill="white" />
   </svg>
 );
 const ConnectorLeftDown = () => (
-  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
-    <path d="M110 4 H30 L6 22" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="6" cy="22" r="2.5" fill="white" />
+  <svg width="200" height="46" viewBox="0 0 200 46" fill="none" className="block">
+    <path d="M199 2 V32 H12" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="32" r="2.5" fill="white" />
   </svg>
 );
 const ConnectorLeftUp = () => (
-  <svg width="110" height="26" viewBox="0 0 110 26" fill="none" className="block">
-    <path d="M110 22 H30 L6 4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="6" cy="4" r="2.5" fill="white" />
+  <svg width="200" height="46" viewBox="0 0 200 46" fill="none" className="block">
+    <path d="M199 44 V14 H12" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="14" r="2.5" fill="white" />
   </svg>
 );
 
-/* Mobile connectors (shorter) */
+/* Mobile connectors — same clean right-angle style, shorter reach. */
 const MobileConnectorRightDown = () => (
-  <svg width="90" height="24" viewBox="0 0 90 24" fill="none" className="block">
-    <path d="M0 4 H58 L86 22" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="86" cy="22" r="3" fill="white" />
+  <svg width="110" height="34" viewBox="0 0 110 34" fill="none" className="block">
+    <path d="M1 2 V24 H98" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="98" cy="24" r="2.5" fill="white" />
   </svg>
 );
 const MobileConnectorRightUp = () => (
-  <svg width="90" height="24" viewBox="0 0 90 24" fill="none" className="block">
-    <path d="M0 20 H58 L86 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="86" cy="2" r="3" fill="white" />
+  <svg width="110" height="34" viewBox="0 0 110 34" fill="none" className="block">
+    <path d="M1 32 V10 H98" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="98" cy="10" r="2.5" fill="white" />
   </svg>
 );
 const MobileConnectorLeftDown = () => (
-  <svg width="90" height="24" viewBox="0 0 90 24" fill="none" className="block">
-    <path d="M90 4 H32 L4 22" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="4" cy="22" r="3" fill="white" />
+  <svg width="110" height="34" viewBox="0 0 110 34" fill="none" className="block">
+    <path d="M109 2 V24 H12" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="24" r="2.5" fill="white" />
   </svg>
 );
 const MobileConnectorLeftUp = () => (
-  <svg width="90" height="24" viewBox="0 0 90 24" fill="none" className="block">
-    <path d="M90 20 H32 L4 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    <circle cx="4" cy="2" r="3" fill="white" />
+  <svg width="110" height="34" viewBox="0 0 110 34" fill="none" className="block">
+    <path d="M109 32 V10 H12" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="10" r="2.5" fill="white" />
   </svg>
 );
 
