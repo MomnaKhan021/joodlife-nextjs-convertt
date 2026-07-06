@@ -186,12 +186,12 @@ function ShopCard({
         className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-3 px-5 py-3.5 md:px-6 md:py-4"
         style={{ backgroundColor: footerBg }}
       >
-        <span className="font-ui text-[13px] font-semibold text-white md:text-[14px]">
+        <span className="min-w-0 font-ui text-[12px] font-semibold leading-tight text-white md:text-[14px]">
           {fromPriceLabel}
         </span>
         <Link
           href={`/shop/${p.slug}`}
-          className="inline-flex h-[34px] items-center justify-center rounded-full bg-white px-4 font-ui text-[12px] font-semibold text-[#142e2a] transition-colors duration-200 hover:bg-[#f7f9f2] md:h-[38px] md:px-5 md:text-[13px]"
+          className="inline-flex h-[34px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-4 font-ui text-[12px] font-semibold text-[#142e2a] transition-colors duration-200 hover:bg-[#f7f9f2] md:h-[38px] md:px-5 md:text-[13px]"
         >
           Get Started
         </Link>

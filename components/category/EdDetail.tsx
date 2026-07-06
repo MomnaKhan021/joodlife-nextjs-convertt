@@ -77,10 +77,12 @@ export default function EdDetail() {
         </Link>
       </Reveal>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* Goals card — heading top-left, goal chips centred on the right
-            over the portrait (Figma). */}
-        <Reveal as="div" className="relative min-h-[360px] overflow-hidden rounded-[24px] md:min-h-[400px]">
+            over the portrait (Figma). min-w-0 lets the card shrink to the
+            column instead of the carousel's content forcing an auto track
+            wider than the viewport (clipped by the section's overflow). */}
+        <Reveal as="div" className="relative min-w-0 min-h-[360px] overflow-hidden rounded-[24px] md:min-h-[400px]">
           <Image
             src="/assets/category/ed-goals.png"
             alt="Man considering his treatment goals"
@@ -108,7 +110,7 @@ export default function EdDetail() {
         </Reveal>
 
         {/* Testimonial carousel */}
-        <Reveal as="div" delay={120}>
+        <Reveal as="div" delay={120} className="min-w-0">
           <TestimonialCarousel items={TESTIMONIALS} />
         </Reveal>
       </div>

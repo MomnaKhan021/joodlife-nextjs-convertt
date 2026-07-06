@@ -24,7 +24,7 @@ export default async function ShopPage() {
       {/* Heading — left aligned, "for you." on second line in italic serif */}
       <section className="mx-auto w-full max-w-[1440px] px-6 pt-12 pb-8 md:px-[60px] md:pt-16 md:pb-10">
         <Reveal>
-          <h1 className="font-display text-[40px] font-semibold leading-[44px] tracking-[-0.025em] text-[#142e2a] md:text-[56px] md:leading-[60px]">
+          <h1 className="font-display text-[clamp(1.875rem,8.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.025em] text-[#142e2a] md:text-[56px] md:leading-[60px]">
             Weight loss solutions
             <br />
             <em className="font-serif italic font-normal">for you.</em>
