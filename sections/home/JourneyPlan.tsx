@@ -375,7 +375,7 @@ export default function JourneyPlan() {
   return (
     <section
       aria-label="Journey and personalized plan"
-      className="relative w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="relative w-full bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-4 md:px-10 lg:px-[60px]">
         <div className="relative overflow-hidden rounded-[20px] md:rounded-3xl">

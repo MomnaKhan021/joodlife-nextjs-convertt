@@ -113,7 +113,7 @@ export default async function ProductPage({ params }: Params) {
       {/* ──────────────  HERO: Gallery + Info  ────────────── */}
       <section
         aria-label={`${product.title} — product overview`}
-        className="w-full bg-white py-8 md:py-12 lg:py-16"
+        className="w-full bg-white py-[30px] md:py-10"
       >
         <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10 lg:gap-14">
@@ -132,7 +132,7 @@ export default async function ProductPage({ params }: Params) {
       {/* ──────────────  What is X? + animated graph  ────────────── */}
       <section
         aria-label={`What is ${product.title}?`}
-        className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+        className="w-full bg-white py-[30px] md:py-10"
       >
         <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
           <WhatIsSection product={product} />
@@ -142,7 +142,7 @@ export default async function ProductPage({ params }: Params) {
       {/* ──────────────  Evidence-based comparison  ────────────── */}
       <section
         aria-label="Comparison of GLP-1 treatments"
-        className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+        className="w-full bg-white py-[30px] md:py-10"
       >
         <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
           <ComparisonTable active={product.comparisonActive} />
@@ -152,7 +152,7 @@ export default async function ProductPage({ params }: Params) {
       {/* ──────────────  Is X safe? + FAQ  ────────────── */}
       <section
         aria-label={`Is ${product.title} safe?`}
-        className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+        className="w-full bg-white py-[30px] md:py-10"
       >
         <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
           <SafetyFaq product={product} />

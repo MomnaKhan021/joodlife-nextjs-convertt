@@ -127,7 +127,7 @@ export default function Comparison() {
   return (
     <section
       aria-label="Wegovy pill versus Wegovy injection"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
 

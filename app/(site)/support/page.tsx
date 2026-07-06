@@ -123,7 +123,7 @@ export default function SupportPage() {
         {/* ───── Success stories ───── */}
         <section
           aria-label="Success stories"
-          className="w-full bg-white py-14 md:py-20"
+          className="w-full bg-white py-[30px] md:py-10"
         >
           <div className="mx-auto w-full max-w-[1320px] px-6 md:px-10 lg:px-[60px]">
             <div className="mx-auto max-w-[640px] text-center">

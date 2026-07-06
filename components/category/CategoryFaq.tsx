@@ -22,7 +22,7 @@ export default function CategoryFaq({
     <section
       id="faq"
       aria-label="Frequently asked questions"
-      className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto flex w-full max-w-[820px] flex-col items-center gap-8 px-6 md:gap-10 md:px-10">
         <h2 className="text-center font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">

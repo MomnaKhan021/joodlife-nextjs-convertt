@@ -45,7 +45,7 @@ export default function WegovyFaq() {
     <section
       id="faq"
       aria-label="Frequently asked questions"
-      className="w-full scroll-mt-28 bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-10">

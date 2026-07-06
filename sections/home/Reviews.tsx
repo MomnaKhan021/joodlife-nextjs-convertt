@@ -88,7 +88,7 @@ export default function Reviews() {
     <section
       id="reviews"
       aria-label="Reviews"
-      className="w-full scroll-mt-28 bg-white py-12 md:py-14 lg:py-[56px]"
+      className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal

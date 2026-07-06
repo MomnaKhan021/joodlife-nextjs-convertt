@@ -163,7 +163,7 @@ export default function QuizBanner() {
   return (
     <section
       aria-label="Personalization quiz"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         {/* Heading frame — 48px Gilroy-SemiBold / 16.3px Saans body */}

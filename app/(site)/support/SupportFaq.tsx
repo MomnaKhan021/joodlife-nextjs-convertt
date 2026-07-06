@@ -244,7 +244,7 @@ export default function SupportFaq() {
     <section
       id="faq"
       aria-label="Support frequently asked questions"
-      className="w-full scroll-mt-28 bg-[#f7f9f2] py-14 md:py-20"
+      className="w-full scroll-mt-28 bg-[#f7f9f2] py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1320px] px-6 md:px-10 lg:px-[60px]">
         {/* Filter pills */}

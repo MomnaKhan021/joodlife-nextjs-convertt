@@ -13,7 +13,7 @@ export default function RealResults() {
       aria-label="Real results with Wegovy"
       className="w-full bg-white"
     >
-      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 px-6 py-14 md:px-10 md:py-16 lg:grid-cols-2 lg:px-[60px] lg:py-[80px]">
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 px-6 py-[30px] md:px-10 md:py-10 lg:grid-cols-2 lg:px-[60px]">
         {/* Left — solid purple #4a4074 per Figma, carousel image overlay */}
         <Reveal as="div" className="h-full">
           <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#4a4074] py-10 px-5 md:min-h-[560px]">

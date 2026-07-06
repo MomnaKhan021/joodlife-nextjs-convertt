@@ -24,7 +24,7 @@ const STEPS = [
 
 export default function NextSteps() {
   return (
-    <section className="w-full bg-white px-6 py-12 md:px-10 md:py-16 lg:px-[60px]">
+    <section className="w-full bg-white px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[880px] rounded-[20px] border border-[#142e2a]/10 bg-white p-6 md:p-10">
         <h2 className="text-center font-display text-[26px] font-bold leading-[1.1] tracking-[-0.01em] text-[#142e2a] md:text-[34px]">
           Your next{" "}

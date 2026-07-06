@@ -25,7 +25,7 @@ export default function Dosing() {
   return (
     <section
       aria-label="Wegovy pill dosing and pricing"
-      className="w-full bg-white py-14 md:py-16 lg:py-[80px]"
+      className="w-full bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_minmax(0,420px)]">

@@ -153,7 +153,7 @@ export default function BmiCalculator() {
       className="w-full bg-white"
       ref={sectionRef}
     >
-      <div className="mx-auto w-full max-w-[1400px] px-6 py-14 md:px-10 md:py-16 lg:px-[60px] lg:py-[80px]">
+      <div className="mx-auto w-full max-w-[1400px] px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-12 pb-10 md:pb-12">
           <h2 className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
             Everyone&rsquo;s talking about{" "}

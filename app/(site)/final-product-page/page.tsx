@@ -196,7 +196,7 @@ export default async function FinalProductPage({ searchParams }: Props) {
 
           <section
             aria-label="Evidence-based comparison"
-            className="w-full bg-white py-12 md:py-16 lg:py-[80px]"
+            className="w-full bg-white py-[30px] md:py-10"
           >
             <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
               <div className="mb-8 text-center md:mb-12">
@@ -222,7 +222,7 @@ export default async function FinalProductPage({ searchParams }: Props) {
       <NextSteps />
 
       {/* Our commitment to your journey */}
-      <section className="w-full bg-[#f7f9f2] px-6 py-10 md:px-10 md:py-14 lg:px-[60px]">
+      <section className="w-full bg-[#f7f9f2] px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
         <div className="mx-auto flex w-full max-w-[880px] items-center justify-between gap-6 rounded-[20px] border border-[#142e2a]/10 bg-white p-6 md:p-8">
           <div className="min-w-0">
             <h2 className="font-display text-[22px] font-bold leading-[1.15] text-[#142e2a] md:text-[28px]">
