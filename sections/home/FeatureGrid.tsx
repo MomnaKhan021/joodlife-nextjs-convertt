@@ -60,7 +60,7 @@ export default function FeatureGrid() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[476fr_804fr] lg:gap-10">
           {/* Left — heading + lede + CTA */}
           <Reveal as="div" className="flex flex-col">
-            <h2 className="font-display text-[32px] font-semibold leading-[1.08] tracking-[-0.02em] text-white md:text-[44px]">
+            <h2 className="font-display text-[26px] font-semibold leading-[1.08] tracking-[-0.02em] text-white md:text-[44px]">
               It&rsquo;s more than treatment, it&rsquo;s{" "}
               <em className="font-serif font-normal italic">transformation</em>
             </h2>

@@ -27,7 +27,7 @@ export default function TestimonialCarousel({
 
   return (
     <div
-      className={`relative flex min-h-[400px] flex-col items-center justify-center gap-5 rounded-[24px] bg-black/12 p-8 text-center backdrop-blur-[20px] ${className}`}
+      className={`relative flex min-h-[340px] flex-col items-center justify-center gap-5 rounded-[24px] bg-black/12 p-6 text-center backdrop-blur-[20px] md:min-h-[400px] md:p-8 ${className}`}
     >
       {/* arrows */}
       <button
@@ -51,8 +51,8 @@ export default function TestimonialCarousel({
         </svg>
       </button>
 
-      <div className="px-8">
-        <p className="mx-auto max-w-[34ch] font-serif text-[20px] font-normal italic leading-snug text-white md:text-[22px]">
+      <div className="px-6 md:px-8">
+        <p className="mx-auto max-w-[34ch] font-serif text-[17px] font-normal italic leading-snug text-white md:text-[22px]">
           &ldquo;{t.quote}&rdquo;
         </p>
         <div className="mt-5 flex flex-col gap-0.5">

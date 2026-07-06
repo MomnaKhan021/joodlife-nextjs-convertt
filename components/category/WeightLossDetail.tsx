@@ -31,7 +31,7 @@ function renderChip(c: Chip) {
   return (
     <li
       key={c.label}
-      className="flex w-[140px] items-center gap-2 rounded-[10px] bg-[#142e2a] px-2.5 py-2 text-left md:w-[188px] md:gap-2.5 md:px-3 md:py-2.5"
+      className="flex w-full items-center gap-2 rounded-[10px] bg-[#142e2a] px-2.5 py-2 text-left md:gap-2.5 md:px-3 md:py-2.5"
     >
       <Image
         src={c.iconSrc}
@@ -104,7 +104,7 @@ function WegovyIntroCard() {
     >
       <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
         <div className="flex flex-col">
-          <h3 className="font-display text-[26px] font-semibold leading-[1.14] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
+          <h3 className="font-display text-[24px] font-semibold leading-[1.14] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
             New Oral Treatment Available
             <br />
             Part of Jood&rsquo;s <span className="text-[#b4ff9f]">clinician-led care</span>
@@ -159,7 +159,7 @@ export default function WeightLossDetail() {
       <div className="grid gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
       <Reveal as="div" className="order-2 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
-        <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
+        <h3 className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           It&rsquo;s more than treatment,{" "}
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
         </h3>
@@ -168,23 +168,41 @@ export default function WeightLossDetail() {
           <span className="text-[#b4ff9f]">personalised treatment plan</span> tailored to your individual needs.
         </p>
 
-        {/* Chips flank the portrait — left column high, right staggered
-            lower; portrait sits behind (absolute) so it stays responsive. */}
-        <div className="relative mt-6 h-[330px] w-full shrink-0 md:h-[350px]">
-          <div className="absolute bottom-0 left-1/2 z-0 h-[280px] w-[130px] -translate-x-1/2 md:h-[330px] md:w-[180px]">
+        {/* Mobile / tablet: chips flow in a 2-column grid above a centred
+            portrait, so nothing overlaps or gets clipped. */}
+        <div className="mt-6 w-full lg:hidden">
+          <ul className="grid grid-cols-2 gap-2.5">
+            {[...LEFT_CHIPS, ...RIGHT_CHIPS].map(renderChip)}
+          </ul>
+          <div className="relative mx-auto mt-5 h-[240px] w-[150px]">
             <Image
               src="/assets/category/wl-man.png"
               alt="A member supported through his weight-loss journey"
               fill
               quality={90}
-              sizes="(max-width: 768px) 130px, 180px"
+              sizes="150px"
               className="object-contain object-bottom"
             />
           </div>
-          <ul className="absolute left-0 top-0 z-10 flex flex-col gap-3 md:gap-3.5">
+        </div>
+
+        {/* Desktop: chips flank the portrait — left column high, right
+            staggered lower; portrait sits behind (absolute). */}
+        <div className="relative mt-6 hidden h-[350px] w-full shrink-0 lg:block">
+          <div className="absolute bottom-0 left-1/2 z-0 h-[330px] w-[180px] -translate-x-1/2">
+            <Image
+              src="/assets/category/wl-man.png"
+              alt=""
+              fill
+              quality={90}
+              sizes="180px"
+              className="object-contain object-bottom"
+            />
+          </div>
+          <ul className="absolute left-0 top-0 z-10 flex w-[188px] flex-col gap-3.5">
             {LEFT_CHIPS.map(renderChip)}
           </ul>
-          <ul className="absolute right-0 top-[58px] z-10 flex flex-col gap-3 md:top-[64px] md:gap-3.5">
+          <ul className="absolute right-0 top-[64px] z-10 flex w-[188px] flex-col gap-3.5">
             {RIGHT_CHIPS.map(renderChip)}
           </ul>
         </div>
@@ -196,7 +214,7 @@ export default function WeightLossDetail() {
 
       {/* Card B — continuous expert guidance (first on mobile per Figma) */}
       <Reveal as="div" delay={120} className="order-1 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-2">
-        <h3 className="font-display text-[28px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
+        <h3 className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           Continuous, expert guidance
         </h3>
 
@@ -211,7 +229,7 @@ export default function WeightLossDetail() {
           />
         </div>
 
-        <p className="mt-6 font-serif text-[28px] font-normal italic text-[#b4ff9f] md:text-[34px]">
+        <p className="mt-6 font-serif text-[24px] font-normal italic text-[#b4ff9f] md:text-[34px]">
           Every step of the way
         </p>
         <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
