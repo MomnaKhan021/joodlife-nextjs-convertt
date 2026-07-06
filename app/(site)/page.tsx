@@ -6,7 +6,6 @@ import WeightLossDetail from "@/components/category/WeightLossDetail";
 import EdDetail from "@/components/category/EdDetail";
 import PeriodDetail from "@/components/category/PeriodDetail";
 import Reviews from "@/sections/home/Reviews";
-import FeatureGrid from "@/sections/home/FeatureGrid";
 import HowItWorks from "@/sections/home/HowItWorks";
 import Faq from "@/sections/home/Faq";
 import Blog from "@/sections/home/Blog";
@@ -61,7 +60,6 @@ export default async function HomePage() {
       </CategoryPreview>
 
       <Reviews />
-      <FeatureGrid />
       <HowItWorks />
       <Faq />
       <Blog />

@@ -32,9 +32,9 @@ export default function PeriodDetail() {
         className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:p-8"
       >
         <p className="max-w-[42ch] font-ui text-[15px] leading-relaxed text-white/90">
-          Take control of your period safely and reliably. Whether it&rsquo;s for holidays,
-          weddings, or important events, Norethisterone is clinically approved and delivered
-          discreetly to help you stay in control.
+          Delay your period safely and discreetly when you need to. Whether you&rsquo;re
+          travelling, attending a special event or planning ahead, our UK clinicians can
+          assess whether norethisterone is appropriate for you.
         </p>
         <div className="relative mt-6 h-[160px] w-full">
           <Image
