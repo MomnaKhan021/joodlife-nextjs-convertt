@@ -54,7 +54,7 @@ export default function FeatureGrid() {
   return (
     <section
       aria-label="Treatment plan features"
-      className="w-full bg-[#142e2a] py-12 md:py-14 lg:py-[56px]"
+      className="w-full bg-[#142e2a] py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[476fr_804fr] lg:gap-10">

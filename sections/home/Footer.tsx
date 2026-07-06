@@ -28,7 +28,7 @@ const JOOD_LINKS: FooterLink[] = [
 const TREATMENTS: FooterLink[] = [
   { label: "Mounjaro", href: "/weight-loss" },
   { label: "Wegovy", href: "/weight-loss" },
-  { label: "Saxenda", href: "/weight-loss" },
+  { label: "Wegovy Pills", href: "/wegovy-pills" },
 ];
 const POLICY: FooterLink[] = [
   { label: "Terms & conditions", href: "https://joodlife.com/policies/terms-of-service", external: true },
@@ -133,8 +133,8 @@ function AccordionColumn({
 
 /**
  * Social icon — 35×35 cream-coloured circle with the dark-green
- * brand mark inside. Hover lifts the icon a few pixels using
- * translate3d, then settles back when the cursor leaves.
+ * brand mark inside. Hover brightens the background (no transform,
+ * which previously glitched/clipped inside the accordion wrapper).
  */
 function SocialButton({
   href,
@@ -151,7 +151,7 @@ function SocialButton({
       aria-label={label}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-[#f7f9f2] text-[#142e2a] transition-[transform,box-shadow,background-color] duration-300 ease-out hover:-translate-y-1 hover:bg-white hover:shadow-[0_8px_20px_-6px_rgba(0,0,0,0.45)]"
+      className="inline-flex h-[35px] w-[35px] cursor-pointer items-center justify-center rounded-full bg-[#f7f9f2] text-[#142e2a] transition-colors duration-200 ease-out hover:bg-white"
     >
       <span className="block h-[15px] w-[15px]">{children}</span>
     </a>
@@ -194,7 +194,7 @@ function SocialColumn() {
                 <path d="M16 8a8 8 0 1 0-9.25 7.9V10.3H4.72V8h2.03V6.24c0-2 1.2-3.1 3-3.1.87 0 1.78.15 1.78.15v1.96h-1c-.99 0-1.3.61-1.3 1.25V8h2.2l-.35 2.3H9.23v5.6A8 8 0 0 0 16 8z" />
               </svg>
             </SocialButton>
-            <SocialButton href="https://www.instagram.com/myjoodlife" label="Instagram">
+            <SocialButton href="https://www.instagram.com/myjoodlife?igsh=eWFnOXl0ZzVja2Vh&utm_source=qr" label="Instagram">
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 1.4c2.13 0 2.39 0 3.23.05.78.04 1.2.17 1.49.28.37.14.64.32.92.6.28.27.46.54.6.91.11.29.24.71.28 1.5.04.84.05 1.1.05 3.22 0 2.14 0 2.39-.05 3.23-.04.78-.17 1.2-.28 1.49-.14.37-.32.64-.6.92a2.48 2.48 0 0 1-.92.6c-.29.11-.71.24-1.49.28-.84.04-1.1.05-3.23.05-2.14 0-2.39 0-3.23-.05-.78-.04-1.2-.17-1.49-.28-.37-.14-.64-.32-.92-.6a2.48 2.48 0 0 1-.6-.92c-.11-.29-.24-.71-.28-1.49C1.4 10.4 1.4 10.13 1.4 8c0-2.14 0-2.39.05-3.23.04-.78.17-1.2.28-1.49.14-.37.32-.64.6-.92.27-.28.54-.46.91-.6.29-.11.71-.24 1.5-.28C5.6 1.4 5.86 1.4 8 1.4M8 0C5.83 0 5.55 0 4.7.05c-.85.04-1.43.17-1.94.37-.53.2-.97.48-1.42.92-.44.45-.72.9-.92 1.42-.2.51-.33 1.09-.37 1.94C0 5.55 0 5.83 0 8c0 2.17 0 2.45.05 3.3.04.85.17 1.43.37 1.94.2.53.48.97.92 1.42.45.44.9.72 1.42.92.51.2 1.09.33 1.94.37C5.55 16 5.83 16 8 16c2.17 0 2.45 0 3.3-.05.85-.04 1.43-.17 1.94-.37.53-.2.97-.48 1.42-.92.44-.45.72-.9.92-1.42.2-.51.33-1.09.37-1.94.05-.85.05-1.13.05-3.3 0-2.17 0-2.45-.05-3.3-.04-.85-.17-1.43-.37-1.94a3.88 3.88 0 0 0-.92-1.42 3.88 3.88 0 0 0-1.42-.92c-.51-.2-1.09-.33-1.94-.37C10.45 0 10.17 0 8 0zM8 3.9a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2zm0 6.77a2.67 2.67 0 1 1 0-5.34 2.67 2.67 0 0 1 0 5.34zm5.22-6.93a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z" />
               </svg>

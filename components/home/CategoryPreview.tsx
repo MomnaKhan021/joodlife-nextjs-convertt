@@ -38,7 +38,7 @@ export default function CategoryPreview({
   return (
     <section
       aria-label={`${category.eyebrow} — ${category.title} ${category.titleAccent}`}
-      className="w-full bg-white px-4 py-5 md:px-0"
+      className="w-full bg-white px-4 py-[30px] md:px-0 md:py-10"
       style={
         {
           "--cat-base": theme.base,

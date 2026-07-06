@@ -27,7 +27,7 @@ export default function HowItWorks() {
     <section
       id="how-it-works"
       aria-label="How it works"
-      className="w-full scroll-mt-28 bg-white py-6 md:py-8 lg:py-10"
+      className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div" className="flex flex-col items-center gap-2 pb-6 text-center">

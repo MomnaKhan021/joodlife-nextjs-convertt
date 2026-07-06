@@ -57,7 +57,7 @@ export default function ShopGrid({ products }: Props) {
           ))}
         </Swiper>
 
-        <div className="shop-pagination mt-6 flex items-center justify-center gap-2" />
+        <div className="shop-pagination mt-4 flex items-center justify-center gap-1.5" />
       </div>
 
       <style jsx global>{`

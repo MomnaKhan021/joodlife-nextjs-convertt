@@ -104,12 +104,12 @@ function WegovyIntroCard() {
     >
       <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
         <div className="flex flex-col">
-          <h3 className="font-display text-[24px] font-semibold leading-[1.14] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
+          <h3 className="font-display text-[18px] font-semibold leading-[1.2] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
             New Oral Treatment Available
-            <br />
-            Part of Jood&rsquo;s <span className="text-[#b4ff9f]">clinician-led care</span>
+            <br className="hidden md:block" />
+            {" "}Part of Jood&rsquo;s <span className="text-[#b4ff9f]">clinician-led care</span>
           </h3>
-          <p className="mt-3 max-w-[48ch] font-ui text-[16px] leading-[22px] text-white/80">
+          <p className="mt-3 max-w-[48ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px] md:leading-[22px]">
             A new oral treatment option, available following an{" "}
             <span className="text-[#b4ff9f]">individual clinical assessment</span>.
           </p>
@@ -159,11 +159,11 @@ export default function WeightLossDetail() {
       <div className="grid gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
       <Reveal as="div" className="order-2 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
-        <h3 className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
+        <h3 className="font-display text-[22px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           It&rsquo;s more than treatment,{" "}
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
         </h3>
-        <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
+        <p className="mt-3 max-w-[46ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px]">
           Your clinician will review your health and create a{" "}
           <span className="text-[#b4ff9f]">personalised treatment plan</span> tailored to your individual needs.
         </p>
