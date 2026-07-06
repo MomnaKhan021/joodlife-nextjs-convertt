@@ -20,11 +20,11 @@ export type LabelData = {
   date: string;
 };
 
-/* Static text that appears on every label. */
+/* Static text that appears on every label. (The JOOD logo, pharmacy
+ * address, rule line and "Keep out of sight…" caption are PRE-PRINTED on
+ * the physical label stock, so they are deliberately NOT rendered here.) */
 const INSTRUCTION_TEXT =
   "Inject ONE dose under the skin ONCE every week, on the same day each week, as advised by your clinician.";
-const VERTICAL_TEXT = "Keep out of sight and reach of children";
-const PHARMACY_ADDRESS = "Jood Pharmacy | 7 Lime Avenue | Northwich | CW8 3DE";
 const BRAND_GREEN = "#142E2A";
 
 /**
@@ -112,15 +112,6 @@ function extractStrength(title: string, dose?: string | null): string {
   return fromTitle;
 }
 
-/* Official JOOD wordmark (brand colour #142E2A). Inlined so it needs no
- * network load. The clipPath/defs from the source export are dropped to
- * avoid duplicate element ids when multiple labels share one document. */
-const LOGO_SVG = `<svg width="19.8mm" height="5.6mm" viewBox="0 0 304 86" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-<path d="M61.5671 53.4144C61.5671 54.1318 61.5671 54.8492 61.5671 55.5993C60.8496 67.1757 53.6103 76.5999 43.8274 81.687C39.849 83.8719 35.1206 84.5893 30.4248 84.5893C15.5874 84.5893 2.90226 73.7303 0 59.219C0 58.5015 0.358707 58.1428 1.07612 58.1428H18.4571C18.8158 58.1428 19.1745 58.5015 19.1745 58.8602C21.3593 63.1973 26.4138 66.4583 31.8597 65.3822C37.6642 64.3061 42.0013 58.8602 42.0013 53.0557V2.67377C42.0013 1.95636 42.36 1.59766 43.0774 1.59766H60.4583C61.1757 1.59766 61.5345 1.95636 61.5345 2.67377V53.4144H61.5671Z" fill="#142E2A"/>
-<path d="M303.925 40.0138C302.49 18.6544 283.642 2.34961 261.891 2.34961H236.912C236.195 2.34961 235.836 2.70831 235.836 3.42572V82.7651C235.836 83.4825 236.195 83.8412 236.912 83.8412H263C286.903 83.4825 305.36 63.558 303.925 40.0138ZM278.913 59.1883C274.935 63.1667 268.772 66.0689 262.25 66.0689H255.369C254.652 66.0689 254.293 65.7102 254.293 64.9928V20.448C254.293 19.7306 254.652 19.3719 255.369 19.3719H262.25C275.294 19.3719 285.794 29.8722 285.794 42.9161C285.794 49.4054 282.924 55.2099 278.913 59.1883Z" fill="#142E2A"/>
-<path d="M228.202 47.9702C225.658 65.3512 215.875 77.3189 199.57 83.1235C182.189 88.928 167.319 84.1996 155.026 71.1557C153.721 69.5252 151.536 67.3078 150.036 65.5468C149.743 65.2207 149.743 64.7642 149.971 64.4055C153.297 59.2206 158.482 50.7421 160.406 47.6767C160.765 47.1224 161.58 47.0572 162.004 47.5789C163.537 49.5355 165.819 52.3399 167.319 54.1008C173.124 60.9815 180.005 65.6773 189.429 64.6012C198.853 63.5251 205.375 57.3618 207.527 46.8615C209.712 37.0786 205.342 27.6544 196.668 22.9586C188.711 18.2628 179.646 19.6976 172.765 26.2196C167.319 31.3067 151.406 56.6444 147.786 63.1663C137.286 79.1125 123.166 87.4279 103.6 84.167C84.7517 80.906 70.9904 66.0686 69.5556 46.8615C67.7295 26.2196 78.2624 9.55603 97.0782 2.31668C114.459 -3.84655 134.742 2.67539 145.634 17.9041C145.797 18.1324 146.58 19.2411 147.069 19.8933C147.297 20.2194 147.33 20.6759 147.101 21.002L137.123 36.5569C136.797 37.0786 136.047 37.1764 135.623 36.7525C133.471 34.6655 128.318 28.5675 125.351 25.8935C119.546 20.4477 111.948 18.2954 104.35 20.8064C96.3934 23.7086 91.665 29.8719 90.2301 38.1873C88.404 48.6877 93.8498 59.188 102.915 63.1663C112.34 67.1447 122.481 63.525 129.003 54.1008C131.547 50.8399 135.884 43.2418 135.884 43.2418L141.688 34.1763L150.395 20.7738C153.297 16.7954 156.558 12.817 160.537 9.55603C173.939 -1.30299 192.429 -3.12914 207.625 5.21894C222.038 14.2844 230.387 30.948 228.202 47.9702Z" fill="#142E2A"/>
-</svg>`;
-
 function esc(s: string): string {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -147,6 +138,11 @@ function labelMarkup(l: LabelData): string {
     /(\d+(?:\.\d+)?\s*mg(?:\s*\/\s*\d+(?:\.\d+)?\s*m?l)?)/i,
     '<span class="strength">$1</span>',
   );
+  // The physical label stock is PRE-PRINTED with the static frame (JOOD
+  // logo, pharmacy address, the rule line and the "Keep out of sight…"
+  // caption), so we print ONLY the variable data, positioned to land in
+  // the blank middle area between the pre-printed top caption and the
+  // pre-printed rule/footer.
   return `<div class="label"><div class="content">
     <div class="top">
       <div class="pname">${brand}${nameHtml}</div>
@@ -157,11 +153,7 @@ function labelMarkup(l: LabelData): string {
       <span class="patient">${esc(l.patientName)}</span>
       <span class="date">${esc(l.date)}</span>
     </div>
-    <div class="foot">
-      ${LOGO_SVG}
-      <div class="addr">${esc(PHARMACY_ADDRESS)}</div>
-    </div>
-  </div><div class="side"><span>${esc(VERTICAL_TEXT)}</span></div></div>`;
+  </div></div>`;
 }
 
 export function buildLabelsDocument(labels: LabelData[]): string {
@@ -187,9 +179,13 @@ export function buildLabelsDocument(labels: LabelData[]): string {
     page-break-after: always;
   }
   .label:last-child { page-break-after: auto; }
+  /* Variable data only — the stock is pre-printed with the static frame.
+     Top padding clears the pre-printed "Keep out of sight…" caption;
+     bottom padding keeps the patient/date row just above the pre-printed
+     rule + logo + address footer. */
   .content {
     position: absolute; inset: 0;
-    padding: 1.6mm 6mm 1.4mm 2.5mm;
+    padding: 4.5mm 3mm 9.5mm 3mm;
     display: flex; flex-direction: column;
   }
   .top { text-align: center; line-height: 1.12; }
@@ -203,24 +199,9 @@ export function buildLabelsDocument(labels: LabelData[]): string {
   .spacer { flex: 1 1 auto; }
   .who {
     display: flex; justify-content: space-between; align-items: flex-end;
-    border-bottom: 0.4mm solid ${BRAND_GREEN}; padding-bottom: 0.6mm;
   }
   .patient { font-size: 7.5pt; font-weight: 700; color: ${BRAND_GREEN}; }
   .date { font-size: 6.5pt; color: ${BRAND_GREEN}; }
-  .foot {
-    display: flex; flex-direction: column; align-items: center;
-    margin-top: 0.8mm;
-  }
-  .addr { font-size: 5pt; margin-top: 0.2mm; color: ${BRAND_GREEN}; }
-  .side {
-    position: absolute; top: 0; right: 0; bottom: 0; width: 5mm;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .side span {
-    writing-mode: vertical-rl;
-    font-size: 5pt; letter-spacing: -0.1pt; white-space: nowrap;
-    color: ${BRAND_GREEN};
-  }
 </style></head><body>${body}</body></html>`;
 }
 
