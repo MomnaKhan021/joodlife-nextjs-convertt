@@ -111,27 +111,35 @@ function parseShippingAddress(raw: string): ParsedAddress {
     .map((p) => p.trim())
     .filter(Boolean);
 
-  // Extract postcode
+  // Extract postcode and strip it wherever it appears. A part that is ONLY a
+  // postcode (a common duplicate trailing line) is dropped entirely so it
+  // never lands in the town field — DPD rejects a postcode-as-town.
+  const COUNTRY_LABELS = ["united kingdom", "uk", "england", "scotland", "wales", "great britain"];
   let postcode = "";
-  const filteredParts: string[] = [];
+  const collected: string[] = [];
   for (const part of parts) {
+    if (COUNTRY_LABELS.includes(part.toLowerCase())) continue;
     const m = part.match(UK_POSTCODE_RE);
-    if (m && !postcode) {
-      postcode = m[1].toUpperCase().replace(/\s+/, " ");
-      // Remove only the postcode portion from this part; keep the rest
-      const remainder = part.replace(UK_POSTCODE_RE, "").trim();
-      if (remainder) filteredParts.push(remainder);
-    } else {
-      // Drop obvious country labels
-      const lower = part.toLowerCase();
-      if (["united kingdom", "uk", "england", "scotland", "wales", "great britain"].includes(lower)) continue;
-      filteredParts.push(part);
+    if (m) {
+      if (!postcode) postcode = m[1].toUpperCase().replace(/\s+/g, " ");
+      const remainder = part.replace(UK_POSTCODE_RE, "").replace(/,\s*$/, "").trim();
+      if (remainder) collected.push(remainder);
+      continue; // postcode-only part → nothing left, skip
     }
+    collected.push(part);
   }
 
-  // Map remaining parts to address fields
-  // UK address lines: [name?, property?, street, locality?, town, county?]
-  // We already stripped the customer name at a higher level, so here parts are address only.
+  // De-duplicate (addresses often repeat the property/number line).
+  const seen = new Set<string>();
+  const filteredParts = collected.filter((p) => {
+    const k = p.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  // Map remaining parts to address fields.
+  // UK address lines: [street, property?, locality?, town, county?]
   const property = filteredParts.length > 2 ? filteredParts[1] : "";
   const street = filteredParts[0] ?? "";
   const town = filteredParts[filteredParts.length - 1] ?? "";
@@ -141,7 +149,7 @@ function parseShippingAddress(raw: string): ParsedAddress {
     property,
     street,
     town,
-    county: county === town ? "" : county,
+    county: county === town || county === property ? "" : county,
     postcode: postcode || "EC1A 1BB",
     countryCode: "GB",
   };
@@ -160,16 +168,36 @@ type DpdAuthResponse = {
   error?: { errorMessage?: string };
 };
 
+// DPD Local returns validation problems as an ARRAY of error objects (not the
+// single object the auth endpoint uses), and it also nests per-consignment
+// errors inside consignmentDetail[].error. Accept every shape we've seen.
+type DpdError = { errorMessage?: string; obj?: string; errorCode?: string };
+
 type DpdShipmentResponse = {
   data?: {
     shipmentId?: number;
     consignmentDetail?: Array<{
       consignmentNumber?: string;
       parcelNumbers?: string[];
+      error?: DpdError | DpdError[];
     }>;
   };
-  error?: { errorMessage?: string };
+  error?: DpdError | DpdError[];
 };
+
+function collectDpdErrors(json: DpdShipmentResponse): string[] {
+  const out: string[] = [];
+  const push = (e?: DpdError | DpdError[]) => {
+    if (!e) return;
+    for (const item of Array.isArray(e) ? e : [e]) {
+      const msg = item?.errorMessage || item?.obj || item?.errorCode;
+      if (msg) out.push(item?.obj && item?.errorMessage ? `${item.obj}: ${item.errorMessage}` : msg);
+    }
+  };
+  push(json?.error);
+  for (const c of json?.data?.consignmentDetail ?? []) push(c?.error);
+  return out;
+}
 
 async function dpdAuth(): Promise<{ session: string; account: string }> {
   const user = process.env.DPD_API_USER ?? "";
@@ -288,10 +316,15 @@ async function dpdCreateShipment(opts: {
   }
 
   const json: DpdShipmentResponse = await res.json();
-  if (json?.error?.errorMessage) throw new Error(`DPD error: ${json.error.errorMessage}`);
+  const dpdErrors = collectDpdErrors(json);
+  if (dpdErrors.length) throw new Error(`DPD rejected the shipment — ${dpdErrors.join("; ")}`);
 
   const shipmentId = json?.data?.shipmentId;
-  if (!shipmentId) throw new Error("DPD: no shipmentId in response");
+  if (!shipmentId) {
+    throw new Error(
+      `DPD did not return a shipmentId. Raw response: ${JSON.stringify(json).slice(0, 400)}`,
+    );
+  }
 
   const detail = json?.data?.consignmentDetail?.[0];
   const trackingNumber =
