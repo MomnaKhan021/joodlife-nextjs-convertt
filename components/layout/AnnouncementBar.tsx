@@ -16,7 +16,7 @@ export default function AnnouncementBar() {
             aria-hidden
           />
           <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
-            The New Wegovy® Tablet Is Here – Learn More
+            The New Wegovy Tablet Is Here – Learn More
           </Link>
         </div>
       </div>
@@ -33,7 +33,7 @@ export default function AnnouncementBar() {
             aria-hidden
           />
           <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
-            The New Wegovy® Tablet Is Here – Learn More
+            The New Wegovy Tablet Is Here – Learn More
           </Link>
         </div>
       </div>

@@ -13,12 +13,12 @@ import Reveal from "@/components/ui/Reveal";
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: "What is the Wegovy® Pill?",
-    a: "The Wegovy® Pill is a once-daily oral form of semaglutide — the same GLP-1 active ingredient as the Wegovy injection — used to support clinically guided weight loss.",
+    q: "What is the Wegovy Pill?",
+    a: "The Wegovy Pill is a once-daily oral form of semaglutide — the same GLP-1 active ingredient as the Wegovy injection — used to support clinically guided weight loss.",
   },
   {
     q: "How effective is the oral form vs. the injection?",
-    a: "In manufacturer studies, adults taking the Wegovy® Pill lost an average of ~14% of body weight at 64 weeks. Both the pill and the pen support meaningful weight loss; your prescriber will help you choose the right option.",
+    a: "In manufacturer studies, adults taking the Wegovy Pill lost an average of ~14% of body weight at 64 weeks. Both the pill and the pen support meaningful weight loss; your prescriber will help you choose the right option.",
   },
   {
     q: "Do I need to take it on an empty stomach?",
@@ -33,7 +33,7 @@ const FAQS: { q: string; a: string }[] = [
     a: "In many cases, yes. Switching is a clinical decision made with your prescriber based on your response, tolerance and preference.",
   },
   {
-    q: "Does insurance cover the Wegovy® Pill?",
+    q: "Does insurance cover the Wegovy Pill?",
     a: "Jood is a private weight-loss service, so treatment is paid for directly. Transparent monthly pricing is shown in the dosing section above.",
   },
 ];

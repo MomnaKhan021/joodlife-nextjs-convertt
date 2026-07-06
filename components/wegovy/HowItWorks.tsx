@@ -146,10 +146,10 @@ export default function HowItWorks() {
         <Reveal as="div" className="mx-auto max-w-[640px] text-center">
           <h2 className="font-display text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[48px] lg:leading-[52px]">
             How the{" "}
-            <em className="font-serif italic">Wegovy® Tablet Works</em>
+            <em className="font-serif italic">Wegovy Tablet Works</em>
           </h2>
           <p className="mx-auto mt-4 max-w-[580px] font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
-            The Wegovy® tablet contains semaglutide, a GLP-1 receptor agonist
+            The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist
             that works with your body&apos;s natural appetite hormones to
             support weight loss. Helps to:
           </p>
@@ -198,7 +198,7 @@ export default function HowItWorks() {
         {/* Description + buttons — centred */}
         <Reveal as="div" className="mx-auto mt-4 max-w-[690px] text-center" delay={120}>
           <p className="font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
-            Like the Wegovy® injection, the tablet contains semaglutide. The
+            Like the Wegovy injection, the tablet contains semaglutide. The
             difference is simply how it&apos;s taken — one as a daily tablet and
             the other as a once-weekly injection.
           </p>

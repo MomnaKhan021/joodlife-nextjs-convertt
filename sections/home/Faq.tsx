@@ -7,7 +7,7 @@ import { useState } from "react";
 const FAQS = [
   {
     q: "How does Jood's weight-loss actually work?",
-    a: "Jood combines clinically proven GLP-1 medication with personalized coaching, ongoing clinical support, and evidence-based nutrition and movement guidance to help you achieve lasting results.",
+    a: "Jood combines clinically proven GLP-1 medication with personalised coaching, ongoing clinical support, and evidence-based nutrition and movement guidance to help you achieve lasting results.",
   },
   {
     q: "Is the medication safe and evidence-based?",
@@ -19,7 +19,7 @@ const FAQS = [
   },
   {
     q: "What is included with my purchase?",
-    a: "Your plan includes the medication, ongoing clinical support, a personalized care plan, and free next-day discreet delivery.",
+    a: "Your plan includes the medication, ongoing clinical support, a personalised care plan, and free next-day discreet delivery.",
   },
   {
     q: "Can I pause or cancel my subscription?",

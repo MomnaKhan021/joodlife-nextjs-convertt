@@ -16,9 +16,9 @@ import WegovyFaq from "@/components/wegovy/WegovyFaq";
 import FinalCta from "@/components/wegovy/FinalCta";
 
 export const metadata: Metadata = {
-  title: "Wegovy® Pills in the UK — Once-daily oral semaglutide | JoodLife",
+  title: "Wegovy Pills in the UK — Once-daily oral semaglutide | JoodLife",
   description:
-    "UK-first Wegovy® pills: once-daily oral semaglutide with clinician-led support. ~14% average weight loss at 64 weeks. No needles. Start your 2-minute clinical intake.",
+    "UK-first Wegovy pills: once-daily oral semaglutide with clinician-led support. ~14% average weight loss at 64 weeks. No needles. Start your 2-minute clinical intake.",
   alternates: { canonical: "/wegovy-pills" },
 };
 

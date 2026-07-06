@@ -5,9 +5,9 @@ interface ComparisonTableProps {
 }
 
 const COLUMNS = [
-  { key: "mounjaro",     label: "Mounjaro® KwikPen", color: "#b39bb3" }, // lavender
-  { key: "wegovy",       label: "Wegovy® Injection", color: "#c9a78a" }, // tan
-  { key: "wegovyTablet", label: "Wegovy® Tablet",    color: "#84988b" }, // sage
+  { key: "mounjaro",     label: "Mounjaro KwikPen", color: "#b39bb3" }, // lavender
+  { key: "wegovy",       label: "Wegovy Injection", color: "#c9a78a" }, // tan
+  { key: "wegovyTablet", label: "Wegovy Tablet",    color: "#84988b" }, // sage
 ] as const;
 
 /**

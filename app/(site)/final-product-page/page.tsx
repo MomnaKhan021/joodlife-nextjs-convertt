@@ -97,7 +97,7 @@ export default async function FinalProductPage({ searchParams }: Props) {
       return {
         slug,
         productId: db?.id ?? FALLBACK_ID[slug] ?? 0,
-        title: editorial.title.replace(/®/g, ""),
+        title: editorial.title,
         italicWord: editorial.italicWord,
         image: db?.heroImageUrl ?? WL_META[slug]?.image ?? editorial.gallery[0]?.src ?? "",
         lede: editorial.lede,

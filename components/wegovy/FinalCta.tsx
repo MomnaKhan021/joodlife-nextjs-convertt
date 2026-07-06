@@ -49,7 +49,7 @@ export default function FinalCta() {
 
                 {/* Body: Saans 16.3px / lh 19.5px / w380 / ls -0.32px */}
                 <p className="max-w-[425px] font-ui text-[15px] leading-[19.5px] tracking-[-0.02em] text-[#142e2a]/70 md:text-[16.3px]">
-                  Complete a short online assessment to see if the Wegovy® tablet
+                  Complete a short online assessment to see if the Wegovy tablet
                   is suitable for you.
                 </p>
               </div>

@@ -251,7 +251,7 @@ function TransformationCard() {
         href="#get-personalized"
         className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
       >
-        Get personalized plan
+        Get personalised plan
       </a>
     </div>
   );
@@ -374,7 +374,7 @@ function ExpertGuidanceCard() {
 export default function JourneyPlan() {
   return (
     <section
-      aria-label="Journey and personalized plan"
+      aria-label="Journey and personalised plan"
       className="relative w-full bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-4 md:px-10 lg:px-[60px]">

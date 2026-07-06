@@ -139,9 +139,9 @@ export default function Comparison() {
         {/* Heading — 846px wide in Figma, centred */}
         <Reveal as="div">
           <h2 className="mb-5 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            Wegovy® Tablet vs{" "}
+            Wegovy Tablet vs{" "}
             <span className="font-serif italic font-normal">
-              Wegovy® Injection
+              Wegovy Injection
             </span>
           </h2>
           <p className="mx-auto mb-10 max-w-[620px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
@@ -154,8 +154,8 @@ export default function Comparison() {
         {/* Cards — 690px total (340 + 10 gap + 340), centred */}
         <Reveal as="div" delay={100}>
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
-            <Card title="Wegovy® Tablet" rows={PILL_ROWS} variant="pill" />
-            <Card title="Wegovy® Injection" rows={PEN_ROWS} variant="pen" />
+            <Card title="Wegovy Tablet" rows={PILL_ROWS} variant="pill" />
+            <Card title="Wegovy Injection" rows={PEN_ROWS} variant="pen" />
           </div>
         </Reveal>
 

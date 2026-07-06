@@ -42,7 +42,7 @@ export default function RealResults() {
             <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
               Real Results with the{" "}
               <span className="font-serif italic font-normal">
-                Wegovy® Tablet
+                Wegovy Tablet
               </span>
             </h2>
 
@@ -114,8 +114,8 @@ export default function RealResults() {
                   Beyond Weight Loss
                 </p>
                 <p className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
-                  The Wegovy® tablet contains the same active ingredient as the
-                  Wegovy® injection and may help improve appetite control while
+                  The Wegovy tablet contains the same active ingredient as the
+                  Wegovy injection and may help improve appetite control while
                   supporting long-term weight management alongside healthy
                   lifestyle changes.
                 </p>

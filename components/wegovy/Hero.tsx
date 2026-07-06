@@ -58,7 +58,7 @@ function HeroCopy() {
         A New Era of Weight Loss.
         <br />
         <span className="font-serif italic font-normal">
-          Introducing the Wegovy® Tablet.
+          Introducing the Wegovy Tablet.
         </span>
       </h1>
       <p className="mt-4 max-w-[480px] font-ui text-[15px] leading-[1.5] text-white/85 sm:text-[16px] md:text-[17px] md:leading-[1.5]">

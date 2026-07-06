@@ -132,14 +132,14 @@ export default function WhatIsPill() {
             <h2 className="font-display text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] sm:text-[34px] md:text-[48px] md:leading-[52px]">
               What is the{" "}
               <span className="font-serif italic font-normal">
-                Wegovy® Tablet?
+                Wegovy Tablet?
               </span>
             </h2>
             <p className="mt-4 font-ui text-[18px] font-semibold leading-[24px] tracking-[-0.02em] text-[#142e2a] md:text-[20px]">
               Daily oral weight-loss treatment.
             </p>
             <p className="mt-3 font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[24px]">
-              The Wegovy® tablet contains semaglutide, a GLP-1 receptor agonist
+              The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist
               that works with your body&apos;s natural appetite signals to help
               reduce hunger, increase fullness and support sustainable weight
               loss alongside healthy lifestyle changes.

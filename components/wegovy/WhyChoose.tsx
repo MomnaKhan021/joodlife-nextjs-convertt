@@ -53,7 +53,7 @@ export default function WhyChoose() {
           <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
             Why Choose Jood Life for your{" "}
             <span className="font-serif italic font-normal">
-              Wegovy® journey
+              Wegovy journey
             </span>
           </h2>
 
@@ -80,7 +80,7 @@ export default function WhyChoose() {
               Important Safety Information
             </p>
             <p className="mt-2 font-ui text-[15px] leading-[21px] text-white/80 md:text-[16.3px]">
-              The Wegovy® tablet is not suitable for everyone. Before treatment,
+              The Wegovy tablet is not suitable for everyone. Before treatment,
               one of our UK clinicians will review your medical history to ensure
               it is appropriate for you. Please read the Patient Information
               Leaflet before starting treatment.

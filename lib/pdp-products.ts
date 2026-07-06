@@ -49,7 +49,7 @@ export type PDPProduct = {
   /** Description for the "What is X?" section */
   whatIsTitle: string;       // "What is Mounjaro?"
   whatIsBody: string;        // HTML-flavoured: <strong>…</strong>
-  whatIsCalloutTitle?: string; // e.g. "How Mounjaro® may help"
+  whatIsCalloutTitle?: string; // e.g. "How Mounjaro may help"
   whatIsCallout: string;
   whatIsBullets: string[];
   /** Animated weight-loss graph */
@@ -130,7 +130,7 @@ const SHARED_FAQS = [
 export const PDP_PRODUCTS: Record<string, PDPProduct> = {
   mounjaro: {
     slug: "mounjaro",
-    title: "Mounjaro®",
+    title: "Mounjaro",
     italicWord: "Weight Loss Pen",
     ratingLabel: "4.4 Trustpilot",
     lede:
@@ -158,10 +158,10 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       "Over 2,000 patients treated",
       "GPhC Registered Pharmacy",
     ],
-    whatIsTitle: "What is Mounjaro®?",
+    whatIsTitle: "What is Mounjaro?",
     whatIsBody:
-      "Mounjaro® (tirzepatide) is a prescription-only treatment for weight management. It helps regulate appetite, increase feelings of fullness and support sustainable weight loss when combined with healthy lifestyle changes.",
-    whatIsCalloutTitle: "How Mounjaro® may help",
+      "Mounjaro (tirzepatide) is a prescription-only treatment for weight management. It helps regulate appetite, increase feelings of fullness and support sustainable weight loss when combined with healthy lifestyle changes.",
+    whatIsCalloutTitle: "How Mounjaro may help",
     whatIsCallout:
       "Many patients notice reduced appetite and increased fullness during the early stages of treatment.",
     whatIsBullets: [
@@ -205,7 +205,7 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
 
   wegovy: {
     slug: "wegovy",
-    title: "Wegovy®",
+    title: "Wegovy",
     italicWord: "Injection",
     ratingLabel: "4.4 Trustpilot",
     lede:
@@ -232,10 +232,10 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       "Over 2,000 patients treated",
       "GPhC Registered Pharmacy",
     ],
-    whatIsTitle: "What is Wegovy®?",
+    whatIsTitle: "What is Wegovy?",
     whatIsBody:
-      "Wegovy® (semaglutide) is a prescription-only treatment for weight management. It works by mimicking the natural GLP-1 hormone to help regulate appetite, increase feelings of fullness and support sustainable weight loss alongside healthy lifestyle changes.",
-    whatIsCalloutTitle: "How Wegovy® may help",
+      "Wegovy (semaglutide) is a prescription-only treatment for weight management. It works by mimicking the natural GLP-1 hormone to help regulate appetite, increase feelings of fullness and support sustainable weight loss alongside healthy lifestyle changes.",
+    whatIsCalloutTitle: "How Wegovy may help",
     whatIsCallout:
       "Many patients notice reduced appetite and increased fullness during the early stages of treatment, alongside ongoing lifestyle changes.",
     whatIsBullets: [
@@ -258,11 +258,11 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
       xLabels: ["Start", "Month 3", "Month 4", "Month 5", "Month 6"],
       callout: "-18%",
     },
-    safetyTitle: "Is Wegovy® safe?",
+    safetyTitle: "Is Wegovy safe?",
     safetyBody:
-      "Wegovy® (semaglutide) is licensed by the MHRA for weight management. It is prescribed following an individual clinical assessment to ensure it's appropriate for you.",
+      "Wegovy (semaglutide) is licensed by the MHRA for weight management. It is prescribed following an individual clinical assessment to ensure it's appropriate for you.",
     safetySideEffects:
-      "Like all medicines, Wegovy® can cause side effects. The most common include nausea, diarrhoea, constipation and vomiting, particularly when starting treatment. Your clinician will guide you throughout your journey and help manage any side effects if they occur.",
+      "Like all medicines, Wegovy can cause side effects. The most common include nausea, diarrhoea, constipation and vomiting, particularly when starting treatment. Your clinician will guide you throughout your journey and help manage any side effects if they occur.",
     accordions: SHARED_ACCORDIONS,
     comparisonActive: "wegovy",
     cardStat: {
@@ -305,7 +305,7 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
     ],
     whatIsTitle: "What is the Wegovy Pill?",
     whatIsBody:
-      "The Wegovy® Pill is a <strong>once-daily oral form of semaglutide</strong> — the same GLP-1 active ingredient as the Wegovy injection — that works with your body's natural appetite signals to reduce hunger and support weight loss.",
+      "The Wegovy Pill is a <strong>once-daily oral form of semaglutide</strong> — the same GLP-1 active ingredient as the Wegovy injection — that works with your body's natural appetite signals to reduce hunger and support weight loss.",
     whatIsCallout:
       "The same trusted active ingredient, now without weekly injections.",
     whatIsBullets: [
@@ -330,7 +330,7 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
     },
     safetyTitle: "Is the Wegovy Pill safe?",
     safetyBody:
-      "The Wegovy® Pill (oral semaglutide) is prescribed only after a clinical assessment by UK-registered prescribers and is monitored throughout your treatment. It isn't suitable for everyone — our clinicians review your medical history first.",
+      "The Wegovy Pill (oral semaglutide) is prescribed only after a clinical assessment by UK-registered prescribers and is monitored throughout your treatment. It isn't suitable for everyone — our clinicians review your medical history first.",
     safetySideEffects:
       "The most common side effects are gastrointestinal — nausea, diarrhoea, vomiting and constipation — and usually ease as your body adjusts. Our clinical team supports you throughout.",
     accordions: SHARED_ACCORDIONS,

@@ -79,7 +79,7 @@ export default function FeatureGrid() {
                 href="/wegovy-pills"
                 className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#dff49f] px-7 font-ui text-[14px] font-semibold text-[#142e2a] hover:bg-[#cbe886]"
               >
-                Discover Wegovy® Tablets
+                Discover Wegovy Tablets
               </Link>
             </div>
           </Reveal>

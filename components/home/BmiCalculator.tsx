@@ -12,7 +12,7 @@ import {
 
 const FLOATING_BADGES = [
   { icon: "/assets/images/icon-affordable.png", label: "Affordable pricing" },
-  { icon: "/assets/images/icon-personalized.png", label: "Personalized support" },
+  { icon: "/assets/images/icon-personalized.png", label: "Personalised support" },
   { icon: "/assets/images/icon-support.png", label: "24/7 live support" },
 ];
 

@@ -32,7 +32,7 @@ export default function Dosing() {
           <Reveal as="div">
             <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
               <span className="font-serif italic font-normal">
-                Wegovy® Tablet
+                Wegovy Tablet
               </span>{" "}
               Dosing &amp; Pricing
             </h2>
