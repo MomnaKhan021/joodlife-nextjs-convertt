@@ -191,6 +191,26 @@ export async function searchContactByEmail(
 }
 
 /**
+ * Delete a contact from HubSpot, keyed by email. Looks the contact up
+ * first (HubSpot's DELETE needs the object id, not the email). Treats
+ * "no matching contact" as success so admin deletes stay idempotent.
+ */
+export async function deleteContactByEmail(
+  email: string
+): Promise<HubSpotResult<{ deleted: boolean }>> {
+  if (!email) return { ok: false, status: 400, error: "email required" };
+  const found = await searchContactByEmail(email);
+  if (!found.ok) return found;
+  if (!found.data) return { ok: true, data: { deleted: false } };
+  const res = await hsFetch<unknown>(
+    `/crm/v3/objects/contacts/${found.data.id}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) return res;
+  return { ok: true, data: { deleted: true } };
+}
+
+/**
  * Create or update a contact keyed by email. Returns the contact id.
  *
  *   - If a contact already exists, PATCH its properties.

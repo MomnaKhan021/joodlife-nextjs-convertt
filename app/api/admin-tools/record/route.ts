@@ -722,10 +722,32 @@ export async function DELETE(req: NextRequest) {
     const where = Number.isFinite(numId)
       ? `id = ${numId}`
       : `CAST(id AS TEXT) = ${esc(id)}`;
+
+    // Deleting a customer must also remove them from HubSpot. Grab the
+    // email before the row is gone so we can find the matching contact.
+    let userEmail = "";
+    if (type === "users") {
+      const rows = readRows<{ email?: string | null }>(
+        await drizzle.execute(
+          sql.raw(`SELECT email FROM "${spec.table}" WHERE ${where} LIMIT 1;`)
+        )
+      );
+      userEmail = (rows[0]?.email ?? "").trim();
+    }
+
     await drizzle.execute(
       sql.raw(`DELETE FROM "${spec.table}" WHERE ${where};`)
     );
-    return NextResponse.json({ ok: true });
+
+    // Best-effort HubSpot cleanup — never block a successful DB delete on it.
+    let hubspot: { ok: boolean; error?: string } | undefined;
+    if (type === "users" && userEmail) {
+      const { deleteContactByEmail } = await import("@/lib/hubspot");
+      const res = await deleteContactByEmail(userEmail);
+      hubspot = res.ok ? { ok: true } : { ok: false, error: res.error };
+    }
+
+    return NextResponse.json({ ok: true, hubspot });
   } catch (err) {
     return NextResponse.json(
       {
