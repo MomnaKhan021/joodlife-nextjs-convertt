@@ -246,6 +246,10 @@ async function dpdCreateShipment(opts: {
   // ones whose "order number" is a deal name) exceed that. Trim to fit.
   const shippingRef1 = (opts.orderNumber || "").trim().slice(0, 25);
 
+  // DPD Local requires a parcel-level product description; keep it generic
+  // (contents aren't itemised on the label) and safely within DPD's limit.
+  const parcelDescription = (process.env.DPD_PARCEL_DESCRIPTION ?? "Health & wellbeing products").slice(0, 45);
+
   const body = {
     jobId: null,
     collectionOnDelivery: false,
@@ -256,7 +260,12 @@ async function dpdCreateShipment(opts: {
       {
         consignmentNumber: null,
         consignmentRef: null,
-        parcel: [{ weight }],
+        parcel: [
+          {
+            weight,
+            parcelProduct: [{ productItemsDescription: parcelDescription }],
+          },
+        ],
         collectionDetails: {
           contactDetails: {
             contactName: senderName,
@@ -296,7 +305,7 @@ async function dpdCreateShipment(opts: {
         shippingRef3: "",
         customsValue: 0,
         deliveryInstructions: "",
-        parcelDescription: "",
+        parcelDescription,
         liabilityValue: null,
         liability: false,
       },
