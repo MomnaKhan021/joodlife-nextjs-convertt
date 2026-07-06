@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 
 import { CartProvider } from "@/components/cart/CartContext";
 import SitePreloader from "@/components/SitePreloader";
+import WhatsAppButton from "@/components/ui/WhatsAppButton";
 
 import "../globals.css";
 
@@ -87,6 +88,7 @@ export default function SiteLayout({
       >
         <SitePreloader />
         <CartProvider>{children}</CartProvider>
+        <WhatsAppButton />
       </body>
     </html>
   );

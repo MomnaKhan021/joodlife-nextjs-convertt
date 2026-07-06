@@ -3,19 +3,19 @@ import Reveal from "@/components/ui/Reveal";
 
 const STEPS = [
   {
-    step: "Step 01",
+    step: "Step 1",
     title: "Complete your assessment",
     copy: "Answer a few quick questions about your health, medical history and treatment goals.",
     img: "/assets/figma/hiw-step1.png",
   },
   {
-    step: "Step 02",
+    step: "Step 2",
     title: "Clinical review",
     copy: "One of our experienced UK clinicians will review your assessment and recommend the most appropriate treatment, where clinically suitable.",
     img: "/assets/figma/hiw-step2.png",
   },
   {
-    step: "Step 03",
+    step: "Step 3",
     title: "Treatment delivered",
     copy: "If approved, your treatment will be prepared by our pharmacy and delivered quickly, discreetly and securely to your door.",
     img: "/assets/figma/hiw-step3.png",
@@ -27,10 +27,10 @@ export default function HowItWorks() {
     <section
       id="how-it-works"
       aria-label="How it works"
-      className="w-full scroll-mt-28 bg-white py-12 md:py-14 lg:py-[56px]"
+      className="w-full scroll-mt-28 bg-white py-6 md:py-8 lg:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-        <Reveal as="div" className="flex flex-col items-center gap-2 pb-10 text-center">
+        <Reveal as="div" className="flex flex-col items-center gap-2 pb-6 text-center">
           <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             How it <em className="font-serif italic font-normal">works</em>
           </h2>
