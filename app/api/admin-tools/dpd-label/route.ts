@@ -242,6 +242,10 @@ async function dpdCreateShipment(opts: {
   const networkCode = process.env.DPD_NETWORK_CODE ?? "1^12";
   const weight = parseFloat(process.env.DPD_PARCEL_WEIGHT_KG ?? "0.5");
 
+  // DPD Local caps shippingRef1 at 25 chars; some orders (esp. HubSpot-synced
+  // ones whose "order number" is a deal name) exceed that. Trim to fit.
+  const shippingRef1 = (opts.orderNumber || "").trim().slice(0, 25);
+
   const body = {
     jobId: null,
     collectionOnDelivery: false,
@@ -287,10 +291,10 @@ async function dpdCreateShipment(opts: {
         networkCode,
         numberOfParcels: 1,
         totalWeight: weight,
-        shippingRef1: opts.orderNumber,
+        shippingRef1,
         shippingRef2: "",
         shippingRef3: "",
-        customsValue: null,
+        customsValue: 0,
         deliveryInstructions: "",
         parcelDescription: "",
         liabilityValue: null,
