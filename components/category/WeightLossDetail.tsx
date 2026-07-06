@@ -17,14 +17,14 @@ type Chip = { label: string; sub: string; iconSrc: string };
 // the Figma (white circle + mark baked in). Left column sits higher, right
 // column is staggered ~64px lower around the portrait (Figma 289).
 const LEFT_CHIPS: Chip[] = [
-  { label: "Medication", sub: "Licensed treatment", iconSrc: "/assets/icons/chip-medication.svg" },
-  { label: "Support", sub: "On going", iconSrc: "/assets/icons/chip-support.svg" },
-  { label: "Result", sub: "Loss upto 26 %", iconSrc: "/assets/icons/chip-result.svg" },
+  { label: "Medication", sub: "Clinically appropriate treatment", iconSrc: "/assets/icons/chip-medication.svg" },
+  { label: "Support", sub: "Ongoing clinician support", iconSrc: "/assets/icons/chip-support.svg" },
+  { label: "Progress", sub: "Personalised care", iconSrc: "/assets/icons/chip-result.svg" },
 ];
 const RIGHT_CHIPS: Chip[] = [
-  { label: "Delivery", sub: "Next Day", iconSrc: "/assets/icons/chip-delivery.svg" },
-  { label: "Guidance", sub: "For lasting result", iconSrc: "/assets/icons/chip-guidance.svg" },
-  { label: "Whatapp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
+  { label: "Delivery", sub: "Free next-day delivery", iconSrc: "/assets/icons/chip-delivery.svg" },
+  { label: "Guidance", sub: "Long-term support", iconSrc: "/assets/icons/chip-guidance.svg" },
+  { label: "WhatsApp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
 ];
 
 function renderChip(c: Chip) {
@@ -44,7 +44,7 @@ function renderChip(c: Chip) {
         <span className="font-ui text-[16px] font-medium leading-[20px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
           {c.label}
         </span>
-        <span className="truncate font-ui text-[12px] leading-[16px] text-white/75 md:text-[14px] md:leading-[19px]">
+        <span className="font-ui text-[12px] leading-[15px] text-white/75 md:text-[14px] md:leading-[18px]">
           {c.sub}
         </span>
       </span>
@@ -105,26 +105,24 @@ function WegovyIntroCard() {
       <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
         <div className="flex flex-col">
           <h3 className="font-display text-[26px] font-semibold leading-[1.14] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
-            Introducing <span className="text-[#b4ff9f]">Wegovy Pills</span>
+            New Oral Treatment Available
             <br />
-            care in the UK{" "}
-            <em className="font-serif font-normal italic">through Jood Life</em>
+            Part of Jood&rsquo;s <span className="text-[#b4ff9f]">clinician-led care</span>
           </h3>
           <p className="mt-3 max-w-[48ch] font-ui text-[16px] leading-[22px] text-white/80">
-            A new option for weight loss, backed by{" "}
-            <span className="text-[#b4ff9f]">UK-registered prescribers</span> and
-            ongoing support.
+            A new oral treatment option, available following an{" "}
+            <span className="text-[#b4ff9f]">individual clinical assessment</span>.
           </p>
 
           <ul className="mt-6 flex flex-col gap-4">
             <FeatureRow
-              title="Now available in the UK"
-              sub="Wegovy® care, introduced by Jood."
+              title="Personalised Assessment"
+              sub="Every treatment starts with a clinical review."
               iconSrc="/assets/icons/wegovy-uk.svg"
             />
             <FeatureRow
-              title="Clinician-led care you can trust"
-              sub="Reviewed by UK-registered prescribers to ensure it’s right for you."
+              title="Ongoing Support"
+              sub="Expert guidance throughout your journey."
               iconSrc="/assets/icons/wegovy-clinician.svg"
             />
           </ul>
@@ -134,7 +132,7 @@ function WegovyIntroCard() {
               href="/wegovy-pills"
               className="btn-cta inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white hover:bg-white/15"
             >
-              How Wegovy® works
+              Learn More
             </Link>
           </div>
         </div>
@@ -166,8 +164,8 @@ export default function WeightLossDetail() {
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
         </h3>
         <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
-          A provider licensed in your state will review your information, so they can{" "}
-          <span className="text-[#b4ff9f]">design a plan</span> around your body&rsquo;s needs.
+          Your clinician will review your health and create a{" "}
+          <span className="text-[#b4ff9f]">personalised treatment plan</span> tailored to your individual needs.
         </p>
 
         {/* Chips flank the portrait — left column high, right staggered
@@ -192,7 +190,7 @@ export default function WeightLossDetail() {
         </div>
 
         <div className="mt-auto w-full pt-7">
-          <GhostButton href="/weight-loss#assessment">Get Personalized Plan</GhostButton>
+          <GhostButton href="/consultation?product=weight-loss">Start Your Journey</GhostButton>
         </div>
       </Reveal>
 
@@ -214,15 +212,15 @@ export default function WeightLossDetail() {
         </div>
 
         <p className="mt-6 font-serif text-[28px] font-normal italic text-[#b4ff9f] md:text-[34px]">
-          at Every Step
+          Every step of the way
         </p>
         <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
-          Get access to qualified medical professionals who are here to support you{" "}
-          <span className="text-[#b4ff9f]">throughout your journey</span> whenever you need advice.
+          Access experienced UK clinicians and dedicated support{" "}
+          <span className="text-[#b4ff9f]">throughout your weight loss journey</span>.
         </p>
 
         <div className="mt-6 w-full">
-          <GhostButton href="/weight-loss#assessment">Get started</GhostButton>
+          <GhostButton href="/consultation?product=weight-loss">Check Your Eligibility</GhostButton>
         </div>
       </Reveal>
       </div>
