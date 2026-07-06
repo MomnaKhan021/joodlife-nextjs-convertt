@@ -36,6 +36,11 @@ export type Category = {
   key: CategoryKey;
   /** Route segment, e.g. "/weight-loss". */
   href: string;
+  /**
+   * Optional destination for the "Learn More" CTA on the preview section.
+   * Defaults to `href` when unset (weight-loss points at the Wegovy pills page).
+   */
+  learnMoreHref?: string;
   /** Small label above the title on the gateway card. */
   eyebrow: string;
   /** Card title (kept short for the gateway grid). */
@@ -86,6 +91,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
   "weight-loss": {
     key: "weight-loss",
     href: "/weight-loss",
+    learnMoreHref: "/wegovy-pills",
     eyebrow: "Weight loss",
     cardTitle: "Weight loss,\nmade for you.",
     title: "Lose weight safely,",

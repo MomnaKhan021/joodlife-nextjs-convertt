@@ -168,7 +168,7 @@ export default function CategoryPreview({
                     : category.ctaLabel ?? "Get Started"}
                 </Link>
                 <Link
-                  href={category.href}
+                  href={category.learnMoreHref ?? category.href}
                   className="btn-cta inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-4 font-ui text-[13px] font-semibold text-white backdrop-blur-sm hover:bg-white/10 md:h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
                   Learn More

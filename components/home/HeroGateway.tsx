@@ -88,16 +88,17 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
 
       {/* Text — constrained to the left half on desktop so it never overlaps
           the women. */}
-      <div className="relative z-10 flex flex-col gap-5 lg:max-w-[54%]">
+      <div className="relative z-10 flex flex-col gap-5 lg:max-w-[50%]">
         <TrustpilotRow />
         <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[42px] md:leading-[1.06]">
           Medical Weight Loss,
           <br />
           <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
-        <p className="max-w-[42ch] font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
-          Personalised weight-loss plans from UK clinicians—injections
-          and tablets, fully supported.
+        <p className="max-w-[34ch] font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
+          Personalised weight-loss plans from UK clinicians—
+          <br className="hidden lg:block" />
+          injections and tablets, fully supported.
         </p>
         <ul className="flex flex-col gap-2.5">
           <CheckBullet>Personalised treatment plans</CheckBullet>
@@ -106,7 +107,7 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
         </ul>
         <div className="mt-2">
           <Link
-            href={isReturningPatient ? "/reorder" : category.href}
+            href={isReturningPatient ? "/reorder" : `/consultation?product=${category.key}`}
             className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm"
           >
             {isReturningPatient ? "Reorder" : "Check Your Eligibility"}
