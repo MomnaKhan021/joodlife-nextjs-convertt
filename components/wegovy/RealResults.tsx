@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import CountUpPercent from "@/components/wegovy/CountUpPercent";
 
 /**
  * "Real results with Wegovy" — Figma node 1:1948.
@@ -56,9 +57,12 @@ export default function RealResults() {
                 </span>
                 <span className="font-ui text-[18px] text-white/85 md:text-[22px]">Up to</span>
               </span>
-              <p className="mt-1 font-display text-[80px] font-medium leading-none text-white md:text-[120px] lg:text-[150px]">
-                16.6%
-              </p>
+              <CountUpPercent
+                value={16.6}
+                decimals={1}
+                suffix="%"
+                className="mt-1 block font-display text-[54px] font-medium leading-none text-white sm:text-[68px] md:text-[96px] lg:text-[120px]"
+              />
               <p className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
                 average body weight loss at 64 weeks*
               </p>

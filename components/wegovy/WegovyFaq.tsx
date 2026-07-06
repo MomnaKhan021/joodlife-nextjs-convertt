@@ -60,11 +60,11 @@ export default function WegovyFaq() {
 
           {/* RIGHT — accordion: list gap=16, each item full border #142e2a */}
           <Reveal as="div" delay={100}>
-            <ul className="flex w-full flex-col">
+            <ul className="flex w-full flex-col gap-4">
               {FAQS.map((f, i) => {
                 const isOpen = open === i;
                 return (
-                  <li key={i} className="border border-[#142e2a] bg-white -mt-px first:mt-0">
+                  <li key={i} className="border border-[#142e2a] bg-white">
                     <button
                       type="button"
                       onClick={() => setOpen(isOpen ? null : i)}
