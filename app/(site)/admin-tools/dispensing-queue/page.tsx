@@ -5,11 +5,34 @@
  *   - Print dispensing label  (goes on the medicine pack)
  *   - Print dispatch label    (goes on the parcel)
  *
- * Each button opens a print-ready label in a new window and triggers the
- * browser's print dialog. The label template is intentionally simple for
- * now; it will be wired to live order/patient data alongside the API-key
- * (courier/DVLA) integration step.
+ * The dispensing label uses the same branded 72×36mm template as the
+ * per-order label (see orders/[id]/dispensingLabel). Real patient/medicine
+ * data lives on the individual order page — this queue action prints a blank
+ * branded label for manual completion.
  */
+
+import { buildLabelsDocument, dispensingDate } from "../orders/[id]/dispensingLabel";
+
+function dispensingLabel() {
+  const html = buildLabelsDocument([
+    {
+      brand: "",
+      productName: "",
+      patientName: "",
+      date: dispensingDate(),
+    },
+  ]);
+  const w = window.open("", "_blank", "width=520,height=360");
+  if (!w) {
+    alert("Please allow pop-ups to print the label.");
+    return;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
 
 function openPrintable(title: string, bodyHtml: string) {
   const w = window.open("", "_blank", "width=520,height=640");
@@ -47,19 +70,6 @@ function openPrintable(title: string, bodyHtml: string) {
   w.document.close();
   w.focus();
   setTimeout(() => w.print(), 400);
-}
-
-function dispensingLabel() {
-  openPrintable("Dispensing label", `
-    <div class="row"><span>Patient</span><span>____________________</span></div>
-    <div class="row"><span>Medicine</span><span>____________________</span></div>
-    <div class="row"><span>Dose</span><span>____________________</span></div>
-    <div class="row"><span>Quantity</span><span>____________________</span></div>
-    <div class="row"><span>Directions</span><span>____________________</span></div>
-    <div class="row"><span>Batch no.</span><span>____________________</span></div>
-    <div class="row"><span>Expiry</span><span>____________________</span></div>
-    <div class="row"><span>Dispensed by</span><span>____________________</span></div>
-  `);
 }
 
 function dispatchLabel() {
