@@ -61,7 +61,7 @@ function describeCheckoutError(
 const STRIPE_ELEMENT_OPTIONS = {
   style: {
     base: {
-      fontFamily: "var(--font-saans), Inter, system-ui, sans-serif",
+      fontFamily: "Outfit, system-ui, sans-serif",
       fontSize: "16px",
       fontWeight: "400",
       color: "#142e2a",
@@ -1432,7 +1432,7 @@ function VisaMark() {
         fontWeight="700"
         fontStyle="italic"
         fill="#1A1F71"
-        fontFamily="Arial, sans-serif"
+        fontFamily="inherit"
       >
         VISA
       </text>
@@ -1450,7 +1450,7 @@ function AmexMark() {
         fontSize="6"
         fontWeight="700"
         fill="#fff"
-        fontFamily="Arial, sans-serif"
+        fontFamily="inherit"
       >
         AMEX
       </text>

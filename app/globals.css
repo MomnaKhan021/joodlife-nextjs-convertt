@@ -158,8 +158,10 @@ a[href] {
   will-change: transform;
 }
 
+/* Legacy alias — kept so any residual .font-cairo usage stays on-brand
+   (maps to the Outfit body font; Cairo is no longer loaded). */
 .font-cairo {
-  font-family: var(--font-cairo), "Cairo", system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 /* Imported HTML blog content (e.g. from Shopify). The Lexical-based

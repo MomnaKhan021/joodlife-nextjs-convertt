@@ -1,6 +1,6 @@
 /**
  * Trust / USP strip — Figma node 1:1558.
- * White bg, auto-scrolling marquee, Cairo 500 18px black labels, outline icons.
+ * White bg, auto-scrolling marquee, 500-weight 18px black labels, outline icons.
  * Section: 60px tall (10px py). Five items, duplicated for seamless loop.
  */
 
@@ -84,7 +84,7 @@ export default function UspBar() {
               aria-hidden={i >= ITEMS.length}
             >
               <span className="shrink-0 text-black">{it.icon}</span>
-              <span className="whitespace-nowrap font-cairo text-[16px] font-medium leading-[22.4px] tracking-[-0.02em] text-black md:text-[18px] md:leading-[25.2px]">
+              <span className="whitespace-nowrap font-ui text-[16px] font-medium leading-[22.4px] tracking-[-0.02em] text-black md:text-[18px] md:leading-[25.2px]">
                 {it.label}
               </span>
             </li>

@@ -155,7 +155,7 @@ function WhatappIcon() {
         fontSize="6"
         fontWeight="800"
         fill="#142e2a"
-        fontFamily="Arial, sans-serif"
+        fontFamily="inherit"
       >
         24/7
       </text>
