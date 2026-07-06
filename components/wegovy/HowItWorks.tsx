@@ -143,7 +143,7 @@ export default function HowItWorks() {
 
         {/* Heading + subtitle — centred, max-w 580px */}
         <Reveal as="div" className="mx-auto max-w-[640px] text-center">
-          <h2 className="font-display text-[30px] font-normal leading-[1.15] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+          <h2 className="font-display text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[48px] lg:leading-[52px]">
             How the{" "}
             <em className="font-serif italic">Wegovy® Tablet Works</em>
           </h2>
@@ -156,36 +156,42 @@ export default function HowItWorks() {
 
         {/* Callout overlay — shown on ALL screen sizes */}
         <div className="relative mx-auto w-full flex-1" style={{ minHeight: 300 }}>
+          {/* Desktop (lg+) — wide layout tuned to the full-width pill */}
           {CALLOUTS.map((c) => (
             <div
               key={c.label}
-              className={`absolute ${c.pos} hidden max-w-[220px] flex-col gap-0 md:flex ${
+              className={`absolute ${c.pos} hidden max-w-[220px] flex-col gap-0 lg:flex ${
                 c.align === "text-right" ? "items-end" : "items-start"
               }`}
             >
               {c.connectorFirst && c.connector}
-              <p className="whitespace-pre-line font-ui text-[15px] font-semibold leading-[20px] text-white md:text-[18px] md:leading-[24px]">
+              <p className="whitespace-pre-line font-ui text-[18px] font-semibold leading-[24px] text-white">
                 {c.label}
               </p>
               {!c.connectorFirst && c.connector}
             </div>
           ))}
 
-          {/* Mobile callouts — same overlay but scaled */}
-          {CALLOUTS.map((c) => (
-            <div
-              key={`m-${c.label}`}
-              className={`absolute ${c.mobilePos} flex max-w-[120px] flex-col gap-0 md:hidden ${
-                c.align === "text-right" ? "items-end" : "items-start"
-              }`}
-            >
-              {c.connectorFirst && c.mobileConnector}
-              <p className={`whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white ${c.align}`}>
-                {c.label}
-              </p>
-              {!c.connectorFirst && c.mobileConnector}
-            </div>
-          ))}
+          {/* Mobile + tablet (< lg) — callouts live inside a centred, capped
+              zone (absolute inset-0 keeps full height, max-w keeps them near
+              the centred pill) so the connector arrows always meet the pill
+              instead of drifting to the far edges. */}
+          <div className="absolute inset-0 mx-auto max-w-[440px] lg:hidden">
+            {CALLOUTS.map((c) => (
+              <div
+                key={`m-${c.label}`}
+                className={`absolute ${c.mobilePos} flex max-w-[130px] flex-col gap-0 ${
+                  c.align === "text-right" ? "items-end" : "items-start"
+                }`}
+              >
+                {c.connectorFirst && c.mobileConnector}
+                <p className={`whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white sm:text-[13px] sm:leading-[17px] ${c.align}`}>
+                  {c.label}
+                </p>
+                {!c.connectorFirst && c.mobileConnector}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Description + buttons — centred */}
@@ -203,7 +209,7 @@ export default function HowItWorks() {
               Check Your Eligibility
             </a>
             <a
-              href="#faq"
+              href="/weight-loss"
               className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/40 bg-white/[0.08] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/15"
             >
               Learn More
