@@ -20,13 +20,12 @@ export type ComparisonRow = {
   label: string;
   mounjaro: string;
   wegovy: string;
-  saxenda: string;
-  /** Wegovy tablet column for the 3-product comparison table */
+  /** Wegovy tablet (pill) column for the 3-product comparison table */
   wegovyTablet?: string;
 };
 
 export type PDPProduct = {
-  slug: "mounjaro" | "wegovy" | "saxenda";
+  slug: "mounjaro" | "wegovy" | "wegovy-pill";
   title: string;             // "Mounjaro"
   italicWord: string;        // "injection" — italic part of the H1
   /** Trustpilot summary line */
@@ -70,7 +69,7 @@ export type PDPProduct = {
   accordions: { q: string; a?: string }[];
   /** Comparison table — the table itself is shared but the active
    * column ("highlighted") differs per product. */
-  comparisonActive: "mounjaro" | "wegovy" | "saxenda";
+  comparisonActive: "mounjaro" | "wegovy" | "wegovyTablet";
   /** Final-product-page card: a headline efficacy stat and a short
    * list of benefits, shown on the "Choose your treatment" cards. */
   cardStat?: { percent: string; text: string };
@@ -78,14 +77,14 @@ export type PDPProduct = {
 };
 
 const SHARED_COMPARISON: ComparisonRow[] = [
-  { label: "How it's taken",           mounjaro: "Weekly injection",          wegovy: "Weekly injection",   saxenda: "Daily injection", wegovyTablet: "Daily tablet" },
-  { label: "Frequency",                mounjaro: "Once weekly",               wegovy: "Once weekly",        saxenda: "Once daily",      wegovyTablet: "Once daily" },
-  { label: "Active ingredient",        mounjaro: "Tirzepatide",               wegovy: "Semaglutide",        saxenda: "Liraglutide",     wegovyTablet: "Semaglutide" },
-  { label: "Needle-free",              mounjaro: "❌",                        wegovy: "❌",                 saxenda: "❌",              wegovyTablet: "✅" },
-  { label: "May help regulate appetite", mounjaro: "★★★★★",                  wegovy: "★★★★☆",             saxenda: "★★★☆☆",          wegovyTablet: "★★★★☆" },
-  { label: "Feeling of fullness",      mounjaro: "Longer lasting",            wegovy: "Longer lasting",     saxenda: "Longer lasting",  wegovyTablet: "Longer lasting" },
-  { label: "Convenience",              mounjaro: "★★★★★",                     wegovy: "★★★★★",             saxenda: "★★★★☆",          wegovyTablet: "★★★★★" },
-  { label: "Best suited for",          mounjaro: "Maximum weight loss potential", wegovy: "Proven weekly treatment", saxenda: "Daily routine", wegovyTablet: "Needle-free treatment" },
+  { label: "How it's taken",           mounjaro: "Weekly injection",          wegovy: "Weekly injection",   wegovyTablet: "Daily tablet" },
+  { label: "Frequency",                mounjaro: "Once weekly",               wegovy: "Once weekly",        wegovyTablet: "Once daily" },
+  { label: "Active ingredient",        mounjaro: "Tirzepatide",               wegovy: "Semaglutide",        wegovyTablet: "Semaglutide" },
+  { label: "Needle-free",              mounjaro: "❌",                        wegovy: "❌",                 wegovyTablet: "✅" },
+  { label: "May help regulate appetite", mounjaro: "★★★★★",                  wegovy: "★★★★☆",             wegovyTablet: "★★★★☆" },
+  { label: "Feeling of fullness",      mounjaro: "Longer lasting",            wegovy: "Longer lasting",     wegovyTablet: "Longer lasting" },
+  { label: "Convenience",              mounjaro: "★★★★★",                     wegovy: "★★★★★",             wegovyTablet: "★★★★★" },
+  { label: "Best suited for",          mounjaro: "Maximum weight loss potential", wegovy: "Proven weekly treatment", wegovyTablet: "Needle-free treatment" },
 ];
 
 export const COMPARISON_TABLE = SHARED_COMPARISON;
@@ -278,75 +277,72 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
     ],
   },
 
-  saxenda: {
-    slug: "saxenda",
-    title: "Saxenda",
-    italicWord: "injection",
-    ratingLabel: "4.5 Rated Excellence",
+  "wegovy-pill": {
+    slug: "wegovy-pill",
+    title: "Wegovy Pill",
+    italicWord: "tablet",
+    ratingLabel: "4.4 Rated Excellence",
     lede:
-      "Daily weight-loss support with Saxenda — A once-daily GLP-1 injection that helps reduce appetite and support gradual, sustainable weight loss alongside healthier habits.",
+      "A once-daily prescription tablet with the same trusted active ingredient as the Wegovy injection — semaglutide — for clinically guided weight loss, without weekly injections.",
     gallery: [
-      { src: "/assets/figma/pdp/saxenda-1.png", alt: "Saxenda injection pen on a beige background" },
-      { src: "/assets/figma/pdp/saxenda-2.png", alt: "Saxenda injection pen close-up" },
-      { src: "/assets/figma/pdp/saxenda-3.png", alt: "Person holding Saxenda" },
-      { src: "/assets/figma/pdp/saxenda-4.png", alt: "Saxenda injection pen" },
+      { src: "/assets/wegovy/what-pills.png", alt: "Wegovy oral tablets" },
+      { src: "/assets/wegovy/how-pill.png", alt: "Wegovy tablet close-up" },
+      { src: "/assets/wegovy/what-snac.png", alt: "How the Wegovy tablet is absorbed" },
+      { src: "/assets/wegovy/what-man.png", alt: "Man after weight-loss treatment" },
     ],
-    discountBadge: "10%",
+    discountBadge: "New",
     features: SHARED_FEATURES,
     dosages: [
-      { label: "0.6 mg", perPack: "£75.00" },
-      { label: "1.2 mg", perPack: "£105.00" },
-      { label: "1.8 mg", perPack: "£135.00" },
-      { label: "2.4 mg", perPack: "£165.00" },
-      { label: "3.0 mg", perPack: "£199.00" },
+      { label: "1.5 mg", perPack: "£149.00" },
+      { label: "4 mg", perPack: "£149.00" },
     ],
-    fromPrice: "£75.00",
+    fromPrice: "£149.00",
     serviceChips: SHARED_SERVICE_CHIPS,
     trustLine: [
       "⭐⭐⭐⭐⭐ 4.4 Trustpilot",
-      "Over 2,000 patients treated",
-      "GPhC Registered Pharmacy",
+      "UK-registered prescribers",
+      "MHRA-approved treatment",
     ],
-    whatIsTitle: "What is Saxenda?",
+    whatIsTitle: "What is the Wegovy Pill?",
     whatIsBody:
-      "Saxenda (liraglutide) is a <strong>prescription-only daily weight-loss injection</strong> that mimics the GLP-1 hormone to help reduce hunger and support gradual weight loss alongside diet and exercise.",
+      "The Wegovy® Pill is a <strong>once-daily oral form of semaglutide</strong> — the same GLP-1 active ingredient as the Wegovy injection — that works with your body's natural appetite signals to reduce hunger and support weight loss.",
     whatIsCallout:
-      "Daily dosing offers tighter appetite control for people who prefer a regular daily routine.",
+      "The same trusted active ingredient, now without weekly injections.",
     whatIsBullets: [
-      "Daily injection routine",
-      "Gradual, sustainable weight loss",
-      "Reduces hunger between meals",
-      "Clinician-led, medically supervised treatment",
+      "Once-daily oral tablet — no needles",
+      "Semaglutide, a proven GLP-1 receptor agonist",
+      "MHRA-approved in the UK",
+      "Clinician-led, medically supervised care",
     ],
     graph: {
       points: [
-        { x: "Start",    weight: 100 },
-        { x: "Month 3",  weight: 96  },
-        { x: "Month 4",  weight: 93  },
-        { x: "Month 5",  weight: 91  },
-        { x: "Month 6",  weight: 90  },
+        { x: "Start",     weight: 100  },
+        { x: "Month 4",   weight: 94   },
+        { x: "Month 8",   weight: 90   },
+        { x: "Month 12",  weight: 86.5 },
+        { x: "Month 16",  weight: 83.4 },
       ],
       minWeight: 70,
       maxWeight: 100,
       yLabels: [100, 94, 88, 82, 76, 70],
-      xLabels: ["Start", "Month 3", "Month 4", "Month 5", "Month 6"],
-      callout: "-10%",
+      xLabels: ["Start", "Month 4", "Month 8", "Month 12", "Month 16"],
+      callout: "-16.6%",
     },
-    safetyTitle: "Is Saxenda safe?",
+    safetyTitle: "Is the Wegovy Pill safe?",
     safetyBody:
-      "Saxenda (liraglutide) has been approved for adult weight management. It is prescribed after a clinical assessment and your treatment is monitored throughout to keep you safe.",
+      "The Wegovy® Pill (oral semaglutide) is prescribed only after a clinical assessment by UK-registered prescribers and is monitored throughout your treatment. It isn't suitable for everyone — our clinicians review your medical history first.",
     safetySideEffects:
-      "Side effects can include nausea, low blood sugar, headache, diarrhoea, and tiredness. Your clinician will support you in managing these and adjusting the dose where needed.",
+      "The most common side effects are gastrointestinal — nausea, diarrhoea, vomiting and constipation — and usually ease as your body adjusts. Our clinical team supports you throughout.",
     accordions: SHARED_ACCORDIONS,
-    comparisonActive: "saxenda",
+    comparisonActive: "wegovyTablet",
     cardStat: {
-      percent: "8–10%",
-      text: "typical weight loss over a year for daily users who stay consistent with treatment.",
+      percent: "16.6%",
+      text: "average body weight loss at 64 weeks for patients combining treatment with lifestyle changes.*",
     },
     cardBenefits: [
-      "Reduced appetite and cravings",
-      "Flexible daily dosing routine",
-      "Supports gradual, steady weight loss",
+      "Once-daily oral tablet — no needles",
+      "Same active ingredient as the Wegovy injection",
+      "May help reduce appetite and cravings",
       "Clinician-led, medically supervised care",
     ],
   },

@@ -23,7 +23,7 @@ interface ProductInfoProps {
 const PRODUCT_ID_BY_SLUG: Record<string, number> = {
   mounjaro: 1001,
   wegovy: 1002,
-  saxenda: 1003,
+  "wegovy-pill": 1003,
 };
 
 /** "£90.00" → 90, "From £112" → 112, falls back to 0 on garbage. */

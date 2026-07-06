@@ -31,7 +31,7 @@ type Props = {
 const FALLBACK_ID: Record<string, number> = {
   mounjaro: 1001,
   wegovy: 1002,
-  saxenda: 1003,
+  "wegovy-pill": 1003,
 };
 
 /** Short selector-row descriptions + recommended flag + thumbnail for
@@ -50,9 +50,9 @@ const WL_META: Record<
     blurb: "Once-weekly injection to support long-term weight management.",
     image: "/assets/category/wl-wegovy.png",
   },
-  saxenda: {
-    blurb: "Daily injection that helps manage appetite and cravings.",
-    image: "/assets/figma/mounjaro-hero.png",
+  "wegovy-pill": {
+    blurb: "Once-daily oral tablet — the same active ingredient, no needles.",
+    image: "/assets/wegovy/what-pills.png",
   },
 };
 
@@ -78,7 +78,7 @@ export default async function FinalProductPage({ searchParams }: Props) {
   let products: FlowProduct[];
 
   if (category === "weight-loss") {
-    const slugs = ["mounjaro", "wegovy", "saxenda"] as const;
+    const slugs = ["mounjaro", "wegovy", "wegovy-pill"] as const;
 
     const dbProducts = await Promise.all(
       slugs.map((s) => getStorefrontProduct(s).catch(() => null)),

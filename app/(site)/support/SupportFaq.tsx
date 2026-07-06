@@ -57,7 +57,7 @@ const SECTIONS: FaqSection[] = [
     items: [
       {
         q: "What treatments do you offer?",
-        a: "Jood provides access to licensed GLP-1 medications, including Mounjaro (tirzepatide), Wegovy and Saxenda, prescribed only when clinically appropriate. All treatments are reviewed and dispensed safely under prescriber supervision.",
+        a: "Jood provides access to licensed GLP-1 medications, including Mounjaro (tirzepatide), the Wegovy injection and the Wegovy Pill (oral semaglutide), prescribed only when clinically appropriate. All treatments are reviewed and dispensed safely under prescriber supervision.",
       },
       {
         q: "How do these medications work?",

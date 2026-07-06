@@ -4,7 +4,7 @@
  *
  * The questionnaire the patient completes decides which category of
  * treatments they are shown:
- *   • weight-loss           → GLP-1 medications (Mounjaro / Wegovy / Saxenda)
+ *   • weight-loss           → GLP-1 medications (Mounjaro / Wegovy / Wegovy Pill)
  *   • erectile-dysfunction  → ED tablets (Sildenafil / Tadalafil)
  *   • period-delay          → period-delay tablets (Norethisterone)
  *

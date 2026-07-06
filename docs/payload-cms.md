@@ -65,7 +65,7 @@ npm run seed
 
 This creates:
 - one admin user (email/password from `.env`)
-- three medication products (Mounjaro, Wegovy, Saxenda)
+- three medication products (Mounjaro, Wegovy, Wegovy Pill)
 - one discount code `WELCOME10` (10% off, 90-day expiry)
 
 ## 4. Run the admin

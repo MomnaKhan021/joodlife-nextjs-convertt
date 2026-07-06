@@ -512,7 +512,7 @@ export async function POST(req: NextRequest) {
   // POST /api/diag?action=seed-products
   // Adds the missing columns to the products stub table, wipes any
   // existing rows, and inserts the three medications scraped from
-  // joodlife.com (Mounjaro, Wegovy, Saxenda). Each row carries its
+  // joodlife.com (Mounjaro, Wegovy, Wegovy Pill). Each row carries its
   // hero image URL, tagline, "from" price, and variant list as JSON.
   if (action === "seed-products") {
     try {
@@ -670,31 +670,29 @@ export async function POST(req: NextRequest) {
           badge: null,
         },
         {
-          title: "Saxenda",
-          slug: "saxenda",
-          tagline: "Liraglutide",
+          title: "Wegovy Pill",
+          slug: "wegovy-pill",
+          tagline: "Oral semaglutide",
           cardCopy:
-            "Clinician-prescribed treatment to help reduce appetite.",
+            "Once-daily oral tablet — the same active ingredient, no needles.",
           description:
-            "Clinician-prescribed daily injection that helps reduce appetite. A long-established GLP-1 option for steady, supported weight management.",
+            "A once-daily oral form of semaglutide — the same GLP-1 active ingredient as the Wegovy injection — for clinically guided weight loss, without weekly injections.",
           category: "medication",
-          fromPrice: 145,
-          subscriptionPrice: 189,
+          fromPrice: 149,
+          subscriptionPrice: 149,
           displayOrder: 3,
-          footerColor: "#3f5675",
-          heroImageUrl:
-            "https://joodlife.com/cdn/shop/files/4_1.png?v=1767173528&width=1200",
+          footerColor: "#142e2a",
+          heroImageUrl: "/assets/wegovy/what-pills.png",
           galleryImageUrls: [
-            "https://joodlife.com/cdn/shop/files/4_1.png?v=1767173528&width=1200",
-            "https://joodlife.com/cdn/shop/files/4.png?v=1767173456&width=1200",
+            "/assets/wegovy/what-pills.png",
+            "/assets/wegovy/how-pill.png",
           ],
           variants: [
-            { label: "6 mg",  price: 145 },
-            { label: "12 mg", price: 199 },
-            { label: "18 mg", price: 245 },
+            { label: "1.5 mg", price: 149 },
+            { label: "4 mg",   price: 149 },
           ],
-          ratingValue: 4.7,
-          ratingCount: 96,
+          ratingValue: 4.4,
+          ratingCount: 50,
           badge: null,
         },
       ];
