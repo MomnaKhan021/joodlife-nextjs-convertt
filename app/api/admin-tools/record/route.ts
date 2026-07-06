@@ -181,12 +181,50 @@ function bestProductMatch(title: string, products: ProductLite[]): ProductLite |
   return null;
 }
 
+/**
+ * Last-resort recovery for HubSpot orders that carry NO line-item data at all
+ * (jood_order_items empty) — the purchased medicine only survives in the deal
+ * name, e.g. "JL2673: Iram Omar — Mounjaro 5 mg". Pull the medicine out of the
+ * title and use the order total as its price so the order page and dispensing
+ * label still show what the customer bought.
+ */
+function deriveItemFromTitle(
+  orderTitle: string | null | undefined,
+  total: number | null
+): NormItem | null {
+  const title = (orderTitle ?? "").trim();
+  if (!title) return null;
+  const lower = title.toLowerCase();
+  let name = "";
+  const brandIdx = Math.max(lower.indexOf("mounjaro"), lower.indexOf("wegovy"));
+  if (brandIdx >= 0) {
+    name = title.slice(brandIdx).trim();
+  } else {
+    // Otherwise take the text after the last em-dash / hyphen separator.
+    const parts = title.split(/\s[—–-]\s/);
+    if (parts.length > 1) name = parts[parts.length - 1].trim();
+  }
+  if (!name) return null;
+  return {
+    title: name,
+    dose: null,
+    price: total != null && total > 0 ? total : null,
+    quantity: 1,
+    imageUrl: null,
+  };
+}
+
 async function enrichOrderItems(
   drizzle: DrizzleLike,
   sql: SqlRaw,
-  raw: unknown
+  raw: unknown,
+  opts: { orderTitle?: string | null; total?: number | null } = {}
 ): Promise<NormItem[]> {
   const items = normalizeItems(raw);
+  if (items.length === 0) {
+    const derived = deriveItemFromTitle(opts.orderTitle, opts.total ?? null);
+    if (derived) items.push(derived);
+  }
   if (items.length === 0) return items;
   const needsEnrich = items.some((i) => !i.imageUrl || i.price == null);
   if (!needsEnrich) return items;
@@ -510,7 +548,11 @@ export async function GET(req: NextRequest) {
     // always have full data instead of a lossy summary string.
     if (row && type === "orders") {
       try {
-        row.items_json = await enrichOrderItems(drizzle, sql, row.items_json);
+        const total = toNum(row.total_amount);
+        row.items_json = await enrichOrderItems(drizzle, sql, row.items_json, {
+          orderTitle: typeof row.order_number === "string" ? row.order_number : null,
+          total,
+        });
       } catch {
         /* leave items_json as-is if enrichment fails */
       }
