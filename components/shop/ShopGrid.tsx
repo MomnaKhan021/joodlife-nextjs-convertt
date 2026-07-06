@@ -115,7 +115,9 @@ function ShopCard({
     return () => io.disconnect();
   }, []);
 
-  const footerBg = p.footerColor || "#142e2a";
+  // Bottom strip is always the JoodLife brand green — ignore any per-product
+  // footerColor so the shop reads as one consistent brand across all cards.
+  const footerBg = "#142e2a";
   const cardCopy = p.cardCopy || p.description;
   const fromPriceLabel =
     p.fromPrice !== null
