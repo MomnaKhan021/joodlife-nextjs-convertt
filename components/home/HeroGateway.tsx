@@ -4,20 +4,16 @@ import Link from "next/link";
 import { CATEGORIES, type Category } from "@/lib/categories";
 
 /**
- * Gateway hero — Figma "Home Page (Desktop)" node 67:1820.
- *
- * The home page is a gateway: the hero presents the three care
- * categories as cards that each route to a dedicated sub-page.
+ * Gateway hero — Figma "Home Page (Desktop) 2026-04-20", node 142:1591.
  *
  *  ┌──────────────────────────┬───────────────┐
  *  │  Weight loss (primary,    │ Men's health  │
- *  │  dark-green) → /weight-   │ → /erectile-… │
- *  │  loss + eligibility CTA   ├───────────────┤
+ *  │  green gradient) → CTA    │ → /erectile-… │
+ *  │  + two-women cutout       ├───────────────┤
  *  │                           │ Women's health│
- *  │                           │ → /period-…   │
  *  └──────────────────────────┴───────────────┘
  *
- * Desktop: 2-column grid (≈1.85fr primary / 1fr stacked pair).
+ * Desktop: 2-column grid (857 / 447 ≈ 1.85fr / 1fr, 16px gap).
  * Mobile: the three cards stack full-width.
  */
 
@@ -40,7 +36,7 @@ function TrustpilotRow() {
         height={16}
         className="ml-1 h-4 w-auto"
       />
-      <span className="font-inter text-[13px] leading-none text-white">
+      <span className="font-ui text-[13px] leading-none text-white">
         4.4 <span className="text-white/80">(50+) Reviews</span>
       </span>
     </span>
@@ -50,65 +46,69 @@ function TrustpilotRow() {
 function CheckBullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-2.5">
-      <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/15">
-        <svg width="11" height="9" viewBox="0 0 11 9" fill="none" aria-hidden>
-          <path
-            d="M1 4.5L4 7.5L10 1.5"
-            stroke="#ffffff"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-      <span className="font-ui text-[15px] leading-snug text-[#d3dabe] md:text-[16px]">
+      <Image
+        src="/assets/home/tick.png"
+        alt=""
+        width={20}
+        height={20}
+        className="h-5 w-5 shrink-0"
+        aria-hidden
+      />
+      <span className="font-ui text-[15px] leading-snug text-white md:text-[16px]">
         {children}
       </span>
     </li>
   );
 }
 
-/** Primary (weight-loss) card — dark green, fills the left column. */
-function PrimaryCard({ category, isReturningPatient }: { category: Category; isReturningPatient?: boolean }) {
+/** Primary (weight-loss) card — green gradient + two-women cutout. */
+function PrimaryCard({
+  category,
+  isReturningPatient,
+}: {
+  category: Category;
+  isReturningPatient?: boolean;
+}) {
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,#142e2a_0%,#42746d_100%)] p-6 md:p-8 lg:min-h-[450px] lg:bg-[linear-gradient(225deg,#42746d_0%,#142e2a_100%)] lg:p-10">
-      {/* Desktop: the two-women cutout fills the card; women sit on the right
-          (transparent left lets the green show), text overlays the left. */}
-      <div aria-hidden className="absolute inset-0 z-0 hidden lg:block">
+    <div
+      className="group relative flex flex-col overflow-hidden rounded-[24px] p-6 md:p-8 lg:min-h-[450px] lg:p-12"
+      style={{
+        backgroundImage:
+          "linear-gradient(90deg, rgba(20,46,42,0.92) 0%, rgba(20,46,42,0.4) 46%, rgba(20,46,42,0) 66%), linear-gradient(135deg, #42746d 0%, #142e2a 100%)",
+      }}
+    >
+      {/* Desktop: two-women transparent cutout, anchored bottom-right. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[58%] lg:block"
+      >
         <Image
-          src="/assets/figma/hero-two-women-desktop.png"
+          src="/assets/home/hero-two-women.png"
           alt=""
           fill
           priority
           quality={90}
-          sizes="760px"
-          className="object-cover object-bottom"
+          sizes="500px"
+          className="object-contain object-bottom"
         />
       </div>
 
-      {/* Text — constrained to the left half on desktop so it never overlaps
-          the women. */}
-      <div className="relative z-10 flex flex-col gap-5 lg:max-w-[50%]">
+      {/* Text — left half on desktop so it never overlaps the women. */}
+      <div className="relative z-10 flex flex-col gap-5 lg:max-w-[48%]">
         <TrustpilotRow />
-        <h1 className="max-w-[15ch] font-display text-[34px] font-medium leading-[1.05] tracking-[-0.03em] text-white md:text-[42px] md:leading-[1.06]">
-          Medical Weight Loss,
-          <br />
-          <em className="font-serif font-normal italic">Tailored to You.</em>
+        <h1 className="font-display text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-white sm:text-[36px] lg:text-[48px] lg:leading-[1.15]">
+          Weight loss, now{" "}
+          <em className="font-serif font-normal italic">with Wegovy Pills</em>
         </h1>
-        <p className="max-w-[34ch] font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
-          Personalised weight-loss plans from UK clinicians
-          <br className="hidden lg:block" />{" "}
-          injections and tablets, fully supported.
-        </p>
-        <ul className="flex flex-col gap-2.5">
-          <CheckBullet>Personalised treatment plans</CheckBullet>
-          <CheckBullet>Injections &amp; tablets available</CheckBullet>
-          <CheckBullet>Ongoing clinician support</CheckBullet>
+        <ul className="flex flex-col gap-3">
+          <CheckBullet>Lose up to 27% body weight</CheckBullet>
+          <CheckBullet>Plans tailored to you</CheckBullet>
+          <CheckBullet>Guidance for lasting results</CheckBullet>
         </ul>
         <div className="mt-2">
           <Link
             href={isReturningPatient ? "/reorder" : `/consultation?product=${category.key}`}
-            className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-ui text-[15px] font-semibold text-[#142e2a] shadow-sm"
+            className="btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-7 font-ui text-[16px] font-semibold text-[#142e2a] shadow-sm hover:bg-[#f0f4ea]"
           >
             {isReturningPatient ? "Reorder" : "Check Your Eligibility"}
           </Link>
@@ -116,9 +116,9 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
       </div>
 
       {/* Mobile: the centred two-women cutout sits full-width BELOW the text. */}
-      <div className="relative z-10 mt-6 h-[260px] w-full lg:hidden">
+      <div className="relative z-10 mt-6 h-[270px] w-full lg:hidden">
         <Image
-          src="/assets/figma/hero-two-women-mobile.png"
+          src="/assets/home/hero-two-women.png"
           alt={category.imageAlt}
           fill
           priority
@@ -134,24 +134,22 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
 /** Secondary category card — cream, transparent person cutout on the right, CTA. */
 function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
-  // The ED studio cutout faces right; mirror it so he looks into the card.
-  const flip = category.key === "erectile-dysfunction";
   return (
     <div className="group relative flex min-h-[208px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
-      {/* Transparent cut-out portrait, anchored bottom-right — no overlay needed */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[50%] md:w-[48%]">
+      {/* Transparent cut-out portrait, anchored bottom-right. */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[52%] md:w-[50%]">
         <Image
           src={category.cardImage}
           alt={category.imageAlt}
           fill
           quality={95}
           sizes="(max-width: 1024px) 55vw, 300px"
-          className={`object-contain object-bottom ${flip ? "[transform:scaleX(-1)]" : ""}`}
+          className="object-contain object-right-bottom"
         />
       </div>
 
       <div className="relative z-10 max-w-[56%]">
-        <p className="font-ui text-[14px] font-normal text-[#142e2a]/65 md:text-[15px]">
+        <p className="font-ui text-[14px] font-normal text-[#142e2a]/65 md:text-[16px]">
           {category.eyebrow}
         </p>
         <h2 className="mt-1.5 whitespace-pre-line font-display text-[24px] font-semibold leading-[1.08] tracking-[-0.01em] text-[#0a140f] md:text-[28px]">
@@ -178,7 +176,7 @@ export default function HeroGateway({ isReturningPatient }: { isReturningPatient
       aria-label="Explore our treatments"
       className="w-full overflow-x-hidden bg-white"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-6 md:px-10 md:pt-[30px] lg:px-[60px]">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
           <div className="min-w-0">
             <PrimaryCard
