@@ -18,6 +18,9 @@ type Badge = {
   alt: string;
   width: number;
   height: number;
+  /** Bare wordmark (no chip baked into the artwork) — render it inside a
+   * white chip so it matches the Apple Pay / Google Pay card chips. */
+  chip?: boolean;
 };
 
 const TRUST_BADGES: Badge[] = [
@@ -53,16 +56,18 @@ const PAYMENT_ICONS: Badge[] = [
     alt: "Stripe",
     width: 50,
     height: 20,
+    chip: true,
   },
 ];
 
 /**
  * Layout mirrors the Figma footer block (node I141:2887;4419:71862):
- *   - The two trust badges sit on the left at their native heights.
- *   - The three payment chips form a compact row at the right, aligned
- *     to the trust badges' baseline.
+ *   - The two trust badges sit on the left, the three payment chips form
+ *     a compact row at the right.
+ *   - Every badge renders at the SAME height (h-10) with its width
+ *     auto-scaling, so the row reads as one consistent strip.
  *   - Below the `sm` breakpoint, the row wraps so the payment chips drop
- *     to a second line — keeping every badge at its native pixel size.
+ *     to a second line.
  */
 export default function PaymentBadges() {
   return (
@@ -74,19 +79,26 @@ export default function PaymentBadges() {
           alt={b.alt}
           width={b.width}
           height={b.height}
-          className="h-auto w-auto select-none"
+          className="h-10 w-auto select-none"
           priority={false}
         />
       ))}
       <ul className="flex items-center gap-x-2 sm:ml-1">
         {PAYMENT_ICONS.map((b) => (
-          <li key={b.src} className="inline-flex items-center">
+          <li
+            key={b.src}
+            className={
+              b.chip
+                ? "inline-flex h-10 items-center rounded-lg bg-white px-3"
+                : "inline-flex items-center"
+            }
+          >
             <Image
               src={b.src}
               alt={b.alt}
               width={b.width}
               height={b.height}
-              className="h-auto w-auto select-none"
+              className={`w-auto select-none ${b.chip ? "h-5" : "h-10"}`}
               priority={false}
             />
           </li>
