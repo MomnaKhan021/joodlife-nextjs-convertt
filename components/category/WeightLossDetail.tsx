@@ -17,12 +17,12 @@ type Chip = { label: string; sub: string; iconSrc: string };
 // the Figma (white circle + mark baked in). Left column sits higher, right
 // column is staggered ~64px lower around the portrait (Figma 289).
 const LEFT_CHIPS: Chip[] = [
-  { label: "Medication", sub: "Clinically appropriate treatment", iconSrc: "/assets/icons/chip-medication.svg" },
-  { label: "Support", sub: "Ongoing clinician support", iconSrc: "/assets/icons/chip-support.svg" },
+  { label: "Medication", sub: "Clinically-backed", iconSrc: "/assets/icons/chip-medication.svg" },
+  { label: "Support", sub: "Long term", iconSrc: "/assets/icons/chip-support.svg" },
   { label: "Progress", sub: "Personalised care", iconSrc: "/assets/icons/chip-result.svg" },
 ];
 const RIGHT_CHIPS: Chip[] = [
-  { label: "Delivery", sub: "Free next-day delivery", iconSrc: "/assets/icons/chip-delivery.svg" },
+  { label: "Delivery", sub: "Free & Next-day", iconSrc: "/assets/icons/chip-delivery.svg" },
   { label: "Guidance", sub: "Long-term support", iconSrc: "/assets/icons/chip-guidance.svg" },
   { label: "WhatsApp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
 ];
