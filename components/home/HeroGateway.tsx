@@ -96,9 +96,9 @@ function PrimaryCard({ category, isReturningPatient }: { category: Category; isR
           <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
         <p className="max-w-[34ch] font-ui text-[13px] leading-[1.4] text-[#d3dabe] md:text-[14px]">
-          Personalised weight-loss plans from UK clinicians—
+          Personalised weight-loss plans from UK clinicians
           <br className="hidden lg:block" />
-          injections and tablets, fully supported.
+          &mdash; injections and tablets, fully supported.
         </p>
         <ul className="flex flex-col gap-2.5">
           <CheckBullet>Personalised treatment plans</CheckBullet>
