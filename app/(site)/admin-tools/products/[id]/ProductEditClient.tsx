@@ -135,6 +135,7 @@ export default function ProductEditClient({ id }: { id: string }) {
   const [form, setForm] = useState<ProductForm>(EMPTY);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
 
@@ -245,6 +246,37 @@ export default function ProductEditClient({ id }: { id: string }) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function deleteProduct() {
+    if (isNew) return;
+    const label = form.title?.trim() || "this product";
+    if (
+      !window.confirm(
+        `Delete "${label}"? This permanently removes the product and its variants and cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin-tools/record?type=products&id=${encodeURIComponent(id)}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.ok) {
+        const msg = json?.detail
+          ? `${json.error ?? "Delete failed"}: ${json.detail}`
+          : json?.error ?? `Delete failed (HTTP ${res.status})`;
+        throw new Error(msg);
+      }
+      router.replace("/admin-tools/data-browser");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setDeleting(false);
     }
   }
 
@@ -466,12 +498,24 @@ export default function ProductEditClient({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* Footer save */}
-        <div className="mt-6 flex justify-end">
+        {/* Footer actions */}
+        <div className="mt-6 flex items-center justify-between gap-3">
+          {!isNew ? (
+            <button
+              type="button"
+              onClick={deleteProduct}
+              disabled={deleting || saving}
+              className="inline-flex h-[36px] items-center rounded-[8px] border border-red-300 bg-white px-5 text-[13px] font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Delete product"}
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             onClick={save}
-            disabled={saving}
+            disabled={saving || deleting}
             className="inline-flex h-[36px] items-center rounded-[8px] bg-[#303030] px-5 text-[13px] font-medium text-white hover:bg-[#1a1a1a] disabled:opacity-50"
           >
             {saving ? "Saving…" : isNew ? "Add product" : "Save changes"}

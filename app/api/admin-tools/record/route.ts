@@ -780,6 +780,18 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
+    // Products own child variant rows (products_variants._parent_id) whose
+    // FK would otherwise block the delete — remove them first.
+    if (type === "products" && Number.isFinite(numId)) {
+      try {
+        await drizzle.execute(
+          sql.raw(`DELETE FROM products_variants WHERE _parent_id = ${numId};`)
+        );
+      } catch {
+        // best-effort — the main delete surfaces any remaining blocker
+      }
+    }
+
     await drizzle.execute(
       sql.raw(`DELETE FROM "${spec.table}" WHERE ${where};`)
     );
