@@ -129,7 +129,7 @@ export default function WhatIsPill() {
           className="mb-9 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end"
         >
           <div className="max-w-[720px]">
-            <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+            <h2 className="font-display text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] sm:text-[34px] md:text-[48px] md:leading-[52px]">
               What is the{" "}
               <span className="font-serif italic font-normal">
                 Wegovy® Tablet?
@@ -146,7 +146,7 @@ export default function WhatIsPill() {
             </p>
           </div>
           <a
-            href="/consultation"
+            href="/consultation?product=weight-loss"
             className="hidden h-[50px] shrink-0 items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
           >
             Start Your Assessment
@@ -180,7 +180,7 @@ export default function WhatIsPill() {
       {/* Mobile CTA — full-width below the cards, per Figma */}
       <div className="mx-auto w-full max-w-[1440px] px-4 md:hidden">
         <a
-          href="/consultation"
+          href="/consultation?product=weight-loss"
           className="mt-6 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
         >
           Start Your Assessment

@@ -54,8 +54,9 @@ function HeroCopy() {
         </span>
       </div>
 
-      <h1 className="font-display text-[30px] font-semibold leading-[1.08] tracking-[-0.02em] text-white sm:text-[36px] md:text-[44px] lg:text-[54px] lg:leading-[1.07]">
-        A New Era of Weight Loss.{" "}
+      <h1 className="font-display text-[26px] font-semibold leading-[1.12] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[46px] lg:leading-[1.1]">
+        A New Era of Weight Loss.
+        <br />
         <span className="font-serif italic font-normal">
           Introducing the Wegovy® Tablet.
         </span>
@@ -67,7 +68,7 @@ function HeroCopy() {
       </p>
 
       <a
-        href="/consultation"
+        href="/consultation?product=weight-loss"
         className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
       >
         Check Your Eligibility
@@ -123,7 +124,7 @@ export default function Hero() {
       />
 
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-12 md:px-10 md:py-20 lg:px-[60px] lg:py-[110px]">
-        <Reveal as="div" className="max-w-[660px]">
+        <Reveal as="div" className="max-w-[720px]">
           <HeroCopy />
         </Reveal>
       </div>

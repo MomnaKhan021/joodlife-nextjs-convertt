@@ -24,8 +24,14 @@ const PEN_ROWS: Row[] = [
   { label: "Weekly injection", minus: true },
 ];
 
-/* Row heights from Figma — header=87, pricing=127, taken=81, feature=97 */
-const ROW_HEIGHTS = [127, 81, 97, 97, 97];
+/* Row min-heights — tighter on mobile, Figma values (127/81/97) at md+ */
+const ROW_MIN = [
+  "min-h-[96px] md:min-h-[127px]",
+  "min-h-[68px] md:min-h-[81px]",
+  "min-h-[78px] md:min-h-[97px]",
+  "min-h-[78px] md:min-h-[97px]",
+  "min-h-[78px] md:min-h-[97px]",
+];
 
 function PillIcon({ dark }: { dark?: boolean }) {
   return (
@@ -86,11 +92,11 @@ function Card({
     }`}>
       {/* Title header — 87px */}
       <div
-        className={`flex h-[87px] items-center justify-center px-4 text-center ${
+        className={`flex h-[64px] items-center justify-center px-3 text-center md:h-[87px] md:px-4 ${
           dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"
         }`}
       >
-        <h3 className="font-ui text-[15px] font-semibold tracking-[-0.01em] md:text-[18.8px]">{title}</h3>
+        <h3 className="font-ui text-[14px] font-semibold tracking-[-0.01em] sm:text-[15px] md:text-[18.8px]">{title}</h3>
       </div>
 
       <ul className="flex flex-col">
@@ -102,8 +108,7 @@ function Card({
           return (
             <li
               key={i}
-              className={`flex flex-col items-center justify-center gap-2 px-4 text-center ${divider}`}
-              style={{ minHeight: ROW_HEIGHTS[i] }}
+              className={`flex flex-col items-center justify-center gap-2 px-3 text-center md:px-4 ${ROW_MIN[i]} ${divider}`}
             >
               {/* Row 0 (pricing): product icon above text */}
               {i === 0 && (variant === "pill" ? <PillIcon dark={dark} /> : <PenIcon dark={dark} />)}
@@ -158,7 +163,7 @@ export default function Comparison() {
         <Reveal as="div" delay={150}>
           <div className="mx-auto mt-9 flex max-w-[690px] flex-col items-center gap-6">
             <a
-              href="/consultation"
+              href="/consultation?product=weight-loss"
               className="inline-flex h-[50px] w-[220px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
             >
               Compare Treatments
