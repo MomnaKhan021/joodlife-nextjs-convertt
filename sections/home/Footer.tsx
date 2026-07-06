@@ -366,9 +366,7 @@ export default function Footer() {
               GPhC-registered pharmacy (9012990) operating under Jood Ltd.
               Clinical, consultation and prescribing services are provided by
               UK-registered prescribers. All medicines are dispensed and
-              delivered in accordance with GPhC and MHRA guidance. All Pharmacy
-              operations are temporarily taking place at Weaverham Pharmacy
-              (1029683).
+              delivered in accordance with GPhC and MHRA guidance.
             </p>
             <PaymentBadges />
           </div>
