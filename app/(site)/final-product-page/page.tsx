@@ -62,6 +62,13 @@ function parsePrice(formatted: string): number {
   return m ? Number.parseFloat(m[1].replace(/,/g, "")) || 0 : 0;
 }
 
+/** Dashboard variant labels are often bare numbers ("2.5") — the dose
+ * buttons must read "2.5mg" (Figma), so append the unit when missing. */
+function mgLabel(label: string): string {
+  const l = label.trim();
+  return /^\d+(?:\.\d+)?$/.test(l) ? `${l}mg` : l;
+}
+
 /**
  * Post-consultation "Choose your treatment" page (Figma "Final Product
  * Page"). Minimal checkout chrome (back + centred logo), a product
@@ -78,7 +85,8 @@ export default async function FinalProductPage({ searchParams }: Props) {
   let products: FlowProduct[];
 
   if (category === "weight-loss") {
-    const slugs = ["mounjaro", "wegovy", "wegovy-pill"] as const;
+    // Wegovy Pills first so it's visible at the top of the selector.
+    const slugs = ["wegovy-pill", "mounjaro", "wegovy"] as const;
 
     const dbProducts = await Promise.all(
       slugs.map((s) => getStorefrontProduct(s).catch(() => null)),
@@ -89,9 +97,9 @@ export default async function FinalProductPage({ searchParams }: Props) {
       const db = dbProducts[i];
       const doses =
         db && db.variants.length > 0
-          ? db.variants.map((v) => ({ label: v.label, price: v.price }))
+          ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
           : editorial.dosages.map((d) => ({
-              label: d.label,
+              label: mgLabel(d.label),
               price: parsePrice(d.perPack),
             }));
       return {
@@ -117,8 +125,8 @@ export default async function FinalProductPage({ searchParams }: Props) {
       const db = dbProducts[i];
       const doses =
         db && db.variants.length > 0
-          ? db.variants.map((v) => ({ label: v.label, price: v.price }))
-          : c.doses;
+          ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
+          : c.doses.map((d) => ({ ...d, label: mgLabel(d.label) }));
       return {
         slug: c.slug,
         productId: db?.id ?? c.productId,
@@ -192,7 +200,14 @@ export default async function FinalProductPage({ searchParams }: Props) {
       {/* Editorial sections (weight-loss only) */}
       {editorial ? (
         <>
-          <WhatIsSection product={editorial} />
+          <section
+            aria-label={`What is ${editorial.title}?`}
+            className="w-full bg-white py-[30px] md:py-10"
+          >
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <WhatIsSection product={editorial} />
+            </div>
+          </section>
 
           <section
             aria-label="Evidence-based comparison"
@@ -214,7 +229,14 @@ export default async function FinalProductPage({ searchParams }: Props) {
             </div>
           </section>
 
-          <SafetyFaq product={editorial} />
+          <section
+            aria-label="Safety and FAQs"
+            className="w-full bg-white py-[30px] md:py-10"
+          >
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <SafetyFaq product={editorial} />
+            </div>
+          </section>
         </>
       ) : null}
 
@@ -254,12 +276,14 @@ export default async function FinalProductPage({ searchParams }: Props) {
             Get more information on the medication, the programme and your
             results.
           </p>
-          <Link
-            href="/consultation"
+          <a
+            href="https://wa.me/447756099075"
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn-cta mt-4 inline-flex h-12 items-center justify-center rounded-xl border border-[#142e2a]/25 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] hover:bg-white/60"
           >
             Get started
-          </Link>
+          </a>
         </div>
       </section>
     </main>

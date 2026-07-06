@@ -279,7 +279,7 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
 
   "wegovy-pill": {
     slug: "wegovy-pill",
-    title: "Wegovy Pill",
+    title: "Wegovy Pills",
     italicWord: "tablet",
     ratingLabel: "4.4 Rated Excellence",
     lede:

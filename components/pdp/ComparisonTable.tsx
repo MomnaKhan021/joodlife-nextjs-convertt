@@ -5,9 +5,9 @@ interface ComparisonTableProps {
 }
 
 const COLUMNS = [
+  { key: "wegovyTablet", label: "Wegovy Pills",     color: "#84988b" }, // sage
   { key: "mounjaro",     label: "Mounjaro KwikPen", color: "#b39bb3" }, // lavender
   { key: "wegovy",       label: "Wegovy Injection", color: "#c9a78a" }, // tan
-  { key: "wegovyTablet", label: "Wegovy Tablet",    color: "#84988b" }, // sage
 ] as const;
 
 /**
@@ -19,7 +19,7 @@ const COLUMNS = [
  */
 export default function ComparisonTable({ active }: ComparisonTableProps) {
   return (
-    <div className="rounded-[24px] bg-[#f7f9f2] p-6 md:p-10 lg:p-12">
+    <div className="rounded-[24px] bg-[#f7f9f2] p-3 md:p-10 lg:p-12">
       <div className="flex flex-col items-center gap-2 pb-8 text-center md:pb-10">
         <h2 className="font-display text-[26px] font-semibold leading-[32px] tracking-[-0.025em] text-[#142e2a] md:text-[36px] md:leading-[44px]">
           Which treatment is right for you?
@@ -29,31 +29,32 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
         </p>
       </div>
 
+      {/* The table compresses to fit the viewport on mobile (no horizontal
+          scroll, per Figma) and relaxes back to the roomy layout on md+. */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-separate border-spacing-0 text-left">
+        <table className="w-full border-separate border-spacing-0 text-left">
           <thead>
             <tr>
-              <th className="w-[28%] py-3 align-bottom"></th>
+              <th className="w-[25%] py-3 align-bottom md:w-[28%]"></th>
               {COLUMNS.map((c) => {
                 const isActive = c.key === active;
                 return (
                   <th
                     key={c.key}
                     className={[
-                      "w-[24%] px-4 pb-4 pt-3 align-bottom text-center",
+                      "w-[25%] px-1 pb-3 pt-3 align-bottom text-center md:w-[24%] md:px-4 md:pb-4",
                     ].join(" ")}
                   >
                     <div
                       className={[
-                        "mx-auto inline-flex flex-col items-center gap-1 rounded-t-[12px] px-3 py-3",
+                        "mx-auto inline-flex min-w-0 flex-col items-center gap-1 rounded-t-[12px] px-1.5 py-2 md:min-w-[110px] md:px-3 md:py-3",
                         isActive
                           ? "border-x-2 border-t-2 border-[#142e2a]"
                           : "",
                       ].join(" ")}
-                      style={{ minWidth: 110 }}
                     >
                       <span
-                        className="font-display text-[16px] font-bold leading-[20px] tracking-[-0.01em]"
+                        className="font-display text-[12px] font-bold leading-[15px] tracking-[-0.01em] md:text-[16px] md:leading-[20px]"
                         style={{ color: c.color }}
                       >
                         {c.label}
@@ -71,7 +72,7 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                 <tr key={row.label}>
                   <td
                     className={[
-                      "border-t border-[#142e2a]/10 px-4 py-4 font-ui text-[13px] font-semibold leading-[18px] text-[#142e2a] md:text-[14px]",
+                      "border-t border-[#142e2a]/10 px-1.5 py-3 font-ui text-[11px] font-semibold leading-[15px] text-[#142e2a] md:px-4 md:py-4 md:text-[14px] md:leading-[18px]",
                     ].join(" ")}
                   >
                     {row.label}
@@ -83,7 +84,7 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                       <td
                         key={c.key}
                         className={[
-                          "relative px-4 py-4 text-center font-ui text-[13px] font-medium leading-[18px] md:text-[14px]",
+                          "relative px-1 py-3 text-center font-ui text-[11px] font-medium leading-[15px] md:px-4 md:py-4 md:text-[14px] md:leading-[18px]",
                           "border-t",
                           isActive
                             ? "border-[#142e2a]/0"

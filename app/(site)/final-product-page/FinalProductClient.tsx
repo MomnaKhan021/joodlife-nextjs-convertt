@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+
+import { useCart } from "@/components/cart/CartContext";
 
 /** A single selectable dose (label + numeric pack price). */
 export type FlowDose = { label: string; price: number };
@@ -55,6 +57,10 @@ export default function FinalProductClient({
 }: {
   products: FlowProduct[];
 }) {
+  const router = useRouter();
+  const { addItem } = useCart();
+  const [busy, setBusy] = useState(false);
+
   // Default to the recommended product (or the first one).
   const defaultSlug =
     products.find((p) => p.recommended)?.slug ?? products[0]?.slug ?? "";
@@ -69,16 +75,21 @@ export default function FinalProductClient({
   if (!active) return null;
   const dose = active.doses[doseIdx] ?? active.doses[0];
 
-  const continueHref =
-    `/final-product-page/plan?` +
-    new URLSearchParams({
-      product: active.slug,
-      pid: String(active.productId),
+  // Continue goes STRAIGHT to checkout carrying the selected product +
+  // variant (no intermediate "choose your frequency" step).
+  function goToCheckout() {
+    if (busy || !active || !dose) return;
+    setBusy(true);
+    addItem({
+      productId: active.productId,
+      slug: active.slug,
       title: active.title,
-      dose: dose?.label ?? "",
-      price: String(dose?.price ?? 0),
-      img: active.image,
-    }).toString();
+      dose: dose.label,
+      price: dose.price,
+      imageUrl: active.image || null,
+    });
+    router.push("/checkout");
+  }
 
   const fromPrice = (p: FlowProduct) =>
     Math.min(...p.doses.map((d) => d.price));
@@ -197,12 +208,14 @@ export default function FinalProductClient({
                           </span>
                         </div>
 
-                        <Link
-                          href={continueHref}
-                          className="btn-cta mt-4 inline-flex h-[52px] w-full items-center justify-center rounded-xl bg-[#142e2a] px-8 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
+                        <button
+                          type="button"
+                          onClick={goToCheckout}
+                          disabled={busy}
+                          className="btn-cta mt-4 inline-flex h-[52px] w-full items-center justify-center rounded-xl bg-[#142e2a] px-8 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-60"
                         >
-                          Continue With {active.title}
-                        </Link>
+                          {busy ? "Loading…" : `Continue With ${active.title}`}
+                        </button>
                       </div>
                     ) : null}
                   </div>
@@ -216,12 +229,14 @@ export default function FinalProductClient({
       {/* Sticky bottom bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#142e2a]/10 bg-white/95 px-4 py-3 shadow-[0_-6px_24px_-12px_rgba(20,46,42,0.25)] backdrop-blur md:px-10 lg:px-[60px]">
         <div className="mx-auto flex w-full max-w-[880px] flex-col items-center gap-1">
-          <Link
-            href={continueHref}
-            className="btn-cta inline-flex h-[50px] w-full max-w-[420px] items-center justify-center rounded-xl bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
+          <button
+            type="button"
+            onClick={goToCheckout}
+            disabled={busy}
+            className="btn-cta inline-flex h-[50px] w-full max-w-[420px] items-center justify-center rounded-xl bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-60"
           >
-            Continue With {active.title}
-          </Link>
+            {busy ? "Loading…" : `Continue With ${active.title}`}
+          </button>
         </div>
       </div>
     </>

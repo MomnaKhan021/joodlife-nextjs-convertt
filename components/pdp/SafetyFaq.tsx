@@ -25,8 +25,8 @@ export default function SafetyFaq({ product }: SafetyFaqProps) {
       {/* Doctor portrait */}
       <div className="relative h-[360px] w-full overflow-hidden rounded-[20px] bg-[#f7f9f2] md:h-[560px]">
         <Image
-          src="/assets/figma/pdp/safety-doctor.png"
-          alt="A clinician in scrubs reviewing notes on a tablet"
+          src="/assets/category/wl-checkin.png"
+          alt="Monthly video check-in with a licensed clinician"
           fill
           sizes="(max-width: 768px) 92vw, 500px"
           quality={95}
