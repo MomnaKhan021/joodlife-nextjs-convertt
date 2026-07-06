@@ -61,7 +61,7 @@ function CheckBullet({ children }: { children: React.ReactNode }) {
           />
         </svg>
       </span>
-      <span className="font-ui text-[15px] leading-snug text-white md:text-[16px]">
+      <span className="font-ui text-[15px] leading-snug text-[#d3dabe] md:text-[16px]">
         {children}
       </span>
     </li>
@@ -110,7 +110,7 @@ function PrimaryCard({
           <br />
           <em className="font-serif font-normal italic">Tailored to You.</em>
         </h1>
-        <p className="max-w-[38ch] font-ui text-[13px] leading-[1.55] text-[#d3dabe] md:text-[15px]">
+        <p className="max-w-[34ch] font-ui text-[13px] leading-[1.55] text-[#d3dabe] md:text-[15px]">
           Personalised treatment plans from UK clinicians, with access to the
           latest prescription weight-loss injections and tablets—all supported
           throughout your journey.
