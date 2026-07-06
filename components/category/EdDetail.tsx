@@ -56,8 +56,8 @@ export default function EdDetail() {
         className="grid min-h-[300px] items-center gap-6 rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:min-h-[330px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
       >
         <p className="max-w-[46ch] font-ui text-[15px] leading-relaxed text-white/90">
-          Take control of erectile health safely and discreetly. Clinically approved treatments are
-          delivered to your door, helping you regain confidence and performance.
+          Take control of your erectile health with safe, discreet, clinician-led care.
+          Treatments are prescribed where appropriate and delivered directly to your door.
         </p>
         <div className="relative mx-auto h-[120px] w-[180px]">
           <Image
@@ -73,7 +73,7 @@ export default function EdDetail() {
           href="/consultation?product=erectile-dysfunction"
           className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white hover:bg-[#08222f] md:justify-self-end"
         >
-          Get Started
+          Start Your Assessment
         </Link>
       </Reveal>
 
