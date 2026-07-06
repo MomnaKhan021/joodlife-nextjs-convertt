@@ -735,6 +735,28 @@ export async function DELETE(req: NextRequest) {
       userEmail = (rows[0]?.email ?? "").trim();
     }
 
+    // Clear rows that reference this user before deleting it. The live DB's
+    // FK constraints may be NO ACTION (not CASCADE/SET NULL as declared), so
+    // an orphaned reference would otherwise block the delete. Each statement
+    // is guarded so a missing table/column doesn't abort the whole delete.
+    if (type === "users") {
+      const cleanups = [
+        `DELETE FROM "payload_locked_documents_rels" WHERE users_id = ${numId}`,
+        `DELETE FROM "payload_preferences_rels" WHERE users_id = ${numId}`,
+        `UPDATE "orders" SET user_id = NULL WHERE user_id = ${numId}`,
+        `UPDATE "weight_logs" SET user_id = NULL WHERE user_id = ${numId}`,
+      ];
+      if (Number.isFinite(numId)) {
+        for (const stmt of cleanups) {
+          try {
+            await drizzle.execute(sql.raw(stmt + ";"));
+          } catch {
+            // table/column may not exist in this environment — ignore
+          }
+        }
+      }
+    }
+
     await drizzle.execute(
       sql.raw(`DELETE FROM "${spec.table}" WHERE ${where};`)
     );

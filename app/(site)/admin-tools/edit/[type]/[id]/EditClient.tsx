@@ -233,9 +233,15 @@ export default function EditClient({
           credentials: "include",
         }
       );
-      const j = (await res.json()) as { ok: boolean; error?: string };
+      const j = (await res.json()) as {
+        ok: boolean;
+        error?: string;
+        detail?: string;
+      };
       if (!res.ok || !j.ok) {
-        setErr(j.error ?? `HTTP ${res.status}`);
+        setErr(
+          [j.error, j.detail].filter(Boolean).join(" — ") || `HTTP ${res.status}`
+        );
         return;
       }
       router.replace(`/admin-tools/data-browser?type=${encodeURIComponent(type)}`);
