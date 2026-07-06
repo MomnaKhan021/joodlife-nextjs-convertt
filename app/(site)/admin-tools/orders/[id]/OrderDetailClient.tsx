@@ -308,10 +308,16 @@ export default function OrderDetailClient({ id }: { id: string }) {
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to generate DPD label");
 
-      // Open the HTML label (DPD Local returns HTML for A4) in a new tab and print
+      // Open the HTML label (DPD Local returns HTML for A4) in a new tab and
+      // print. DPD's HTML can embed its own auto-print script — strip any
+      // <script> so the label prints exactly ONCE (our controlled call).
       const win = window.open("", "_blank");
       if (win) {
-        win.document.write(j.labelHtml);
+        const safeHtml = String(j.labelHtml).replace(
+          /<script[\s\S]*?<\/script>/gi,
+          "",
+        );
+        win.document.write(safeHtml);
         win.document.close();
         win.focus();
         win.print();

@@ -224,9 +224,15 @@ export function buildLabelsDocument(labels: LabelData[]): string {
 </style></head><body>${body}</body></html>`;
 }
 
+/* Re-entrancy guard: a double-click (or an impatient second click while the
+ * printer spools) must not queue a second identical print job. */
+let printing = false;
+
 /** Render the labels into a hidden iframe and trigger the print dialog. */
 export function printLabels(labels: LabelData[]): void {
   if (typeof document === "undefined" || labels.length === 0) return;
+  if (printing) return;
+  printing = true;
 
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
@@ -237,6 +243,7 @@ export function printLabels(labels: LabelData[]): void {
   const win = iframe.contentWindow;
   const doc = iframe.contentDocument ?? win?.document;
   if (!win || !doc) {
+    printing = false;
     iframe.remove();
     return;
   }
@@ -245,6 +252,7 @@ export function printLabels(labels: LabelData[]): void {
   const cleanup = () => {
     if (cleaned) return;
     cleaned = true;
+    printing = false;
     iframe.remove();
   };
 
