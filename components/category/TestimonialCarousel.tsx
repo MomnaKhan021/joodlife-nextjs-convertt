@@ -58,7 +58,7 @@ export default function TestimonialCarousel({
           style={{ transform: `translateX(-${i * 100}%)` }}
         >
           {items.map((t, d) => (
-            <div key={d} className="flex w-full shrink-0 flex-col justify-center">
+            <div key={d} className="flex w-full min-w-full shrink-0 basis-full flex-col justify-center">
               <p className="mx-auto max-w-[30ch] font-serif text-[15px] font-normal italic leading-snug text-white md:max-w-[34ch] md:text-[22px]">
                 &ldquo;{t.quote}&rdquo;
               </p>

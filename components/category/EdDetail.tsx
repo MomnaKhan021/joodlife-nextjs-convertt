@@ -94,11 +94,11 @@ export default function EdDetail() {
             <h3 className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
               What are your goals?
             </h3>
-            <ul className="flex flex-1 flex-col items-end justify-center gap-2.5">
+            <ul className="mt-auto flex flex-col items-start gap-2 md:mt-0 md:flex-1 md:items-end md:justify-center md:gap-2.5">
               {GOALS.map((g) => (
                 <li
                   key={g}
-                  className="w-fit rounded-full bg-white/15 px-4 py-2 text-right font-ui text-[13px] font-medium text-white backdrop-blur-sm"
+                  className="max-w-full rounded-full bg-white/15 px-3 py-1.5 text-left font-ui text-[12px] font-medium text-white backdrop-blur-sm md:px-4 md:py-2 md:text-right md:text-[13px]"
                 >
                   {g}
                 </li>
