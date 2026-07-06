@@ -38,13 +38,13 @@ function renderChip(c: Chip) {
         alt=""
         width={40}
         height={40}
-        className="h-9 w-9 shrink-0 md:h-10 md:w-10"
+        className="h-7 w-7 shrink-0 md:h-10 md:w-10"
       />
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className="font-ui text-[16px] font-medium leading-[20px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
+        <span className="font-ui text-[13px] font-medium leading-[16px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
           {c.label}
         </span>
-        <span className="font-ui text-[12px] leading-[15px] text-white/75 md:text-[14px] md:leading-[18px]">
+        <span className="font-ui text-[11px] leading-[14px] text-white/75 md:text-[14px] md:leading-[18px]">
           {c.sub}
         </span>
       </span>

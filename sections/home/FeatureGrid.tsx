@@ -60,7 +60,7 @@ export default function FeatureGrid() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[476fr_804fr] lg:gap-10">
           {/* Left — heading + lede + CTA */}
           <Reveal as="div" className="flex flex-col">
-            <h2 className="font-display text-[26px] font-semibold leading-[1.08] tracking-[-0.02em] text-white md:text-[44px]">
+            <h2 className="font-display text-[22px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
               It&rsquo;s more than treatment, it&rsquo;s{" "}
               <em className="font-serif font-normal italic">transformation</em>
             </h2>
@@ -93,22 +93,22 @@ export default function FeatureGrid() {
             {FEATURES.map((f) => (
               <div
                 key={f.title}
-                className="flex flex-col gap-3 rounded-[12px] border border-white/10 bg-white/[0.05] p-5"
+                className="flex flex-col gap-2.5 rounded-[12px] border border-white/10 bg-white/[0.05] p-4 md:p-5"
               >
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/10">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 md:h-12 md:w-12">
                   <Image
                     src={f.icon}
                     alt=""
                     width={28}
                     height={28}
                     aria-hidden
-                    className="h-7 w-7"
+                    className="h-6 w-6 md:h-7 md:w-7"
                   />
                 </span>
-                <h3 className="mt-1 font-ui text-[17px] font-semibold leading-[22px] text-white">
+                <h3 className="mt-1 font-ui text-[15px] font-semibold leading-[20px] text-white md:text-[17px] md:leading-[22px]">
                   {f.title}
                 </h3>
-                <p className="font-ui text-[13.5px] leading-[19px] text-white/65">
+                <p className="font-ui text-[12.5px] leading-[17px] text-white/65 md:text-[13.5px] md:leading-[19px]">
                   {f.copy}
                 </p>
               </div>

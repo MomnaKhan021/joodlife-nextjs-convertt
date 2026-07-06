@@ -50,20 +50,21 @@ export default function TestimonialCarousel({
         </svg>
       </button>
 
-      {/* Sliding track — one slide per testimonial, translated smoothly. */}
-      <div className="flex flex-1 items-center overflow-hidden px-6 md:px-8">
+      {/* Sliding track — one slide per testimonial, translated smoothly.
+          px-10 keeps the copy clear of the absolute arrows on mobile. */}
+      <div className="flex flex-1 items-center overflow-hidden px-10 md:px-12">
         <div
           className="flex w-full transition-transform duration-500 ease-in-out"
           style={{ transform: `translateX(-${i * 100}%)` }}
         >
           {items.map((t, d) => (
-            <div key={d} className="flex w-full shrink-0 flex-col justify-center px-2">
-              <p className="mx-auto max-w-[34ch] font-serif text-[18px] font-normal italic leading-snug text-white md:text-[22px]">
+            <div key={d} className="flex w-full shrink-0 flex-col justify-center">
+              <p className="mx-auto max-w-[30ch] font-serif text-[15px] font-normal italic leading-snug text-white md:max-w-[34ch] md:text-[22px]">
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <div className="mt-5 flex flex-col gap-0.5">
-                <span className="font-ui text-[15px] font-semibold text-white md:text-[16px]">{t.name}</span>
-                <span className="font-ui text-[13px] text-white/70 md:text-[14px]">{t.meta}</span>
+              <div className="mt-4 flex flex-col gap-0.5">
+                <span className="font-ui text-[14px] font-semibold text-white md:text-[16px]">{t.name}</span>
+                <span className="font-ui text-[12px] text-white/70 md:text-[14px]">{t.meta}</span>
               </div>
             </div>
           ))}
