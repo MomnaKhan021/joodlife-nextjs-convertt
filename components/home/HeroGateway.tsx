@@ -151,18 +151,26 @@ function PrimaryCard({
 /** Secondary category card — cream, person cutout fills the right side. */
 function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
+  // Both cutouts are anchored to the bottom of the card so the figure sits
+  // grounded and complete (matching the ED seated man) rather than chopped
+  // mid-body. The PD asset is a full-length portrait, so we zoom in from the
+  // bottom to frame her head-to-waist instead of cutting awkwardly at the
+  // jeans. The ED asset is a landscape cutout — man flush bottom-right.
+  const isPd = category.key === "period-delay";
+  const imgClass = isPd
+    ? "scale-[1.12] origin-top object-cover object-top"
+    : "object-cover object-right-bottom";
   return (
     <div className="group relative flex min-h-[210px] flex-1 flex-col justify-between overflow-hidden rounded-[24px] border border-[#142e2a]/10 bg-[#f7f9f2] p-6">
-      {/* Person cutout — full card height, anchored bottom-right (the
-          cutouts keep their transparent left side, so nothing is clipped). */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[48%]">
+      {/* Person cutout — full card height on the right. */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[48%] overflow-hidden">
         <Image
           src={category.cardImage}
           alt={category.imageAlt}
           fill
           quality={95}
           sizes="(max-width: 1024px) 50vw, 280px"
-          className="object-cover object-right-bottom"
+          className={imgClass}
         />
       </div>
 
