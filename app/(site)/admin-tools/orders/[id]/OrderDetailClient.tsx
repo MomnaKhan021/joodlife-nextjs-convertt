@@ -110,7 +110,7 @@ function FulfillBadge({ fulfilled }: { fulfilled: boolean }) {
       }`}
     >
       <span className={`h-2 w-2 rounded-full ${fulfilled ? "bg-[#303030]" : "bg-[#b98900]"}`} />
-      {fulfilled ? "Fulfilled" : "Unfulfilled"}
+      {fulfilled ? "Dispatched" : "Not dispatched"}
     </span>
   );
 }
@@ -541,7 +541,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#e1e3e5] px-5 py-3">
                 <HeaderBtn onClick={markFulfilled}>
-                  {savingFulfil ? "Saving…" : fulfilled ? "Mark as unfulfilled" : "Mark as fulfilled"}
+                  {savingFulfil ? "Saving…" : fulfilled ? "Mark as not dispatched" : "Mark as dispatched"}
                 </HeaderBtn>
                 <HeaderBtn primary onClick={printDispensingLabels}>
                   Print dispensing label
@@ -594,7 +594,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   ) : null}
                   <Row
                     label="Shipping"
-                    sub="Delivery Charges (0.0 lb: Items 0.0 lb, Package 0.0 lb)"
+                    sub="Delivery charges (0.0 kg: Items 0.0 kg, Package 0.0 kg)"
                     value={gbp(0)}
                   />
                   <Row label="Total" value={gbp(total)} bold />
