@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { fbLead } from "@/lib/metaPixel";
 
 import {
   type Answers,
@@ -38,6 +40,9 @@ export default function ConsultationFlow({
   const [history, setHistory] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Answers>({});
   const [consultationId, setConsultationId] = useState<number | null>(null);
+  // Fire the Meta "Lead" event once, when the consultation record is first
+  // created (a new lead entering the funnel).
+  const trackedLead = useRef(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -162,6 +167,10 @@ export default function ConsultationFlow({
           );
         }
         setConsultationId(json.id as number);
+        if (!trackedLead.current) {
+          trackedLead.current = true;
+          fbLead({ content_category: productSlug ?? undefined });
+        }
       } else {
         const res = await fetch(
           `/api/consultations?id=${consultationId}`,

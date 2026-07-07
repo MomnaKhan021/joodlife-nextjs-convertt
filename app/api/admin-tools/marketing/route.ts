@@ -112,6 +112,93 @@ async function fetchTrustpilot(): Promise<{ rating: number | null; reviews: numb
   }
 }
 
+const toNum = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+type MetaAds = {
+  spend: number;
+  impressions: number;
+  reach: number;
+  leads: number;
+  purchases: number;
+  purchaseValue: number;
+  cpl: number | null;
+  costPerPurchase: number | null;
+  roas: number | null;
+};
+
+/**
+ * Meta (Facebook) Ads spend + conversions via the Graph Marketing API.
+ * Needs a System-User access token with `ads_read` (META_ACCESS_TOKEN) and
+ * the ad account id (META_AD_ACCOUNT_ID, with or without the `act_` prefix).
+ *
+ * NB: the Meta *Pixel* ID cannot do this — the Pixel only sends events TO
+ * Meta; reading spend/ROAS back requires the Marketing API. Returns
+ * { connected:false } (tiles stay "Connect Meta") when unconfigured.
+ */
+async function fetchMetaAds(
+  startYmd: string,
+  endYmd: string,
+): Promise<{ connected: boolean; data?: MetaAds; error?: string }> {
+  const token = cleanEnv(process.env.META_ACCESS_TOKEN);
+  const acctRaw = cleanEnv(process.env.META_AD_ACCOUNT_ID);
+  if (!token || !acctRaw) return { connected: false };
+  const acct = `act_${acctRaw.replace(/^act_/, "")}`;
+  try {
+    const u = new URL(`https://graph.facebook.com/v21.0/${acct}/insights`);
+    u.searchParams.set("fields", "spend,impressions,reach,actions,action_values");
+    u.searchParams.set("time_range", JSON.stringify({ since: startYmd, until: endYmd }));
+    u.searchParams.set("level", "account");
+    u.searchParams.set("access_token", token);
+    const res = await fetch(u.toString(), { cache: "no-store" });
+    const j = (await res.json()) as {
+      error?: { message?: string };
+      data?: Array<{
+        spend?: string;
+        impressions?: string;
+        reach?: string;
+        actions?: Array<{ action_type?: string; value?: string }>;
+        action_values?: Array<{ action_type?: string; value?: string }>;
+      }>;
+    };
+    if (!res.ok) {
+      return { connected: false, error: `Meta Ads: ${j?.error?.message ?? `HTTP ${res.status}`}` };
+    }
+    const row = Array.isArray(j?.data) ? j.data[0] : undefined;
+    const empty: MetaAds = {
+      spend: 0, impressions: 0, reach: 0, leads: 0,
+      purchases: 0, purchaseValue: 0, cpl: null, costPerPurchase: null, roas: null,
+    };
+    if (!row) return { connected: true, data: empty }; // no spend in period ≠ error
+    const sumBy = (
+      arr: Array<{ action_type?: string; value?: string }> | undefined,
+      re: RegExp,
+    ) => (Array.isArray(arr) ? arr.filter((a) => re.test(String(a.action_type))).reduce((s, a) => s + toNum(a.value), 0) : 0);
+    const spend = toNum(row.spend);
+    const leads = sumBy(row.actions, /lead/i);
+    const purchases = sumBy(row.actions, /purchase/i);
+    const purchaseValue = sumBy(row.action_values, /purchase/i);
+    return {
+      connected: true,
+      data: {
+        spend,
+        impressions: toNum(row.impressions),
+        reach: toNum(row.reach),
+        leads,
+        purchases,
+        purchaseValue,
+        cpl: leads > 0 ? spend / leads : null,
+        costPerPurchase: purchases > 0 ? spend / purchases : null,
+        roas: spend > 0 ? purchaseValue / spend : null,
+      },
+    };
+  } catch (e) {
+    return { connected: false, error: `Meta Ads: ${String(e).slice(0, 120)}` };
+  }
+}
+
 async function brevoGet(path: string, key: string) {
   const res = await fetch(`https://api.brevo.com/v3${path}`, {
     headers: { "api-key": key, accept: "application/json" },
@@ -149,11 +236,12 @@ export async function GET(req: NextRequest) {
 
   const { key, reason } = resolveBrevoKey();
 
-  // Trustpilot needs no key, so fetch it regardless of Brevo status.
-  const [emailRes, smsRes, trustpilot] = await Promise.all([
+  // Trustpilot + Meta need no Brevo key, so fetch them regardless.
+  const [emailRes, smsRes, trustpilot, metaRes] = await Promise.all([
     key ? brevoGet(`/smtp/statistics/aggregatedReport${qs}`, key).then((v) => ({ ok: true as const, v })).catch((e) => ({ ok: false as const, e })) : Promise.resolve(null),
     key ? brevoGet(`/transactionalSMS/statistics/aggregatedReport${qs}`, key).then((v) => ({ ok: true as const, v })).catch(() => ({ ok: false as const })) : Promise.resolve(null),
     fetchTrustpilot(),
+    fetchMetaAds(ymd(start), ymd(end)),
   ]);
 
   let emailOpenRate: number | null = null;
@@ -191,9 +279,11 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    connected: brevoConnected || Boolean(trustpilot),
+    connected: brevoConnected || Boolean(trustpilot) || metaRes.connected,
     brevoConnected,
     brevoError,
+    metaConnected: metaRes.connected,
+    metaError: metaRes.connected ? undefined : metaRes.error,
     days,
     brevo: {
       emailOpenRate,
@@ -202,6 +292,7 @@ export async function GET(req: NextRequest) {
       smsDelivered,
       smsDeliveryRate,
     },
+    meta: metaRes.connected ? metaRes.data : null,
     trustpilot,
   });
 }

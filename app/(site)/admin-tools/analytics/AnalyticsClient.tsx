@@ -43,6 +43,8 @@ type MarketingResponse = {
   connected?: boolean;
   brevoConnected?: boolean;
   brevoError?: string;
+  metaConnected?: boolean;
+  metaError?: string;
   brevo?: {
     emailOpenRate: number | null;
     emailClickRate: number | null;
@@ -50,6 +52,17 @@ type MarketingResponse = {
     smsDelivered: number | null;
     smsDeliveryRate: number | null;
   };
+  meta?: {
+    spend: number;
+    impressions: number;
+    reach: number;
+    leads: number;
+    purchases: number;
+    purchaseValue: number;
+    cpl: number | null;
+    costPerPurchase: number | null;
+    roas: number | null;
+  } | null;
   trustpilot?: { rating: number | null; reviews: number | null } | null;
 };
 
@@ -371,18 +384,21 @@ export default function AnalyticsClient() {
   const k = data?.kpis;
   const series = useMemo(() => data?.series ?? [], [data]);
   const brevo = mkt?.brevoConnected ? mkt.brevo : null;
+  const meta = mkt?.metaConnected ? mkt.meta : null;
 
-  // Marketing tiles — Brevo & Trustpilot populate live; the rest await their tool.
+  // Marketing tiles — Brevo, Meta Ads & Trustpilot populate live; the rest
+  // await their tool. Meta tiles come from the Marketing API (spend/ROAS);
+  // the Meta Pixel only feeds Meta's own reporting, not these.
   const externalTiles: { label: string; value: string | null; hint: string }[] = [
-    { label: "Website sessions", value: null, hint: "Connect Google Analytics" },
-    { label: "Cost per lead", value: null, hint: "Connect Ad platform" },
-    { label: "Cost per purchase", value: null, hint: "Connect Ad platform" },
-    { label: "ROAS", value: null, hint: "Connect Ad platform" },
+    { label: "Ad spend", value: meta ? gbp2.format(meta.spend) : null, hint: meta ? "via Meta Ads" : "Connect Meta" },
+    { label: "Cost per lead", value: meta && meta.cpl != null ? gbp2.format(meta.cpl) : null, hint: meta ? "via Meta Ads" : "Connect Meta" },
+    { label: "Cost per purchase", value: meta && meta.costPerPurchase != null ? gbp2.format(meta.costPerPurchase) : null, hint: meta ? "via Meta Ads" : "Connect Meta" },
+    { label: "ROAS", value: meta && meta.roas != null ? `${meta.roas.toFixed(2)}×` : null, hint: meta ? "purchase value ÷ spend" : "Connect Meta" },
+    { label: "Ad reach", value: meta ? num.format(meta.reach) : null, hint: meta ? "via Meta Ads" : "Connect Meta" },
     { label: "Email open rate", value: brevo ? pct(brevo.emailOpenRate) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
     { label: "Email click rate", value: brevo ? pct(brevo.emailClickRate) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
     { label: "Emails delivered", value: brevo && brevo.emailsDelivered != null ? num.format(brevo.emailsDelivered) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
     { label: "SMS delivered", value: brevo && brevo.smsDelivered != null ? num.format(brevo.smsDelivered) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
-    { label: "Patient satisfaction", value: null, hint: "Connect Survey tool" },
   ];
 
   return (
@@ -468,8 +484,8 @@ export default function AnalyticsClient() {
         <div className="mt-6">
           <p className="pb-1 text-[13px] font-semibold text-[#1a1a1a]">Marketing &amp; service metrics</p>
           <p className="pb-3 text-[12px] text-[#616161]">
-            Email metrics come from Brevo and reviews from Trustpilot. The rest
-            light up once their tool is connected.
+            Ad spend &amp; ROAS come from Meta Ads, email from Brevo, reviews
+            from Trustpilot. The rest light up once their tool is connected.
           </p>
           {mkt && !mkt.brevoConnected && mkt.brevoError ? (
             <div className="mb-3 flex items-start gap-2.5 rounded-[10px] border border-[#cfe0ff] bg-[#eff5ff] px-3.5 py-2.5 text-[12px] text-[#1a4b8f]">
@@ -480,6 +496,18 @@ export default function AnalyticsClient() {
               <span>
                 <strong className="font-semibold">One-time setup to show email metrics.</strong>{" "}
                 {mkt.brevoError}
+              </span>
+            </div>
+          ) : null}
+          {mkt && !mkt.metaConnected && mkt.metaError ? (
+            <div className="mb-3 flex items-start gap-2.5 rounded-[10px] border border-[#cfe0ff] bg-[#eff5ff] px-3.5 py-2.5 text-[12px] text-[#1a4b8f]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="mt-0.5 shrink-0" aria-hidden>
+                <circle cx="12" cy="12" r="9" stroke="#3b6fb0" strokeWidth="1.7" />
+                <path d="M12 11v5M12 8h.01" stroke="#3b6fb0" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <span>
+                <strong className="font-semibold">One-time setup to show ad spend &amp; ROAS.</strong>{" "}
+                {mkt.metaError}
               </span>
             </div>
           ) : null}

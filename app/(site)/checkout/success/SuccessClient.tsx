@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { fbPurchase } from "@/lib/metaPixel";
 
 type OrderItem = {
   productId: number;
@@ -34,6 +36,9 @@ const formatPrice = (n: number) =>
 export default function SuccessClient({ orderNumber }: { orderNumber: string }) {
   const [order, setOrder] = useState<OrderSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Guard so the Meta Purchase event fires at most once per order, even
+  // if React re-runs the effect (StrictMode double-invoke / re-renders).
+  const trackedPurchase = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +52,14 @@ export default function SuccessClient({ orderNumber }: { orderNumber: string }) 
         if (!res.ok || !json.ok) {
           throw new Error(json?.error ?? `HTTP ${res.status}`);
         }
-        if (!cancelled) setOrder(json.order as OrderSummary);
+        if (!cancelled) {
+          const o = json.order as OrderSummary;
+          setOrder(o);
+          if (!trackedPurchase.current && typeof o.totalAmount === "number") {
+            trackedPurchase.current = true;
+            fbPurchase(o.totalAmount, "GBP", { content_type: "product" });
+          }
+        }
       } catch (err) {
         if (!cancelled)
           setError(err instanceof Error ? err.message : String(err));

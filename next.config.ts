@@ -83,14 +83,19 @@ const nextConfig: NextConfig = {
       "https://widget.trustpilot.com",
       "https://*.trustpilot.com",
     ];
+    // Meta (Facebook) Pixel: the tag loads fbevents.js from
+    // connect.facebook.net and beacons events to www.facebook.com. It is
+    // write-only (sends conversions to Meta); reading spend/ROAS uses the
+    // Marketing API server-side, which needs no browser origins.
+    const metaPixelOrigins = ["https://connect.facebook.net"];
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com`,
-      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} https://*.public.blob.vercel-storage.com`,
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")}`,
+      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://*.public.blob.vercel-storage.com`,
       `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com`,
-      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com`,
+      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com`,
       `style-src 'self' 'unsafe-inline'`,
       `font-src 'self' data: https://fonts.gstatic.com`,
       `form-action 'self'`,
