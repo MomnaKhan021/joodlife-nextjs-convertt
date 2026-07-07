@@ -10,7 +10,11 @@
  * is a no-op, so the site behaves exactly as before.
  */
 
-export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "";
+// JoodLife's Meta Pixel. Hard-defaulted (it's a public value that ships to
+// the browser regardless) so tracking works without extra env setup; set
+// NEXT_PUBLIC_META_PIXEL_ID to override, or to "" to disable.
+export const META_PIXEL_ID =
+  process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "722246520579271";
 
 type Fbq = ((...args: unknown[]) => void) & {
   callMethod?: (...args: unknown[]) => void;
