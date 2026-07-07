@@ -215,19 +215,21 @@ function OrderCard({
 
   return (
     <div className="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
+      {/* Header row — matches the clinical queue layout */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[16px] font-bold text-[#111827]">
-              {o.customerName || `Order ${o.orderNumber ?? `#${o.id}`}`}
+              {o.customerName || `Patient #${o.id}`}
             </span>
-            <span className="rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[11px] font-semibold text-[#5c4813]">
+            <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
               Awaiting dispatch
             </span>
           </div>
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
-            {o.orderNumber ? `${o.orderNumber} · ` : ""}Placed {fmtDateTime(o.createdAt)} · {gbp(o.total)}
+            Submitted: {fmtDateTime(o.createdAt)}
+            {o.orderNumber ? ` · ${o.orderNumber}` : ""} · {gbp(o.total)}
           </p>
         </div>
 
@@ -257,44 +259,45 @@ function OrderCard({
         </div>
       </div>
 
-      {/* Items + address */}
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Items</p>
-          {o.items.length ? (
-            <ul className="space-y-0.5">
-              {o.items.map((it, i) => (
-                <li key={i} className="text-[13px] text-[#303030]">
-                  {it.title ?? "Item"}{it.dose ? ` · ${it.dose}` : ""} × {it.quantity}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-[13px] text-[#9ca3af]">—</p>
-          )}
-        </div>
-        <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Delivery address</p>
-          <p className="whitespace-pre-line text-[13px] text-[#303030]">
-            {o.shippingAddress?.trim() || "—"}
-          </p>
-          {o.customerPhone && <p className="mt-1 text-[12px] text-[#6b7280]">{o.customerPhone}</p>}
-        </div>
+      {/* Expandable clinical summary + order detail (collapsed by default,
+          same as the clinical queue) */}
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-[12px] font-semibold text-[#1450b0] hover:underline"
+        >
+          {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
+        </button>
+        {open && (
+          <>
+            {o.consultation && <ClinicalSummary c={o.consultation} />}
+            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Items</p>
+                {o.items.length ? (
+                  <ul className="space-y-0.5">
+                    {o.items.map((it, i) => (
+                      <li key={i} className="text-[13px] text-[#303030]">
+                        {it.title ?? "Item"}{it.dose ? ` · ${it.dose}` : ""} × {it.quantity}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[13px] text-[#9ca3af]">—</p>
+                )}
+              </div>
+              <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Delivery address</p>
+                <p className="whitespace-pre-line text-[13px] text-[#303030]">
+                  {o.shippingAddress?.trim() || "—"}
+                </p>
+                {o.customerPhone && <p className="mt-1 text-[12px] text-[#6b7280]">{o.customerPhone}</p>}
+              </div>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Clinical summary — same detail as the clinical queue */}
-      {o.consultation ? (
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="text-[12px] font-semibold text-[#1450b0] hover:underline"
-          >
-            {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
-          </button>
-          {open && <ClinicalSummary c={o.consultation} />}
-        </div>
-      ) : null}
     </div>
   );
 }
