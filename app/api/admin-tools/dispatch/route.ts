@@ -82,16 +82,69 @@ type ConsultRow = {
 
 type Item = { title: string | null; dose: string | null; quantity: number };
 
+function firstStr(...vals: unknown[]): string {
+  for (const v of vals) if (typeof v === "string" && v.trim()) return v.trim();
+  return "";
+}
+
+/** Parse a "Title (dose) × 2" summary fragment into a structured item. */
+function parseSummaryLine(s: string): Item | null {
+  const t = s.trim();
+  if (!t) return null;
+  const m = t.match(/^(.*?)(?:\s*\(([^)]*)\))?\s*[x×]\s*(\d+)\s*$/i);
+  if (m) return { title: m[1].trim(), dose: (m[2] ?? "").trim() || null, quantity: Number(m[3]) || 1 };
+  return { title: t, dose: null, quantity: 1 };
+}
+
+/**
+ * Robustly parse orders.items_json — it can be a proper array (native
+ * checkout), a JSON string, or a HubSpot-sync shape where the items are a
+ * comma-separated summary or nested under `body`. Mirrors the order-detail
+ * parser so the dispatch queue shows the same items instead of "—".
+ */
 function normItems(raw: unknown): Item[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((it) => {
-    const o = (it ?? {}) as Record<string, unknown>;
-    return {
-      title: (o.title as string) ?? (o.name as string) ?? null,
-      dose: (o.dose as string) ?? null,
-      quantity: Number(o.quantity ?? 1) || 1,
-    };
-  });
+  let arr: unknown[] = [];
+  if (Array.isArray(raw)) arr = raw;
+  else if (typeof raw === "string") {
+    try {
+      const p = JSON.parse(raw);
+      arr = Array.isArray(p) ? p : [p];
+    } catch {
+      arr = [raw];
+    }
+  } else if (raw && typeof raw === "object") {
+    arr = [raw];
+  }
+
+  const out: Item[] = [];
+  for (const el of arr) {
+    if (typeof el === "string") {
+      for (const part of el.split(",")) {
+        const p = parseSummaryLine(part);
+        if (p && p.title) out.push(p);
+      }
+      continue;
+    }
+    if (el && typeof el === "object") {
+      const it = el as Record<string, unknown>;
+      const title = firstStr(it.title, it.name, it.product);
+      const body = firstStr(it.body);
+      if (!title && body) {
+        for (const part of body.split(",")) {
+          const p = parseSummaryLine(part);
+          if (p && p.title) out.push(p);
+        }
+        continue;
+      }
+      if (!title) continue;
+      out.push({
+        title,
+        dose: firstStr(it.dose, it.variant) || null,
+        quantity: Number(it.quantity ?? it.qty ?? 1) || 1,
+      });
+    }
+  }
+  return out;
 }
 
 export async function GET() {
