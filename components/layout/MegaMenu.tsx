@@ -103,9 +103,9 @@ export default function MegaMenu({ onNavigate }: { onNavigate?: () => void }) {
         </ul>
       </div>
 
-      {/* Weight-loss promo card → the Wegovy Pill page */}
+      {/* Weight-loss promo card → shop (all products) */}
       <Link
-        href="/wegovy-pills"
+        href="/shop"
         onClick={onNavigate}
         className="group/promo relative flex min-h-[260px] overflow-hidden rounded-[20px] bg-[#142e2a] p-7"
       >
