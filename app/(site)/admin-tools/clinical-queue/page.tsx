@@ -369,32 +369,38 @@ function ConsultationCard({
   onDecision: (id: number, decision: string, reason: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [decision, setDecision] = useState<"approved" | "rejected" | "">("");
-  const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submit = useCallback(async () => {
-    if (!decision) { setError("Choose Approve or Reject above first."); return; }
-    if (!reason.trim()) { setError("A reason is required for the record."); return; }
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin-tools/clinical-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ id: c.id, decision, reason: reason.trim() }),
-      });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error ?? "Failed");
-      onDecision(c.id, decision, reason.trim());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, [c.id, decision, reason, onDecision]);
+  const runDecision = useCallback(
+    async (dec: "approved" | "rejected") => {
+      if (loading) return;
+      const ok = window.confirm(
+        dec === "approved"
+          ? "Approve supply for this patient?"
+          : "Reject supply for this patient?",
+      );
+      if (!ok) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/admin-tools/clinical-review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ id: c.id, decision: dec, reason: "" }),
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error ?? "Failed");
+        onDecision(c.id, dec, "");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [c.id, loading, onDecision],
+  );
 
   return (
     <div
@@ -432,33 +438,31 @@ function ConsultationCard({
           </p>
         </div>
 
-        {/* Top-right: Approve / Reject decision toggle (unreviewed only) */}
+        {/* Top-right: Approve / Reject — submit the decision directly */}
         <div className="flex flex-col items-end gap-1.5">
           {!c.reviewed && (
-            <div className="flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => { setDecision("approved"); setError(null); }}
-                className={`rounded-lg border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
-                  decision === "approved"
-                    ? "border-[#059669] bg-[#d1fae5] text-[#065f46]"
-                    : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#059669]"
-                }`}
-              >
-                Approve supply
-              </button>
-              <button
-                type="button"
-                onClick={() => { setDecision("rejected"); setError(null); }}
-                className={`rounded-lg border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
-                  decision === "rejected"
-                    ? "border-[#dc2626] bg-[#fee2e2] text-[#991b1b]"
-                    : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#dc2626]"
-                }`}
-              >
-                Reject supply
-              </button>
-            </div>
+            <>
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => runDecision("approved")}
+                  className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+                >
+                  Approve supply
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => runDecision("rejected")}
+                  className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+                >
+                  Reject supply
+                </button>
+              </div>
+              {loading && <span className="text-[12px] text-[#6b7280]">Saving…</span>}
+              {error && <span className="text-[12px] text-[#dc2626]">{error}</span>}
+            </>
           )}
           <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
         </div>
@@ -506,35 +510,6 @@ function ConsultationCard({
         </div>
       )}
 
-      {/* Bottom: reason + submit (choose Approve/Reject at top first) */}
-      {!c.reviewed && (
-        <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
-          <p className="mb-2 text-[13px] font-semibold text-[#1a1a1a]">
-            Clinical decision
-            {decision && (
-              <span className={decision === "approved" ? "text-[#059669]" : "text-[#dc2626]"}>
-                {" "}· {decision === "approved" ? "Approving supply" : "Rejecting supply"}
-              </span>
-            )}
-          </p>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Reason for this decision (required — stored in patient record and HubSpot)…"
-            rows={3}
-            className="w-full rounded-lg border border-[#d1d5db] bg-white px-3 py-2 text-[13px] text-[#374151] placeholder:text-[#9ca3af] focus:border-[#142e2a] focus:outline-none"
-          />
-          {error && <p className="mt-1.5 text-[12px] text-[#dc2626]">{error}</p>}
-          <button
-            type="button"
-            onClick={submit}
-            disabled={loading}
-            className="mt-3 inline-flex h-9 items-center rounded-lg bg-[#142e2a] px-5 text-[13px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-60"
-          >
-            {loading ? "Saving…" : "Submit decision"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
