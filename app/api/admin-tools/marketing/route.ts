@@ -36,27 +36,49 @@ async function authorize() {
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 const rate = (num: number, den: number) => (den > 0 ? (num / den) * 100 : null);
 
+/** Trim whitespace and strip stray surrounding quotes (a common paste
+ *  mistake in dashboards like Vercel). */
+function cleanEnv(v: string | undefined): string {
+  return (v ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
+}
+
 /**
- * Resolve the Brevo REST API v3 key. Prefer the dedicated BREVO_API_KEY,
- * but fall back to SMTP_PASS when that value is itself a v3 key
- * (`xkeysib-…`) — some setups paste the API key as the SMTP password.
- * The SMTP *key* (`xsmtpsib-…`) can send mail but CANNOT read stats.
+ * Resolve the Brevo REST API v3 key. Prefer BREVO_API_KEY, else reuse
+ * SMTP_PASS if that value is itself a v3 key. Brevo v3 keys always start
+ * with `xkeysib-`; the SMTP key (`xsmtpsib-…`) sends mail but CANNOT read
+ * stats. We validate the prefix so a wrong key type is reported clearly
+ * instead of bubbling up Brevo's opaque 401 "Key not found".
  */
 function resolveBrevoKey(): { key: string | null; reason?: string } {
-  const explicit = process.env.BREVO_API_KEY?.trim();
-  if (explicit) return { key: explicit };
-  const smtp = process.env.SMTP_PASS?.trim();
-  if (smtp && smtp.startsWith("xkeysib-")) return { key: smtp };
-  if (smtp && smtp.startsWith("xsmtpsib-")) {
+  const explicit = cleanEnv(process.env.BREVO_API_KEY);
+  const smtp = cleanEnv(process.env.SMTP_PASS);
+  const source = explicit ? "BREVO_API_KEY" : "SMTP_PASS";
+  const candidate = explicit || smtp;
+
+  if (!candidate) {
     return {
       key: null,
-      reason:
-        "SMTP_PASS is a Brevo SMTP key (xsmtpsib-…), which can send mail but not read stats. Add a REST API v3 key (xkeysib-…) as BREVO_API_KEY.",
+      reason: "No Brevo REST API key. Add a v3 API key (xkeysib-…) as BREVO_API_KEY.",
+    };
+  }
+  if (candidate.startsWith("xkeysib-")) return { key: candidate };
+  if (candidate.startsWith("xsmtpsib-")) {
+    return {
+      key: null,
+      reason: `${source} is a Brevo SMTP key (xsmtpsib-…), which can send mail but not read stats. Create a REST API v3 key (starts with "xkeysib-") under Brevo → SMTP & API → API Keys, and add it as BREVO_API_KEY.`,
+    };
+  }
+  // SMTP_PASS that isn't a v3 key is a normal SMTP password — not an error,
+  // just means no API key is configured yet.
+  if (!explicit) {
+    return {
+      key: null,
+      reason: "No Brevo REST API key. Add a v3 API key (xkeysib-…) as BREVO_API_KEY.",
     };
   }
   return {
     key: null,
-    reason: "No Brevo REST API key. Add a v3 API key (xkeysib-…) as BREVO_API_KEY.",
+    reason: `BREVO_API_KEY doesn't look like a Brevo v3 API key — it should start with "xkeysib-". Re-copy the full key from Brevo → SMTP & API → API Keys, with no quotes or spaces.`,
   };
 }
 
@@ -97,6 +119,11 @@ async function brevoGet(path: string, key: string) {
     cache: "no-store",
   });
   if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error(
+        'Brevo rejected the key (401). Check BREVO_API_KEY is the full v3 key (xkeysib-…) with no extra spaces or quotes, that it wasn\'t deleted, and that it belongs to this Brevo account.',
+      );
+    }
     throw new Error(`Brevo ${res.status} ${await res.text().catch(() => "")}`.slice(0, 200));
   }
   return res.json();
