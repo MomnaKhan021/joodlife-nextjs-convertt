@@ -144,7 +144,8 @@ function ShopCard({
           alt={p.title}
           fill
           sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 33vw"
-          className="object-cover object-right transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          quality={95}
+          className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           priority={index === 0}
         />
       ) : null}
