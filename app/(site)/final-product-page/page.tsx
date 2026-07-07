@@ -95,13 +95,23 @@ export default async function FinalProductPage({ searchParams }: Props) {
     products = slugs.map((slug, i) => {
       const editorial = PDP_PRODUCTS[slug];
       const db = dbProducts[i];
-      const doses =
-        db && db.variants.length > 0
-          ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
-          : editorial.dosages.map((d) => ({
-              label: mgLabel(d.label),
-              price: parsePrice(d.perPack),
-            }));
+      // Prefer real dashboard data over the editorial catalogue:
+      //  1. dashboard variants (real dose options), else
+      //  2. the dashboard's own price as a single option — so a product
+      //     with no variants configured (e.g. the Wegovy Pill) shows its
+      //     ACTUAL price instead of fabricated editorial dose variants, else
+      //  3. the editorial catalogue as a last resort (no dashboard product).
+      let doses: { label: string; price: number }[];
+      if (db && db.variants.length > 0) {
+        doses = db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }));
+      } else if (db && (db.fromPrice != null || db.subscriptionPrice != null)) {
+        doses = [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
+      } else {
+        doses = editorial.dosages.map((d) => ({
+          label: mgLabel(d.label),
+          price: parsePrice(d.perPack),
+        }));
+      }
       return {
         slug,
         productId: db?.id ?? FALLBACK_ID[slug] ?? 0,

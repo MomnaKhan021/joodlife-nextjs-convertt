@@ -161,47 +161,61 @@ export default function FinalProductClient({
                     {/* Expanded dose selector for the active product */}
                     {on ? (
                       <div className="border-t border-[#142e2a]/10 px-4 pb-4 pt-4 md:px-5 md:pb-5">
-                        <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                          Select your preferred dose
-                        </p>
-                        <p className="mt-0.5 font-ui text-[13px] text-[#142e2a]/60">
-                          The final dosage is determined at your clinician&rsquo;s
-                          discretion.
-                        </p>
+                        {/* Dose grid only when the product has real dose
+                            options — a single-price product (e.g. the pill)
+                            shows just its price, no fabricated dose grid. */}
+                        {active.doses.length > 1 ? (
+                          <>
+                            <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                              Select your preferred dose
+                            </p>
+                            <p className="mt-0.5 font-ui text-[13px] text-[#142e2a]/60">
+                              The final dosage is determined at your
+                              clinician&rsquo;s discretion.
+                            </p>
 
-                        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-                          {active.doses.map((d, i) => {
-                            const sel = i === doseIdx;
-                            return (
-                              <button
-                                key={d.label}
-                                type="button"
-                                onClick={() => setDoseIdx(i)}
-                                aria-pressed={sel}
-                                className={`flex flex-col items-center rounded-[10px] border px-2 py-2 transition-colors ${
-                                  sel
-                                    ? "border-[#142e2a] bg-[#142e2a] text-white"
-                                    : "border-[#142e2a]/20 bg-white text-[#142e2a] hover:border-[#142e2a]"
-                                }`}
-                              >
-                                <span className="font-ui text-[14px] font-bold leading-[18px]">
-                                  {d.label}
-                                </span>
-                                <span
-                                  className={`font-ui text-[12px] leading-[16px] ${
-                                    sel ? "text-white/80" : "text-[#142e2a]/60"
-                                  }`}
-                                >
-                                  {fmtGBP(d.price)}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                              {active.doses.map((d, i) => {
+                                const sel = i === doseIdx;
+                                return (
+                                  <button
+                                    key={d.label || i}
+                                    type="button"
+                                    onClick={() => setDoseIdx(i)}
+                                    aria-pressed={sel}
+                                    className={`flex flex-col items-center rounded-[10px] border px-2 py-2 transition-colors ${
+                                      sel
+                                        ? "border-[#142e2a] bg-[#142e2a] text-white"
+                                        : "border-[#142e2a]/20 bg-white text-[#142e2a] hover:border-[#142e2a]"
+                                    }`}
+                                  >
+                                    <span className="font-ui text-[14px] font-bold leading-[18px]">
+                                      {d.label}
+                                    </span>
+                                    <span
+                                      className={`font-ui text-[12px] leading-[16px] ${
+                                        sel ? "text-white/80" : "text-[#142e2a]/60"
+                                      }`}
+                                    >
+                                      {fmtGBP(d.price)}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        ) : null}
 
-                        <div className="mt-4 flex items-center justify-between border-t border-[#142e2a]/10 pt-4">
+                        <div
+                          className={`flex items-center justify-between ${
+                            active.doses.length > 1
+                              ? "mt-4 border-t border-[#142e2a]/10 pt-4"
+                              : ""
+                          }`}
+                        >
                           <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                            {dose?.label} {active.title}
+                            {dose?.label ? `${dose.label} ` : ""}
+                            {active.title}
                           </span>
                           <span className="font-display text-[16px] font-bold text-[#142e2a]">
                             {fmtGBP(dose?.price ?? 0)}
