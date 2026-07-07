@@ -13,15 +13,8 @@ export const metadata = {
   title: "Shop — JoodLife",
 };
 
-// Weight-loss injection products are not offered directly — only the Wegovy
-// Pill is shown. Their product pages redirect to the consultation too
-// (see app/(site)/shop/[slug]/page.tsx).
-const HIDDEN_SLUGS = new Set(["mounjaro", "wegovy"]);
-
 export default async function ShopPage() {
-  const products = (await listStorefrontProducts()).filter(
-    (p) => !HIDDEN_SLUGS.has(p.slug),
-  );
+  const products = await listStorefrontProducts();
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
