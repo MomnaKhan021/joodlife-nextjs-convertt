@@ -209,9 +209,14 @@ export function buildLabelsDocument(labels: LabelData[]): string {
  * printer spools) must not queue a second identical print job. */
 let printing = false;
 
-/** Render the labels into a hidden iframe and trigger the print dialog. */
-export function printLabels(labels: LabelData[]): void {
-  if (typeof document === "undefined" || labels.length === 0) return;
+/**
+ * Print an arbitrary, complete HTML document via a hidden iframe and the
+ * browser print dialog. Unlike window.open(), this is NOT blocked by popup
+ * blockers — which is why it's used for both the dispensing labels and the
+ * DPD dispatch label (whose HTML is returned by the DPD API).
+ */
+export function printHtmlDocument(html: string): void {
+  if (typeof document === "undefined" || !html) return;
   if (printing) return;
   printing = true;
 
@@ -240,7 +245,8 @@ export function printLabels(labels: LabelData[]): void {
   win.onafterprint = cleanup;
 
   doc.open();
-  doc.write(buildLabelsDocument(labels));
+  // Strip any embedded auto-print scripts so we control printing exactly once.
+  doc.write(html.replace(/<script[\s\S]*?<\/script>/gi, ""));
   doc.close();
 
   /* Give the iframe a tick to lay out before invoking print. */
@@ -250,4 +256,10 @@ export function printLabels(labels: LabelData[]): void {
     /* Safety net in case onafterprint never fires (some browsers). */
     win.setTimeout(cleanup, 60000);
   }, 300);
+}
+
+/** Render the dispensing labels into a hidden iframe and print. */
+export function printLabels(labels: LabelData[]): void {
+  if (labels.length === 0) return;
+  printHtmlDocument(buildLabelsDocument(labels));
 }

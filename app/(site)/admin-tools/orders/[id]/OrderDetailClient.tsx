@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { printLabels, dispensingDate, composeMedicine, type LabelData } from "./dispensingLabel";
+import { printLabels, printHtmlDocument, dispensingDate, composeMedicine, type LabelData } from "./dispensingLabel";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -308,20 +308,9 @@ export default function OrderDetailClient({ id }: { id: string }) {
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to generate DPD label");
 
-      // Open the HTML label (DPD Local returns HTML for A4) in a new tab and
-      // print. DPD's HTML can embed its own auto-print script — strip any
-      // <script> so the label prints exactly ONCE (our controlled call).
-      const win = window.open("", "_blank");
-      if (win) {
-        const safeHtml = String(j.labelHtml).replace(
-          /<script[\s\S]*?<\/script>/gi,
-          "",
-        );
-        win.document.write(safeHtml);
-        win.document.close();
-        win.focus();
-        win.print();
-      }
+      // Print the DPD label (HTML for A4) via a hidden iframe — popup-blocker
+      // safe, and it strips any embedded auto-print script so it prints once.
+      if (j.labelHtml) printHtmlDocument(String(j.labelHtml));
 
       setDpdTracking(j.trackingNumber);
       // Reflect the status change (route sets it to 'shipped')

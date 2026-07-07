@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   composeMedicine,
   dispensingDate,
+  printHtmlDocument,
   printLabels,
   type LabelData,
 } from "../orders/[id]/dispensingLabel";
@@ -82,14 +83,8 @@ function OrderCard({
       });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to generate DPD label");
-      const win = window.open("", "_blank");
-      if (win) {
-        const safe = String(j.labelHtml).replace(/<script[\s\S]*?<\/script>/gi, "");
-        win.document.write(safe);
-        win.document.close();
-        win.focus();
-        win.print();
-      }
+      // Print via a hidden iframe (popup-blocker safe).
+      if (j.labelHtml) printHtmlDocument(String(j.labelHtml));
       setNote(`Dispatched · Tracking ${j.trackingNumber}`);
       onDispatched(o.id, j.trackingNumber);
     } catch (e) {
