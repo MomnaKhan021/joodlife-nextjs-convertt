@@ -70,7 +70,7 @@ const ENUM_OPTIONS: Record<string, Record<string, string[]>> = {
     ],
   },
   users: {
-    role: ["customer", "admin"],
+    role: ["customer", "staff", "admin"],
   },
   discounts: {
     type: ["percentage", "fixed"],
