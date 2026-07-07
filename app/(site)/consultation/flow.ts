@@ -546,23 +546,25 @@ export const SLIDES: SlideDef[] = [
     field: "medication_type_preference",
     cardOptions: [
       {
-        value: "Weekly GLP-1 injection",
-        title: "Weekly GLP-1 injection",
-        subtitle: "Mounjaro or Wegovy",
-        desc: "Lose up to 22.5% body weight",
-        image: "/assets/megamenu/promo-pens.png",
-      },
-      {
-        value: "Daily GLP-1 pill",
-        title: "Daily GLP-1 pill",
-        subtitle: "Wegovy",
+        value: "Wegovy Pill",
+        title: "Wegovy Pill",
+        subtitle: "Daily GLP-1 pill",
         desc: "Lose up to 17% body weight",
         image: "/assets/wegovy/how-pill.png",
       },
       {
-        value: "Orlistat tablet",
-        title: "Orlistat tablet",
-        desc: "Lose up to 8% body weight",
+        value: "Mounjaro Injection",
+        title: "Mounjaro Injection",
+        subtitle: "Weekly GLP-1 injection",
+        desc: "Lose up to 22.5% body weight",
+        image: "/assets/figma/pdp/mounjaro-1.png",
+      },
+      {
+        value: "Wegovy Injection",
+        title: "Wegovy Injection",
+        subtitle: "Weekly GLP-1 injection",
+        desc: "Lose up to 15% body weight",
+        image: "/assets/figma/jood-injection-pen.png",
       },
       {
         value: "No preference",
