@@ -15,6 +15,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  ageFromDob,
+  fmtDate,
+  fmtNum,
+  labelFor,
+} from "@/lib/consultationDisplay";
+
 type Consultation = {
   id: number;
   fullName: string | null;
@@ -63,67 +70,8 @@ function fmtValue(v: unknown): string {
   return s;
 }
 
-/** snake_case / prefixed keys → readable Title Case fallback label. */
-function prettify(key: string): string {
-  return key
-    .replace(/_v2$/i, "")
-    .replace(/^(reorder|ed|pd)_/i, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
-}
-
-/** Human-friendly labels for known questionnaire keys. */
-const LABELS: Record<string, string> = {
-  // Prescription
-  intended_medicine_v2: "Requested medication",
-  medication_type_preference: "Medication preference",
-  requested_dose: "Requested dose",
-  current_glp_1_use_status: "Previous GLP-1 use",
-  current_dose: "Current / last dose",
-  last_injection_date: "Last injection date",
-  missed_more_than_2_doses: "Missed 2+ doses in a row",
-  most_recent_injection_used_v2: "Most recent injection",
-  switching_intention: "Switching intention",
-  reorder_dose_choice: "Requested dose",
-  // Safety
-  safety_flags: "Medical conditions / safety flags",
-  comorbidities: "Weight-related conditions",
-  wegovy_72_current_symptoms_v2: "Current symptoms",
-  reorder_has_side_effects: "Has side effects",
-  reorder_side_effects: "Side effects reported",
-  reorder_side_effect_severity: "Side-effect severity",
-  reorder_new_clinical_event: "Anything changed since last order",
-  reorder_new_clinical_event_details: "What changed",
-  reorder_pregnancy_flag: "Pregnancy status",
-  reorder_four_weeks_complete: "4+ weeks on current dose",
-  reorder_callback_request: "Clinician callback requested",
-  prescription_evidence_upload: "Prescription evidence",
-  // Patient
-  which_ethnicity_are_you: "Ethnicity",
-  height_cm: "Height",
-  current_weight_kg: "Current weight",
-  date_of_birth_consultation: "Date of birth",
-  consultation_mobile_number_v2: "Mobile",
-  // GP
-  gp_practice_name: "GP practice",
-  gp_practice_full_address: "GP address",
-  // Consultation
-  video_consultation_preference: "Video booking",
-  consultation_consent_confirmed: "Consent confirmed",
-  reorder_consent_confirmed: "Consent confirmed",
-  willing_to_follow_reduced_calorie_diet_and_increase_physical_activity:
-    "Lifestyle commitment",
-  // Goals
-  motivation: "Motivation",
-  why_joodlife: "Why they chose Jood",
-  // Reorder progress
-  reorder_progress: "Treatment progress",
-  reorder_progress_note: "Progress note",
-  reorder_pharmacist_question: "Question for pharmacist",
-};
-
-const labelFor = (key: string) => LABELS[key] ?? prettify(key);
+/* Labels + date/number formatting live in lib/consultationDisplay so the
+ * clinical-queue and the edit page render answers identically. */
 
 /* ------------------------------------------------------------------ */
 /* Derived clinical values                                             */
@@ -168,18 +116,8 @@ function medicationAndDose(c: Consultation): string {
 function ageOf(a: Record<string, unknown>): string {
   const stored = a._age;
   if (typeof stored === "number") return `${stored}`;
-  const dob = a.date_of_birth_consultation as string | undefined;
-  if (dob) {
-    const birth = new Date(dob);
-    if (!Number.isNaN(birth.getTime())) {
-      const now = new Date();
-      let age = now.getFullYear() - birth.getFullYear();
-      const m = now.getMonth() - birth.getMonth();
-      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
-      if (age >= 0 && age < 130) return `${age}`;
-    }
-  }
-  return "—";
+  const age = ageFromDob(a.date_of_birth_consultation);
+  return age === null ? "—" : `${age}`;
 }
 
 function eligibilityStatus(c: Consultation): { label: string; tone: string } {
@@ -270,7 +208,7 @@ function SummaryBar({ c }: { c: Consultation }) {
     { label: "BMI", value: bmi != null ? `${bmi}` : "—" },
     {
       label: "Current weight",
-      value: c.answers.current_weight_kg ? `${c.answers.current_weight_kg} kg` : "—",
+      value: c.answers.current_weight_kg ? `${fmtNum(c.answers.current_weight_kg)} kg` : "—",
     },
     { label: "Medication & dose", value: medicationAndDose(c) },
     { label: "Eligibility", value: elig.label, tone: elig.tone },
@@ -346,7 +284,7 @@ function PatientDetails({ c }: { c: Consultation }) {
     { label: "Requested dose", value: a.requested_dose ?? a.reorder_dose_choice },
     { label: "Previous GLP-1 use", value: a.current_glp_1_use_status },
     { label: "Current / last dose", value: a.current_dose },
-    { label: "Last injection date", value: a.last_injection_date },
+    { label: "Last injection date", value: a.last_injection_date ? fmtDate(a.last_injection_date) : undefined },
     { label: "Missed 2+ doses in a row", value: a.missed_more_than_2_doses },
     { label: "Most recent injection", value: a.most_recent_injection_used_v2 },
     { label: "Switching intention", value: a.switching_intention },
@@ -367,10 +305,10 @@ function PatientDetails({ c }: { c: Consultation }) {
 
   const patientItems: Item[] = [
     { label: "Name", value: c.fullName },
-    { label: "Date of birth", value: a.date_of_birth_consultation },
+    { label: "Date of birth", value: a.date_of_birth_consultation ? fmtDate(a.date_of_birth_consultation) : undefined },
     { label: "Age", value: ageOf(a) !== "—" ? ageOf(a) : undefined },
-    { label: "Height", value: a.height_cm ? `${a.height_cm} cm` : undefined },
-    { label: "Weight", value: a.current_weight_kg ? `${a.current_weight_kg} kg` : undefined },
+    { label: "Height", value: a.height_cm ? `${fmtNum(a.height_cm)} cm` : undefined },
+    { label: "Weight", value: a.current_weight_kg ? `${fmtNum(a.current_weight_kg)} kg` : undefined },
     { label: "BMI", value: bmi != null ? `${bmi}` : undefined },
     { label: "Mobile", value: a.consultation_mobile_number_v2 ?? c.phone },
     { label: "Email", value: c.email },
@@ -420,92 +358,6 @@ function PatientDetails({ c }: { c: Consultation }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Review form                                                         */
-/* ------------------------------------------------------------------ */
-
-function ReviewForm({
-  id,
-  onDone,
-}: {
-  id: number;
-  onDone: (id: number, decision: string, reason: string) => void;
-}) {
-  const [decision, setDecision] = useState<"approved" | "rejected" | "">("");
-  const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = useCallback(async () => {
-    if (!decision) { setError("Please select Approve or Reject."); return; }
-    if (!reason.trim()) { setError("A reason is required for the record."); return; }
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin-tools/clinical-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ id, decision, reason: reason.trim() }),
-      });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error ?? "Failed");
-      onDone(id, decision, reason.trim());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, [id, decision, reason, onDone]);
-
-  return (
-    <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
-      <p className="mb-3 text-[13px] font-semibold text-[#1a1a1a]">Clinical decision</p>
-
-      <div className="mb-3 flex gap-3">
-        <button
-          onClick={() => setDecision("approved")}
-          className={`flex-1 rounded-lg border py-2 text-[13px] font-semibold transition-colors ${
-            decision === "approved"
-              ? "border-[#059669] bg-[#d1fae5] text-[#065f46]"
-              : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#059669]"
-          }`}
-        >
-          Approve supply
-        </button>
-        <button
-          onClick={() => setDecision("rejected")}
-          className={`flex-1 rounded-lg border py-2 text-[13px] font-semibold transition-colors ${
-            decision === "rejected"
-              ? "border-[#dc2626] bg-[#fee2e2] text-[#991b1b]"
-              : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#dc2626]"
-          }`}
-        >
-          Reject supply
-        </button>
-      </div>
-
-      <textarea
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-        placeholder="Reason for this decision (required — stored in patient record and HubSpot)…"
-        rows={3}
-        className="w-full rounded-lg border border-[#d1d5db] bg-white px-3 py-2 text-[13px] text-[#374151] placeholder:text-[#9ca3af] focus:border-[#142e2a] focus:outline-none"
-      />
-
-      {error && <p className="mt-1.5 text-[12px] text-[#dc2626]">{error}</p>}
-
-      <button
-        onClick={submit}
-        disabled={loading}
-        className="mt-3 inline-flex h-9 items-center rounded-lg bg-[#142e2a] px-5 text-[13px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-60"
-      >
-        {loading ? "Saving…" : "Submit decision"}
-      </button>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* Patient card                                                        */
 /* ------------------------------------------------------------------ */
 
@@ -516,8 +368,33 @@ function ConsultationCard({
   c: Consultation;
   onDecision: (id: number, decision: string, reason: string) => void;
 }) {
-  const [showReview, setShowReview] = useState(false);
   const [open, setOpen] = useState(false);
+  const [decision, setDecision] = useState<"approved" | "rejected" | "">("");
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = useCallback(async () => {
+    if (!decision) { setError("Choose Approve or Reject above first."); return; }
+    if (!reason.trim()) { setError("A reason is required for the record."); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin-tools/clinical-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: c.id, decision, reason: reason.trim() }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error ?? "Failed");
+      onDecision(c.id, decision, reason.trim());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  }, [c.id, decision, reason, onDecision]);
 
   return (
     <div
@@ -527,7 +404,7 @@ function ConsultationCard({
           : "border-[#e5e7eb] bg-white"
       }`}
     >
-      {/* Header row — name first, email underneath */}
+      {/* Header row — name + status on the left, decision buttons on the right */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -554,7 +431,37 @@ function ConsultationCard({
             {c.productSlug ? ` · ${c.productSlug}` : ""}
           </p>
         </div>
-        <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+
+        {/* Top-right: Approve / Reject decision toggle (unreviewed only) */}
+        <div className="flex flex-col items-end gap-1.5">
+          {!c.reviewed && (
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => { setDecision("approved"); setError(null); }}
+                className={`rounded-lg border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
+                  decision === "approved"
+                    ? "border-[#059669] bg-[#d1fae5] text-[#065f46]"
+                    : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#059669]"
+                }`}
+              >
+                Approve supply
+              </button>
+              <button
+                type="button"
+                onClick={() => { setDecision("rejected"); setError(null); }}
+                className={`rounded-lg border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
+                  decision === "rejected"
+                    ? "border-[#dc2626] bg-[#fee2e2] text-[#991b1b]"
+                    : "border-[#d1d5db] bg-white text-[#374151] hover:border-[#dc2626]"
+                }`}
+              >
+                Reject supply
+              </button>
+            </div>
+          )}
+          <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+        </div>
       </div>
 
       {/* Red flag banner */}
@@ -599,25 +506,33 @@ function ConsultationCard({
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Bottom: reason + submit (choose Approve/Reject at top first) */}
       {!c.reviewed && (
-        <div className="mt-3">
-          {showReview ? (
-            <ReviewForm
-              id={c.id}
-              onDone={(id, decision, reason) => {
-                setShowReview(false);
-                onDecision(id, decision, reason);
-              }}
-            />
-          ) : (
-            <button
-              onClick={() => setShowReview(true)}
-              className="inline-flex h-9 items-center rounded-lg bg-[#142e2a] px-5 text-[13px] font-semibold text-white hover:bg-[#0c2421]"
-            >
-              Review this patient
-            </button>
-          )}
+        <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
+          <p className="mb-2 text-[13px] font-semibold text-[#1a1a1a]">
+            Clinical decision
+            {decision && (
+              <span className={decision === "approved" ? "text-[#059669]" : "text-[#dc2626]"}>
+                {" "}· {decision === "approved" ? "Approving supply" : "Rejecting supply"}
+              </span>
+            )}
+          </p>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Reason for this decision (required — stored in patient record and HubSpot)…"
+            rows={3}
+            className="w-full rounded-lg border border-[#d1d5db] bg-white px-3 py-2 text-[13px] text-[#374151] placeholder:text-[#9ca3af] focus:border-[#142e2a] focus:outline-none"
+          />
+          {error && <p className="mt-1.5 text-[12px] text-[#dc2626]">{error}</p>}
+          <button
+            type="button"
+            onClick={submit}
+            disabled={loading}
+            className="mt-3 inline-flex h-9 items-center rounded-lg bg-[#142e2a] px-5 text-[13px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-60"
+          >
+            {loading ? "Saving…" : "Submit decision"}
+          </button>
         </div>
       )}
     </div>

@@ -121,6 +121,36 @@ select.ed-input {
   padding-right: 36px;
 }
 
+/* Consultation answers editor — labelled, grouped, editable */
+.ed-answers__hint {
+  font-size: 12px;
+  color: rgba(20, 46, 42, 0.6);
+  margin: 2px 0 0;
+}
+
+.ed-answers__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 16px;
+  border: 1px solid rgba(20, 46, 42, 0.12);
+  border-radius: 12px;
+  background: #f8faf6;
+}
+
+@media (min-width: 768px) {
+  .ed-answers__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Answer textareas hold prose/lists, not JSON — use the normal UI font. */
+.ed-answers__grid .ed-input--textarea {
+  font-family: inherit;
+  min-height: 64px;
+}
+
 .ed-meta {
   margin-top: 28px;
   padding-top: 20px;

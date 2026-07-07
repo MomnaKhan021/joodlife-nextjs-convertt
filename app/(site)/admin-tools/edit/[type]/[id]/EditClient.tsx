@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SECTIONS } from "@/lib/adminSections";
+import { fmtDate, isDateKey, labelFor, toDate } from "@/lib/consultationDisplay";
 
 /**
  * Generic editor for any record in any whitelisted collection.
@@ -373,6 +374,17 @@ export default function EditClient({
                   </Field>
                 );
               }
+              // Consultation answers → labelled, editable field group
+              // (not a raw JSON blob), matching the clinical-queue layout.
+              if (type === "consultations" && col === "answers") {
+                return (
+                  <AnswersEditor
+                    key={col}
+                    value={v}
+                    onChange={(nv) => setField(col, nv)}
+                  />
+                );
+              }
               if (t === "textarea" || t === "json") {
                 return (
                   <Field key={col} label={fieldLabel(col)} wide>
@@ -489,6 +501,147 @@ function Field({
       <span className="ed-label">{label}</span>
       {children}
     </label>
+  );
+}
+
+/**
+ * Editable, labelled view of a consultation's `answers` JSON — one row per
+ * questionnaire answer with a human label, instead of a raw JSON blob.
+ * Dates render as date pickers (normalising legacy epoch values), booleans
+ * as Yes/No, multi-select answers as one-per-line. Internal keys (prefixed
+ * with "_") are hidden but preserved on save.
+ */
+function AnswersEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  let obj: Record<string, unknown> = {};
+  try {
+    const parsed = JSON.parse(value || "{}");
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      obj = parsed as Record<string, unknown>;
+    }
+  } catch {
+    /* fall through to raw editor below */
+  }
+
+  const keys = Object.keys(obj);
+  const visible = keys.filter((k) => !k.startsWith("_"));
+  const hidden = keys.filter((k) => k.startsWith("_"));
+
+  const update = (k: string, next: unknown) => {
+    onChange(JSON.stringify({ ...obj, [k]: next }, null, 2));
+  };
+
+  // If the value isn't parseable as an object, fall back to a raw textarea
+  // so the field is never un-editable.
+  if (keys.length === 0 && value.trim() && value.trim() !== "{}") {
+    return (
+      <Field label={fieldLabel("answers")} wide>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={6}
+          className="ed-input ed-input--textarea"
+        />
+      </Field>
+    );
+  }
+
+  return (
+    <div className="ed-field ed-field--wide">
+      <span className="ed-label">Consultation answers</span>
+      <p className="ed-answers__hint">
+        The customer&rsquo;s questionnaire responses. Edits save to the patient
+        record; the medication/treatment preference is included.
+      </p>
+      {visible.length === 0 ? (
+        <p className="ed-answers__hint">No answers recorded yet.</p>
+      ) : (
+        <div className="ed-answers__grid">
+          {visible.map((k) => {
+            const raw = obj[k];
+            if (isDateKey(k)) {
+              const d = toDate(raw);
+              const iso = d ? d.toISOString().slice(0, 10) : "";
+              return (
+                <label key={k} className="ed-field">
+                  <span className="ed-label">{labelFor(k)}</span>
+                  <input
+                    type="date"
+                    value={iso}
+                    onChange={(e) => update(k, e.target.value)}
+                    className="ed-input"
+                  />
+                  {raw != null && !d ? (
+                    <span className="ed-answers__hint">Stored: {String(raw)}</span>
+                  ) : d ? (
+                    <span className="ed-answers__hint">{fmtDate(raw)}</span>
+                  ) : null}
+                </label>
+              );
+            }
+            if (typeof raw === "boolean") {
+              return (
+                <label key={k} className="ed-field">
+                  <span className="ed-label">{labelFor(k)}</span>
+                  <select
+                    value={String(raw)}
+                    onChange={(e) => update(k, e.target.value === "true")}
+                    className="ed-input"
+                  >
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </label>
+              );
+            }
+            if (Array.isArray(raw)) {
+              return (
+                <label key={k} className="ed-field ed-field--wide">
+                  <span className="ed-label">{labelFor(k)}</span>
+                  <textarea
+                    value={raw.map((x) => String(x)).join("\n")}
+                    onChange={(e) =>
+                      update(
+                        k,
+                        e.target.value
+                          .split("\n")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      )
+                    }
+                    rows={Math.max(2, raw.length)}
+                    className="ed-input ed-input--textarea"
+                  />
+                  <span className="ed-answers__hint">One per line</span>
+                </label>
+              );
+            }
+            return (
+              <label key={k} className="ed-field">
+                <span className="ed-label">{labelFor(k)}</span>
+                <input
+                  type="text"
+                  value={raw == null ? "" : String(raw)}
+                  onChange={(e) => update(k, e.target.value)}
+                  className="ed-input"
+                />
+              </label>
+            );
+          })}
+        </div>
+      )}
+      {hidden.length > 0 ? (
+        <span className="ed-answers__hint">
+          {hidden.length} internal field{hidden.length === 1 ? "" : "s"} preserved
+          (not shown).
+        </span>
+      ) : null}
+    </div>
   );
 }
 

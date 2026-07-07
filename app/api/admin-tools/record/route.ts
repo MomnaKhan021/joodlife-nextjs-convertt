@@ -282,13 +282,16 @@ const SPECS: Record<string, Spec> = {
     table: "consultations",
     selectColumns: "*",
     editableColumns: {
-      email: "text",
       full_name: "text",
+      email: "text",
       phone: "text",
       date_of_birth: "text",
       product_slug: "text",
       dose: "text",
       status: "text",
+      // The questionnaire answers — rendered as a labelled, editable
+      // field group in the edit UI (not a raw JSON blob).
+      answers: "json",
     },
   },
   posts: {
