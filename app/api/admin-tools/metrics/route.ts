@@ -126,15 +126,15 @@ export async function GET(req: NextRequest) {
           `SELECT customer_email AS email, COUNT(*)::int AS n
            FROM orders
            WHERE customer_email IS NOT NULL AND customer_email <> ''
-             AND COALESCE(LOWER(status), '') <> 'cancelled'
-             AND COALESCE(LOWER(payment_status), '') NOT IN ('refunded', 'failed')
+             AND COALESCE(LOWER(status::text), '') <> 'cancelled'
+             AND COALESCE(LOWER(payment_status::text), '') NOT IN ('refunded', 'failed')
            GROUP BY 1;`,
         ),
       ),
       drizzle.execute(
         sql.raw(
           `SELECT COUNT(*)::int AS n FROM users
-           WHERE COALESCE(role, 'customer') = 'customer' AND created_at >= '${startIso}';`,
+           WHERE COALESCE(role::text, 'customer') = 'customer' AND created_at >= '${startIso}';`,
         ),
       ),
     ]);
