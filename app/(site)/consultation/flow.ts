@@ -234,17 +234,6 @@ export const SLIDES: SlideDef[] = [
     title: "What is your full name?",
     subtitle:
       "Please double-check your name — we check it to confirm you're over 18, so even small spelling mistakes can delay your order.",
-    next: () => "s2",
-  },
-  // ── Slide 2: Which treatment? ────────────────────────────────
-  {
-    id: "s2",
-    type: "single",
-    step: 2,
-    title: "Which treatment are you looking for today?",
-    field: "intended_medicine_v2",
-    options: ["Mounjaro", "Wegovy", "Not sure"],
-    auto: true,
     next: () => "s3",
   },
   // ── Slide 3: Current GLP-1 use status ────────────────────────
@@ -464,57 +453,8 @@ export const SLIDES: SlideDef[] = [
     next: (a) => {
       const flags = (a.safety_flags as string[]) ?? [];
       if (flags.some((f) => HARD_STOP_FLAGS.has(f))) return "s_block_safety";
-      return "s16";
-    },
-  },
-  // ── Slide 16: Requested dose ─────────────────────────────────
-  {
-    id: "s16",
-    type: "doseSelector",
-    step: 18,
-    title: "What dose are you hoping to receive next?",
-    field: "requested_dose",
-    next: (a) => {
-      if (a.requested_dose === "7.2 mg" && isWegovyContext(a)) return "s17";
       return "s20";
     },
-  },
-  // ── Slide 17: Wegovy 7.2 — used 2.4 for 4 weeks? ─────────────
-  {
-    id: "s17",
-    type: "single",
-    step: 18,
-    title: "Have you used Wegovy 2.4 mg weekly for at least 4 weeks?",
-    field: "wegovy_24_used_4_weeks_v2",
-    options: ["Yes", "No", "Not sure"],
-    auto: true,
-    next: () => "s18",
-  },
-  // ── Slide 18: BMI ≥30 at start? ──────────────────────────────
-  {
-    id: "s18",
-    type: "single",
-    step: 18,
-    title: "When you first started, was your BMI 30 or above?",
-    field: "bmi_30_at_wegovy_start_v2",
-    options: ["Yes", "No", "Not sure"],
-    auto: true,
-    next: () => "s19",
-  },
-  // ── Slide 19: Wegovy 7.2 — current symptoms ──────────────────
-  {
-    id: "s19",
-    type: "multi",
-    step: 18,
-    title: "Do any of these apply to you right now?",
-    field: "wegovy_72_current_symptoms_v2",
-    options: [
-      "Ongoing bad sickness or diarrhoea",
-      "Tingling, burning, or numb skin sensations",
-      "Surgery planned with anaesthetic in the next 4 weeks",
-    ],
-    noneOption: "None of these",
-    next: () => "s20",
   },
   // ── Slide 20: Mobile phone ───────────────────────────────────
   {

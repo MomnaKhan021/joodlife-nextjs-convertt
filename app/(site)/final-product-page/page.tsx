@@ -43,7 +43,6 @@ const WL_META: Record<
 > = {
   mounjaro: {
     blurb: "Advanced dual-action treatment for appetite control.",
-    recommended: true,
     image: "/assets/figma/pdp/mounjaro-1.png",
   },
   wegovy: {
@@ -52,6 +51,7 @@ const WL_META: Record<
   },
   "wegovy-pill": {
     blurb: "Once-daily oral tablet — the same active ingredient, no needles.",
+    recommended: true,
     image: "/assets/wegovy/what-pills.png",
   },
 };
