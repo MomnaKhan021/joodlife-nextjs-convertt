@@ -168,8 +168,8 @@ export async function sendOrderConfirmationEmail(
         clinicians can approve your treatment.
       </p>
       <p style="margin:0 0 24px">
-        <a href="${url}/consultation" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-          Start your consultation
+        <a href="${url}/consultation?product=weight-loss" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
+          Book consultation
         </a>
       </p>`;
 
@@ -195,7 +195,7 @@ export async function sendOrderConfirmationEmail(
 
   const nextStepText = opts.isReorder
     ? `Our pharmacist will review your resupply questionnaire and be in touch shortly.`
-    : `Next step: complete your medical consultation so our clinicians can approve\nyour treatment: ${url}/consultation`;
+    : `Next step: book your medical consultation so our clinicians can approve\nyour treatment: ${url}/consultation?product=weight-loss`;
 
   const text = `Thank you for your order, ${firstName}!
 
