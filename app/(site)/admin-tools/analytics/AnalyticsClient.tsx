@@ -1,18 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 /**
  * "Metrics to monitor daily" dashboard.
  *
  * Live KPIs + charts computed from the store's own database via
- * /api/admin-tools/metrics (orders, consultations, customers), with a
- * day/period switcher (Today = hourly buckets; 7/30/90 days = daily).
- *
- * Metrics that live in external tools (GA4 sessions, ad-platform CPL /
- * ROAS, email/SMS rates, Trustpilot, satisfaction surveys) are laid out
- * as placeholder tiles so the morning-review checklist stays complete —
- * they light up once those integrations are connected.
+ * /api/admin-tools/metrics, plus marketing stats from Brevo via
+ * /api/admin-tools/marketing. Day/period switcher (Today = hourly buckets;
+ * 7/30/90 days = daily). KPI cards deep-link to the relevant admin list.
  */
 
 type Kpis = {
@@ -39,6 +36,18 @@ type MetricsResponse = {
   series?: Bucket[];
 };
 
+type MarketingResponse = {
+  ok: boolean;
+  connected?: boolean;
+  brevo?: {
+    emailOpenRate: number | null;
+    emailClickRate: number | null;
+    emailsDelivered: number | null;
+    smsDelivered: number | null;
+    smsDeliveryRate: number | null;
+  };
+};
+
 const RANGES = [
   { days: 1, label: "Today" },
   { days: 7, label: "7 days" },
@@ -56,13 +65,14 @@ const gbp2 = new Intl.NumberFormat("en-GB", {
   currency: "GBP",
   maximumFractionDigits: 2,
 });
+const num = new Intl.NumberFormat("en-GB");
 
 function pct(v: number | null | undefined) {
   return v === null || v === undefined ? "—" : `${v.toFixed(1)}%`;
 }
 
 /* ------------------------------------------------------------------ */
-/* KPI card                                                            */
+/* KPI card (optionally a deep link)                                   */
 /* ------------------------------------------------------------------ */
 
 function KpiCard({
@@ -70,23 +80,31 @@ function KpiCard({
   value,
   hint,
   accent,
+  href,
 }: {
   label: string;
   value: string;
   hint?: string;
   accent?: boolean;
+  href?: string;
 }) {
-  return (
-    <div
-      className={`rounded-[12px] border p-4 ${
-        accent
-          ? "border-[#142e2a] bg-[#142e2a] text-white"
-          : "border-[#e1e3e5] bg-white text-[#1a1a1a]"
-      }`}
-    >
-      <p className={`text-[12px] font-medium ${accent ? "text-[#d3dabe]" : "text-[#616161]"}`}>
-        {label}
-      </p>
+  const base = `group block rounded-[14px] border p-4 transition-shadow ${
+    accent
+      ? "border-[#142e2a] bg-gradient-to-br from-[#1c3f39] to-[#142e2a] text-white"
+      : "border-[#e6e8ea] bg-white text-[#1a1a1a]"
+  } ${href ? "hover:shadow-[0_6px_20px_-8px_rgba(20,46,42,0.35)]" : ""}`;
+  const inner = (
+    <>
+      <div className="flex items-center justify-between">
+        <p className={`text-[12px] font-medium ${accent ? "text-[#d3dabe]" : "text-[#616161]"}`}>
+          {label}
+        </p>
+        {href ? (
+          <span className={`text-[13px] transition-transform group-hover:translate-x-0.5 ${accent ? "text-[#d3dabe]" : "text-[#b3b8bc]"}`}>
+            →
+          </span>
+        ) : null}
+      </div>
       <p className="mt-1 font-display text-[24px] font-semibold leading-tight md:text-[28px]">
         {value}
       </p>
@@ -95,17 +113,24 @@ function KpiCard({
           {hint}
         </p>
       ) : null}
-    </div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className={base}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={base}>{inner}</div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* SVG charts (no chart lib — brand-coloured, responsive via viewBox)  */
+/* SVG charts — smooth gradient area lines, rounded gradient bars      */
 /* ------------------------------------------------------------------ */
 
 const W = 720;
-const H = 220;
-const PAD = { top: 16, right: 12, bottom: 26, left: 44 };
+const H = 240;
+const PAD = { top: 16, right: 14, bottom: 28, left: 46 };
 
 function niceMax(n: number) {
   if (n <= 0) return 1;
@@ -115,14 +140,36 @@ function niceMax(n: number) {
   return step * mag;
 }
 
+/** Smooth (Catmull-Rom → cubic bézier) path through the points. */
+function smoothPath(pts: { x: number; y: number }[]) {
+  if (pts.length < 2) return pts.length ? `M${pts[0].x} ${pts[0].y}` : "";
+  let d = `M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
 function LineChart({
   series,
   field,
   money,
+  gradientId,
+  stroke,
 }: {
   series: Bucket[];
   field: "revenue" | "consultations";
   money?: boolean;
+  gradientId: string;
+  stroke: string;
 }) {
   const values = series.map((b) => b[field]);
   const max = niceMax(Math.max(...values, 0));
@@ -130,53 +177,37 @@ function LineChart({
   const ih = H - PAD.top - PAD.bottom;
   const x = (i: number) => PAD.left + (series.length > 1 ? (i / (series.length - 1)) * iw : iw / 2);
   const y = (v: number) => PAD.top + ih - (v / max) * ih;
-
-  const path = values.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
-  const area = `${path} L${x(values.length - 1).toFixed(1)} ${PAD.top + ih} L${x(0).toFixed(1)} ${PAD.top + ih} Z`;
-
-  // ~6 x-axis labels max so they never collide
+  const pts = values.map((v, i) => ({ x: x(i), y: y(v) }));
+  const line = smoothPath(pts);
+  const area = pts.length
+    ? `${line} L${pts[pts.length - 1].x.toFixed(1)} ${PAD.top + ih} L${pts[0].x.toFixed(1)} ${PAD.top + ih} Z`
+    : "";
   const stride = Math.max(1, Math.ceil(series.length / 6));
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${field} over time`}>
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
       {[0, 0.25, 0.5, 0.75, 1].map((f) => (
         <g key={f}>
-          <line
-            x1={PAD.left}
-            x2={W - PAD.right}
-            y1={PAD.top + ih - f * ih}
-            y2={PAD.top + ih - f * ih}
-            stroke="#e9ebed"
-            strokeWidth="1"
-          />
-          <text
-            x={PAD.left - 8}
-            y={PAD.top + ih - f * ih + 4}
-            textAnchor="end"
-            fontSize="10"
-            fill="#8a8f94"
-            fontFamily="inherit"
-          >
+          <line x1={PAD.left} x2={W - PAD.right} y1={PAD.top + ih - f * ih} y2={PAD.top + ih - f * ih} stroke="#eef0f1" strokeWidth="1" />
+          <text x={PAD.left - 8} y={PAD.top + ih - f * ih + 4} textAnchor="end" fontSize="10.5" fill="#9aa0a5" fontFamily="inherit">
             {money ? gbp.format(max * f) : Math.round(max * f)}
           </text>
         </g>
       ))}
-      <path d={area} fill="#42746d" opacity="0.12" />
-      <path d={path} fill="none" stroke="#142e2a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      {values.map((v, i) => (
-        <circle key={i} cx={x(i)} cy={y(v)} r={series.length > 40 ? 0 : 2.6} fill="#142e2a" />
-      ))}
+      {area ? <path d={area} fill={`url(#${gradientId})`} /> : null}
+      {line ? <path d={line} fill="none" stroke={stroke} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /> : null}
+      {series.length <= 40
+        ? pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3" fill="#fff" stroke={stroke} strokeWidth="1.6" />)
+        : null}
       {series.map((b, i) =>
         i % stride === 0 ? (
-          <text
-            key={i}
-            x={x(i)}
-            y={H - 8}
-            textAnchor="middle"
-            fontSize="10"
-            fill="#8a8f94"
-            fontFamily="inherit"
-          >
+          <text key={i} x={x(i)} y={H - 9} textAnchor="middle" fontSize="10.5" fill="#9aa0a5" fontFamily="inherit">
             {b.label}
           </text>
         ) : null,
@@ -190,56 +221,35 @@ function BarChart({ series }: { series: Bucket[] }) {
   const max = niceMax(Math.max(...values, 0));
   const iw = W - PAD.left - PAD.right;
   const ih = H - PAD.top - PAD.bottom;
-  const bw = Math.min(28, (iw / series.length) * 0.62);
+  const bw = Math.min(26, (iw / series.length) * 0.6);
   const x = (i: number) => PAD.left + ((i + 0.5) / series.length) * iw;
   const stride = Math.max(1, Math.ceil(series.length / 6));
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Orders over time">
+      <defs>
+        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#87af73" />
+          <stop offset="100%" stopColor="#5f8a52" />
+        </linearGradient>
+      </defs>
       {[0, 0.5, 1].map((f) => (
         <g key={f}>
-          <line
-            x1={PAD.left}
-            x2={W - PAD.right}
-            y1={PAD.top + ih - f * ih}
-            y2={PAD.top + ih - f * ih}
-            stroke="#e9ebed"
-            strokeWidth="1"
-          />
-          <text
-            x={PAD.left - 8}
-            y={PAD.top + ih - f * ih + 4}
-            textAnchor="end"
-            fontSize="10"
-            fill="#8a8f94"
-            fontFamily="inherit"
-          >
+          <line x1={PAD.left} x2={W - PAD.right} y1={PAD.top + ih - f * ih} y2={PAD.top + ih - f * ih} stroke="#eef0f1" strokeWidth="1" />
+          <text x={PAD.left - 8} y={PAD.top + ih - f * ih + 4} textAnchor="end" fontSize="10.5" fill="#9aa0a5" fontFamily="inherit">
             {Math.round(max * f)}
           </text>
         </g>
       ))}
-      {values.map((v, i) => (
-        <rect
-          key={i}
-          x={x(i) - bw / 2}
-          y={PAD.top + ih - (v / max) * ih}
-          width={bw}
-          height={Math.max(0, (v / max) * ih)}
-          rx="3"
-          fill="#87af73"
-        />
-      ))}
+      {values.map((v, i) => {
+        const h = Math.max(0, (v / max) * ih);
+        return (
+          <rect key={i} x={x(i) - bw / 2} y={PAD.top + ih - h} width={bw} height={h} rx="4" fill="url(#barGrad)" />
+        );
+      })}
       {series.map((b, i) =>
         i % stride === 0 ? (
-          <text
-            key={i}
-            x={x(i)}
-            y={H - 8}
-            textAnchor="middle"
-            fontSize="10"
-            fill="#8a8f94"
-            fontFamily="inherit"
-          >
+          <text key={i} x={x(i)} y={H - 9} textAnchor="middle" fontSize="10.5" fill="#9aa0a5" fontFamily="inherit">
             {b.label}
           </text>
         ) : null,
@@ -248,22 +258,72 @@ function BarChart({ series }: { series: Bucket[] }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* External-integration tiles                                          */
-/* ------------------------------------------------------------------ */
+/** Donut for consultation outcomes (approved / declined / pending). */
+function DonutChart({ approved, declined, pending }: { approved: number; declined: number; pending: number }) {
+  const segs = [
+    { label: "Approved", value: approved, color: "#42746d" },
+    { label: "Pending", value: pending, color: "#e2b04a" },
+    { label: "Declined", value: declined, color: "#c0553f" },
+  ];
+  const total = segs.reduce((s, x) => s + x.value, 0);
+  const R = 62;
+  const C = 2 * Math.PI * R;
+  let offset = 0;
 
-const EXTERNAL: { label: string; source: string }[] = [
-  { label: "Website sessions", source: "Google Analytics" },
-  { label: "Cost per lead", source: "Ad platform" },
-  { label: "Cost per purchase", source: "Ad platform" },
-  { label: "ROAS", source: "Ad platform" },
-  { label: "Email open rate", source: "Email provider" },
-  { label: "Email click rate", source: "Email provider" },
-  { label: "SMS click rate", source: "SMS provider" },
-  { label: "Trustpilot reviews", source: "Trustpilot" },
-  { label: "Patient satisfaction", source: "Survey tool" },
-  { label: "Average response time", source: "Support inbox" },
-];
+  return (
+    <div className="flex items-center gap-5">
+      <svg viewBox="0 0 160 160" className="h-[150px] w-[150px] shrink-0 -rotate-90">
+        <circle cx="80" cy="80" r={R} fill="none" stroke="#eef0f1" strokeWidth="18" />
+        {total > 0 &&
+          segs.map((s) => {
+            const len = (s.value / total) * C;
+            const el = (
+              <circle
+                key={s.label}
+                cx="80"
+                cy="80"
+                r={R}
+                fill="none"
+                stroke={s.color}
+                strokeWidth="18"
+                strokeDasharray={`${len} ${C - len}`}
+                strokeDashoffset={-offset}
+                strokeLinecap="butt"
+              />
+            );
+            offset += len;
+            return el;
+          })}
+        <text x="80" y="76" textAnchor="middle" fontSize="26" fontWeight="700" fill="#142e2a" fontFamily="inherit" transform="rotate(90 80 80)">
+          {total}
+        </text>
+        <text x="80" y="96" textAnchor="middle" fontSize="11" fill="#8a8f94" fontFamily="inherit" transform="rotate(90 80 80)">
+          total
+        </text>
+      </svg>
+      <ul className="flex flex-col gap-2">
+        {segs.map((s) => (
+          <li key={s.label} className="flex items-center gap-2 text-[13px]">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+            <span className="font-medium text-[#1a1a1a]">{s.label}</span>
+            <span className="ml-1 text-[#8a8f94]">
+              {s.value} · {total > 0 ? Math.round((s.value / total) * 100) : 0}%
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ChartCard({ title, children, wide }: { title: string; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={`rounded-[14px] border border-[#e6e8ea] bg-white p-4 ${wide ? "lg:col-span-2" : ""}`}>
+      <p className="pb-2 text-[13px] font-semibold text-[#1a1a1a]">{title}</p>
+      {children}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -272,6 +332,7 @@ const EXTERNAL: { label: string; source: string }[] = [
 export default function AnalyticsClient() {
   const [days, setDays] = useState<number>(7);
   const [data, setData] = useState<MetricsResponse | null>(null);
+  const [mkt, setMkt] = useState<MarketingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -279,14 +340,18 @@ export default function AnalyticsClient() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin-tools/metrics?days=${d}`, {
-        credentials: "include",
-      });
-      const json: MetricsResponse = await res.json();
-      if (!res.ok || !json.ok) {
-        throw new Error(json.detail ? `${json.error}: ${json.detail}` : json.error ?? `HTTP ${res.status}`);
+      const [mRes, kRes] = await Promise.all([
+        fetch(`/api/admin-tools/metrics?days=${d}`, { credentials: "include" }),
+        fetch(`/api/admin-tools/marketing?days=${d}`, { credentials: "include" }).catch(() => null),
+      ]);
+      const json: MetricsResponse = await mRes.json();
+      if (!mRes.ok || !json.ok) {
+        throw new Error(json.detail ? `${json.error}: ${json.detail}` : json.error ?? `HTTP ${mRes.status}`);
       }
       setData(json);
+      if (kRes) {
+        setMkt(await kRes.json().catch(() => null));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -300,10 +365,25 @@ export default function AnalyticsClient() {
 
   const k = data?.kpis;
   const series = useMemo(() => data?.series ?? [], [data]);
+  const brevo = mkt?.connected ? mkt.brevo : null;
+
+  // Marketing tiles — Brevo-backed ones populate; the rest await their tool.
+  const externalTiles: { label: string; value: string | null; source: string }[] = [
+    { label: "Website sessions", value: null, source: "Google Analytics" },
+    { label: "Cost per lead", value: null, source: "Ad platform" },
+    { label: "Cost per purchase", value: null, source: "Ad platform" },
+    { label: "ROAS", value: null, source: "Ad platform" },
+    { label: "Email open rate", value: brevo ? pct(brevo.emailOpenRate) : null, source: "Brevo" },
+    { label: "Email click rate", value: brevo ? pct(brevo.emailClickRate) : null, source: "Brevo" },
+    { label: "Emails delivered", value: brevo && brevo.emailsDelivered != null ? num.format(brevo.emailsDelivered) : null, source: "Brevo" },
+    { label: "SMS delivered", value: brevo && brevo.smsDelivered != null ? num.format(brevo.smsDelivered) : null, source: "Brevo" },
+    { label: "Trustpilot reviews", value: null, source: "Trustpilot" },
+    { label: "Patient satisfaction", value: null, source: "Survey tool" },
+  ];
 
   return (
-    <main className="min-h-screen bg-[#f1f1f1] px-4 py-6 font-ui text-[#303030] md:px-8">
-      <div className="mx-auto w-full max-w-[1100px]">
+    <main className="min-h-screen bg-[#f4f5f6] px-4 py-6 font-ui text-[#303030] md:px-8">
+      <div className="mx-auto w-full max-w-[1120px]">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-5">
           <div>
@@ -320,9 +400,7 @@ export default function AnalyticsClient() {
                   type="button"
                   onClick={() => setDays(r.days)}
                   className={`rounded-[8px] px-3 py-1.5 text-[13px] font-medium transition-colors ${
-                    days === r.days
-                      ? "bg-[#142e2a] text-white"
-                      : "text-[#303030] hover:bg-[#f1f1f1]"
+                    days === r.days ? "bg-[#142e2a] text-white" : "text-[#303030] hover:bg-[#f1f1f1]"
                   }`}
                 >
                   {r.label}
@@ -346,78 +424,68 @@ export default function AnalyticsClient() {
           </div>
         ) : null}
 
-        {/* KPI grid */}
+        {/* KPI grid — cards deep-link to the matching admin list */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-          <KpiCard
-            accent
-            label="Revenue"
-            value={k ? gbp.format(k.revenue) : "—"}
-            hint="Paid orders in the selected period"
-          />
-          <KpiCard label="Orders" value={k ? String(k.orders) : "—"} />
-          <KpiCard
-            label="Average order value"
-            value={k?.aov != null ? gbp2.format(k.aov) : "—"}
-          />
-          <KpiCard
-            label="Conversion rate"
-            value={pct(k?.conversionRate)}
-            hint="Consultations → paid orders"
-          />
-          <KpiCard
-            label="Repeat order rate"
-            value={pct(k?.repeatRate)}
-            hint="Customers with 2+ orders (all-time)"
-          />
-          <KpiCard label="Consultations" value={k ? String(k.consultations) : "—"} />
-          <KpiCard label="Approved" value={k ? String(k.approved) : "—"} />
-          <KpiCard label="Declined" value={k ? String(k.declined) : "—"} />
-          <KpiCard label="Pending review" value={k ? String(k.pending) : "—"} />
-          <KpiCard label="New customers" value={k ? String(k.newCustomers) : "—"} />
+          <KpiCard accent label="Revenue" value={k ? gbp.format(k.revenue) : "—"} hint="Paid orders in the period" href="/admin-tools/data-browser?type=orders" />
+          <KpiCard label="Orders" value={k ? num.format(k.orders) : "—"} href="/admin-tools/data-browser?type=orders" />
+          <KpiCard label="Average order value" value={k?.aov != null ? gbp2.format(k.aov) : "—"} href="/admin-tools/data-browser?type=orders" />
+          <KpiCard label="Conversion rate" value={pct(k?.conversionRate)} hint="Consultations → paid orders" href="/admin-tools/data-browser?type=consultations" />
+          <KpiCard label="Repeat order rate" value={pct(k?.repeatRate)} hint="Customers with 2+ orders" href="/admin-tools/data-browser?type=users" />
+          <KpiCard label="Consultations" value={k ? num.format(k.consultations) : "—"} href="/admin-tools/data-browser?type=consultations" />
+          <KpiCard label="Approved" value={k ? num.format(k.approved) : "—"} href="/admin-tools/clinical-queue" />
+          <KpiCard label="Declined" value={k ? num.format(k.declined) : "—"} href="/admin-tools/clinical-queue" />
+          <KpiCard label="Pending review" value={k ? num.format(k.pending) : "—"} href="/admin-tools/clinical-queue" />
+          <KpiCard label="New customers" value={k ? num.format(k.newCustomers) : "—"} href="/admin-tools/data-browser?type=users" />
         </div>
 
         {/* Charts */}
         <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-[12px] border border-[#e1e3e5] bg-white p-4">
-            <p className="pb-2 text-[13px] font-semibold text-[#1a1a1a]">Revenue</p>
-            {series.length ? <LineChart series={series} field="revenue" money /> : (
+          <ChartCard title="Revenue">
+            {series.length ? <LineChart series={series} field="revenue" money gradientId="revGrad" stroke="#142e2a" /> : <p className="py-10 text-center text-[13px] text-[#8a8f94]">No data</p>}
+          </ChartCard>
+          <ChartCard title="Orders">
+            {series.length ? <BarChart series={series} /> : <p className="py-10 text-center text-[13px] text-[#8a8f94]">No data</p>}
+          </ChartCard>
+          <ChartCard title="Consultations">
+            {series.length ? <LineChart series={series} field="consultations" gradientId="consGrad" stroke="#42746d" /> : <p className="py-10 text-center text-[13px] text-[#8a8f94]">No data</p>}
+          </ChartCard>
+          <ChartCard title="Consultation outcomes">
+            {k ? (
+              <div className="flex min-h-[172px] items-center py-2">
+                <DonutChart approved={k.approved} declined={k.declined} pending={k.pending} />
+              </div>
+            ) : (
               <p className="py-10 text-center text-[13px] text-[#8a8f94]">No data</p>
             )}
-          </div>
-          <div className="rounded-[12px] border border-[#e1e3e5] bg-white p-4">
-            <p className="pb-2 text-[13px] font-semibold text-[#1a1a1a]">Orders</p>
-            {series.length ? <BarChart series={series} /> : (
-              <p className="py-10 text-center text-[13px] text-[#8a8f94]">No data</p>
-            )}
-          </div>
-          <div className="rounded-[12px] border border-[#e1e3e5] bg-white p-4 lg:col-span-2">
-            <p className="pb-2 text-[13px] font-semibold text-[#1a1a1a]">Consultations</p>
-            {series.length ? <LineChart series={series} field="consultations" /> : (
-              <p className="py-10 text-center text-[13px] text-[#8a8f94]">No data</p>
-            )}
-          </div>
+          </ChartCard>
         </div>
 
-        {/* External metrics — placeholders until integrations connect */}
+        {/* Marketing & service metrics */}
         <div className="mt-6">
-          <p className="pb-2 text-[13px] font-semibold text-[#1a1a1a]">
-            Marketing &amp; service metrics
-          </p>
+          <p className="pb-1 text-[13px] font-semibold text-[#1a1a1a]">Marketing &amp; service metrics</p>
           <p className="pb-3 text-[12px] text-[#616161]">
-            These come from external tools and appear here automatically once the
-            integration is connected.
+            Email metrics come from Brevo. The rest light up once their tool is connected.
           </p>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-            {EXTERNAL.map((m) => (
-              <div
-                key={m.label}
-                className="rounded-[12px] border border-dashed border-[#c9cdd1] bg-white/60 p-4"
-              >
-                <p className="text-[12px] font-medium text-[#616161]">{m.label}</p>
-                <p className="mt-1 font-display text-[24px] font-semibold text-[#c1c6ca]">—</p>
-                <p className="mt-1 text-[11px] text-[#8a8f94]">Connect {m.source}</p>
-              </div>
-            ))}
+            {externalTiles.map((m) => {
+              const live = m.value != null;
+              return (
+                <div
+                  key={m.label}
+                  className={`rounded-[14px] border p-4 ${
+                    live ? "border-[#e6e8ea] bg-white" : "border-dashed border-[#cdd1d5] bg-white/60"
+                  }`}
+                >
+                  <p className="text-[12px] font-medium text-[#616161]">{m.label}</p>
+                  <p className={`mt-1 font-display text-[24px] font-semibold ${live ? "text-[#1a1a1a]" : "text-[#c1c6ca]"}`}>
+                    {live ? m.value : "—"}
+                  </p>
+                  <p className="mt-1 text-[11px] text-[#8a8f94]">
+                    {live ? `via ${m.source}` : `Connect ${m.source}`}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
