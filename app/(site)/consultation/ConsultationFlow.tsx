@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { fbLead } from "@/lib/metaPixel";
@@ -137,6 +138,9 @@ export default function ConsultationFlow({
     setError(null);
     try {
       const fullName = (() => {
+        const single = (answers["fullName"] as string | undefined)?.trim();
+        if (single) return single;
+        // Legacy fallback for drafts saved before the single-field change.
         const fn = (answers["firstName"] as string | undefined)?.trim();
         const ln = (answers["lastName"] as string | undefined)?.trim();
         return [fn, ln].filter(Boolean).join(" ") || undefined;
@@ -370,6 +374,8 @@ function SlideRenderer(props: SlideProps) {
       return <NumberSlide {...props} />;
     case "name":
       return <NameSlide {...props} />;
+    case "choiceCards":
+      return <ChoiceCardsSlide {...props} />;
     case "acknowledge":
       return <AcknowledgeSlide {...props} />;
     case "block":
@@ -438,28 +444,89 @@ function NumberSlide({ slide, answers, setAnswer }: SlideProps) {
 }
 
 function NameSlide({ slide, answers, setAnswer }: SlideProps) {
-  const first = (answers.firstName as string | undefined) ?? "";
-  const last = (answers.lastName as string | undefined) ?? "";
+  // Single full-name field. Fall back to any legacy first/last stored by an
+  // in-progress draft so nothing is lost mid-questionnaire.
+  const legacy = [answers.firstName, answers.lastName]
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter(Boolean)
+    .join(" ");
+  const value = (answers.fullName as string | undefined) ?? legacy;
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <div className="flex flex-col gap-3 md:flex-row">
-        <input
-          type="text"
-          value={first}
-          placeholder="First name"
-          autoComplete="given-name"
-          onChange={(e) => setAnswer("firstName", e.target.value)}
-          className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
-        />
-        <input
-          type="text"
-          value={last}
-          placeholder="Last name"
-          autoComplete="family-name"
-          onChange={(e) => setAnswer("lastName", e.target.value)}
-          className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
-        />
+      <input
+        type="text"
+        value={value}
+        placeholder="Full name"
+        autoComplete="name"
+        onChange={(e) => setAnswer("fullName", e.target.value)}
+        className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+      />
+    </SlideShell>
+  );
+}
+
+/* ---- Rich single-select cards (medication preference) ---- */
+
+function ChoiceCardsSlide({ slide, answers, setAnswer }: SlideProps) {
+  const value = answers[slide.field!] as string | undefined;
+  const cards = slide.cardOptions ?? [];
+  return (
+    <SlideShell>
+      <SlideHeader title={slide.title} subtitle={slide.subtitle} />
+      <div className="flex flex-col gap-3">
+        {cards.map((c) => {
+          const active = value === c.value;
+          return (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => setAnswer(slide.field!, c.value)}
+              className={`flex items-center gap-4 rounded-2xl border bg-white px-4 py-4 text-left transition-all md:px-5 ${
+                active
+                  ? "border-2 border-[#142e2a] shadow-[0_2px_10px_rgba(20,46,42,0.08)]"
+                  : "border border-[#142e2a]/15 hover:border-[#142e2a]/40"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition-colors ${
+                  active ? "border-[#142e2a]" : "border-[#142e2a]/25"
+                }`}
+              >
+                {active ? (
+                  <span className="h-3 w-3 rounded-full bg-[#142e2a]" />
+                ) : null}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-display text-[16px] font-bold leading-[22px] text-[#142e2a] md:text-[17px]">
+                  {c.title}
+                </span>
+                {c.subtitle ? (
+                  <span className="mt-0.5 block font-ui text-[13px] font-semibold text-[#142e2a]/80 md:text-[14px]">
+                    {c.subtitle}
+                  </span>
+                ) : null}
+                {c.desc ? (
+                  <span className="mt-0.5 block font-ui text-[13px] leading-[18px] text-[#142e2a]/60 md:text-[14px]">
+                    {c.desc}
+                  </span>
+                ) : null}
+              </span>
+              {c.image ? (
+                <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#f3efe8]">
+                  <Image
+                    src={c.image}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 object-cover"
+                  />
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
     </SlideShell>
   );
@@ -1360,9 +1427,15 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return v != null && String(v).trim() !== "" && !Number.isNaN(Number(v));
   }
   if (slide.type === "name") {
+    const full = (answers.fullName as string | undefined)?.trim();
+    if (full) return true;
+    // Legacy drafts may still hold first/last only.
     const f = (answers.firstName as string | undefined)?.trim();
     const l = (answers.lastName as string | undefined)?.trim();
     return Boolean(f && l);
+  }
+  if (slide.type === "choiceCards") {
+    return Boolean(answers[slide.field!]);
   }
   if (slide.type === "acknowledge") {
     const lines = slide.bullets ?? [];

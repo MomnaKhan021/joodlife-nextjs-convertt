@@ -77,6 +77,7 @@ function prettify(key: string): string {
 const LABELS: Record<string, string> = {
   // Prescription
   intended_medicine_v2: "Requested medication",
+  medication_type_preference: "Medication preference",
   requested_dose: "Requested dose",
   current_glp_1_use_status: "Previous GLP-1 use",
   current_dose: "Current / last dose",
@@ -297,10 +298,14 @@ function SummaryBar({ c }: { c: Consultation }) {
 
 const SECTION_KEYS = new Set<string>([
   // prescription
-  "intended_medicine_v2", "requested_dose", "current_glp_1_use_status",
+  "intended_medicine_v2", "medication_type_preference", "requested_dose",
+  "current_glp_1_use_status",
   "current_dose", "last_injection_date", "missed_more_than_2_doses",
   "most_recent_injection_used_v2", "switching_intention", "reorder_dose_choice",
   "reorder_four_weeks_complete",
+  // name is surfaced as "Name" from fullName — keep the raw keys out of the
+  // "Other" catch-all so they don't show twice.
+  "fullName",
   // safety
   "safety_flags", "comorbidities", "wegovy_72_current_symptoms_v2",
   "reorder_has_side_effects", "reorder_side_effects",
@@ -337,6 +342,7 @@ function PatientDetails({ c }: { c: Consultation }) {
 
   const prescriptionItems: Item[] = [
     { label: "Requested medication", value: a.intended_medicine_v2 },
+    { label: "Medication preference", value: a.medication_type_preference },
     { label: "Requested dose", value: a.requested_dose ?? a.reorder_dose_choice },
     { label: "Previous GLP-1 use", value: a.current_glp_1_use_status },
     { label: "Current / last dose", value: a.current_dose },

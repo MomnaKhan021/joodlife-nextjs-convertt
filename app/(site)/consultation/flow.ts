@@ -20,7 +20,7 @@
 
 export type Answers = Record<string, unknown>;
 
-export const TOTAL_STEPS = 21;
+export const TOTAL_STEPS = 22;
 
 export const DOSES = {
   Mounjaro: ["2.5 mg", "5 mg", "7.5 mg", "10 mg", "12.5 mg", "15 mg", "Not sure"],
@@ -140,7 +140,8 @@ export type SlideType =
   | "text" // single-line free text
   | "textarea" // multi-line free text
   | "number" // numeric input with a unit label
-  | "name" // first + last name in one card
+  | "name" // full name in one field
+  | "choiceCards" // rich single-select cards (title + subtitle + desc + image)
   | "acknowledge"; // tick-to-proceed safety screen (one or more required ticks)
 
 export type SlideOption = string;
@@ -155,6 +156,15 @@ export type SlideDef = {
   /** answers[] key for single-value slides. */
   field?: string;
   options?: SlideOption[];
+  /** Rich single-select cards (for type "choiceCards"). `value` is what's
+   *  stored in answers; the rest is presentation. */
+  cardOptions?: {
+    value: string;
+    title: string;
+    subtitle?: string;
+    desc?: string;
+    image?: string;
+  }[];
   /** When the user picks an option on a single-select with auto, advance immediately. */
   auto?: boolean;
   /** For multi-select, render a "None of these" toggle that's mutually exclusive. */
@@ -525,13 +535,48 @@ export const SLIDES: SlideDef[] = [
     subtitle:
       "If you share your GP details, we'll inform them about your treatment. This supports safe, coordinated care.",
     field: "gp_practice_name",
+    next: () => "s_med_pref",
+  },
+  // ── Slide 21: Medication preference ──────────────────────────
+  {
+    id: "s_med_pref",
+    type: "choiceCards",
+    step: 21,
+    title: "Which type of medication would you prefer?",
+    field: "medication_type_preference",
+    cardOptions: [
+      {
+        value: "Weekly GLP-1 injection",
+        title: "Weekly GLP-1 injection",
+        subtitle: "Mounjaro or Wegovy",
+        desc: "Lose up to 22.5% body weight",
+        image: "/assets/megamenu/promo-pens.png",
+      },
+      {
+        value: "Daily GLP-1 pill",
+        title: "Daily GLP-1 pill",
+        subtitle: "Wegovy",
+        desc: "Lose up to 17% body weight",
+        image: "/assets/wegovy/how-pill.png",
+      },
+      {
+        value: "Orlistat tablet",
+        title: "Orlistat tablet",
+        desc: "Lose up to 8% body weight",
+      },
+      {
+        value: "No preference",
+        title: "No preference",
+        desc: "A clinician will recommend the best option",
+      },
+    ],
     next: () => "s21",
   },
-  // ── Slide 21: Complete purchase ──────────────────────────────
+  // ── Slide 22: Complete purchase ──────────────────────────────
   {
     id: "s21",
     type: "purchase",
-    step: 21,
+    step: 22,
     title: "Complete your purchase first",
     subtitle:
       "Once your order is placed, you can proceed with the required video consultation.",
