@@ -13,6 +13,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  ageFromDob,
+  fmtDate,
+  fmtNum,
+  isDateKey,
+  labelFor,
+} from "@/lib/consultationDisplay";
+import {
   composeMedicine,
   dispensingDate,
   printHtmlDocument,
@@ -21,6 +28,12 @@ import {
 } from "../orders/[id]/dispensingLabel";
 
 type DispatchItem = { title: string | null; dose: string | null; quantity: number };
+type Consultation = {
+  fullName: string | null;
+  dateOfBirth: string | null;
+  productSlug: string | null;
+  answers: Record<string, unknown>;
+};
 type DispatchOrder = {
   id: number;
   orderNumber: string | null;
@@ -34,12 +47,68 @@ type DispatchOrder = {
   trackingNumber: string | null;
   dispatched: boolean;
   items: DispatchItem[];
+  consultation: Consultation | null;
 };
+
+/** Compute BMI from the consultation answers, rounded to 1 dp. */
+function bmiFromAnswers(a: Record<string, unknown>): number | null {
+  const w = Number(a.current_weight_kg);
+  const h = Number(a.height_cm);
+  if (!w || !h) return null;
+  return Math.round((w / Math.pow(h / 100, 2)) * 10) / 10;
+}
+
+/** Render one answer value readably (dates formatted, arrays joined). */
+function answerText(key: string, v: unknown): string {
+  if (v === null || v === undefined || v === "") return "—";
+  if (isDateKey(key)) return fmtDate(v);
+  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  const s = String(v);
+  return s === "true" ? "Yes" : s === "false" ? "No" : s;
+}
+
+/** Expandable clinical summary — mirrors the clinical-queue detail. */
+function ClinicalSummary({ c }: { c: Consultation }) {
+  const a = c.answers ?? {};
+  const bmi = bmiFromAnswers(a);
+  const age = ageFromDob(c.dateOfBirth ?? a.date_of_birth_consultation);
+  const skip = new Set(["fullName", "firstName", "lastName", "email"]);
+  const rows = Object.entries(a).filter(
+    ([k]) => !k.startsWith("_") && !skip.has(k),
+  );
+  return (
+    <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-[#fbfcfa] p-4">
+      <div className="mb-3 flex flex-wrap gap-x-6 gap-y-2 border-b border-[#e5e7eb] pb-3">
+        {[
+          { label: "BMI", value: bmi != null ? String(bmi) : "—" },
+          { label: "Age", value: age != null ? String(age) : "—" },
+          { label: "Weight", value: a.current_weight_kg ? `${fmtNum(a.current_weight_kg)} kg` : "—" },
+          { label: "Height", value: a.height_cm ? `${fmtNum(a.height_cm)} cm` : "—" },
+          { label: "Date of birth", value: fmtDate(c.dateOfBirth ?? a.date_of_birth_consultation) },
+        ].map((s) => (
+          <div key={s.label} className="flex flex-col">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">{s.label}</span>
+            <span className="text-[13px] font-semibold text-[#142e2a]">{s.value}</span>
+          </div>
+        ))}
+      </div>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex gap-2 text-[13px]">
+            <dt className="shrink-0 font-semibold text-[#374151]">{labelFor(k)}:</dt>
+            <dd className="min-w-0 text-[#4b5563]">{answerText(k, v)}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
 
 const gbp = (n: number) =>
   n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 
-function fmtDate(iso: string | null) {
+function fmtDateTime(iso: string | null) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("en-GB", {
     day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
@@ -56,6 +125,7 @@ function OrderCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   function printDispensing() {
     const patient = o.customerName?.trim() || "—";
@@ -108,7 +178,7 @@ function OrderCard({
           </div>
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
-            {o.orderNumber ? `${o.orderNumber} · ` : ""}Placed {fmtDate(o.createdAt)} · {gbp(o.total)}
+            {o.orderNumber ? `${o.orderNumber} · ` : ""}Placed {fmtDateTime(o.createdAt)} · {gbp(o.total)}
           </p>
         </div>
 
@@ -161,6 +231,20 @@ function OrderCard({
           {o.customerPhone && <p className="mt-1 text-[12px] text-[#6b7280]">{o.customerPhone}</p>}
         </div>
       </div>
+
+      {/* Clinical summary — same detail as the clinical queue */}
+      {o.consultation ? (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="text-[12px] font-semibold text-[#1450b0] hover:underline"
+          >
+            {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
+          </button>
+          {open && <ClinicalSummary c={o.consultation} />}
+        </div>
+      ) : null}
     </div>
   );
 }

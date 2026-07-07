@@ -26,10 +26,16 @@
  *
  * DPD Local REST API base: https://api.dpdlocal.co.uk
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import { getPayloadInstance } from "@/lib/payload";
+import {
+  fireHubSpot,
+  findDealsByContactEmail,
+  updateDealStage,
+  PATIENT_LIFECYCLE_STAGES,
+} from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -399,15 +405,17 @@ export async function POST(req: NextRequest) {
     id: number;
     order_number: string;
     customer_name: string | null;
+    customer_email: string | null;
     customer_phone: string | null;
     shipping_address: string | null;
     notes: string | null;
     status: string | null;
     total_amount: string | number | null;
+    hubspot_deal_id: string | null;
   };
 
   const orderResult = await drizzle.execute(
-    sql.raw(`SELECT id, order_number, customer_name, customer_phone, shipping_address, notes, status, total_amount FROM orders WHERE id = ${orderId} LIMIT 1`),
+    sql.raw(`SELECT id, order_number, customer_name, customer_email, customer_phone, shipping_address, notes, status, total_amount, hubspot_deal_id FROM orders WHERE id = ${orderId} LIMIT 1`),
   );
   const orderRows = rows<OrderRow>(orderResult);
   if (!orderRows.length) {
@@ -495,6 +503,27 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // Non-fatal — label was generated; just log
     console.warn("[dpd-label] Failed to update order notes:", err);
+  }
+
+  // Mirror to HubSpot: move the patient's deal to the "Dispatched" stage in
+  // the Patient Order Lifecycle pipeline. Fire-and-forget — a HubSpot hiccup
+  // must never fail the dispatch (the label is already made).
+  const dealId = (order.hubspot_deal_id ?? "").trim();
+  const email = (order.customer_email ?? "").trim();
+  if (dealId || email) {
+    after(async () => {
+      await fireHubSpot("dispatch:deal-stage", async () => {
+        let targetDealId = dealId;
+        if (!targetDealId && email) {
+          const deals = await findDealsByContactEmail(email);
+          if (deals.ok && deals.data.length > 0) targetDealId = deals.data[0].id;
+        }
+        if (!targetDealId) return { ok: true as const, data: { id: "" } };
+        return updateDealStage(targetDealId, PATIENT_LIFECYCLE_STAGES.dispatched, {
+          jood_tracking_number: trackingNumber,
+        });
+      });
+    });
   }
 
   return NextResponse.json({

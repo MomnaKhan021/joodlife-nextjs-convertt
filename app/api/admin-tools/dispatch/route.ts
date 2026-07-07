@@ -72,6 +72,14 @@ type OrderRow = {
   created_at: string | null;
 };
 
+type ConsultRow = {
+  email: string | null;
+  full_name: string | null;
+  date_of_birth: string | null;
+  product_slug: string | null;
+  answers: unknown;
+};
+
 type Item = { title: string | null; dose: string | null; quantity: number };
 
 function normItems(raw: unknown): Item[] {
@@ -107,7 +115,31 @@ export async function GET() {
     );
     const rows = rowsOf<OrderRow>(result);
 
+    // Join the most recent consultation per customer email so each card can
+    // show the same clinical summary as the clinical queue.
+    const emails = Array.from(
+      new Set(rows.map((r) => (r.customer_email ?? "").trim().toLowerCase()).filter(Boolean)),
+    );
+    const consultByEmail = new Map<string, ConsultRow>();
+    if (emails.length > 0) {
+      const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
+      const cRes = await drizzle.execute(
+        sql.raw(`
+          SELECT DISTINCT ON (LOWER(email))
+                 email, full_name, date_of_birth, product_slug, answers
+          FROM consultations
+          WHERE LOWER(email) IN (${inList})
+          ORDER BY LOWER(email), created_at DESC NULLS LAST, id DESC
+        `),
+      );
+      for (const c of rowsOf<ConsultRow>(cRes)) {
+        const key = (c.email ?? "").trim().toLowerCase();
+        if (key) consultByEmail.set(key, c);
+      }
+    }
+
     const orders = rows.map((r) => {
+      const c = consultByEmail.get((r.customer_email ?? "").trim().toLowerCase());
       const statusText = String(r.status ?? "").toLowerCase();
       const trackingNumber = parseTracking(r.notes);
       const dispatched =
@@ -126,6 +158,17 @@ export async function GET() {
         trackingNumber,
         dispatched,
         items: normItems(r.items_json),
+        consultation: c
+          ? {
+              fullName: c.full_name,
+              dateOfBirth: c.date_of_birth,
+              productSlug: c.product_slug,
+              answers:
+                c.answers && typeof c.answers === "object" && !Array.isArray(c.answers)
+                  ? (c.answers as Record<string, unknown>)
+                  : {},
+            }
+          : null,
       };
     });
 
