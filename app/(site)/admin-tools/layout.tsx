@@ -17,11 +17,14 @@ export default async function AdminToolsLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/admin-tools");
-  if (user.role !== "admin") redirect("/");
+  // Admins see everything; staff (e.g. analysts) may only open the
+  // analytics dashboard — every other page double-checks for "admin"
+  // server-side and redirects staff to /admin-tools/analytics.
+  if (user.role !== "admin" && user.role !== "staff") redirect("/");
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#f1f1f1]" />}>
-      <AdminShell>{children}</AdminShell>
+      <AdminShell role={user.role}>{children}</AdminShell>
     </Suspense>
   );
 }

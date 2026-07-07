@@ -273,7 +273,7 @@ export default function ProductEditClient({ id }: { id: string }) {
           : json?.error ?? `Delete failed (HTTP ${res.status})`;
         throw new Error(msg);
       }
-      router.replace("/admin-tools/data-browser");
+      router.replace("/admin-tools/data-browser?type=products");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setDeleting(false);
@@ -314,7 +314,7 @@ export default function ProductEditClient({ id }: { id: string }) {
         <div className="flex items-center justify-between gap-3 pb-5">
           <div className="flex items-center gap-2">
             <Link
-              href="/admin-tools/data-browser"
+              href="/admin-tools/data-browser?type=products"
               aria-label="Back"
               className="grid h-8 w-8 place-items-center rounded-[8px] border border-[#babfc3] bg-white text-[#616161] hover:bg-[#f7f7f7]"
             >

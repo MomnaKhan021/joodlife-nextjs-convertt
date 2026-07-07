@@ -83,13 +83,17 @@
 }
 @media (min-width: 700px) {
   .db-toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
+  .db-search { flex: none; min-width: 220px; }
 }
 .db-toolbar__hint { font-size: 13px; color: #616161; margin: 0; max-width: 52ch; }
-.db-toolbar__controls { display: flex; gap: 8px; align-items: center; }
+/* Wrap on small screens so Refresh / Add never get pushed off-screen. */
+.db-toolbar__controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .db-search {
   height: 34px;
-  min-width: 220px;
+  /* Mobile: flex to the available width instead of forcing 220px. */
+  flex: 1 1 160px;
+  min-width: 0;
   border: 1px solid rgba(138, 138, 138, 0.4);
   border-radius: 8px;
   background: #fff;

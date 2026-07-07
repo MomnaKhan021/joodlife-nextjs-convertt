@@ -29,6 +29,12 @@ const NAV: NavItem[] = [
     icon: I("M4 11l8-7 8 7M6 9.5V20h12V9.5"),
   },
   {
+    label: "Analytics",
+    href: "/admin-tools/analytics",
+    match: (p) => p.startsWith("/admin-tools/analytics"),
+    icon: I("M4 20V10M10 20V4M16 20v-7M21 20H3"),
+  },
+  {
     label: "Clinical Queue",
     href: "/admin-tools/clinical-queue",
     match: (p) => p.startsWith("/admin-tools/clinical-queue"),
@@ -119,13 +125,22 @@ function NavBadge({ type }: { type: string }) {
   );
 }
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({
+  children,
+  role = "admin",
+}: {
+  children: React.ReactNode;
+  role?: string;
+}) {
   const pathname = usePathname();
   const params = useSearchParams();
   const router = useRouter();
   const type = params.get("type");
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Staff accounts only see the analytics dashboard.
+  const items = role === "staff" ? NAV.filter((n) => n.label === "Analytics") : NAV;
 
   // Close the mobile drawer on navigation.
   useEffect(() => {
@@ -164,7 +179,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   const nav = (
     <nav className="flex flex-col gap-0.5 p-3">
-      {NAV.map((item) => {
+      {items.map((item) => {
         const active = item.match(pathname, type);
         return (
           <Link
@@ -192,7 +207,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <div className="flex h-14 items-center gap-2 px-5">
           <span className="text-[16px] font-bold tracking-tight text-[#142e2a]">JoodLife</span>
           <span className="rounded bg-[#e3e3e3] px-1.5 py-0.5 text-[10px] font-semibold text-[#616161]">
-            Admin
+            {role === "staff" ? "Staff" : "Admin"}
           </span>
         </div>
         {nav}

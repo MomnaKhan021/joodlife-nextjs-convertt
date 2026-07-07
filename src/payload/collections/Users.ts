@@ -167,12 +167,13 @@ export const Users: CollectionConfig = {
       defaultValue: "customer",
       options: [
         { label: "Admin", value: "admin" },
+        { label: "Staff (analytics only)", value: "staff" },
         { label: "Customer", value: "customer" },
       ],
       admin: {
         position: "sidebar",
         description:
-          "Admins can manage products, orders, and other users.",
+          "Admins can manage products, orders, and other users. Staff can only view the analytics dashboard.",
       },
       access: {
         // Only admins can change a user's role — customers see it read-only.

@@ -434,7 +434,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
         <div className="flex flex-col gap-3 pb-5 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start gap-2">
             <Link
-              href="/admin-tools/data-browser"
+              href="/admin-tools/data-browser?type=orders"
               aria-label="Back to orders"
               className="mt-1 grid h-7 w-7 place-items-center rounded-[8px] border border-[#babfc3] bg-white text-[#616161] transition-colors hover:bg-[#f7f7f7]"
             >
