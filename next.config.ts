@@ -74,14 +74,23 @@ const nextConfig: NextConfig = {
       "https://m.stripe.network",
       "https://q.stripe.com",
     ];
+    // Trustpilot TrustBox widget (admin analytics). The bootstrap script
+    // loads from widget.trustpilot.com, renders its rating in an iframe
+    // served from *.trustpilot.com, and fetches its data over the same
+    // origins. This is the only free, sanctioned way to show a live
+    // review count — the review page and API both 403 server requests.
+    const trustpilotOrigins = [
+      "https://widget.trustpilot.com",
+      "https://*.trustpilot.com",
+    ];
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network`,
-      `connect-src 'self' ${stripeOrigins.join(" ")} https://*.public.blob.vercel-storage.com`,
-      `frame-src 'self' https://js.stripe.com https://hooks.stripe.com`,
-      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com`,
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com`,
+      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} https://*.public.blob.vercel-storage.com`,
+      `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com`,
+      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com`,
       `style-src 'self' 'unsafe-inline'`,
       `font-src 'self' data: https://fonts.gstatic.com`,
       `form-action 'self'`,

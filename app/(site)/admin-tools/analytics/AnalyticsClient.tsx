@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import TrustpilotTile from "./TrustpilotTile";
+
 /**
  * "Metrics to monitor daily" dashboard.
  *
@@ -369,7 +371,6 @@ export default function AnalyticsClient() {
   const k = data?.kpis;
   const series = useMemo(() => data?.series ?? [], [data]);
   const brevo = mkt?.brevoConnected ? mkt.brevo : null;
-  const tp = mkt?.trustpilot ?? null;
 
   // Marketing tiles — Brevo & Trustpilot populate live; the rest await their tool.
   const externalTiles: { label: string; value: string | null; hint: string }[] = [
@@ -381,15 +382,6 @@ export default function AnalyticsClient() {
     { label: "Email click rate", value: brevo ? pct(brevo.emailClickRate) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
     { label: "Emails delivered", value: brevo && brevo.emailsDelivered != null ? num.format(brevo.emailsDelivered) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
     { label: "SMS delivered", value: brevo && brevo.smsDelivered != null ? num.format(brevo.smsDelivered) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
-    {
-      label: "Trustpilot reviews",
-      value: tp && tp.reviews != null ? num.format(tp.reviews) : null,
-      hint: tp
-        ? tp.rating != null
-          ? `${tp.rating}★ · via Trustpilot`
-          : "via Trustpilot"
-        : "Connect Trustpilot",
-    },
     { label: "Patient satisfaction", value: null, hint: "Connect Survey tool" },
   ];
 
@@ -492,6 +484,7 @@ export default function AnalyticsClient() {
             </div>
           ) : null}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+            <TrustpilotTile />
             {externalTiles.map((m) => {
               const live = m.value != null;
               return (
