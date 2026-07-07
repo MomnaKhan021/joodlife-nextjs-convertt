@@ -142,6 +142,15 @@ function OrderCard({
   const dispatch = useCallback(async () => {
     if (busy) return;
     if (!window.confirm(`Dispatch order ${o.orderNumber ?? `#${o.id}`} and print the DPD label?`)) return;
+    // Open the label window NOW, inside the click gesture, so the browser
+    // doesn't block it as a popup (creating the DPD shipment is slow, and
+    // opening after the await would be treated as non-user-initiated).
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(
+        `<!doctype html><title>Dispatch label</title><body style="font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:32px;color:#142e2a">Generating dispatch label…</body>`,
+      );
+    }
     setBusy(true);
     setError(null);
     try {
@@ -152,9 +161,22 @@ function OrderCard({
         body: JSON.stringify({ orderId: o.id }),
       });
       const j = await res.json();
-      if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to generate DPD label");
-      // Print via a hidden iframe (popup-blocker safe).
-      if (j.labelHtml) printHtmlDocument(String(j.labelHtml));
+      if (!res.ok || !j.ok) {
+        if (win) win.close();
+        throw new Error(j?.error ?? "Failed to generate DPD label");
+      }
+      // Write the FULL DPD label (keeping its barcode-rendering script) into
+      // the visible window. If the popup was blocked, fall back to an iframe.
+      if (j.labelHtml) {
+        if (win) {
+          win.document.open();
+          win.document.write(String(j.labelHtml));
+          win.document.close();
+          win.focus();
+        } else {
+          printHtmlDocument(String(j.labelHtml));
+        }
+      }
       setNote(`Dispatched · Tracking ${j.trackingNumber}`);
       onDispatched(o.id, j.trackingNumber);
     } catch (e) {
