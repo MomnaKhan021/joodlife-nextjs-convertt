@@ -158,20 +158,24 @@ export async function sendOrderConfirmationEmail(
     })
     .join("");
 
-  const nextStepHtml = opts.isReorder
-    ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        Our pharmacist will review your resupply questionnaire and be in touch shortly.
-        No further action is needed from you right now.
-      </p>`
-    : `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        <strong>Next step:</strong> complete your medical consultation so our
-        clinicians can approve your treatment.
-      </p>
-      <p style="margin:0 0 24px">
+  // The "Book consultation" CTA appears on every order-confirmation email
+  // (both first orders and reorders) so the customer can always book.
+  const bookConsultationBtn = `<p style="margin:0 0 24px">
         <a href="${url}/consultation?product=weight-loss" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
           Book consultation
         </a>
       </p>`;
+
+  const nextStepHtml = opts.isReorder
+    ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
+        Our pharmacist will review your resupply questionnaire and be in touch shortly.
+      </p>
+      ${bookConsultationBtn}`
+    : `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
+        <strong>Next step:</strong> book your medical consultation so our
+        clinicians can approve your treatment.
+      </p>
+      ${bookConsultationBtn}`;
 
   const html = `
   <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
@@ -193,9 +197,10 @@ export async function sendOrderConfirmationEmail(
     </p>
   </div>`;
 
+  const bookText = `Book your consultation: ${url}/consultation?product=weight-loss`;
   const nextStepText = opts.isReorder
-    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly.`
-    : `Next step: book your medical consultation so our clinicians can approve\nyour treatment: ${url}/consultation?product=weight-loss`;
+    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly.\n${bookText}`
+    : `Next step: book your medical consultation so our clinicians can approve your treatment.\n${bookText}`;
 
   const text = `Thank you for your order, ${firstName}!
 
