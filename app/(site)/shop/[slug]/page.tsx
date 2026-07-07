@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
@@ -90,8 +90,17 @@ function mergePdp(db: StorefrontProduct, content: PDPProduct): PDPProduct {
   };
 }
 
+// Weight-loss injections aren't sold directly — only the Wegovy Pill is
+// offered. Any attempt to open their product page is funnelled to the
+// consultation quiz so customers never land on these PDPs.
+const RESTRICTED_SLUGS = new Set(["mounjaro", "wegovy"]);
+
 export default async function ProductPage({ params }: Params) {
   const { slug } = await params;
+
+  if (RESTRICTED_SLUGS.has(slug)) {
+    redirect("/consultation?product=weight-loss");
+  }
 
   const dbProduct = await getStorefrontProduct(slug);
   const content = PDP_PRODUCTS[slug];
