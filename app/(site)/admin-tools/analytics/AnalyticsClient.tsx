@@ -39,6 +39,8 @@ type MetricsResponse = {
 type MarketingResponse = {
   ok: boolean;
   connected?: boolean;
+  brevoConnected?: boolean;
+  brevoError?: string;
   brevo?: {
     emailOpenRate: number | null;
     emailClickRate: number | null;
@@ -46,6 +48,7 @@ type MarketingResponse = {
     smsDelivered: number | null;
     smsDeliveryRate: number | null;
   };
+  trustpilot?: { rating: number | null; reviews: number | null } | null;
 };
 
 const RANGES = [
@@ -365,20 +368,25 @@ export default function AnalyticsClient() {
 
   const k = data?.kpis;
   const series = useMemo(() => data?.series ?? [], [data]);
-  const brevo = mkt?.connected ? mkt.brevo : null;
+  const brevo = mkt?.brevoConnected ? mkt.brevo : null;
+  const tp = mkt?.trustpilot ?? null;
 
-  // Marketing tiles — Brevo-backed ones populate; the rest await their tool.
-  const externalTiles: { label: string; value: string | null; source: string }[] = [
-    { label: "Website sessions", value: null, source: "Google Analytics" },
-    { label: "Cost per lead", value: null, source: "Ad platform" },
-    { label: "Cost per purchase", value: null, source: "Ad platform" },
-    { label: "ROAS", value: null, source: "Ad platform" },
-    { label: "Email open rate", value: brevo ? pct(brevo.emailOpenRate) : null, source: "Brevo" },
-    { label: "Email click rate", value: brevo ? pct(brevo.emailClickRate) : null, source: "Brevo" },
-    { label: "Emails delivered", value: brevo && brevo.emailsDelivered != null ? num.format(brevo.emailsDelivered) : null, source: "Brevo" },
-    { label: "SMS delivered", value: brevo && brevo.smsDelivered != null ? num.format(brevo.smsDelivered) : null, source: "Brevo" },
-    { label: "Trustpilot reviews", value: null, source: "Trustpilot" },
-    { label: "Patient satisfaction", value: null, source: "Survey tool" },
+  // Marketing tiles — Brevo & Trustpilot populate live; the rest await their tool.
+  const externalTiles: { label: string; value: string | null; hint: string }[] = [
+    { label: "Website sessions", value: null, hint: "Connect Google Analytics" },
+    { label: "Cost per lead", value: null, hint: "Connect Ad platform" },
+    { label: "Cost per purchase", value: null, hint: "Connect Ad platform" },
+    { label: "ROAS", value: null, hint: "Connect Ad platform" },
+    { label: "Email open rate", value: brevo ? pct(brevo.emailOpenRate) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
+    { label: "Email click rate", value: brevo ? pct(brevo.emailClickRate) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
+    { label: "Emails delivered", value: brevo && brevo.emailsDelivered != null ? num.format(brevo.emailsDelivered) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
+    { label: "SMS delivered", value: brevo && brevo.smsDelivered != null ? num.format(brevo.smsDelivered) : null, hint: brevo ? "via Brevo" : "Connect Brevo" },
+    {
+      label: "Trustpilot reviews",
+      value: tp && tp.reviews != null ? num.format(tp.reviews) : null,
+      hint: tp && tp.rating != null ? `${tp.rating}★ · via Trustpilot` : "via Trustpilot",
+    },
+    { label: "Patient satisfaction", value: null, hint: "Connect Survey tool" },
   ];
 
   return (
@@ -464,8 +472,14 @@ export default function AnalyticsClient() {
         <div className="mt-6">
           <p className="pb-1 text-[13px] font-semibold text-[#1a1a1a]">Marketing &amp; service metrics</p>
           <p className="pb-3 text-[12px] text-[#616161]">
-            Email metrics come from Brevo. The rest light up once their tool is connected.
+            Email metrics come from Brevo and reviews from Trustpilot. The rest
+            light up once their tool is connected.
           </p>
+          {mkt && !mkt.brevoConnected && mkt.brevoError ? (
+            <div className="mb-3 rounded-[10px] border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
+              Brevo not reading stats: {mkt.brevoError}
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
             {externalTiles.map((m) => {
               const live = m.value != null;
@@ -480,9 +494,7 @@ export default function AnalyticsClient() {
                   <p className={`mt-1 font-display text-[24px] font-semibold ${live ? "text-[#1a1a1a]" : "text-[#c1c6ca]"}`}>
                     {live ? m.value : "—"}
                   </p>
-                  <p className="mt-1 text-[11px] text-[#8a8f94]">
-                    {live ? `via ${m.source}` : `Connect ${m.source}`}
-                  </p>
+                  <p className="mt-1 text-[11px] text-[#8a8f94]">{m.hint}</p>
                 </div>
               );
             })}
