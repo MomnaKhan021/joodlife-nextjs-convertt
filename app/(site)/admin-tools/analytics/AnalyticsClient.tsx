@@ -384,7 +384,11 @@ export default function AnalyticsClient() {
     {
       label: "Trustpilot reviews",
       value: tp && tp.reviews != null ? num.format(tp.reviews) : null,
-      hint: tp && tp.rating != null ? `${tp.rating}★ · via Trustpilot` : "via Trustpilot",
+      hint: tp
+        ? tp.rating != null
+          ? `${tp.rating}★ · via Trustpilot`
+          : "via Trustpilot"
+        : "Connect Trustpilot",
     },
     { label: "Patient satisfaction", value: null, hint: "Connect Survey tool" },
   ];
@@ -476,8 +480,15 @@ export default function AnalyticsClient() {
             light up once their tool is connected.
           </p>
           {mkt && !mkt.brevoConnected && mkt.brevoError ? (
-            <div className="mb-3 rounded-[10px] border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
-              Brevo not reading stats: {mkt.brevoError}
+            <div className="mb-3 flex items-start gap-2.5 rounded-[10px] border border-[#cfe0ff] bg-[#eff5ff] px-3.5 py-2.5 text-[12px] text-[#1a4b8f]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="mt-0.5 shrink-0" aria-hidden>
+                <circle cx="12" cy="12" r="9" stroke="#3b6fb0" strokeWidth="1.7" />
+                <path d="M12 11v5M12 8h.01" stroke="#3b6fb0" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <span>
+                <strong className="font-semibold">One-time setup to show email metrics.</strong>{" "}
+                {mkt.brevoError}
+              </span>
             </div>
           ) : null}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
