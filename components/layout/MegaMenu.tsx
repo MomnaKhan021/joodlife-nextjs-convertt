@@ -19,7 +19,7 @@ export const TREATMENTS: Treatment[] = [
   {
     label: "Weight loss",
     desc: "Sustainable fat reduction",
-    href: "/consultation?product=weight-loss",
+    href: "/wegovy-pills",
     icon: "/assets/megamenu/treat-wl.png",
   },
   {
@@ -103,9 +103,9 @@ export default function MegaMenu({ onNavigate }: { onNavigate?: () => void }) {
         </ul>
       </div>
 
-      {/* Weight-loss promo card → consultation quiz (no product pages) */}
+      {/* Weight-loss promo card → the Wegovy Pill page */}
       <Link
-        href="/consultation?product=weight-loss"
+        href="/wegovy-pills"
         onClick={onNavigate}
         className="group/promo relative flex min-h-[260px] overflow-hidden rounded-[20px] bg-[#142e2a] p-7"
       >
