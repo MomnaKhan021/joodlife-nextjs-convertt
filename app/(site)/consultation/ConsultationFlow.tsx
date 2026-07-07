@@ -807,18 +807,57 @@ function EmailSlide({ slide, answers, setAnswer }: SlideProps) {
 
 /* ---- Phone ---- */
 
+/* ---- UK mobile helpers (kept UK-only per requirement) ---- */
+
+/** National digits after the +44 country code (drops any leading 0), max 10. */
+export function ukNationalDigits(stored: string | undefined): string {
+  let d = (stored ?? "").replace(/\D/g, "");
+  if (d.startsWith("44")) d = d.slice(2);
+  if (d.startsWith("0")) d = d.slice(1);
+  return d.slice(0, 10);
+}
+
+/** Store UK numbers in E.164 (+44…) so they're unambiguously UK. */
+function storedUkMobile(national: string): string {
+  const d = national.replace(/\D/g, "").slice(0, 10);
+  return d ? `+44${d}` : "";
+}
+
+/** A valid UK mobile: national part is 7XXXXXXXXX (10 digits, starts 7). */
+export function isUkMobile(stored: string | undefined): boolean {
+  return /^7\d{9}$/.test(ukNationalDigits(stored));
+}
+
 function PhoneSlide({ slide, answers, setAnswer }: SlideProps) {
+  const stored = (answers[slide.field!] as string) ?? "";
+  const national = ukNationalDigits(stored);
+  const invalid = Boolean(stored) && !isUkMobile(stored);
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <input
-        type="tel"
-        autoComplete="tel"
-        placeholder="07700 900 000"
-        value={(answers[slide.field!] as string) ?? ""}
-        onChange={(e) => setAnswer(slide.field!, e.target.value)}
-        className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-      />
+      <div
+        className={`flex items-stretch overflow-hidden rounded-lg bg-white ring-1 transition-shadow focus-within:ring-2 ${
+          invalid ? "ring-red-400 focus-within:ring-red-400" : "ring-[#142e2a]/15 focus-within:ring-[#142e2a]/40"
+        }`}
+      >
+        <span className="flex select-none items-center gap-1.5 border-r border-[#142e2a]/10 bg-[#f7f9f2] px-3 font-ui text-[14px] font-semibold text-[#142e2a]">
+          🇬🇧 +44
+        </span>
+        <input
+          type="tel"
+          inputMode="numeric"
+          autoComplete="tel-national"
+          placeholder="7700 900000"
+          value={national}
+          onChange={(e) => setAnswer(slide.field!, storedUkMobile(e.target.value))}
+          className="h-12 w-full bg-transparent px-3 font-ui text-[14px] text-[#142e2a] outline-none"
+        />
+      </div>
+      <p className={`mt-2 font-ui text-[12px] ${invalid ? "text-red-600" : "text-[#142e2a]/55"}`}>
+        {invalid
+          ? "Enter a valid UK mobile number (e.g. 7700 900000)."
+          : "UK mobile numbers only."}
+      </p>
     </SlideShell>
   );
 }
@@ -1390,8 +1429,7 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }
   if (slide.type === "phone") {
-    const v = (answers[slide.field!] as string | undefined) ?? "";
-    return v.replace(/\D/g, "").length >= 7;
+    return isUkMobile(answers[slide.field!] as string | undefined);
   }
   if (slide.type === "dob") {
     const age = answers._age as number | undefined;
