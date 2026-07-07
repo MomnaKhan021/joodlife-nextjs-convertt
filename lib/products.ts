@@ -215,9 +215,12 @@ function rowToProduct(
 export async function listStorefrontProducts(): Promise<StorefrontProduct[]> {
   try {
     const rows = await rawQuery<Row>(
+      // Show every product except those explicitly deactivated. A product
+      // whose is_active is NULL (e.g. created via a path that didn't set it)
+      // must still be visible — only an explicit `false` hides it.
       `SELECT ${SELECT_COLUMNS}
        FROM products
-       WHERE is_active = true
+       WHERE COALESCE(is_active, true) = true
        ORDER BY display_order ASC NULLS LAST, from_price ASC NULLS LAST, id ASC`
     );
     if (rows.length === 0) return [];
@@ -245,7 +248,7 @@ export async function getStorefrontProduct(
     const rows = await rawQuery<Row>(
       `SELECT ${SELECT_COLUMNS}
        FROM products
-       WHERE slug = '${safeSlug}' AND is_active = true
+       WHERE slug = '${safeSlug}' AND COALESCE(is_active, true) = true
        LIMIT 1`
     );
     if (!rows[0]) return null;

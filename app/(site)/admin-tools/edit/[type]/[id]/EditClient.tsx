@@ -157,6 +157,11 @@ export default function EditClient({
       for (const [col, type] of Object.entries(j.editable ?? {})) {
         seed[col] = toInputValue(type, j.row?.[col] ?? null);
       }
+      // New records: default is_active to Yes so a freshly-created product
+      // is visible in the shop by default (the DB column defaults to true).
+      if (isNew && "is_active" in (j.editable ?? {})) {
+        seed["is_active"] = "true";
+      }
       setValues(seed);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
