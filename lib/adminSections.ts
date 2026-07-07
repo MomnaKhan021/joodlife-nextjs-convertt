@@ -17,6 +17,7 @@ export type SectionKey =
   | "analytics"
   | "clinical"
   | "dispensing"
+  | "dispatching"
   | "orders"
   | "products"
   | "inventory"
@@ -28,7 +29,8 @@ export type SectionKey =
 export const SECTIONS: { key: SectionKey; label: string; href: string; description: string }[] = [
   { key: "analytics", label: "Analytics", href: "/admin-tools/analytics", description: "Daily metrics dashboard" },
   { key: "clinical", label: "Clinical Queue", href: "/admin-tools/clinical-queue", description: "Approve / decline consultations" },
-  { key: "dispensing", label: "Dispensing Queue", href: "/admin-tools/dispensing-queue", description: "Print dispensing labels" },
+  { key: "dispensing", label: "Dispatch queue", href: "/admin-tools/dispensing-queue", description: "Dispense + dispatch awaiting orders" },
+  { key: "dispatching", label: "Dispatched", href: "/admin-tools/dispatching", description: "Dispatched orders + tracking" },
   { key: "orders", label: "Orders", href: "/admin-tools/data-browser?type=orders", description: "View & edit orders" },
   { key: "products", label: "Products", href: "/admin-tools/data-browser?type=products", description: "Manage products" },
   { key: "inventory", label: "Inventory", href: "/admin-tools/inventory", description: "Pharmacy stock" },
@@ -78,6 +80,7 @@ export function sectionForPath(
   if (p.startsWith("/admin-tools/analytics")) return "analytics";
   if (p.startsWith("/admin-tools/clinical-queue")) return "clinical";
   if (p.startsWith("/admin-tools/dispensing-queue")) return "dispensing";
+  if (p.startsWith("/admin-tools/dispatching")) return "dispatching";
   if (p.startsWith("/admin-tools/inventory")) return "inventory";
   if (p.startsWith("/admin-tools/products")) return "products";
   if (p.startsWith("/admin-tools/orders")) return "orders";
