@@ -34,6 +34,8 @@ const STATEMENTS: string[] = [
   // Existing DBs created the enum before "staff" existed — add it idempotently
   // so a user can be granted the analytics-only staff role.
   "ALTER TYPE \"enum_users_role\" ADD VALUE IF NOT EXISTS 'staff'",
+  // Per-section staff permissions (array of section keys).
+  "ALTER TABLE \"users\" ADD COLUMN IF NOT EXISTS \"permissions\" jsonb",
   "CREATE TABLE IF NOT EXISTS \"consultations\" (\n  \"id\" serial,\n  \"full_name\" varchar,\n  \"email\" varchar,\n  \"phone\" varchar,\n  \"date_of_birth\" varchar,\n  \"product_slug\" varchar,\n  \"dose\" varchar,\n  \"answers\" jsonb,\n  \"status\" \"enum_consultations_status\" DEFAULT 'submitted'::enum_consultations_status NOT NULL,\n  \"user_id\" integer,\n  \"hubspot_object_id\" varchar,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"consultations\" ADD COLUMN IF NOT EXISTS \"full_name\" varchar",
   "ALTER TABLE \"consultations\" ADD COLUMN IF NOT EXISTS \"email\" varchar",

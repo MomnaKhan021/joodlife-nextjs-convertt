@@ -12,7 +12,10 @@ export type AuthedUser = {
   id: string;
   email: string;
   name?: string;
-  role: "admin" | "customer" | string;
+  role: "admin" | "customer" | "staff" | string;
+  /** Section keys a staff member may access (see lib/adminSections).
+   *  Empty/undefined for non-staff (admins have full access anyway). */
+  permissions: string[];
 };
 
 /**
@@ -34,13 +37,19 @@ export async function getCurrentUser(): Promise<AuthedUser | null> {
       email?: string;
       name?: string;
       role?: string;
+      permissions?: unknown;
     };
+
+    const permissions = Array.isArray(u.permissions)
+      ? (u.permissions as unknown[]).map(String)
+      : [];
 
     return {
       id: String(u.id),
       email: u.email ?? "",
       name: u.name,
       role: u.role ?? "customer",
+      permissions,
     };
   } catch {
     return null;

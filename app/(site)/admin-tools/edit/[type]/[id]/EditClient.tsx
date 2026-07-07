@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { SECTIONS } from "@/lib/adminSections";
+
 /**
  * Generic editor for any record in any whitelisted collection.
  * Reads the editable column map from /api/admin-tools/record on
@@ -291,6 +293,54 @@ export default function EditClient({
             {fields.map(([col, t]) => {
               const enumOpts = ENUM_OPTIONS[type]?.[col];
               const v = values[col] ?? "";
+              // Staff permissions → checkbox group of dashboard sections.
+              if (type === "users" && col === "permissions") {
+                let selected: string[] = [];
+                try {
+                  const parsed = JSON.parse(v || "[]");
+                  if (Array.isArray(parsed)) selected = parsed.map(String);
+                } catch {
+                  /* not valid JSON yet → treat as empty */
+                }
+                const toggle = (key: string) => {
+                  const next = selected.includes(key)
+                    ? selected.filter((s) => s !== key)
+                    : [...selected, key];
+                  setField(col, JSON.stringify(next));
+                };
+                return (
+                  <Field key={col} label="Staff permissions" wide>
+                    <p className="mb-2 text-[12px] text-[#616161]">
+                      Tick the dashboard sections this staff member can access.
+                      Admins always have full access, so this only applies when
+                      Role is “staff”.
+                    </p>
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                      {SECTIONS.map((s) => (
+                        <label
+                          key={s.key}
+                          className="flex cursor-pointer items-start gap-2.5 rounded-[8px] border border-[#e1e3e5] bg-white px-3 py-2 hover:bg-[#f7f7f7]"
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-4 w-4 shrink-0 accent-[#142e2a]"
+                            checked={selected.includes(s.key)}
+                            onChange={() => toggle(s.key)}
+                          />
+                          <span className="min-w-0">
+                            <span className="block text-[13px] font-medium text-[#1a1a1a]">
+                              {s.label}
+                            </span>
+                            <span className="block text-[11px] text-[#8a8f94]">
+                              {s.description}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </Field>
+                );
+              }
               if (enumOpts) {
                 return (
                   <Field key={col} label={fieldLabel(col)}>

@@ -21,7 +21,7 @@ export default async function OrderPage({
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/admin-tools/orders/${id}`);
-  if (user.role !== "admin") redirect("/");
+  if (user.role !== "admin" && user.role !== "staff") redirect("/"); // layout enforces per-section access
 
   return <OrderDetailClient id={id} />;
 }

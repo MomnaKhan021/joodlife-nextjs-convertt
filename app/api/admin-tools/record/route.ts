@@ -309,12 +309,13 @@ const SPECS: Record<string, Spec> = {
   },
   users: {
     table: "users",
-    selectColumns: "id, name, email, role, phone, created_at, updated_at",
+    selectColumns: "id, name, email, role, phone, permissions, created_at, updated_at",
     editableColumns: {
       name: "text",
       email: "text",
       role: "text",
       phone: "text",
+      permissions: "json",
     },
   },
   products: {

@@ -13,6 +13,9 @@ type NavItem = {
   match: (path: string, type: string | null) => boolean;
   icon: React.ReactNode;
   badgeType?: string;
+  /** Section key for staff-permission filtering. Items without a key
+   *  (e.g. Home) are admin-only. */
+  section?: string;
 };
 
 const I = (d: string) => (
@@ -32,6 +35,7 @@ const NAV: NavItem[] = [
     label: "Analytics",
     href: "/admin-tools/analytics",
     match: (p) => p.startsWith("/admin-tools/analytics"),
+    section: "analytics",
     icon: I("M4 20V10M10 20V4M16 20v-7M21 20H3"),
   },
   {
@@ -39,12 +43,14 @@ const NAV: NavItem[] = [
     href: "/admin-tools/clinical-queue",
     match: (p) => p.startsWith("/admin-tools/clinical-queue"),
     badgeType: "clinical",
+    section: "clinical",
     icon: I("M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"),
   },
   {
     label: "Dispensing Queue",
     href: "/admin-tools/dispensing-queue",
     match: (p) => p.startsWith("/admin-tools/dispensing-queue"),
+    section: "dispensing",
     icon: I("M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M8 14h8v6H8v-6z"),
   },
   {
@@ -52,42 +58,49 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=orders",
     match: (_p, t) => t === "orders",
     badgeType: "orders",
+    section: "orders",
     icon: I("M6 7h12l1 13H5L6 7zM9 9V6a3 3 0 0 1 6 0v3"),
   },
   {
     label: "Products",
     href: "/admin-tools/data-browser?type=products",
     match: (p, t) => t === "products" || p.startsWith("/admin-tools/products"),
+    section: "products",
     icon: I("M20.6 13.4L13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6zM7.5 7.5h.01"),
   },
   {
     label: "Inventory",
     href: "/admin-tools/inventory",
     match: (p) => p.startsWith("/admin-tools/inventory"),
+    section: "inventory",
     icon: I("M4 7l8-4 8 4M4 7v10l8 4 8-4V7M4 7l8 4 8-4M12 11v10"),
   },
   {
     label: "Customers",
     href: "/admin-tools/data-browser?type=users",
     match: (_p, t) => t === "users",
+    section: "customers",
     icon: I("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"),
   },
   {
     label: "Consultations",
     href: "/admin-tools/data-browser?type=consultations",
     match: (_p, t) => t === "consultations",
+    section: "consultations",
     icon: I("M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"),
   },
   {
     label: "Discounts",
     href: "/admin-tools/data-browser?type=discounts",
     match: (_p, t) => t === "discounts",
+    section: "discounts",
     icon: I("M9 9h.01M15 15h.01M16 8l-8 8M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"),
   },
   {
     label: "Content",
     href: "/admin-tools/data-browser?type=posts",
     match: (_p, t) => t === "posts" || t === "media",
+    section: "content",
     icon: I("M6 3h9l5 5v13a0 0 0 0 1 0 0H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v6h6M8 13h8M8 17h5"),
   },
 ];
@@ -128,9 +141,11 @@ function NavBadge({ type }: { type: string }) {
 export default function AdminShell({
   children,
   role = "admin",
+  permissions = [],
 }: {
   children: React.ReactNode;
   role?: string;
+  permissions?: string[];
 }) {
   const pathname = usePathname();
   const params = useSearchParams();
@@ -139,8 +154,12 @@ export default function AdminShell({
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Staff accounts only see the analytics dashboard.
-  const items = role === "staff" ? NAV.filter((n) => n.label === "Analytics") : NAV;
+  // Admins see every nav item. Staff see only the sections granted to them
+  // (Home has no `section` key → admin-only).
+  const items =
+    role === "admin"
+      ? NAV
+      : NAV.filter((n) => n.section && permissions.includes(n.section));
 
   // Close the mobile drawer on navigation.
   useEffect(() => {

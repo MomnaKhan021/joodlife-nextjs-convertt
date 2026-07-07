@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
+import { allowedDataBrowserTypes } from "@/lib/adminSections";
 import DataBrowser from "./DataBrowser";
 import "./data-browser.css";
 
@@ -24,21 +25,25 @@ export const metadata = {
 export default async function DataBrowserPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/admin-tools/data-browser");
-  if (user.role !== "admin") redirect("/");
+  // Admins + staff allowed; the layout already blocks staff from any
+  // ?type= they don't have permission for. Tabs are filtered per-user.
+  if (user.role !== "admin" && user.role !== "staff") redirect("/");
+  const allowedTypes = allowedDataBrowserTypes(user.role, user.permissions);
 
   return (
     <main className="db-shell">
       <header className="db-shell__header">
-        <p className="db-shell__eyebrow">Admin · Data browser</p>
-        <h1 className="db-shell__title">Browse all collections</h1>
+        <p className="db-shell__eyebrow">
+          {user.role === "admin" ? "Admin" : "Staff"} · Data browser
+        </p>
+        <h1 className="db-shell__title">Browse collections</h1>
         <p className="db-shell__subtitle">
-          Search, sort and paginate every JoodLife collection — orders,
-          consultations, posts, users, products, media and discounts —
-          straight from the live database. Click a row to view or edit it.
+          Search, sort and paginate your JoodLife collections straight from the
+          live database. Click a row to view or edit it.
         </p>
       </header>
 
-      <DataBrowser />
+      <DataBrowser allowedTypes={allowedTypes} />
     </main>
   );
 }

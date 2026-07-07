@@ -276,10 +276,16 @@ function normalizeTab(t: string | null | undefined): CollectionKey {
   return t && (TAB_KEYS as string[]).includes(t) ? (t as CollectionKey) : "orders";
 }
 
-export default function DataBrowser() {
+export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] | null }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // Staff only see the collection tabs they're permitted (admins: all).
+  const visibleTabs = useMemo(
+    () => (allowedTypes ? TABS.filter((t) => allowedTypes.includes(t.key)) : TABS),
+    [allowedTypes],
+  );
 
   // The URL's ?type= is the single source of truth for the active tab.
   // Reading it via useSearchParams() means the tab reacts to sidebar
@@ -362,7 +368,7 @@ export default function DataBrowser() {
     <section className="db-browser">
       {/* Tabs */}
       <nav className="db-tabs" aria-label="Collections">
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.key}
             type="button"

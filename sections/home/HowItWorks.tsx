@@ -18,7 +18,7 @@ const STEPS = [
     step: "Step 3",
     title: "Treatment delivered",
     copy: "If approved, your treatment will be prepared by our pharmacy and delivered quickly, discreetly and securely to your door.",
-    img: "/assets/figma/hiw-step3.png",
+    img: "/assets/figma/hiw-step3-v2.png",
   },
 ];
 

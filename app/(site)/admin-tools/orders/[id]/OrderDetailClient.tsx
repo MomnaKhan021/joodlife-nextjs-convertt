@@ -453,7 +453,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <HeaderBtn onClick={refund}>
               {refunding ? "Refunding…" : "Refund"}
             </HeaderBtn>

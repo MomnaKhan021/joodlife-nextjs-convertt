@@ -39,7 +39,7 @@ export default async function EditPage({
   if (!user) {
     redirect(`/login?next=/admin-tools/edit/${type}/${id}`);
   }
-  if (user.role !== "admin") redirect("/");
+  if (user.role !== "admin" && user.role !== "staff") redirect("/"); // layout enforces per-section access
   if (!VALID_TYPES.has(type)) redirect("/admin-tools/data-browser");
 
   return (

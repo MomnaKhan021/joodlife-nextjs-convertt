@@ -21,7 +21,7 @@ export default async function ProductEditPage({
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/admin-tools/products/${id}`);
-  if (user.role !== "admin") redirect("/");
+  if (user.role !== "admin" && user.role !== "staff") redirect("/"); // layout enforces per-section access
 
   return <ProductEditClient id={id} />;
 }

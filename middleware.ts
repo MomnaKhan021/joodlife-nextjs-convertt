@@ -45,10 +45,19 @@ export function middleware(req: NextRequest) {
   // Protect /admin-tools/* — bounce to /login carrying the FULL requested
   // path (incl. query) so after signing in the admin lands back on the exact
   // page they asked for instead of a generic dashboard.
-  if (path.startsWith("/admin-tools") && !token) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("next", path + (url.search || ""));
-    return NextResponse.redirect(loginUrl);
+  if (path.startsWith("/admin-tools")) {
+    if (!token) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("next", path + (url.search || ""));
+      return NextResponse.redirect(loginUrl);
+    }
+    // Layouts can't read the pathname from props, so forward it (+ query)
+    // as request headers. The admin layout uses these to enforce the
+    // per-section staff permission guard server-side.
+    const headers = new Headers(req.headers);
+    headers.set("x-admin-pathname", path);
+    headers.set("x-admin-search", url.search || "");
+    return NextResponse.next({ request: { headers } });
   }
 
   return NextResponse.next();

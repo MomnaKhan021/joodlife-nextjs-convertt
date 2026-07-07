@@ -167,16 +167,30 @@ export const Users: CollectionConfig = {
       defaultValue: "customer",
       options: [
         { label: "Admin", value: "admin" },
-        { label: "Staff (analytics only)", value: "staff" },
+        { label: "Staff (limited access)", value: "staff" },
         { label: "Customer", value: "customer" },
       ],
       admin: {
         position: "sidebar",
         description:
-          "Admins can manage products, orders, and other users. Staff can only view the analytics dashboard.",
+          "Admins manage everything. Staff see only the dashboard sections granted in Permissions below.",
       },
       access: {
         // Only admins can change a user's role — customers see it read-only.
+        create: isAdminField,
+        update: isAdminField,
+      },
+    },
+    {
+      name: "permissions",
+      type: "json",
+      admin: {
+        position: "sidebar",
+        description:
+          "For staff only: the dashboard sections this user may access (array of section keys, e.g. [\"analytics\",\"orders\"]). Admins have full access regardless.",
+      },
+      access: {
+        // Only admins can grant/revoke section permissions.
         create: isAdminField,
         update: isAdminField,
       },
