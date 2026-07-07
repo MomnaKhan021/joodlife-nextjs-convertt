@@ -127,7 +127,10 @@ function OrderCard({
   const [note, setNote] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
-  function printDispensing() {
+  const printDispensing = useCallback(async () => {
+    if (busy) return;
+    if (!window.confirm(`Print the dispensing label and mark order ${o.orderNumber ?? `#${o.id}`} dispatched?`)) return;
+    // Print first — synchronous, inside the click gesture.
     const patient = o.customerName?.trim() || "—";
     const date = dispensingDate();
     const labels: LabelData[] = (o.items.length ? o.items : [{ title: null, dose: null, quantity: 1 }]).map(
@@ -137,7 +140,31 @@ function OrderCard({
       },
     );
     printLabels(labels);
-  }
+    // Then mark the order dispatched (no DPD tracking is created this way).
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin-tools/record?type=orders&id=${o.id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ fields: { status: "shipped" } }),
+        },
+      );
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error ?? `Failed to mark dispatched (HTTP ${res.status})`);
+      }
+      setNote("Dispensing label printed · marked dispatched");
+      onDispatched(o.id, o.trackingNumber ?? "");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, o.id, o.orderNumber, o.customerName, o.items, o.trackingNumber, onDispatched]);
 
   const dispatch = useCallback(async () => {
     if (busy) return;
@@ -210,7 +237,8 @@ function OrderCard({
             <button
               type="button"
               onClick={printDispensing}
-              className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2]"
+              disabled={busy}
+              className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
             >
               Print dispensing label
             </button>
