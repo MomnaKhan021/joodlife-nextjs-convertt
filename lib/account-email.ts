@@ -11,6 +11,9 @@
  */
 import type { Payload } from "payload";
 
+/** HubSpot meeting scheduler the "Book consultation" CTA links to. */
+const BOOKING_URL = "https://meetings-eu1.hubspot.com/jood-life";
+
 function siteUrl(): string {
   const raw =
     process.env.NEXT_PUBLIC_SERVER_URL ||
@@ -159,9 +162,9 @@ export async function sendOrderConfirmationEmail(
     .join("");
 
   // The "Book consultation" CTA appears on every order-confirmation email
-  // (both first orders and reorders) so the customer can always book.
+  // (both first orders and reorders) and books via the HubSpot scheduler.
   const bookConsultationBtn = `<p style="margin:0 0 24px">
-        <a href="${url}/consultation?product=weight-loss" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
+        <a href="${BOOKING_URL}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
           Book consultation
         </a>
       </p>`;
@@ -169,11 +172,13 @@ export async function sendOrderConfirmationEmail(
   const nextStepHtml = opts.isReorder
     ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
         Our pharmacist will review your resupply questionnaire and be in touch shortly.
+        <strong>You need to book a consultation to get your medication.</strong>
+        Click the button below to book your consultation.
       </p>
       ${bookConsultationBtn}`
     : `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        <strong>Next step:</strong> book your medical consultation so our
-        clinicians can approve your treatment.
+        <strong>You need to book a consultation to get your medication.</strong>
+        Click the button below to book your consultation.
       </p>
       ${bookConsultationBtn}`;
 
@@ -197,10 +202,10 @@ export async function sendOrderConfirmationEmail(
     </p>
   </div>`;
 
-  const bookText = `Book your consultation: ${url}/consultation?product=weight-loss`;
+  const bookText = `Book your consultation: ${BOOKING_URL}`;
   const nextStepText = opts.isReorder
-    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly.\n${bookText}`
-    : `Next step: book your medical consultation so our clinicians can approve your treatment.\n${bookText}`;
+    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly. You need to book a consultation to get your medication.\n${bookText}`
+    : `You need to book a consultation to get your medication. Click below to book.\n${bookText}`;
 
   const text = `Thank you for your order, ${firstName}!
 
