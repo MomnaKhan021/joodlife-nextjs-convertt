@@ -38,24 +38,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Auth: require an admin caller. We use Payload's cookie-based auth
-  // so this only works for someone already logged into /admin.
-  let payload: Awaited<ReturnType<typeof getPayloadInstance>>;
-  try {
-    payload = await getPayloadInstance();
-  } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: "Payload init failed", detail: String(err) },
-      { status: 500 }
-    );
-  }
+  // The consultation flow uploads prescription evidence with ?no-record=1.
+  // Those callers are PATIENTS — usually not logged in — so that path must
+  // NOT require admin. The media-library path (which creates a Media row)
+  // still requires an admin caller.
+  const skipRecord = req.nextUrl.searchParams.get("no-record") === "1";
 
-  const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!user || (user as unknown as { role?: string }).role !== "admin") {
-    return NextResponse.json(
-      { ok: false, error: "Admin role required" },
-      { status: 403 }
-    );
+  let payload: Awaited<ReturnType<typeof getPayloadInstance>> | null = null;
+  if (!skipRecord) {
+    try {
+      payload = await getPayloadInstance();
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: "Payload init failed", detail: String(err) },
+        { status: 500 }
+      );
+    }
+    const { user } = await payload.auth({ headers: await nextHeaders() });
+    if (!user || (user as unknown as { role?: string }).role !== "admin") {
+      return NextResponse.json(
+        { ok: false, error: "Admin role required" },
+        { status: 403 }
+      );
+    }
   }
 
   // Multipart parse
@@ -74,6 +79,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { ok: false, error: "Missing `file` part" },
       { status: 400 }
+    );
+  }
+
+  // Guard the public (consultation) path: images/PDF only, up to 15MB.
+  const fileType = (file as File).type || "";
+  const fileSize = (file as File).size || 0;
+  if (fileSize > 15 * 1024 * 1024) {
+    return NextResponse.json(
+      { ok: false, error: "File too large (max 15MB)." },
+      { status: 413 }
+    );
+  }
+  if (skipRecord && !/^(image\/|application\/pdf)/.test(fileType)) {
+    return NextResponse.json(
+      { ok: false, error: "Please upload an image or PDF." },
+      { status: 415 }
     );
   }
 
@@ -112,10 +133,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Caller can opt out of Media-row creation by passing ?no-record=1.
-  // Default is to also create the Media row so the upload immediately
-  // shows up in /admin/collections/media and Product image pickers.
-  const skipRecord = req.nextUrl.searchParams.get("no-record") === "1";
+  // ?no-record=1 (consultation) returns the URL without a Media row. The
+  // default path also creates the Media row so the upload shows up in
+  // /admin/collections/media and Product image pickers.
   if (skipRecord) {
     return NextResponse.json({
       ok: true,
@@ -137,6 +157,7 @@ export async function POST(req: NextRequest) {
   // /api/diag?action=migrate.
   let mediaId: number | null = null;
   try {
+    if (!payload) throw new Error("Payload unavailable");
     const drizzle = (
       payload.db as unknown as {
         drizzle?: { execute?: (q: unknown) => Promise<unknown> };
