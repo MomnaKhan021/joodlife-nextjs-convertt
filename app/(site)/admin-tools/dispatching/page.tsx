@@ -46,7 +46,7 @@ export default function DispatchedPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin-tools/dispatch", { credentials: "include" });
+      const res = await fetch("/api/admin-tools/dispatch", { credentials: "include", cache: "no-store" });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to load");
       setOrders(j.orders as DispatchOrder[]);

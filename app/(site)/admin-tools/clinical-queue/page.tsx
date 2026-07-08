@@ -482,19 +482,6 @@ function ConsultationCard({
         <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
       </div>
 
-      {/* Green sticky summary bar — metrics + Approve / Reject supply. Always
-          visible (not gated behind the clinical-summary toggle) so the actions
-          stay reachable, and it pins to the top of the screen on scroll. */}
-      <div className="mt-3">
-        <SummaryBar
-          c={c}
-          reviewed={c.reviewed}
-          loading={loading}
-          error={error}
-          onDecision={runDecision}
-        />
-      </div>
-
       {/* Red flag banner */}
       {c.hasRedFlags && !c.reviewed && c.redFlags.length > 0 && (
         <div className="mt-3 rounded-lg border border-[#fca5a5] bg-[#fff1f2] px-4 py-3">
@@ -517,7 +504,20 @@ function ConsultationCard({
         >
           {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
         </button>
-        {open && <PatientDetails c={c} />}
+        {/* On expand: the green sticky bar (metrics + Approve/Reject supply)
+            appears first, then the full clinical detail below it. */}
+        {open && (
+          <div className="mt-3">
+            <SummaryBar
+              c={c}
+              reviewed={c.reviewed}
+              loading={loading}
+              error={error}
+              onDecision={runDecision}
+            />
+            <PatientDetails c={c} />
+          </div>
+        )}
       </div>
 
       {/* Decision already recorded */}
@@ -565,7 +565,7 @@ export default function ClinicalQueuePage() {
     try {
       const res = await fetch(
         `/api/admin-tools/clinical-review?status=${all ? "all" : "pending"}`,
-        { credentials: "include" },
+        { credentials: "include", cache: "no-store" },
       );
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "Failed to load");

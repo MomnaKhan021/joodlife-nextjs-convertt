@@ -147,9 +147,20 @@ function parseShippingAddress(raw: string): ParsedAddress {
   // Map remaining parts to address fields.
   // UK address lines: [street, property?, locality?, town, county?]
   const property = filteredParts.length > 2 ? filteredParts[1] : "";
-  const street = filteredParts[0] ?? "";
-  const town = filteredParts[filteredParts.length - 1] ?? "";
+  let street = filteredParts[0] ?? "";
+  let town = filteredParts[filteredParts.length - 1] ?? "";
   const county = filteredParts.length >= 3 ? filteredParts[filteredParts.length - 2] : "";
+
+  // DPD rejects an empty street OR town. When the address had only one usable
+  // line, reuse it for both so a thin-but-real address still ships rather than
+  // failing validation. (A truly empty address is blocked upstream: the
+  // Dispatch button is disabled when the order has no usable address.)
+  if (!street && town) street = town;
+  if (!town && street) town = street;
+  if (!street && !town && property) {
+    street = property;
+    town = property;
+  }
 
   return {
     property,

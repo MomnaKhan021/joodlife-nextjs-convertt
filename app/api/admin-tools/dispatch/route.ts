@@ -67,6 +67,42 @@ function parseTracking(notes: string | null): string | null {
   return m ? m[1] : null;
 }
 
+const UK_POSTCODE_RE = /\b([A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2})\b/i;
+const COUNTRY_LABELS = ["united kingdom", "uk", "england", "scotland", "wales", "great britain"];
+
+/** Resolve the delivery address the DPD label would use (shipping_address,
+ *  else the "address:" block in notes). Mirrors the dpd-label route. */
+function resolveAddress(shippingAddress: string | null, notes: string | null): string {
+  const primary = (shippingAddress ?? "").trim();
+  if (primary && primary !== "—") return primary;
+  const raw = (notes ?? "").trim();
+  if (!raw) return "";
+  const marker = raw.toLowerCase().indexOf("address:");
+  const block = marker >= 0 ? raw.slice(marker + "address:".length) : raw;
+  return block
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.toLowerCase().startsWith("dpd tracking"))
+    .join("\n")
+    .trim();
+}
+
+/** True when the order has enough of an address for DPD (at least one line
+ *  that isn't just a postcode or a country name). The Dispatch button is
+ *  disabled otherwise, so we never hit DPD's "missing street/town" rejection. */
+function addressUsable(shippingAddress: string | null, notes: string | null): boolean {
+  const raw = resolveAddress(shippingAddress, notes);
+  if (!raw) return false;
+  const parts = raw.split(/[,\n]/).map((p) => p.trim()).filter(Boolean);
+  const usable = parts.filter((p) => {
+    if (COUNTRY_LABELS.includes(p.toLowerCase())) return false;
+    // A part that is ONLY a postcode doesn't count as a street/town line.
+    const withoutPc = p.replace(UK_POSTCODE_RE, "").trim();
+    return withoutPc.length > 0;
+  });
+  return usable.length >= 1;
+}
+
 type OrderRow = {
   id: number;
   order_number: string | null;
@@ -268,6 +304,9 @@ export async function GET(req: NextRequest) {
         // orderId = the matched order, needed for the DPD label (may be null).
         orderId: o?.id ?? null,
         hasOrder: Boolean(o),
+        // Can we actually create a DPD label? Needs an order with a usable
+        // delivery address — otherwise DPD rejects "missing street/town".
+        canDispatch: Boolean(o) && addressUsable(o?.shipping_address ?? null, o?.notes ?? null),
         orderNumber: o?.order_number ?? null,
         customerName: c.full_name ?? o?.customer_name ?? null,
         customerEmail: c.email ?? o?.customer_email ?? null,

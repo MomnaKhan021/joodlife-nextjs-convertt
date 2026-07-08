@@ -120,7 +120,7 @@ function NavBadge({ type }: { type: string }) {
     let off = false;
     if (type === "clinical") {
       // Show pending count from clinical review queue
-      fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include" })
+      fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include", cache: "no-store" })
         .then((r) => r.json())
         .then((j) => {
           if (!off && j?.ok && typeof j.pending === "number" && j.pending > 0) setCount(j.pending);
@@ -129,7 +129,7 @@ function NavBadge({ type }: { type: string }) {
     } else if (type === "dispensing" || type === "dispatching") {
       // Both badges come from one counts call: awaiting → Dispatch queue,
       // dispatched → Dispatched. The numbers shift as orders get tracking.
-      fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include" })
+      fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include", cache: "no-store" })
         .then((r) => r.json())
         .then((j) => {
           if (off || !j?.ok) return;
@@ -138,7 +138,7 @@ function NavBadge({ type }: { type: string }) {
         })
         .catch(() => {});
     } else {
-      fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include" })
+      fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
         .then((r) => r.json())
         .then((j) => {
           if (!off && j?.ok && typeof j.total === "number") setCount(j.total);

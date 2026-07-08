@@ -38,6 +38,7 @@ type DispatchOrder = {
   id: number; // consultation id — dispatch state keys off this
   orderId: number | null; // matched paid order — needed for the DPD label
   hasOrder: boolean;
+  canDispatch: boolean; // order has a usable delivery address for DPD
   orderNumber: string | null;
   customerName: string | null;
   customerEmail: string | null;
@@ -172,6 +173,10 @@ function OrderCard({
       setError("No order/address on file — can't create a DPD label for this patient yet.");
       return;
     }
+    if (!o.canDispatch) {
+      setError("Delivery address is incomplete (missing street/town) — DPD can't create a label. Fix the order address first.");
+      return;
+    }
     if (!window.confirm(`Dispatch order ${o.orderNumber ?? `#${o.id}`} and print the DPD label?`)) return;
     // Open the label window NOW, inside the click gesture, so the browser
     // doesn't block it as a popup (creating the DPD shipment is slow, and
@@ -223,7 +228,7 @@ function OrderCard({
     } finally {
       setBusy(false);
     }
-  }, [busy, o.id, o.orderId, o.orderNumber, onDispatched]);
+  }, [busy, o.id, o.orderId, o.canDispatch, o.orderNumber, onDispatched]);
 
   return (
     <div className="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
@@ -261,16 +266,24 @@ function OrderCard({
             <button
               type="button"
               onClick={dispatch}
-              disabled={busy || !o.hasOrder}
-              title={o.hasOrder ? undefined : "No order/address on file for this patient"}
+              disabled={busy || !o.canDispatch}
+              title={
+                o.canDispatch
+                  ? undefined
+                  : o.hasOrder
+                    ? "Delivery address is incomplete (missing street/town)"
+                    : "No order/address on file for this patient"
+              }
               className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
             >
               {busy ? "Dispatching…" : "Dispatch"}
             </button>
           </div>
-          {!o.hasOrder && (
+          {!o.canDispatch && (
             <span className="max-w-[280px] text-right text-[11px] text-[#9ca3af]">
-              No order/address on file — DPD label unavailable.
+              {o.hasOrder
+                ? "Incomplete delivery address — DPD label unavailable."
+                : "No order/address on file — DPD label unavailable."}
             </span>
           )}
           {note && <span className="text-[12px] text-[#2f5d2a]">{note}</span>}
@@ -332,7 +345,7 @@ export default function DispatchQueuePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin-tools/dispatch", { credentials: "include" });
+      const res = await fetch("/api/admin-tools/dispatch", { credentials: "include", cache: "no-store" });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed to load");
       setOrders(j.orders as DispatchOrder[]);
