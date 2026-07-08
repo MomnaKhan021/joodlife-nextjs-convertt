@@ -391,6 +391,14 @@ function detailHref(key: CollectionKey, id: unknown): string {
   if (key === "orders") return `/admin-tools/orders/${id}`;
   return `/admin-tools/edit/${key}/${id}`;
 }
+/** Per-row destination. Customers open the rich customer page (keyed by
+ *  email — full order history + stats) rather than the generic user editor. */
+function rowHref(key: CollectionKey, row: Row): string {
+  if (key === "users" && typeof row.email === "string" && row.email) {
+    return `/admin-tools/customers/${encodeURIComponent(row.email)}`;
+  }
+  return detailHref(key, row.id);
+}
 function newHref(key: CollectionKey): string {
   if (key === "products") return `/admin-tools/products/new`;
   return `/admin-tools/edit/${key}/new`;
@@ -616,7 +624,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                   <tr
                     key={String(row.id ?? idx)}
                     className="db-table__row--link"
-                    onClick={() => router.push(detailHref(tab.key, row.id))}
+                    onClick={() => router.push(rowHref(tab.key, row))}
                   >
                     {tab.columns.map((c) => (
                       <td key={c.key}>
@@ -629,10 +637,10 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                     ))}
                     <td className="db-table__edit">
                       <Link
-                        href={detailHref(tab.key, row.id)}
+                        href={rowHref(tab.key, row)}
                         className="db-btn db-btn--ghost"
                       >
-                        {tab.key === "orders" ? "View" : "Edit"}
+                        {tab.key === "orders" || tab.key === "users" ? "View" : "Edit"}
                       </Link>
                     </td>
                   </tr>
@@ -667,10 +675,10 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                   ))}
                 </dl>
                 <Link
-                  href={detailHref(tab.key, row.id)}
+                  href={rowHref(tab.key, row)}
                   className="db-btn db-btn--block"
                 >
-                  {tab.key === "orders" ? "View →" : "Edit →"}
+                  {tab.key === "orders" || tab.key === "users" ? "View →" : "Edit →"}
                 </Link>
               </li>
             ))}

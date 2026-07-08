@@ -693,22 +693,43 @@ export default function OrderDetailClient({ id }: { id: string }) {
             <Card>
               <div className="px-5 py-4">
                 <h2 className="text-[14px] font-semibold">Customer</h2>
-                <p className="mt-2 text-[13px] font-medium text-[#1450b0]">
-                  {order.customer_name ?? "—"}
-                </p>
+                {order.customer_email ? (
+                  <Link
+                    href={`/admin-tools/customers/${encodeURIComponent(order.customer_email)}`}
+                    className="mt-2 block text-[13px] font-medium text-[#1450b0] hover:underline"
+                  >
+                    {order.customer_name ?? order.customer_email}
+                  </Link>
+                ) : (
+                  <p className="mt-2 text-[13px] font-medium text-[#303030]">
+                    {order.customer_name ?? "—"}
+                  </p>
+                )}
 
                 <h3 className="mt-4 text-[13px] font-semibold">Contact information</h3>
                 {order.customer_email ? (
                   <a
                     href={`mailto:${order.customer_email}`}
-                    className="block text-[13px] text-[#1450b0]"
+                    className="block text-[13px] text-[#1450b0] hover:underline"
                   >
                     {order.customer_email}
                   </a>
                 ) : null}
-                <p className="text-[13px] text-[#616161]">
-                  {order.customer_phone || "No phone number"}
-                </p>
+                {order.customer_phone ? (
+                  <a
+                    href={`https://wa.me/${order.customer_phone.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] text-[#1450b0] hover:underline"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                      <path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.9 5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2s-1.2.3-4-1.2-4.3-4.3-4.5-4.5-1.3-1.7-1.3-3.2.8-2.2 1.1-2.5.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.5.7c-.2.2-.3.4-.1.7s.8 1.3 1.6 2c1 .9 1.9 1.2 2.2 1.3s.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.6-.1 1.2Z" />
+                    </svg>
+                    {order.customer_phone}
+                  </a>
+                ) : (
+                  <p className="text-[13px] text-[#616161]">No phone number</p>
+                )}
 
                 <h3 className="mt-4 text-[13px] font-semibold">Shipping address</h3>
                 <p className="whitespace-pre-line text-[13px] text-[#616161]">

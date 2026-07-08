@@ -84,6 +84,7 @@ export function sectionForPath(
   if (p.startsWith("/admin-tools/inventory")) return "inventory";
   if (p.startsWith("/admin-tools/products")) return "products";
   if (p.startsWith("/admin-tools/orders")) return "orders";
+  if (p.startsWith("/admin-tools/customers")) return "customers";
   if (p.startsWith("/admin-tools/shopify-import")) return "admin-only";
   if (p.startsWith("/admin-tools/hubspot-sync")) return "admin-only";
   if (p.startsWith("/admin-tools/edit/")) {
