@@ -15,8 +15,8 @@
 }
 
 .db-shell__header {
-  max-width: 1100px;
-  margin: 0 auto 18px;
+  max-width: 1240px;
+  margin: 0 auto 16px;
 }
 .db-shell__eyebrow {
   font-size: 12px;
@@ -41,9 +41,54 @@
 }
 
 .db-browser {
-  max-width: 1100px;
+  max-width: 1240px;
   margin: 0 auto;
 }
+
+/* ---------- KPI header (orders) ---------- */
+.db-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+@media (min-width: 620px) {
+  .db-kpis { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1000px) {
+  .db-kpis { grid-template-columns: repeat(6, 1fr); }
+}
+.db-kpi {
+  background: #fff;
+  border: 1px solid #e1e3e5;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  min-width: 0;
+}
+.db-kpi__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.db-kpi__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6d7175;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.db-kpi__value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.db-kpi__spark { width: 56px; height: 22px; flex: none; opacity: 0.9; }
 
 /* ---------- Tabs ---------- */
 .db-tabs {
@@ -157,19 +202,19 @@
 @media (min-width: 760px) {
   .db-table-wrap { display: block; }
 }
-.db-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.db-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .db-table thead th {
   text-align: left;
   font-weight: 600;
   color: #6d7175;
-  font-size: 12px;
+  font-size: 11.5px;
   background: #fafbfb;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-bottom: 1px solid #e1e3e5;
   white-space: nowrap;
 }
 .db-table tbody td {
-  padding: 12px 16px;
+  padding: 9px 14px;
   border-bottom: 1px solid #f1f1f1;
   color: #303030;
   vertical-align: middle;

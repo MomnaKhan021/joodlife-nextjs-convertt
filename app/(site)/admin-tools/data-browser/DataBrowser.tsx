@@ -137,6 +137,78 @@ const fmtDateTime = (iso: unknown) => {
   });
 };
 
+/** Tiny inline sparkline for a KPI card (Shopify-style). */
+function Sparkline({ data }: { data: number[] }) {
+  if (!data || data.length < 2) {
+    return <div className="db-kpi__spark" aria-hidden />;
+  }
+  const w = 96;
+  const h = 28;
+  const max = Math.max(...data, 1);
+  const step = w / (data.length - 1);
+  const pts = data
+    .map((v, i) => `${(i * step).toFixed(1)},${(h - (v / max) * (h - 4) - 2).toFixed(1)}`)
+    .join(" ");
+  return (
+    <svg className="db-kpi__spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
+      <polyline points={pts} fill="none" stroke="#0c5132" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+type OrdersSummary = {
+  ok: boolean;
+  orders: number;
+  items: number;
+  fulfilled: number;
+  delivered: number;
+  returns: number;
+  revenue: number;
+  series: number[];
+};
+
+/** Shopify-style KPI header for the Orders tab. */
+function OrdersKpiStrip() {
+  const [s, setS] = useState<OrdersSummary | null>(null);
+  useEffect(() => {
+    let off = false;
+    fetch("/api/admin-tools/orders-summary", { credentials: "include" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (!off && j?.ok) setS(j as OrdersSummary);
+      })
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, []);
+
+  const num = (n: number | undefined) =>
+    typeof n === "number" ? n.toLocaleString("en-GB") : "—";
+  const cards: { label: string; value: string; spark?: number[] }[] = [
+    { label: "Orders", value: num(s?.orders), spark: s?.series },
+    { label: "Items ordered", value: num(s?.items), spark: s?.series },
+    { label: "Revenue", value: s ? fmtCurrency(s.revenue) : "—" },
+    { label: "Returns", value: num(s?.returns) },
+    { label: "Orders fulfilled", value: num(s?.fulfilled) },
+    { label: "Orders delivered", value: num(s?.delivered) },
+  ];
+
+  return (
+    <div className="db-kpis" role="group" aria-label="Order metrics">
+      {cards.map((c) => (
+        <div key={c.label} className="db-kpi">
+          <div className="db-kpi__top">
+            <span className="db-kpi__label">{c.label}</span>
+            {c.spark ? <Sparkline data={c.spark} /> : null}
+          </div>
+          <span className="db-kpi__value">{s ? c.value : "…"}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const TABS: TabSpec[] = [
   {
     key: "orders",
@@ -451,6 +523,9 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           </button>
         ))}
       </nav>
+
+      {/* Shopify-style KPI header — orders tab only */}
+      {activeTab === "orders" ? <OrdersKpiStrip /> : null}
 
       {/* Description + search row */}
       <div className="db-toolbar">
