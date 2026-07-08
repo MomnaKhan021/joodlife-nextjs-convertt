@@ -85,9 +85,9 @@ export default async function FinalProductPage({ searchParams }: Props) {
   let products: FlowProduct[];
 
   if (category === "weight-loss") {
-    // Only the Wegovy Pill is offered for weight loss — the injections are
-    // not shown anywhere customer-facing.
-    const slugs = ["wegovy-pill"] as const;
+    // Wegovy Pill first (recommended, on top), then the Mounjaro and Wegovy
+    // injections below it.
+    const slugs = ["wegovy-pill", "mounjaro", "wegovy"] as const;
 
     const dbProducts = await Promise.all(
       slugs.map((s) => getStorefrontProduct(s).catch(() => null)),
