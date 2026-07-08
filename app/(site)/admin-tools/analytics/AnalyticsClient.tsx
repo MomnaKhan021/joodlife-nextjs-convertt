@@ -449,7 +449,7 @@ export default function AnalyticsClient() {
           <KpiCard accent label="Revenue" value={k ? gbp.format(k.revenue) : "—"} hint="Paid orders in the period" href="/admin-tools/data-browser?type=orders" />
           <KpiCard label="Orders" value={k ? num.format(k.orders) : "—"} href="/admin-tools/data-browser?type=orders" />
           <KpiCard label="Average order value" value={k?.aov != null ? gbp2.format(k.aov) : "—"} href="/admin-tools/data-browser?type=orders" />
-          <KpiCard label="Conversion rate" value={pct(k?.conversionRate)} hint="Consultations → paid orders" href="/admin-tools/data-browser?type=consultations" />
+          <KpiCard label="Consultation → order rate" value={pct(k?.conversionRate)} hint="Paid orders ÷ consultations (not a visitor conversion rate)" href="/admin-tools/data-browser?type=consultations" />
           <KpiCard label="Repeat order rate" value={pct(k?.repeatRate)} hint="Customers with 2+ orders" href="/admin-tools/data-browser?type=users" />
           <KpiCard label="Consultations" value={k ? num.format(k.consultations) : "—"} href="/admin-tools/data-browser?type=consultations" />
           <KpiCard label="Approved" value={k ? num.format(k.approved) : "—"} href="/admin-tools/clinical-queue" />
