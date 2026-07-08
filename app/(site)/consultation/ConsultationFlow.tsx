@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+import { upload } from "@vercel/blob/client";
+
 import { fbLead } from "@/lib/metaPixel";
 
 import {
@@ -1141,16 +1143,16 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
     setBusy(true);
     setErr(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/blob-upload?no-record=1", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      // Client-direct upload: the file goes browser → Vercel Blob directly,
+      // so it isn't capped by the ~4.5 MB serverless request-body limit that
+      // silently rejects phone photos. /api/blob-upload-token?public=1 only
+      // signs the token (images/PDF, 15 MB max).
+      const safeName = (file.name || "upload").replace(/[^a-zA-Z0-9._-]+/g, "-");
+      const blob = await upload(`consultation/${safeName}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob-upload-token?public=1",
       });
-      if (!res.ok) throw new Error(`Upload failed (${res.status})`);
-      const json = await res.json();
-      setAnswer(slide.field!, json.url);
+      setAnswer(slide.field!, blob.url);
       setAnswer("_upload_skipped", false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));

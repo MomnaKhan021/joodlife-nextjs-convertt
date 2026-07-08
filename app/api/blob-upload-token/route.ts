@@ -1,12 +1,19 @@
 /**
- * Admin-only token endpoint for Vercel Blob CLIENT-direct uploads.
+ * Token endpoint for Vercel Blob CLIENT-direct uploads.
  *
  * Why this exists: the previous /api/blob-upload route streamed the whole
  * file through our serverless function — but Vercel's default request body
- * limit (~4.5 MB) silently rejected larger product photos before our code
- * ever ran. Switching to client-direct upload (file goes browser → Blob
+ * limit (~4.5 MB) silently rejected larger uploads (product photos, and
+ * phone photos of prescriptions in the consultation) before our code ever
+ * ran. Switching to client-direct upload (file goes browser → Blob
  * directly) removes that ceiling entirely. The server's only job is to
- * sign the client token after verifying the caller is an admin.
+ * sign the client token.
+ *
+ * Two modes:
+ *   default        — admin-gated. Media library / product images.
+ *   ?public=1      — anonymous, for the consultation prescription upload.
+ *                    Locked down to images/PDF up to 15 MB (patients aren't
+ *                    logged in, so we can't require an admin cookie here).
  *
  * See https://vercel.com/docs/storage/vercel-blob/client-upload
  */
@@ -33,12 +40,36 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json()) as HandleUploadBody;
 
+  // The consultation prescription upload runs unauthenticated (patients
+  // aren't logged in). That path passes ?public=1 and is locked to
+  // images/PDF up to 15 MB. Everything else stays admin-gated.
+  const isPublic = req.nextUrl.searchParams.get("public") === "1";
+
   try {
     const result = await handleUpload({
       body,
       request: req,
-      // Guard the token: only signed-in admins can request upload URLs.
       onBeforeGenerateToken: async () => {
+        if (isPublic) {
+          return {
+            allowedContentTypes: [
+              "image/png",
+              "image/jpeg",
+              "image/jpg",
+              "image/webp",
+              "image/gif",
+              "image/avif",
+              "image/heic",
+              "image/heif",
+              "application/pdf",
+            ],
+            maximumSizeInBytes: 15 * 1024 * 1024,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({ source: "consultation" }),
+          };
+        }
+
+        // Guard the token: only signed-in admins can request upload URLs.
         const payload = await getPayloadInstance();
         const { user } = await payload.auth({ headers: await nextHeaders() });
         if (!user || (user as unknown as { role?: string }).role !== "admin") {
