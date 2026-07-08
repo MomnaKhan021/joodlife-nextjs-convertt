@@ -35,24 +35,21 @@ const FALLBACK_ID: Record<string, number> = {
 };
 
 /** Short selector-row descriptions + recommended flag + thumbnail for
- * weight-loss. `image` is the local fallback used when the dashboard
- * product image (heroImageUrl) isn't available. */
+ * weight-loss. Images are NOT hard-coded here — they come from the
+ * dashboard product (hero image, then gallery). */
 const WL_META: Record<
   string,
-  { blurb: string; recommended?: boolean; image: string }
+  { blurb: string; recommended?: boolean }
 > = {
   mounjaro: {
     blurb: "Advanced dual-action treatment for appetite control.",
-    image: "/assets/figma/pdp/mounjaro-1.png",
   },
   wegovy: {
     blurb: "Once-weekly injection to support long-term weight management.",
-    image: "/assets/category/wl-wegovy.png",
   },
   "wegovy-pill": {
     blurb: "Once-daily oral tablet — the same active ingredient, no needles.",
     recommended: true,
-    image: "/assets/wegovy/what-pills.png",
   },
 };
 
@@ -118,7 +115,13 @@ export default async function FinalProductPage({ searchParams }: Props) {
         productId: db?.id ?? FALLBACK_ID[slug] ?? 0,
         title: editorial.title,
         italicWord: editorial.italicWord,
-        image: db?.heroImageUrl ?? WL_META[slug]?.image ?? editorial.gallery[0]?.src ?? "",
+        // Image comes from the dashboard product (hero, else first gallery
+        // image); editorial art is only a last resort if none is uploaded.
+        image:
+          db?.heroImageUrl ??
+          db?.galleryImageUrls?.[0] ??
+          editorial.gallery[0]?.src ??
+          "",
         lede: editorial.lede,
         blurb: WL_META[slug]?.blurb ?? editorial.lede.slice(0, 90),
         recommended: WL_META[slug]?.recommended,
@@ -143,7 +146,8 @@ export default async function FinalProductPage({ searchParams }: Props) {
         productId: db?.id ?? c.productId,
         title: db?.title ?? c.title,
         italicWord: c.italicWord,
-        image: c.image || db?.heroImageUrl || "",
+        // Dashboard image wins (hero, else gallery); catalog art is fallback.
+        image: db?.heroImageUrl ?? db?.galleryImageUrls?.[0] ?? c.image ?? "",
         lede: db?.tagline ?? c.lede,
         blurb: c.blurb,
         recommended: c.recommended,
