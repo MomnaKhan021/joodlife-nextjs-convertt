@@ -232,15 +232,20 @@ async function repriceItems(
       ? Number(product.from_price)
       : null;
 
-    // If the cart row has a dose, match it against variants_json
+    // If the cart row has a dose, match it against variants_json.
+    // The product page appends "mg" to bare-number dashboard labels
+    // ("2.5" -> "2.5mg") for display, so the cart's dose string can differ
+    // from the raw variant label by unit/whitespace. Normalise both sides
+    // (drop spaces + a trailing "mg") so "2.5", "2.5mg" and "2.5 mg" match.
     if (item.dose) {
+      const normDose = (s: string) =>
+        s.trim().toLowerCase().replace(/\s+/g, "").replace(/mg$/, "");
+      const wanted = normDose(item.dose);
       const variants = Array.isArray(product.variants_json)
         ? (product.variants_json as Array<{ label?: string; price?: number }>)
         : [];
       const match = variants.find(
-        (v) =>
-          (v?.label ?? "").trim().toLowerCase() ===
-          (item.dose ?? "").trim().toLowerCase()
+        (v) => normDose(v?.label ?? "") === wanted
       );
       if (!match) {
         return {
