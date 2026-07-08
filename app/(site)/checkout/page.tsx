@@ -44,17 +44,12 @@ export default function CheckoutPage() {
           aria-label="View Jood Life reviews on Trustpilot"
           className="mx-auto flex max-w-fit flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-md text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00b67a]"
         >
+          {/* Logo already includes the star + wordmark + 5 stars, so no
+              separate stars image (that caused a duplicate row of stars). */}
           <Image
             src="/assets/icons/trustpilot-logo.svg"
-            alt="Trustpilot"
-            width={92}
-            height={20}
-            className="h-5 w-auto shrink-0"
-          />
-          <Image
-            src="/assets/icons/trustpilot-stars.svg"
-            alt="5 stars"
-            width={104}
+            alt="Trustpilot — rated 4.4 out of 5"
+            width={175}
             height={20}
             className="h-5 w-auto shrink-0"
           />
