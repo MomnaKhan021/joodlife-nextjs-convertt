@@ -678,7 +678,9 @@ function CheckoutForm() {
     <section className="mx-auto w-full max-w-[1327px] flex-1 px-5 py-10 md:px-8 lg:py-12">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-[24px]">
         {/* ════════ LEFT: form card ════════ */}
-        <div className="rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10">
+        {/* On mobile the order summary sits on top (order-1) and the form
+            below (order-2); on desktop the form returns to the left column. */}
+        <div className="order-2 rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10 lg:order-1">
           {/* 1. Shipping Details */}
           <h2 className="font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
             <span className="mr-2 text-[#142e2a]">1.</span>Shipping Details
@@ -873,23 +875,11 @@ function CheckoutForm() {
             </div>
           ) : null}
 
-          {/* Payment method tabs */}
-          <div className="mt-5 grid grid-cols-4 gap-2.5">
-            <MethodTab active>
-              <CardGlyph />
-              <span>Card</span>
-            </MethodTab>
-            <MethodTab>
-              <RevolutGlyph />
-              <span>Revolut Pay</span>
-            </MethodTab>
-            <MethodTab>
-              <BillieGlyph />
-              <span>Billie</span>
-            </MethodTab>
-            <MethodTab dropdown>
-              <span className="italic">pay</span>
-            </MethodTab>
+          {/* Card is the only on-page method (Apple Pay / Google Pay are the
+              express button above); no extra provider tabs. */}
+          <div className="mt-5 flex w-fit items-center gap-2 rounded-[8px] border border-[#142e2a] bg-white px-4 py-2.5 font-ui text-[14px] font-semibold text-[#142e2a]">
+            <CardGlyph />
+            <span>Card</span>
           </div>
 
           {/* Card number */}
@@ -1060,8 +1050,8 @@ function CheckoutForm() {
           </div>
         </div>
 
-        {/* ════════ RIGHT: order summary ════════ */}
-        <aside className="lg:pt-2">
+        {/* ════════ RIGHT: order summary (top on mobile) ════════ */}
+        <aside className="order-1 lg:order-2 lg:pt-2">
           <h2 className="font-ui text-[25px] font-semibold leading-[26px] tracking-[-0.49px] text-[#142e2a]">
             Order Summary
           </h2>
@@ -1327,30 +1317,6 @@ function SummaryRow({
   );
 }
 
-function MethodTab({
-  active,
-  dropdown,
-  children,
-}: {
-  active?: boolean;
-  dropdown?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className={[
-        "flex h-[44px] items-center justify-center gap-1.5 rounded-[8px] border font-ui text-[12px] font-bold transition-colors",
-        active
-          ? "border-[#142e2a] bg-[#142e2a] text-white"
-          : "border-[#e7e8e3] bg-white text-[#666565]",
-      ].join(" ")}
-    >
-      {children}
-      {dropdown ? <ChevronGlyph className="opacity-60" /> : null}
-    </div>
-  );
-}
-
 /* ---------------- Glyphs ---------------- */
 function CardGlyph() {
   return (
@@ -1358,18 +1324,6 @@ function CardGlyph() {
       <rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
       <path d="M2 9.5h20" stroke="currentColor" strokeWidth="1.8" />
     </svg>
-  );
-}
-function RevolutGlyph() {
-  return (
-    <span className="font-display text-[13px] font-extrabold leading-none">R</span>
-  );
-}
-function BillieGlyph() {
-  return (
-    <span className="grid h-4 w-4 place-items-center rounded-[3px] bg-[#0a0a0a] text-[9px] font-bold leading-none text-white">
-      B
-    </span>
   );
 }
 function ChevronGlyph({ className = "" }: { className?: string }) {
