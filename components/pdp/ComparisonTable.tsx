@@ -6,10 +6,12 @@ interface ComparisonTableProps {
   active: PDPProduct["comparisonActive"];
 }
 
+// Per-column palette matching the Figma: soft vertical gradients — blue,
+// lavender and grey — with a readable label colour for each.
 const COLUMNS = [
-  { key: "wegovyTablet", label: "Wegovy Pills",     color: "#84988b", image: "/assets/wegovy/how-pill.png" },        // sage
-  { key: "mounjaro",     label: "Mounjaro KwikPen", color: "#b39bb3", image: "/assets/figma/pdp/mounjaro-1.png" },   // lavender
-  { key: "wegovy",       label: "Wegovy Injection", color: "#c9a78a", image: "/assets/figma/jood-injection-pen.png" }, // tan
+  { key: "wegovyTablet", label: "Wegovy Pills",     text: "#5f7fa6", from: "#dfe9f6", to: "#aec6e6", image: "/assets/wegovy/how-pill.png" },        // blue
+  { key: "mounjaro",     label: "Mounjaro KwikPen", text: "#8a6b97", from: "#ece0f1", to: "#c9a9d6", image: "/assets/figma/pdp/mounjaro-1.png" },   // lavender
+  { key: "wegovy",       label: "Wegovy Injection", text: "#7c8088", from: "#eaebee", to: "#c3c7cd", image: "/assets/figma/jood-injection-pen.png" }, // grey
 ] as const;
 
 /**
@@ -66,7 +68,7 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                       </span>
                       <span
                         className="font-display text-[12px] font-bold leading-[15px] tracking-[-0.01em] md:text-[16px] md:leading-[20px]"
-                        style={{ color: c.color }}
+                        style={{ color: c.text }}
                       >
                         {c.label}
                       </span>
@@ -102,7 +104,7 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                             : "border-[#142e2a]/10",
                         ].join(" ")}
                         style={{
-                          backgroundColor: `${c.color}26`, // 15% tint
+                          background: `linear-gradient(180deg, ${c.from}, ${c.to})`,
                         }}
                       >
                         {value}
