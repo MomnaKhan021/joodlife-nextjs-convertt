@@ -20,7 +20,7 @@
 
 export type Answers = Record<string, unknown>;
 
-export const TOTAL_STEPS = 22;
+export const TOTAL_STEPS = 21;
 
 export const DOSES = {
   Mounjaro: ["2.5 mg", "5 mg", "7.5 mg", "10 mg", "12.5 mg", "15 mg", "Not sure"],
@@ -512,16 +512,9 @@ export const SLIDES: SlideDef[] = [
         desc: "A clinician will recommend the best option",
       },
     ],
-    next: () => "s21",
-  },
-  // ── Slide 22: Complete purchase ──────────────────────────────
-  {
-    id: "s21",
-    type: "purchase",
-    step: 22,
-    title: "Complete your purchase first",
-    subtitle:
-      "Once your order is placed, you can proceed with the required video consultation.",
+    // Submitting the questionnaire goes straight to the success/"making a
+    // plan" screen — the purchase step is removed; buying happens on the
+    // final product page the success screen redirects to.
     next: () => "s_success",
   },
   // ── Block screens ────────────────────────────────────────────

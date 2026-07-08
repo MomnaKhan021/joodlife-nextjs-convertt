@@ -256,13 +256,11 @@ export default function ConsultationFlow({
 
   if (!slide) return null;
 
-  // Success screen replaces the chrome
+  // Success → "making a plan" loader that auto-redirects to the treatment page
   if (slide.type === "success") {
     return (
       <SuccessScreen
-        productSlug={productSlug}
-        consultationId={consultationId}
-        onShop={() =>
+        onRedirect={() =>
           router.push(
             productSlug
               ? `/final-product-page?category=${encodeURIComponent(productSlug)}`
@@ -1487,66 +1485,78 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
 /* Success screen                                                      */
 /* ------------------------------------------------------------------ */
 
-function SuccessScreen({
-  productSlug,
-  consultationId,
-  onShop,
-}: {
-  productSlug?: string;
-  consultationId: number | null;
-  onShop: () => void;
-}) {
-  // Clear the saved state once we've reached success
+const PLAN_STEPS = [
+  "Reviewing your answers",
+  "Matching your treatment",
+  "Preparing your plan",
+];
+
+/**
+ * Shown once the questionnaire is submitted: a short "we're making a plan
+ * for you" loader that then redirects to the treatment (final product) page.
+ * Replaces the old purchase + "choose your treatment" screens.
+ */
+function SuccessScreen({ onRedirect }: { onRedirect: () => void }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
         window.localStorage.removeItem(LOCAL_STORAGE_KEY);
       } catch {}
     }
-  }, []);
+    const t = setTimeout(onRedirect, 3200);
+    return () => clearTimeout(t);
+  }, [onRedirect]);
 
   return (
-    <section className="mx-auto w-full max-w-[640px] px-6 py-16 text-center md:py-24">
-      <div className="mx-auto mb-8 grid h-16 w-16 place-items-center rounded-full bg-[#142e2a] text-[#dff49f]">
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            d="M8 16.5L13.5 22L24 11.5"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-      <span className="inline-flex items-center rounded-full bg-[#dff49f] px-3 py-1 font-ui text-[12px] font-semibold uppercase tracking-[0.04em] text-[#142e2a]">
-        Submitted
-      </span>
-      <h1 className="mt-4 font-display text-[28px] font-bold leading-[34px] tracking-[-0.01em] text-[#142e2a] md:text-[32px] md:leading-[40px]">
-        Thank you for completing your consultation
+    <section className="mx-auto w-full max-w-[560px] px-6 py-20 text-center md:py-28">
+      <h1 className="font-display text-[28px] font-bold leading-[34px] tracking-[-0.01em] text-[#142e2a] md:text-[34px] md:leading-[40px]">
+        We&rsquo;re making a plan for you
       </h1>
-      <p className="mx-auto mt-3 max-w-[480px] font-ui text-[15px] leading-[24px] text-[#142e2a]/75">
-        A UK-licensed clinician will review your answers and follow up by email
-        {productSlug ? ` about your ${productSlug} treatment` : ""} within one
-        working day.
+      <p className="mx-auto mt-3 max-w-[420px] font-ui text-[15px] leading-[24px] text-[#142e2a]/70">
+        Give us a moment while we match your answers to the right treatment.
       </p>
-      {consultationId !== null ? (
-        <p className="mt-2 font-ui text-[12px] text-[#142e2a]/55">
-          Reference: #{consultationId}
-        </p>
-      ) : null}
+
+      <ul className="mx-auto mt-9 flex max-w-[320px] flex-col gap-3.5 text-left">
+        {PLAN_STEPS.map((label, i) => (
+          <li
+            key={label}
+            className="flex items-center gap-3 rounded-xl border border-[#142e2a]/10 bg-white px-4 py-3"
+            style={{ animation: `jl-fade-in 400ms ease-out ${i * 400}ms both` }}
+          >
+            <span
+              aria-hidden
+              className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#142e2a]/20 border-t-[#142e2a]"
+            />
+            <span className="font-ui text-[14px] font-medium text-[#142e2a]">
+              {label}
+            </span>
+            <span className="ml-auto font-ui text-[12px] text-[#142e2a]/45">
+              generating…
+            </span>
+          </li>
+        ))}
+      </ul>
+
       <button
         type="button"
-        onClick={onShop}
-        className="mt-8 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+        onClick={onRedirect}
+        className="mt-8 font-ui text-[13px] font-semibold text-[#142e2a] underline underline-offset-4 hover:text-[#0c2421]"
       >
-        Choose your treatment →
+        Continue now →
       </button>
+
+      <style jsx>{`
+        @keyframes jl-fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </section>
   );
 }
