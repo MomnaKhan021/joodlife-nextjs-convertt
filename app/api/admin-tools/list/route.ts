@@ -63,7 +63,8 @@ const SPECS: Record<string, SpecRow> = {
     table: "orders",
     columns:
       "id, order_number, customer_name, customer_email, customer_phone, " +
-      "total_amount, discount_amount, payment_method, status, created_at, updated_at",
+      "total_amount, discount_amount, payment_method, payment_status, status, " +
+      "items_json, notes, created_at, updated_at",
     searchableColumns: ["order_number", "customer_name", "customer_email", "status"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
   },
@@ -141,15 +142,25 @@ export async function GET(req: NextRequest) {
   );
   const offset = (page - 1) * pageSize;
 
-  const where = q
-    ? "WHERE " +
-      spec.searchableColumns
-        .map(
-          (c) =>
-            `CAST(${c} AS TEXT) ILIKE '%${escLike(q)}%' ESCAPE '\\'`
-        )
-        .join(" OR ")
-    : "";
+  // A specific day to filter by (created_at on that calendar date). Only a
+  // strict YYYY-MM-DD is accepted, so it's safe to inline.
+  const dateParam = (url.searchParams.get("date") ?? "").trim();
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : "";
+
+  const conditions: string[] = [];
+  if (q) {
+    conditions.push(
+      "(" +
+        spec.searchableColumns
+          .map((c) => `CAST(${c} AS TEXT) ILIKE '%${escLike(q)}%' ESCAPE '\\'`)
+          .join(" OR ") +
+        ")",
+    );
+  }
+  if (validDate) {
+    conditions.push(`created_at::date = '${validDate}'`);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
   let drizzle: DrizzleLike;
   let sql: SqlRaw;

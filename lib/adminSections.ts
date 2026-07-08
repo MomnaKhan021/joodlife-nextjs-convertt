@@ -28,10 +28,10 @@ export type SectionKey =
 
 export const SECTIONS: { key: SectionKey; label: string; href: string; description: string }[] = [
   { key: "analytics", label: "Analytics", href: "/admin-tools/analytics", description: "Daily metrics dashboard" },
+  { key: "orders", label: "Orders", href: "/admin-tools/data-browser?type=orders", description: "View & edit orders" },
   { key: "clinical", label: "Clinical Queue", href: "/admin-tools/clinical-queue", description: "Approve / decline consultations" },
   { key: "dispensing", label: "Dispatch queue", href: "/admin-tools/dispensing-queue", description: "Dispense + dispatch awaiting orders" },
   { key: "dispatching", label: "Dispatched", href: "/admin-tools/dispatching", description: "Dispatched orders + tracking" },
-  { key: "orders", label: "Orders", href: "/admin-tools/data-browser?type=orders", description: "View & edit orders" },
   { key: "products", label: "Products", href: "/admin-tools/data-browser?type=products", description: "Manage products" },
   { key: "inventory", label: "Inventory", href: "/admin-tools/inventory", description: "Pharmacy stock" },
   { key: "customers", label: "Customers", href: "/admin-tools/data-browser?type=users", description: "View customers" },

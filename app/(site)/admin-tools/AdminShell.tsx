@@ -39,6 +39,14 @@ const NAV: NavItem[] = [
     icon: I("M4 20V10M10 20V4M16 20v-7M21 20H3"),
   },
   {
+    label: "Orders",
+    href: "/admin-tools/data-browser?type=orders",
+    match: (_p, t) => t === "orders",
+    badgeType: "orders",
+    section: "orders",
+    icon: I("M6 7h12l1 13H5L6 7zM9 9V6a3 3 0 0 1 6 0v3"),
+  },
+  {
     label: "Clinical Queue",
     href: "/admin-tools/clinical-queue",
     match: (p) => p.startsWith("/admin-tools/clinical-queue"),
@@ -51,6 +59,7 @@ const NAV: NavItem[] = [
     href: "/admin-tools/dispensing-queue",
     match: (p) => p.startsWith("/admin-tools/dispensing-queue"),
     section: "dispensing",
+    badgeType: "dispensing",
     icon: I("M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M8 14h8v6H8v-6z"),
   },
   {
@@ -58,15 +67,8 @@ const NAV: NavItem[] = [
     href: "/admin-tools/dispatching",
     match: (p) => p.startsWith("/admin-tools/dispatching"),
     section: "dispatching",
+    badgeType: "dispatching",
     icon: I("M16 3h5v5M21 3l-9 9M3 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"),
-  },
-  {
-    label: "Orders",
-    href: "/admin-tools/data-browser?type=orders",
-    match: (_p, t) => t === "orders",
-    badgeType: "orders",
-    section: "orders",
-    icon: I("M6 7h12l1 13H5L6 7zM9 9V6a3 3 0 0 1 6 0v3"),
   },
   {
     label: "Products",
@@ -124,6 +126,17 @@ function NavBadge({ type }: { type: string }) {
           if (!off && j?.ok && typeof j.pending === "number" && j.pending > 0) setCount(j.pending);
         })
         .catch(() => {});
+    } else if (type === "dispensing" || type === "dispatching") {
+      // Both badges come from one counts call: awaiting → Dispatch queue,
+      // dispatched → Dispatched. The numbers shift as orders get tracking.
+      fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include" })
+        .then((r) => r.json())
+        .then((j) => {
+          if (off || !j?.ok) return;
+          const n = type === "dispensing" ? j.awaiting : j.dispatched;
+          if (typeof n === "number" && n > 0) setCount(n);
+        })
+        .catch(() => {});
     } else {
       fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include" })
         .then((r) => r.json())
@@ -135,10 +148,11 @@ function NavBadge({ type }: { type: string }) {
     return () => { off = true; };
   }, [type]);
   if (count === null) return null;
-  const isClinical = type === "clinical";
+  // Work queues (needs action) → red; reference counts → neutral grey.
+  const attention = type === "clinical" || type === "dispensing";
   return (
     <span className={`ml-auto rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
-      isClinical ? "bg-[#dc2626] text-white" : "bg-[#e3e3e3] text-[#616161]"
+      attention ? "bg-[#dc2626] text-white" : "bg-[#e3e3e3] text-[#616161]"
     }`}>
       {count}
     </span>

@@ -83,12 +83,58 @@ const StatusPill = ({ value }: { value: unknown }) => {
   const v = String(value ?? "—").toLowerCase();
   let tone: "ok" | "warn" | "off" | "neutral" = "neutral";
   if (
-    ["paid", "delivered", "approved", "active", "published", "submitted"].includes(v)
+    ["paid", "delivered", "approved", "active", "published", "submitted", "dispatched", "fulfilled"].includes(v)
   )
     tone = "ok";
-  else if (["shipped", "reviewed", "draft", "pending"].includes(v)) tone = "warn";
-  else if (["cancelled", "rejected", "inactive", "false"].includes(v)) tone = "off";
+  else if (["shipped", "reviewed", "draft", "pending", "unfulfilled", "unpaid", "awaiting"].includes(v)) tone = "warn";
+  else if (["cancelled", "rejected", "inactive", "false", "refunded", "failed"].includes(v)) tone = "off";
   return <span className={`db-pill db-pill--${tone}`}>{String(value ?? "—")}</span>;
+};
+
+/** Count line-items in an order's items_json (string, array, or {body}). */
+function orderItemCount(raw: unknown): number {
+  let val: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      val = JSON.parse(raw);
+    } catch {
+      // "Title (dose) × 2, Other × 1" style summary → count segments
+      return raw.split(",").filter((s) => s.trim()).length || 1;
+    }
+  }
+  if (Array.isArray(val)) {
+    return val.reduce((sum, it) => {
+      const q = Number((it as { quantity?: unknown; qty?: unknown })?.quantity ?? (it as { qty?: unknown })?.qty ?? 1);
+      return sum + (Number.isFinite(q) && q > 0 ? q : 1);
+    }, 0);
+  }
+  if (val && typeof val === "object" && Array.isArray((val as { body?: unknown }).body)) {
+    return orderItemCount((val as { body: unknown }).body);
+  }
+  return 0;
+}
+
+/** Shopify-style fulfillment status derived from an order row. */
+function fulfillmentOf(row: Row): "Dispatched" | "Unfulfilled" {
+  const status = String(row.status ?? "").toLowerCase();
+  const notes = String(row.notes ?? "");
+  const dispatched =
+    ["shipped", "delivered", "dispatched"].includes(status) ||
+    /DPD tracking:/i.test(notes);
+  return dispatched ? "Dispatched" : "Unfulfilled";
+}
+
+/** Absolute short date+time for the orders list ("8 Jul, 12:06"). */
+const fmtDateTime = (iso: unknown) => {
+  if (typeof iso !== "string" || !iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const TABS: TabSpec[] = [
@@ -99,14 +145,10 @@ const TABS: TabSpec[] = [
       "Customer purchases. Synced from HubSpot Deals + created at checkout.",
     payloadCollectionSlug: "orders",
     columns: [
-      { key: "order_number", label: "Order #" },
-      {
-        key: "total_amount",
-        label: "Total",
-        render: (r) => (
-          <strong className="db-amount">{fmtCurrency(r.total_amount)}</strong>
-        ),
-      },
+      { key: "order_number", label: "Order #", render: (r) => (
+        <span className="db-cell-strong">{String(r.order_number ?? `#${r.id}`)}</span>
+      ) },
+      { key: "created_at", label: "Date", render: (r) => fmtDateTime(r.created_at) },
       {
         key: "customer_name",
         label: "Customer",
@@ -119,8 +161,31 @@ const TABS: TabSpec[] = [
           </div>
         ),
       },
-      { key: "status", label: "Status", render: (r) => <StatusPill value={r.status} /> },
-      { key: "created_at", label: "Created", render: (r) => fmtRelative(r.created_at) },
+      {
+        key: "total_amount",
+        label: "Total",
+        render: (r) => (
+          <strong className="db-amount">{fmtCurrency(r.total_amount)}</strong>
+        ),
+      },
+      {
+        key: "fulfillment",
+        label: "Fulfillment",
+        render: (r) => <StatusPill value={fulfillmentOf(r)} />,
+      },
+      {
+        key: "items_json",
+        label: "Items",
+        render: (r) => {
+          const n = orderItemCount(r.items_json);
+          return n > 0 ? `${n} item${n === 1 ? "" : "s"}` : "—";
+        },
+      },
+      {
+        key: "payment_status",
+        label: "Payment",
+        render: (r) => <StatusPill value={r.payment_status ?? r.status} />,
+      },
     ],
   },
   {
@@ -295,6 +360,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<ListResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -322,10 +388,15 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
     return () => clearTimeout(t);
   }, [search]);
 
-  // Reset to page 1 whenever the active tab or search changes.
+  // Reset to page 1 whenever the active tab, search or date filter changes.
   useEffect(() => {
     setPage(1);
-  }, [activeTab, debouncedSearch]);
+  }, [activeTab, debouncedSearch, dateFilter]);
+
+  // Date filter only applies to the orders tab; clear it when leaving.
+  useEffect(() => {
+    if (activeTab !== "orders") setDateFilter("");
+  }, [activeTab]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -337,6 +408,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
         pageSize: String(PAGE_SIZE),
       });
       if (debouncedSearch) params.set("q", debouncedSearch);
+      if (dateFilter && activeTab === "orders") params.set("date", dateFilter);
       const res = await fetch(`/api/admin-tools/list?${params.toString()}`, {
         credentials: "include",
       });
@@ -353,7 +425,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
     } finally {
       setLoading(false);
     }
-  }, [activeTab, debouncedSearch, page]);
+  }, [activeTab, debouncedSearch, dateFilter, page]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -388,9 +460,34 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Search ${tab.label.toLowerCase()}…`}
+            placeholder={
+              activeTab === "orders"
+                ? "Search by order # or email…"
+                : `Search ${tab.label.toLowerCase()}…`
+            }
             className="db-search"
           />
+          {activeTab === "orders" ? (
+            <>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                aria-label="Filter orders by date"
+                className="db-btn"
+                style={{ colorScheme: "light" }}
+              />
+              {dateFilter ? (
+                <button
+                  type="button"
+                  onClick={() => setDateFilter("")}
+                  className="db-btn"
+                >
+                  Clear date
+                </button>
+              ) : null}
+            </>
+          ) : null}
           <button
             type="button"
             onClick={() => fetchData()}

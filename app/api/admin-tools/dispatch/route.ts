@@ -9,7 +9,7 @@
  *
  * Accessible to role "admin" AND "staff".
  */
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -147,10 +147,48 @@ function normItems(raw: unknown): Item[] {
   return out;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const user = await authorize();
   if (!user) {
     return NextResponse.json({ ok: false, error: "Admin or staff role required" }, { status: 403 });
+  }
+
+  // Lightweight counts for the sidebar badges: how many orders are awaiting
+  // dispatch vs already dispatched. Same base set (paid, non-cancelled) and
+  // same "dispatched" rule as the full read below, but done in one SQL pass
+  // so the badges don't pull 300 rows. As soon as an order gets a tracking
+  // number it flips from `awaiting` to `dispatched`, so the numbers move.
+  if (req.nextUrl.searchParams.get("counts") === "1") {
+    try {
+      const { drizzle, sql } = await getDrizzle();
+      const res = await drizzle.execute(
+        sql.raw(`
+          SELECT
+            COUNT(*) FILTER (WHERE disp)::int      AS dispatched,
+            COUNT(*) FILTER (WHERE NOT disp)::int  AS awaiting
+          FROM (
+            SELECT (
+              LOWER(COALESCE(status::text, '')) IN ('shipped','delivered','dispatched')
+              OR notes ILIKE '%DPD tracking:%'
+            ) AS disp
+            FROM orders
+            WHERE LOWER(COALESCE(status::text, '')) NOT IN ('cancelled','refunded')
+              AND COALESCE(total_amount, 0) > 0
+          ) t
+        `),
+      );
+      const row = rowsOf<{ dispatched: number; awaiting: number }>(res)[0];
+      return NextResponse.json({
+        ok: true,
+        awaiting: Number(row?.awaiting ?? 0),
+        dispatched: Number(row?.dispatched ?? 0),
+      });
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: "Count failed", detail: err instanceof Error ? err.message : String(err) },
+        { status: 500 },
+      );
+    }
   }
 
   try {
