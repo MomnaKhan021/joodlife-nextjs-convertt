@@ -20,6 +20,7 @@ import type {
 } from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
+import { fbPurchaseOnce } from "@/lib/metaPixel";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 import UkAddressField from "@/components/checkout/UkAddressField";
@@ -257,6 +258,17 @@ function CheckoutForm() {
         Boolean(stripe && elements))) &&
     !busy;
 
+  // Fire the Purchase pixel event (deduped per order) then navigate to the
+  // thank-you page. Firing here — right after a confirmed payment, while the
+  // pixel is already loaded — is more reliable than only firing on the
+  // success page (which depends on an async order fetch).
+  function finalizeAndRedirect(orderNumber: string, amount: number) {
+    fbPurchaseOnce(orderNumber, amount, "GBP", { content_type: "product" });
+    setRedirecting(true);
+    clear();
+    router.replace(`/checkout/success?order=${encodeURIComponent(orderNumber)}`);
+  }
+
   async function handlePay() {
     if (!canPay) {
       setAttempted(true);
@@ -376,10 +388,9 @@ function CheckoutForm() {
       // Free order (£0 after a full discount): Stripe is skipped — the order
       // is already recorded as paid server-side. Go straight to success.
       if (orderJson.free || orderJson.totalAmount <= 0) {
-        setRedirecting(true);
-        clear();
-        router.replace(
-          `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+        finalizeAndRedirect(
+          orderJson.orderNumber,
+          Number(orderJson.totalAmount) || total,
         );
         return;
       }
@@ -435,10 +446,9 @@ function CheckoutForm() {
         (paymentIntent.status === "succeeded" ||
           paymentIntent.status === "processing")
       ) {
-        setRedirecting(true);
-        clear();
-        router.replace(
-          `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+        finalizeAndRedirect(
+          orderJson.orderNumber,
+          Number(orderJson.totalAmount) || total,
         );
         return;
       }
@@ -572,10 +582,9 @@ function CheckoutForm() {
 
       if (orderJson.free || orderJson.totalAmount <= 0) {
         ev.complete("success");
-        setRedirecting(true);
-        clear();
-        router.replace(
-          `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+        finalizeAndRedirect(
+          orderJson.orderNumber,
+          Number(orderJson.totalAmount) || total,
         );
         return;
       }
@@ -621,10 +630,9 @@ function CheckoutForm() {
         }
       }
 
-      setRedirecting(true);
-      clear();
-      router.replace(
-        `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
+      finalizeAndRedirect(
+        orderJson.orderNumber,
+        Number(orderJson.totalAmount) || total,
       );
     } catch (err) {
       try {

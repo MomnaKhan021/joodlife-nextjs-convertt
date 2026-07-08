@@ -72,3 +72,26 @@ export const fbLead = (params?: Record<string, unknown>) => fbTrack("Lead", para
 
 export const fbPurchase = (value: number, currency = "GBP", params?: Record<string, unknown>) =>
   fbTrack("Purchase", { value, currency, ...params });
+
+/**
+ * Fire Purchase AT MOST ONCE per order number, deduped across pages via
+ * sessionStorage — so we can fire it both at payment success (reliable, the
+ * pixel is already loaded) and on the thank-you page (fallback for direct
+ * hits) without double-counting.
+ */
+export function fbPurchaseOnce(
+  orderNumber: string,
+  value: number,
+  currency = "GBP",
+  params?: Record<string, unknown>,
+): void {
+  if (typeof window === "undefined" || !orderNumber) return;
+  const key = `jood:fbpurchase:${orderNumber}`;
+  try {
+    if (window.sessionStorage.getItem(key)) return;
+    window.sessionStorage.setItem(key, "1");
+  } catch {
+    /* sessionStorage blocked — fall through and fire anyway */
+  }
+  fbTrack("Purchase", { value, currency, ...params });
+}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { fbPurchase } from "@/lib/metaPixel";
+import { fbPurchaseOnce } from "@/lib/metaPixel";
 
 type OrderItem = {
   productId: number;
@@ -55,9 +55,13 @@ export default function SuccessClient({ orderNumber }: { orderNumber: string }) 
         if (!cancelled) {
           const o = json.order as OrderSummary;
           setOrder(o);
-          if (!trackedPurchase.current && typeof o.totalAmount === "number") {
+          // Fallback fire (e.g. arriving here directly) — deduped per order
+          // so it won't double-count with the fire at payment success.
+          if (!trackedPurchase.current) {
             trackedPurchase.current = true;
-            fbPurchase(o.totalAmount, "GBP", { content_type: "product" });
+            fbPurchaseOnce(o.orderNumber, Number(o.totalAmount) || 0, "GBP", {
+              content_type: "product",
+            });
           }
         }
       } catch (err) {
