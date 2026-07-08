@@ -136,6 +136,9 @@ function CheckoutForm() {
   } | null>(null);
 
   const [busy, setBusy] = useState(false);
+  // Only surface the "what's still needed" checklist AFTER the customer
+  // tries to pay — not on an untouched form.
+  const [attempted, setAttempted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
@@ -252,7 +255,10 @@ function CheckoutForm() {
     !busy;
 
   async function handlePay() {
-    if (!canPay) return;
+    if (!canPay) {
+      setAttempted(true);
+      return;
+    }
     setBusy(true);
     setError(null);
 
@@ -969,7 +975,7 @@ function CheckoutForm() {
           <button
             type="button"
             onClick={handlePay}
-            disabled={!canPay}
+            disabled={busy}
             className="mt-6 inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#142e2a] px-6 font-ui text-[16px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.18)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#142e2a] disabled:hover:shadow-none"
           >
             {busy ? (
@@ -989,7 +995,7 @@ function CheckoutForm() {
               Silent disabled states confuse customers (and just confused us in
               QA — a non-UK postcode looked like a bug when it was actually
               the UK-only gate working). */}
-          {!canPay && !busy ? (
+          {attempted && !canPay && !busy ? (
             <ul className="mt-3 space-y-1 font-ui text-[12px] text-[#c0392b]">
               {items.length === 0 ? <li>• Your cart is empty.</li> : null}
               {!firstName.trim() || !lastName.trim() ? (
