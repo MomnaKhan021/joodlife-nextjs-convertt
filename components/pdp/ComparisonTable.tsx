@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { COMPARISON_TABLE, type PDPProduct } from "@/lib/pdp-products";
 
 interface ComparisonTableProps {
@@ -5,9 +7,9 @@ interface ComparisonTableProps {
 }
 
 const COLUMNS = [
-  { key: "wegovyTablet", label: "Wegovy Pills",     color: "#84988b" }, // sage
-  { key: "mounjaro",     label: "Mounjaro KwikPen", color: "#b39bb3" }, // lavender
-  { key: "wegovy",       label: "Wegovy Injection", color: "#c9a78a" }, // tan
+  { key: "wegovyTablet", label: "Wegovy Pills",     color: "#84988b", image: "/assets/wegovy/how-pill.png" },        // sage
+  { key: "mounjaro",     label: "Mounjaro KwikPen", color: "#b39bb3", image: "/assets/figma/pdp/mounjaro-1.png" },   // lavender
+  { key: "wegovy",       label: "Wegovy Injection", color: "#c9a78a", image: "/assets/figma/jood-injection-pen.png" }, // tan
 ] as const;
 
 /**
@@ -53,6 +55,15 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                           : "",
                       ].join(" ")}
                     >
+                      <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[10px] bg-white/70 md:h-16 md:w-16">
+                        <Image
+                          src={c.image}
+                          alt=""
+                          fill
+                          sizes="64px"
+                          className="object-contain p-1"
+                        />
+                      </span>
                       <span
                         className="font-display text-[12px] font-bold leading-[15px] tracking-[-0.01em] md:text-[16px] md:leading-[20px]"
                         style={{ color: c.color }}
