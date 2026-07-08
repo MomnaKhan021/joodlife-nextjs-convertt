@@ -1220,15 +1220,6 @@ function CheckoutForm() {
             </span>
           </div>
 
-          {/* Delivery-thereafter note */}
-          <div className="mt-3 flex items-start gap-2 font-ui text-[14px] leading-[19px] text-[#545454]">
-            <TruckGlyph />
-            <span>
-              {formatPrice(197)} per delivery thereafter
-              <br />
-              Cancel or switch after 1 month
-            </span>
-          </div>
         </aside>
       </div>
     </section>
@@ -1369,15 +1360,6 @@ function LockGlyph() {
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-[#142e2a]">
       <rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
       <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-function TruckGlyph() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="mt-0.5 shrink-0 text-[#545454]">
-      <path d="M2 6h11v9H2zM13 9h5l3 3v3h-8z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <circle cx="6" cy="18" r="1.6" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="17" cy="18" r="1.6" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
