@@ -55,7 +55,9 @@ export default function ProductInfo({ product, productId }: ProductInfoProps) {
       productId: productId ?? PRODUCT_ID_BY_SLUG[product.slug] ?? 0,
       slug: product.slug,
       title: product.title,
-      dose: dosage.label,
+      // Blank label = simple product with no dose → send null so checkout
+      // reprices by the product's base price instead of matching a variant.
+      dose: dosage.label || null,
       price: parsePrice(dosage.perPack),
       imageUrl: product.gallery[0]?.src ?? null,
     });

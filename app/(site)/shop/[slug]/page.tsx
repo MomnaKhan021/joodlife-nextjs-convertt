@@ -49,17 +49,23 @@ function mergePdp(db: StorefrontProduct, content: PDPProduct): PDPProduct {
         }))
       : content.gallery;
 
-  // Dosages + prices → from the dashboard variants (fall back to editorial).
-  const dosages =
-    db.variants.length > 0
-      ? db.variants.map((v) => ({ label: v.label, perPack: formatGBP(v.price) }))
-      : content.dosages;
-
   const lowestVariant = db.variants.length
     ? Math.min(...db.variants.map((v) => v.price))
     : null;
-  const fromValue = db.fromPrice ?? lowestVariant;
+  const fromValue = db.fromPrice ?? db.subscriptionPrice ?? lowestVariant;
   const fromPrice = fromValue != null ? formatGBP(fromValue) : content.fromPrice;
+
+  // Dosages + prices → from the dashboard variants. A product with no
+  // variants (e.g. a beauty / one-off item managed only by price) is a
+  // SIMPLE product: show a single option at its own price with a blank
+  // label — never the editorial (Mounjaro) doses, which would inject a
+  // bogus dose the checkout can't reprice ("dose not available").
+  const dosages =
+    db.variants.length > 0
+      ? db.variants.map((v) => ({ label: v.label, perPack: formatGBP(v.price) }))
+      : fromValue != null
+        ? [{ label: "", perPack: formatGBP(fromValue) }]
+        : content.dosages;
 
   // Discount badge → explicit DB badge, else computed from compare price.
   let discountBadge = db.badge ?? content.discountBadge;

@@ -208,7 +208,7 @@ async function repriceItems(
 
   const result = (await drizzle.execute(
     sql.raw(
-      `SELECT id, slug, title, from_price, hero_image_url, variants_json, is_active
+      `SELECT id, slug, title, from_price, subscription_price, hero_image_url, variants_json, is_active
        FROM products
        WHERE slug IN (${inList})`
     )
@@ -228,9 +228,15 @@ async function repriceItems(
       return { ok: false, error: `Product "${product.title}" is no longer available` };
     }
 
-    let trustedPrice: number | null = product.from_price !== null
-      ? Number(product.from_price)
-      : null;
+    // Base price: from_price, else subscription_price (a simple product may
+    // be priced only via the subscription field). Variant match below can
+    // still override this for dosed products.
+    let trustedPrice: number | null =
+      product.from_price !== null
+        ? Number(product.from_price)
+        : product.subscription_price !== null
+          ? Number(product.subscription_price)
+          : null;
 
     // If the cart row has a dose, match it against variants_json.
     // The product page appends "mg" to bare-number dashboard labels

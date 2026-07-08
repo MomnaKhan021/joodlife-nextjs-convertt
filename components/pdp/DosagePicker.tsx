@@ -33,19 +33,26 @@ export default function DosagePicker({
   // to the "from" price only when there are no variants).
   const selectedPrice = dosages[selectedIndex]?.perPack ?? fromPrice;
 
+  // A SIMPLE product (single option with no dose/strength label — e.g. a
+  // beauty or one-off item) shows just its price: no strength grid, no
+  // "per pen" caption. Multi-variant medications keep the full picker.
+  const isSimple = dosages.length <= 1 && !dosages[0]?.label;
+
   return (
     <div className="flex flex-col gap-5">
-      <h3 className="font-display text-[18px] font-semibold leading-[22px] tracking-[-0.01em] text-[#142e2a]">
-        Select your strength
-      </h3>
+      {!isSimple && (
+        <>
+          <h3 className="font-display text-[18px] font-semibold leading-[22px] tracking-[-0.01em] text-[#142e2a]">
+            Select your strength
+          </h3>
 
-      {/* Dosage cards grid */}
-      <div
-        role="radiogroup"
-        aria-label="Dosage options"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
-      >
-        {dosages.map((d, i) => {
+          {/* Dosage cards grid */}
+          <div
+            role="radiogroup"
+            aria-label="Dosage options"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
+          >
+            {dosages.map((d, i) => {
           const isSelected = i === selectedIndex;
           return (
             <button
@@ -72,7 +79,9 @@ export default function DosagePicker({
             </button>
           );
         })}
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Price + CTA */}
       <div className="flex flex-col gap-3 pt-2">
@@ -80,9 +89,11 @@ export default function DosagePicker({
           <span className="font-display text-[26px] font-bold tracking-[-0.01em] text-[#142e2a]">
             {selectedPrice}
           </span>
-          <span className="font-ui text-[14px] text-[#142e2a]/70">
-            per 4-week pen
-          </span>
+          {!isSimple && (
+            <span className="font-ui text-[14px] text-[#142e2a]/70">
+              per 4-week pen
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-3">
