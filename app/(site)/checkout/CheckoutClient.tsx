@@ -139,6 +139,9 @@ function CheckoutForm() {
   // Only surface the "what's still needed" checklist AFTER the customer
   // tries to pay — not on an untouched form.
   const [attempted, setAttempted] = useState(false);
+  // True while navigating to the success page. Prevents the empty-cart
+  // screen flashing after we clear the cart (the "glitch" before thank-you).
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
@@ -373,6 +376,7 @@ function CheckoutForm() {
       // Free order (£0 after a full discount): Stripe is skipped — the order
       // is already recorded as paid server-side. Go straight to success.
       if (orderJson.free || orderJson.totalAmount <= 0) {
+        setRedirecting(true);
         clear();
         router.replace(
           `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
@@ -431,6 +435,7 @@ function CheckoutForm() {
         (paymentIntent.status === "succeeded" ||
           paymentIntent.status === "processing")
       ) {
+        setRedirecting(true);
         clear();
         router.replace(
           `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
@@ -567,6 +572,7 @@ function CheckoutForm() {
 
       if (orderJson.free || orderJson.totalAmount <= 0) {
         ev.complete("success");
+        setRedirecting(true);
         clear();
         router.replace(
           `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
@@ -615,6 +621,7 @@ function CheckoutForm() {
         }
       }
 
+      setRedirecting(true);
       clear();
       router.replace(
         `/checkout/success?order=${encodeURIComponent(orderJson.orderNumber)}`,
@@ -658,6 +665,23 @@ function CheckoutForm() {
       pr.off("paymentmethod", handler);
     };
   }, [stripe, total]);
+
+  /* ---------------- Redirecting to confirmation ---------------- */
+  // Shown after a successful payment while we navigate to the thank-you
+  // page — avoids the empty-cart screen flashing once the cart is cleared.
+  if (redirecting) {
+    return (
+      <section className="mx-auto flex w-full max-w-[560px] flex-1 flex-col items-center justify-center px-6 py-24 text-center">
+        <span
+          aria-hidden
+          className="h-8 w-8 animate-spin rounded-full border-2 border-[#142e2a]/20 border-t-[#142e2a]"
+        />
+        <p className="mt-5 font-ui text-[15px] font-semibold text-[#142e2a]">
+          Payment confirmed — taking you to your order&hellip;
+        </p>
+      </section>
+    );
+  }
 
   /* ---------------- Empty cart ---------------- */
   if (items.length === 0) {

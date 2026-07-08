@@ -603,6 +603,7 @@ export async function POST(req: NextRequest) {
               dose: i.dose ?? null,
               quantity: i.quantity,
               price: i.price,
+              imageUrl: i.imageUrl ?? null,
             })),
           });
         } catch (err) {

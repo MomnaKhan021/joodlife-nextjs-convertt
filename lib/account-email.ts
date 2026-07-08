@@ -125,7 +125,16 @@ export type OrderEmailItem = {
   dose?: string | null;
   quantity: number;
   price?: number | null;
+  imageUrl?: string | null;
 };
+
+/** Emails need ABSOLUTE image URLs — prefix relative /assets paths with the
+ *  site origin; leave full http(s) URLs (e.g. Vercel blob) untouched. */
+function absoluteImageUrl(src: string | null | undefined, base: string): string | null {
+  if (!src) return null;
+  if (/^https?:\/\//i.test(src)) return src;
+  return `${base}${src.startsWith("/") ? "" : "/"}${src}`;
+}
 
 export async function sendOrderConfirmationEmail(
   payload: Payload,
@@ -154,9 +163,14 @@ export async function sendOrderConfirmationEmail(
       const qty = Math.max(1, Number(it.quantity) || 1);
       const line =
         it.price != null ? gbp(Number(it.price) * qty) : "";
+      const img = absoluteImageUrl(it.imageUrl, url);
+      const imgCell = img
+        ? `<td width="56" style="padding:8px 12px 8px 0;vertical-align:middle"><img src="${img}" width="48" height="48" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;display:block;background:#f2ecf2" /></td>`
+        : "";
       return `<tr>
-        <td style="padding:8px 0;font-size:14px;color:#142e2a">${name} × ${qty}</td>
-        <td style="padding:8px 0;font-size:14px;color:#142e2a;text-align:right">${line}</td>
+        ${imgCell}
+        <td style="padding:8px 0;font-size:14px;color:#142e2a;vertical-align:middle">${name} × ${qty}</td>
+        <td style="padding:8px 0;font-size:14px;color:#142e2a;text-align:right;vertical-align:middle">${line}</td>
       </tr>`;
     })
     .join("");
@@ -250,9 +264,14 @@ Order placed at ${url}. Questions? Just reply to this email.`;
         const name = escapeHtml(`${it.title}${it.dose ? ` — ${it.dose}` : ""}`);
         const qty = Math.max(1, Number(it.quantity) || 1);
         const line = it.price != null ? gbp(Number(it.price) * qty) : "";
+        const img = absoluteImageUrl(it.imageUrl, url);
+        const imgCell = img
+          ? `<td width="52" style="padding:6px 10px 6px 0;vertical-align:middle"><img src="${img}" width="44" height="44" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;display:block;background:#f2ecf2" /></td>`
+          : "";
         return `<tr>
-          <td style="padding:6px 0;font-size:14px;color:#142e2a">${name} × ${qty}</td>
-          <td style="padding:6px 0;font-size:14px;color:#142e2a;text-align:right">${line}</td>
+          ${imgCell}
+          <td style="padding:6px 0;font-size:14px;color:#142e2a;vertical-align:middle">${name} × ${qty}</td>
+          <td style="padding:6px 0;font-size:14px;color:#142e2a;text-align:right;vertical-align:middle">${line}</td>
         </tr>`;
       })
       .join("");
