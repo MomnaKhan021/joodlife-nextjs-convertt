@@ -1,11 +1,20 @@
 /**
- * GET /api/admin-tools/dispatch
+ * /api/admin-tools/dispatch
  *
- * Powers the Dispatch queue (orders awaiting dispatch) and the Dispatched
- * list (orders with a tracking number). Returns paid, non-cancelled orders
- * with the fields those pages need — including the DPD tracking number,
- * which the dispatch-label flow saves into orders.notes as
- * "DPD tracking: <number> (shipment #…)".
+ * Powers the Dispatch queue and the Dispatched list. The pipeline is
+ * CONSULTATION-DRIVEN: a patient enters the queue when the pharmacist
+ * approves supply in the clinical queue (consultations.answers._review_decision
+ * = 'approved'). Each approved consultation is joined to the patient's most
+ * recent paid order (by email) for the shipping address + items the DPD
+ * label needs — but the order is optional (a card with no order can't print
+ * a DPD label; the UI disables it).
+ *
+ * Dispatch state lives on the CONSULTATION (answers._dispatched_at and
+ * ._tracking_number), so approving → awaiting-dispatch → dispatched all track
+ * the same entity and the sidebar counts move as expected:
+ *   GET               → { orders: [...] } (one entry per approved consultation)
+ *   GET ?counts=1     → { awaiting, dispatched }
+ *   POST { consultationId, trackingNumber? } → stamps the consultation dispatched
  *
  * Accessible to role "admin" AND "staff".
  */
@@ -73,11 +82,15 @@ type OrderRow = {
 };
 
 type ConsultRow = {
+  id: number;
   email: string | null;
   full_name: string | null;
+  phone: string | null;
   date_of_birth: string | null;
   product_slug: string | null;
+  status: string | null;
   answers: unknown;
+  created_at: string | null;
 };
 
 type Item = { title: string | null; dose: string | null; quantity: number };
@@ -153,11 +166,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Admin or staff role required" }, { status: 403 });
   }
 
-  // Lightweight counts for the sidebar badges: how many orders are awaiting
-  // dispatch vs already dispatched. Same base set (paid, non-cancelled) and
-  // same "dispatched" rule as the full read below, but done in one SQL pass
-  // so the badges don't pull 300 rows. As soon as an order gets a tracking
-  // number it flips from `awaiting` to `dispatched`, so the numbers move.
+  // Approved-for-supply is the gate into the pipeline.
+  const APPROVED_WHERE = `answers->>'_review_decision' = 'approved'`;
+
+  // Lightweight counts for the sidebar badges. awaiting = approved but not yet
+  // dispatched; dispatched = approved with a _dispatched_at stamp. As soon as
+  // a patient is dispatched they flip from awaiting → dispatched.
   if (req.nextUrl.searchParams.get("counts") === "1") {
     try {
       const { drizzle, sql } = await getDrizzle();
@@ -167,13 +181,9 @@ export async function GET(req: NextRequest) {
             COUNT(*) FILTER (WHERE disp)::int      AS dispatched,
             COUNT(*) FILTER (WHERE NOT disp)::int  AS awaiting
           FROM (
-            SELECT (
-              LOWER(COALESCE(status::text, '')) IN ('shipped','delivered','dispatched')
-              OR notes ILIKE '%DPD tracking:%'
-            ) AS disp
-            FROM orders
-            WHERE LOWER(COALESCE(status::text, '')) NOT IN ('cancelled','refunded')
-              AND COALESCE(total_amount, 0) > 0
+            SELECT (answers->>'_dispatched_at') IS NOT NULL AS disp
+            FROM consultations
+            WHERE ${APPROVED_WHERE}
           ) t
         `),
       );
@@ -193,73 +203,88 @@ export async function GET(req: NextRequest) {
 
   try {
     const { drizzle, sql } = await getDrizzle();
-    const result = await drizzle.execute(
+
+    // 1. Every consultation the pharmacist approved for supply — this is who
+    //    is in the dispatch pipeline (awaiting or already dispatched).
+    const cRes = await drizzle.execute(
       sql.raw(`
-        SELECT id, order_number, customer_name, customer_email, customer_phone,
-               shipping_address, notes, status, total_amount, items_json, created_at
-        FROM orders
-        WHERE LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
-          AND COALESCE(total_amount, 0) > 0
+        SELECT id, full_name, email, phone, date_of_birth, product_slug,
+               status, answers, created_at
+        FROM consultations
+        WHERE ${APPROVED_WHERE}
         ORDER BY created_at DESC NULLS LAST, id DESC
-        LIMIT 300
+        LIMIT 500
       `),
     );
-    const rows = rowsOf<OrderRow>(result);
+    const consults = rowsOf<ConsultRow>(cRes);
 
-    // Join the most recent consultation per customer email so each card can
-    // show the same clinical summary as the clinical queue.
+    // 2. Most-recent paid order per email → shipping address + items for the
+    //    DPD label. Optional: a patient with no paid order still appears, but
+    //    the card can't print a DPD label until an order exists.
     const emails = Array.from(
-      new Set(rows.map((r) => (r.customer_email ?? "").trim().toLowerCase()).filter(Boolean)),
+      new Set(consults.map((c) => (c.email ?? "").trim().toLowerCase()).filter(Boolean)),
     );
-    const consultByEmail = new Map<string, ConsultRow>();
+    const orderByEmail = new Map<string, OrderRow>();
     if (emails.length > 0) {
       const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
-      const cRes = await drizzle.execute(
+      const oRes = await drizzle.execute(
         sql.raw(`
-          SELECT DISTINCT ON (LOWER(email))
-                 email, full_name, date_of_birth, product_slug, answers
-          FROM consultations
-          WHERE LOWER(email) IN (${inList})
-          ORDER BY LOWER(email), created_at DESC NULLS LAST, id DESC
+          SELECT DISTINCT ON (LOWER(customer_email))
+                 id, order_number, customer_name, customer_email, customer_phone,
+                 shipping_address, notes, status, total_amount, items_json, created_at
+          FROM orders
+          WHERE LOWER(customer_email) IN (${inList})
+            AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
+            AND COALESCE(total_amount, 0) > 0
+          ORDER BY LOWER(customer_email), created_at DESC NULLS LAST, id DESC
         `),
       );
-      for (const c of rowsOf<ConsultRow>(cRes)) {
-        const key = (c.email ?? "").trim().toLowerCase();
-        if (key) consultByEmail.set(key, c);
+      for (const o of rowsOf<OrderRow>(oRes)) {
+        const key = (o.customer_email ?? "").trim().toLowerCase();
+        if (key) orderByEmail.set(key, o);
       }
     }
 
-    const orders = rows.map((r) => {
-      const c = consultByEmail.get((r.customer_email ?? "").trim().toLowerCase());
-      const statusText = String(r.status ?? "").toLowerCase();
-      const trackingNumber = parseTracking(r.notes);
-      const dispatched =
-        ["shipped", "delivered", "dispatched"].includes(statusText) ||
-        Boolean(trackingNumber);
+    const orders = consults.map((c) => {
+      let answers: Record<string, unknown> = {};
+      try {
+        answers =
+          c.answers && typeof c.answers === "object" && !Array.isArray(c.answers)
+            ? (c.answers as Record<string, unknown>)
+            : JSON.parse(String(c.answers ?? "{}"));
+      } catch {
+        answers = {};
+      }
+      const o = orderByEmail.get((c.email ?? "").trim().toLowerCase()) ?? null;
+      const dispatchedAt =
+        typeof answers._dispatched_at === "string" ? answers._dispatched_at : null;
+      const tracking =
+        typeof answers._tracking_number === "string" && answers._tracking_number
+          ? (answers._tracking_number as string)
+          : parseTracking(o?.notes ?? null);
       return {
-        id: r.id,
-        orderNumber: r.order_number,
-        customerName: r.customer_name,
-        customerEmail: r.customer_email,
-        customerPhone: r.customer_phone,
-        shippingAddress: r.shipping_address,
-        status: statusText,
-        total: Number(r.total_amount ?? 0) || 0,
-        createdAt: r.created_at,
-        trackingNumber,
-        dispatched,
-        items: normItems(r.items_json),
-        consultation: c
-          ? {
-              fullName: c.full_name,
-              dateOfBirth: c.date_of_birth,
-              productSlug: c.product_slug,
-              answers:
-                c.answers && typeof c.answers === "object" && !Array.isArray(c.answers)
-                  ? (c.answers as Record<string, unknown>)
-                  : {},
-            }
-          : null,
+        // id = consultation id: dispatch state (POST below) keys off this.
+        id: c.id,
+        // orderId = the matched order, needed for the DPD label (may be null).
+        orderId: o?.id ?? null,
+        hasOrder: Boolean(o),
+        orderNumber: o?.order_number ?? null,
+        customerName: c.full_name ?? o?.customer_name ?? null,
+        customerEmail: c.email ?? o?.customer_email ?? null,
+        customerPhone: c.phone ?? o?.customer_phone ?? null,
+        shippingAddress: o?.shipping_address ?? null,
+        status: dispatchedAt ? "dispatched" : "approved",
+        total: Number(o?.total_amount ?? 0) || 0,
+        createdAt: c.created_at,
+        trackingNumber: tracking,
+        dispatched: Boolean(dispatchedAt),
+        items: o ? normItems(o.items_json) : [],
+        consultation: {
+          fullName: c.full_name,
+          dateOfBirth: c.date_of_birth,
+          productSlug: c.product_slug,
+          answers,
+        },
       };
     });
 
@@ -267,6 +292,62 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: "Read failed", detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * POST /api/admin-tools/dispatch
+ * Body: { consultationId: number, trackingNumber?: string }
+ *
+ * Marks an approved consultation as dispatched by stamping _dispatched_at
+ * (and _tracking_number when a DPD label was created) into its answers JSON.
+ * This moves it out of the Dispatch queue and into Dispatched.
+ */
+export async function POST(req: NextRequest) {
+  const user = await authorize();
+  if (!user) {
+    return NextResponse.json({ ok: false, error: "Admin or staff role required" }, { status: 403 });
+  }
+
+  let body: { consultationId?: number; trackingNumber?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const id = Number(body.consultationId);
+  if (!id || !Number.isFinite(id)) {
+    return NextResponse.json({ ok: false, error: "consultationId required" }, { status: 400 });
+  }
+  const tracking =
+    typeof body.trackingNumber === "string" ? body.trackingNumber.trim() : "";
+
+  try {
+    const { drizzle, sql } = await getDrizzle();
+    const nowIso = new Date().toISOString();
+    const merge: Record<string, string> = { _dispatched_at: nowIso };
+    if (tracking) merge._tracking_number = tracking;
+    const mergeJson = JSON.stringify(merge).replace(/'/g, "''");
+    await drizzle.execute(
+      sql.raw(`
+        UPDATE consultations
+        SET answers = COALESCE(answers, '{}'::jsonb) || '${mergeJson}'::jsonb,
+            updated_at = now()
+        WHERE id = ${id}
+      `),
+    );
+    return NextResponse.json({
+      ok: true,
+      id,
+      dispatchedAt: nowIso,
+      trackingNumber: tracking || null,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: "Dispatch update failed", detail: err instanceof Error ? err.message : String(err) },
       { status: 500 },
     );
   }

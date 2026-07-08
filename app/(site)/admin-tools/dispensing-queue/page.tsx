@@ -35,7 +35,9 @@ type Consultation = {
   answers: Record<string, unknown>;
 };
 type DispatchOrder = {
-  id: number;
+  id: number; // consultation id — dispatch state keys off this
+  orderId: number | null; // matched paid order — needed for the DPD label
+  hasOrder: boolean;
   orderNumber: string | null;
   customerName: string | null;
   customerEmail: string | null;
@@ -140,19 +142,17 @@ function OrderCard({
       },
     );
     printLabels(labels);
-    // Then mark the order dispatched (no DPD tracking is created this way).
+    // Then mark this patient (consultation) dispatched — no DPD tracking is
+    // created this way. This moves them out of the queue into Dispatched.
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(
-        `/api/admin-tools/record?type=orders&id=${o.id}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ fields: { status: "shipped" } }),
-        },
-      );
+      const res = await fetch(`/api/admin-tools/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ consultationId: o.id }),
+      });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error ?? `Failed to mark dispatched (HTTP ${res.status})`);
@@ -168,6 +168,10 @@ function OrderCard({
 
   const dispatch = useCallback(async () => {
     if (busy) return;
+    if (!o.orderId) {
+      setError("No order/address on file — can't create a DPD label for this patient yet.");
+      return;
+    }
     if (!window.confirm(`Dispatch order ${o.orderNumber ?? `#${o.id}`} and print the DPD label?`)) return;
     // Open the label window NOW, inside the click gesture, so the browser
     // doesn't block it as a popup (creating the DPD shipment is slow, and
@@ -185,7 +189,7 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ orderId: o.id }),
+        body: JSON.stringify({ orderId: o.orderId }),
       });
       const j = await res.json();
       if (!res.ok || !j.ok) {
@@ -204,6 +208,14 @@ function OrderCard({
           printHtmlDocument(String(j.labelHtml));
         }
       }
+      // Record dispatch (with the DPD tracking number) against the patient's
+      // consultation so they move into Dispatched with a trackable parcel.
+      await fetch(`/api/admin-tools/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ consultationId: o.id, trackingNumber: j.trackingNumber }),
+      }).catch(() => {});
       setNote(`Dispatched · Tracking ${j.trackingNumber}`);
       onDispatched(o.id, j.trackingNumber);
     } catch (e) {
@@ -211,7 +223,7 @@ function OrderCard({
     } finally {
       setBusy(false);
     }
-  }, [busy, o.id, o.orderNumber, onDispatched]);
+  }, [busy, o.id, o.orderId, o.orderNumber, onDispatched]);
 
   return (
     <div className="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
@@ -228,8 +240,10 @@ function OrderCard({
           </div>
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
-            Submitted: {fmtDateTime(o.createdAt)}
-            {o.orderNumber ? ` · ${o.orderNumber}` : ""} · {gbp(o.total)}
+            Approved: {fmtDateTime(o.createdAt)}
+            {o.hasOrder
+              ? `${o.orderNumber ? ` · ${o.orderNumber}` : ""} · ${gbp(o.total)}`
+              : " · No order on file"}
           </p>
         </div>
 
@@ -247,12 +261,18 @@ function OrderCard({
             <button
               type="button"
               onClick={dispatch}
-              disabled={busy}
-              className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+              disabled={busy || !o.hasOrder}
+              title={o.hasOrder ? undefined : "No order/address on file for this patient"}
+              className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
             >
               {busy ? "Dispatching…" : "Dispatch"}
             </button>
           </div>
+          {!o.hasOrder && (
+            <span className="max-w-[280px] text-right text-[11px] text-[#9ca3af]">
+              No order/address on file — DPD label unavailable.
+            </span>
+          )}
           {note && <span className="text-[12px] text-[#2f5d2a]">{note}</span>}
           {error && <span className="max-w-[280px] text-right text-[12px] text-[#dc2626]">{error}</span>}
           <span className="text-[12px] font-mono text-[#9ca3af]">#{o.id}</span>
@@ -344,8 +364,10 @@ export default function DispatchQueuePage() {
       <header className="mb-5">
         <h1 className="text-[22px] font-bold tracking-tight text-[#1a1a1a]">Dispatch queue</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Paid orders awaiting dispatch. Print the dispensing label for the pack, then
-          Dispatch to create the DPD parcel label and tracking number.
+          Patients approved for supply in the clinical queue. Print the dispensing
+          label for the pack, then Dispatch to create the DPD parcel label and
+          tracking number. Approved patients without an order can&apos;t print a
+          DPD label until one exists.
         </p>
       </header>
 

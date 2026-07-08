@@ -62,7 +62,9 @@ export default function DispatchedPage() {
   }, [load]);
 
   const dispatched = useMemo(() => {
-    const list = orders.filter((o) => o.dispatched && o.trackingNumber);
+    // Every dispatched patient — including those dispatched via the dispensing
+    // label (which has no DPD tracking number).
+    const list = orders.filter((o) => o.dispatched);
     const term = q.trim().toLowerCase();
     if (!term) return list;
     return list.filter(
@@ -114,37 +116,53 @@ export default function DispatchedPage() {
         </p>
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white">
-          {dispatched.map((o, i) => (
-            <a
-              key={o.id}
-              href={trackingUrl(o.trackingNumber!)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-[#f7f9f2] ${
-                i > 0 ? "border-t border-[#e5e7eb]" : ""
-              }`}
-            >
+          {dispatched.map((o, i) => {
+            const rowClass = `flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 ${
+              i > 0 ? "border-t border-[#e5e7eb]" : ""
+            }`;
+            const left = (
               <div className="min-w-0">
                 <p className="text-[14px] font-semibold text-[#111827]">
                   {o.customerName || `Order ${o.orderNumber ?? `#${o.id}`}`}
                 </p>
                 <p className="text-[12px] text-[#6b7280]">
-                  {o.orderNumber ? `${o.orderNumber} · ` : ""}{fmtDate(o.createdAt)} · {gbp(o.total)}
+                  {o.orderNumber ? `${o.orderNumber} · ` : ""}{fmtDate(o.createdAt)}
+                  {o.total > 0 ? ` · ${gbp(o.total)}` : ""}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="rounded-md bg-[#eef3e6] px-2.5 py-1 font-mono text-[12px] font-semibold text-[#142e2a]">
-                  {o.trackingNumber}
-                </span>
-                <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#1450b0]">
-                  Track
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+            );
+            // With a DPD tracking number → clickable row that opens tracking.
+            // Without one (dispatched via dispensing label) → a plain row.
+            return o.trackingNumber ? (
+              <a
+                key={o.id}
+                href={trackingUrl(o.trackingNumber)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${rowClass} transition-colors hover:bg-[#f7f9f2]`}
+              >
+                {left}
+                <div className="flex items-center gap-3">
+                  <span className="rounded-md bg-[#eef3e6] px-2.5 py-1 font-mono text-[12px] font-semibold text-[#142e2a]">
+                    {o.trackingNumber}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#1450b0]">
+                    Track
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+              </a>
+            ) : (
+              <div key={o.id} className={rowClass}>
+                {left}
+                <span className="rounded-md bg-[#f1f1f1] px-2.5 py-1 text-[12px] font-medium text-[#6b7280]">
+                  Dispatched · no tracking
                 </span>
               </div>
-            </a>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
