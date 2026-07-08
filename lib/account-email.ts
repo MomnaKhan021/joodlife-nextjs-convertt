@@ -217,10 +217,84 @@ ${nextStepText}
 
 Order placed at ${url}. Questions? Just reply to this email.`;
 
+  // Short product summary for the subject lines, e.g. "Mounjaro (5 mg)" or
+  // "Wegovy Pills +1 more".
+  const firstItem = opts.items[0];
+  const firstLabel = firstItem
+    ? `${firstItem.title}${firstItem.dose ? ` (${firstItem.dose})` : ""}`
+    : "Your order";
+  const productSummary =
+    opts.items.length > 1
+      ? `${firstLabel} +${opts.items.length - 1} more`
+      : firstLabel;
+
+  // Customer confirmation — subject now leads with the product + price.
   await payload.sendEmail({
     to: opts.email,
-    subject: `Thank you for your order — ${opts.orderNumber}`,
+    subject: `${productSummary} — ${gbp(opts.total)} · Order ${opts.orderNumber}`,
     html,
     text,
   });
+
+  // Admin/ops notification — so the team sees every purchase and can
+  // dispatch it. Sent to ORDER_NOTIFY_EMAIL (falls back to the seed admin,
+  // then hello@joodlife.com). Fire-and-forget: never breaks the customer email.
+  const adminTo = (
+    process.env.ORDER_NOTIFY_EMAIL ||
+    process.env.SEED_ADMIN_EMAIL ||
+    "hello@joodlife.com"
+  ).trim();
+  if (adminTo) {
+    const adminRows = opts.items
+      .map((it) => {
+        const name = escapeHtml(`${it.title}${it.dose ? ` — ${it.dose}` : ""}`);
+        const qty = Math.max(1, Number(it.quantity) || 1);
+        const line = it.price != null ? gbp(Number(it.price) * qty) : "";
+        return `<tr>
+          <td style="padding:6px 0;font-size:14px;color:#142e2a">${name} × ${qty}</td>
+          <td style="padding:6px 0;font-size:14px;color:#142e2a;text-align:right">${line}</td>
+        </tr>`;
+      })
+      .join("");
+    const adminHtml = `
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
+      <h1 style="font-size:20px;margin:0 0 8px">New order — ${escapeHtml(opts.orderNumber)}</h1>
+      <p style="font-size:14px;line-height:22px;margin:0 0 14px">
+        <strong>${escapeHtml(opts.name || "Customer")}</strong>
+        (${escapeHtml(opts.email)}) placed an order${opts.isReorder ? " (reorder)" : ""}.
+      </p>
+      <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 8px">
+        ${adminRows}
+      </table>
+      <p style="font-size:15px;font-weight:700;margin:0 0 18px;text-align:right">Total: ${gbp(opts.total)}</p>
+      <p style="margin:0 0 20px">
+        <a href="${url}/admin-tools/dispensing-queue" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600">
+          Open dispatch queue
+        </a>
+      </p>
+      <p style="font-size:12px;color:#142e2a;opacity:.6;margin:0">Sent automatically by JoodLife.</p>
+    </div>`;
+    const adminText = `New order ${opts.orderNumber}
+Customer: ${opts.name || "Customer"} (${opts.email})${opts.isReorder ? " (reorder)" : ""}
+${opts.items
+  .map(
+    (it) =>
+      `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.quantity}${
+        it.price != null ? ` — ${gbp(Number(it.price) * Math.max(1, Number(it.quantity) || 1))}` : ""
+      }`,
+  )
+  .join("\n")}
+Total: ${gbp(opts.total)}
+Dispatch: ${url}/admin-tools/dispensing-queue`;
+    try {
+      await payload.sendEmail({
+        to: adminTo,
+        subject: `New order ${opts.orderNumber} — ${productSummary} — ${gbp(opts.total)}`,
+        html: adminHtml,
+        text: adminText,
+      });
+    } catch {
+      /* non-fatal — the customer confirmation already went out */
+    }
+  }
 }
