@@ -410,8 +410,14 @@ function ConsultationCard({
           : "border-[#e5e7eb] bg-white"
       }`}
     >
-      {/* Header row — name + status on the left, decision buttons on the right */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* Header row — name + status on the left, decision buttons on the right.
+          Sticky so the Approve / Reject actions stay pinned to the top of the
+          screen while the pharmacist scrolls the long clinical summary. */}
+      <div className={`sticky top-0 z-20 -mx-5 -mt-5 mb-1 flex flex-wrap items-start justify-between gap-3 rounded-t-[12px] border-b px-5 py-4 backdrop-blur ${
+        c.hasRedFlags && !c.reviewed
+          ? "border-[#fca5a5] bg-[#fff8f8]/95"
+          : "border-[#e5e7eb] bg-white/95"
+      }`}>
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[16px] font-bold text-[#111827]">
