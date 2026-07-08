@@ -52,11 +52,18 @@ export function loadMetaPixel(): void {
   window.fbq("init", META_PIXEL_ID);
 }
 
-/** Fire a standard/custom event (no-op until the pixel is loaded). */
+/** Fire a STANDARD event (no-op until the pixel is loaded). */
 export function fbTrack(event: string, params?: Record<string, unknown>): void {
   if (typeof window === "undefined" || !window.fbq) return;
   if (params) window.fbq("track", event, params);
   else window.fbq("track", event);
+}
+
+/** Fire a CUSTOM event, e.g. ButtonClick (no-op until the pixel is loaded). */
+export function fbTrackCustom(event: string, params?: Record<string, unknown>): void {
+  if (typeof window === "undefined" || !window.fbq) return;
+  if (params) window.fbq("trackCustom", event, params);
+  else window.fbq("trackCustom", event);
 }
 
 export const fbPageView = () => fbTrack("PageView");
