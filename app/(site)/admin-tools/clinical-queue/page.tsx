@@ -201,7 +201,19 @@ function Section({ title, items }: { title: string; items: Item[] }) {
 /* Sticky summary bar                                                  */
 /* ------------------------------------------------------------------ */
 
-function SummaryBar({ c }: { c: Consultation }) {
+function SummaryBar({
+  c,
+  reviewed,
+  loading,
+  error,
+  onDecision,
+}: {
+  c: Consultation;
+  reviewed?: boolean;
+  loading?: boolean;
+  error?: string | null;
+  onDecision?: (dec: "approved" | "rejected") => void;
+}) {
   const bmi = computeBmi(c.answers);
   const elig = eligibilityStatus(c);
   const stats: { label: string; value: React.ReactNode; tone?: string }[] = [
@@ -214,18 +226,48 @@ function SummaryBar({ c }: { c: Consultation }) {
     { label: "Eligibility", value: elig.label, tone: elig.tone },
     { label: "Age", value: ageOf(c.answers) },
   ];
+  // The green summary bar is the sticky action bar: the metrics on the left,
+  // the Approve / Reject supply buttons on the right. It pins to the top of
+  // the screen while the pharmacist scrolls the clinical detail below.
   return (
-    <div className="sticky top-0 z-10 -mx-4 mb-3 flex flex-wrap gap-x-8 gap-y-2 border-b border-[#cdd8bf] bg-[#eef3e6]/95 px-4 py-3 backdrop-blur">
-      {stats.map((s) => (
-        <div key={s.label} className="flex flex-col">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-[#4a5c46]">
-            {s.label}
-          </span>
-          <span className={`text-[14px] font-semibold ${s.tone ?? "text-[#142e2a]"}`}>
-            {s.value}
-          </span>
+    <div className="sticky top-0 z-20 -mx-5 mb-3 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-y border-[#cdd8bf] bg-[#eef3e6]/95 px-5 py-3 backdrop-blur">
+      <div className="flex flex-wrap gap-x-8 gap-y-2">
+        {stats.map((s) => (
+          <div key={s.label} className="flex flex-col">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-[#4a5c46]">
+              {s.label}
+            </span>
+            <span className={`text-[14px] font-semibold ${s.tone ?? "text-[#142e2a]"}`}>
+              {s.value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {onDecision && !reviewed ? (
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => onDecision("approved")}
+              className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+            >
+              Approve supply
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => onDecision("rejected")}
+              className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+            >
+              Reject supply
+            </button>
+          </div>
+          {loading && <span className="text-[12px] text-[#4a5c46]">Saving…</span>}
+          {error && <span className="text-[12px] text-[#dc2626]">{error}</span>}
         </div>
-      ))}
+      ) : null}
     </div>
   );
 }
@@ -341,8 +383,7 @@ function PatientDetails({ c }: { c: Consultation }) {
     .map(([k, v]) => ({ label: labelFor(k), value: v }));
 
   return (
-    <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-white px-4 pb-4">
-      <SummaryBar c={c} />
+    <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-white px-4 py-4">
       <div className="space-y-3">
         <Section title="Eligibility snapshot" items={eligItems} />
         <Section title="Prescription" items={prescriptionItems} />
@@ -410,14 +451,9 @@ function ConsultationCard({
           : "border-[#e5e7eb] bg-white"
       }`}
     >
-      {/* Header row — name + status on the left, decision buttons on the right.
-          Sticky so the Approve / Reject actions stay pinned to the top of the
-          screen while the pharmacist scrolls the long clinical summary. */}
-      <div className={`sticky top-0 z-20 -mx-5 -mt-5 mb-1 flex flex-wrap items-start justify-between gap-3 rounded-t-[12px] border-b px-5 py-4 backdrop-blur ${
-        c.hasRedFlags && !c.reviewed
-          ? "border-[#fca5a5] bg-[#fff8f8]/95"
-          : "border-[#e5e7eb] bg-white/95"
-      }`}>
+      {/* Header row — name + status. The decision buttons live in the green
+          sticky summary bar below, not here. */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[16px] font-bold text-[#111827]">
@@ -443,35 +479,20 @@ function ConsultationCard({
             {c.productSlug ? ` · ${c.productSlug}` : ""}
           </p>
         </div>
+        <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+      </div>
 
-        {/* Top-right: Approve / Reject — submit the decision directly */}
-        <div className="flex flex-col items-end gap-1.5">
-          {!c.reviewed && (
-            <>
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => runDecision("approved")}
-                  className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
-                >
-                  Approve supply
-                </button>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => runDecision("rejected")}
-                  className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
-                >
-                  Reject supply
-                </button>
-              </div>
-              {loading && <span className="text-[12px] text-[#6b7280]">Saving…</span>}
-              {error && <span className="text-[12px] text-[#dc2626]">{error}</span>}
-            </>
-          )}
-          <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
-        </div>
+      {/* Green sticky summary bar — metrics + Approve / Reject supply. Always
+          visible (not gated behind the clinical-summary toggle) so the actions
+          stay reachable, and it pins to the top of the screen on scroll. */}
+      <div className="mt-3">
+        <SummaryBar
+          c={c}
+          reviewed={c.reviewed}
+          loading={loading}
+          error={error}
+          onDecision={runDecision}
+        />
       </div>
 
       {/* Red flag banner */}
