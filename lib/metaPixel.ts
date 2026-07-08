@@ -86,6 +86,11 @@ export function fbPurchaseOnce(
   params?: Record<string, unknown>,
 ): void {
   if (typeof window === "undefined" || !orderNumber) return;
+  // If the pixel isn't loaded yet, DON'T mark this order as tracked — bail so
+  // a later call (e.g. the thank-you page, by when the pixel is ready) still
+  // fires it. Otherwise we'd burn the dedup key on a call that no-op'd and
+  // lose the Purchase entirely.
+  if (!window.fbq) return;
   const key = `jood:fbpurchase:${orderNumber}`;
   try {
     if (window.sessionStorage.getItem(key)) return;
