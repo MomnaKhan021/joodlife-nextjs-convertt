@@ -1229,26 +1229,6 @@ function CheckoutForm() {
               Cancel or switch after 1 month
             </span>
           </div>
-
-          {/* Money back promise */}
-          <div className="mt-5 flex items-center gap-4 rounded-[16px] bg-[#f7f9f2] p-5">
-            <div className="flex-1">
-              <h3 className="font-ui text-[20px] font-extrabold leading-[24px] tracking-[-0.32px] text-[#0c2421] md:text-[22px]">
-                Money back promise
-              </h3>
-              <p className="mt-1.5 font-ui text-[14px] leading-[19px] text-[#0c2421]/90">
-                Lose at least 10% of your body weight in 6 months with our
-                programme. If you don’t, we’ll refund you.
-              </p>
-            </div>
-            <Image
-              src="/assets/checkout/money-back-badge.png"
-              alt="Money back promise"
-              width={96}
-              height={96}
-              className="h-[96px] w-[96px] shrink-0"
-            />
-          </div>
         </aside>
       </div>
     </section>
