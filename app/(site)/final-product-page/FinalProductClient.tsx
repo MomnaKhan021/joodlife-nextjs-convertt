@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
+import WhatIsSection from "@/components/pdp/WhatIsSection";
+import ComparisonTable from "@/components/pdp/ComparisonTable";
+import SafetyFaq from "@/components/pdp/SafetyFaq";
+import type { PDPProduct } from "@/lib/pdp-products";
 
 /** A single selectable dose (label + numeric pack price). */
 export type FlowDose = { label: string; price: number };
@@ -54,8 +58,12 @@ function CheckCircle() {
  */
 export default function FinalProductClient({
   products,
+  editorial,
 }: {
   products: FlowProduct[];
+  /** Per-slug editorial content (What is / comparison / FAQ). When present,
+   *  the detail below the selector follows the currently-selected product. */
+  editorial?: Record<string, PDPProduct>;
 }) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -74,6 +82,7 @@ export default function FinalProductClient({
 
   if (!active) return null;
   const dose = active.doses[doseIdx] ?? active.doses[0];
+  const activeEditorial = editorial?.[activeSlug] ?? null;
 
   // Continue goes STRAIGHT to checkout carrying the selected product +
   // variant (no intermediate "choose your frequency" step).
@@ -239,6 +248,43 @@ export default function FinalProductClient({
           </ul>
         </div>
       </section>
+
+      {/* Detail for the SELECTED product — updates when you switch product */}
+      {activeEditorial ? (
+        <>
+          <section
+            aria-label={`What is ${activeEditorial.title}?`}
+            className="w-full bg-white py-[30px] md:py-10"
+          >
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <WhatIsSection product={activeEditorial} />
+            </div>
+          </section>
+
+          <section aria-label="Evidence-based comparison" className="w-full bg-white py-[30px] md:py-10">
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <div className="mb-8 text-center md:mb-12">
+                <h2 className="font-display text-[26px] font-bold leading-[1.1] tracking-[-0.01em] text-[#142e2a] md:text-[36px]">
+                  Evidence-based{" "}
+                  <em className="font-serif font-normal italic">comparison</em>
+                </h2>
+                <p className="mx-auto mt-2 max-w-[520px] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
+                  Review clinical insights on each treatment&rsquo;s effectiveness,
+                  typical weight-loss outcomes and safety profile, all to help you
+                  make an informed choice.
+                </p>
+              </div>
+              <ComparisonTable active={activeEditorial.comparisonActive} />
+            </div>
+          </section>
+
+          <section aria-label="Safety and FAQs" className="w-full bg-white py-[30px] md:py-10">
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <SafetyFaq product={activeEditorial} />
+            </div>
+          </section>
+        </>
+      ) : null}
 
       {/* Sticky bottom bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#142e2a]/10 bg-white/95 px-4 py-3 shadow-[0_-6px_24px_-12px_rgba(20,46,42,0.25)] backdrop-blur md:px-10 lg:px-[60px]">

@@ -1,11 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import WhatIsSection from "@/components/pdp/WhatIsSection";
-import SafetyFaq from "@/components/pdp/SafetyFaq";
-import ComparisonTable from "@/components/pdp/ComparisonTable";
-
-import { PDP_PRODUCTS } from "@/lib/pdp-products";
+import { PDP_PRODUCTS, type PDPProduct } from "@/lib/pdp-products";
 import { getStorefrontProduct } from "@/lib/products";
 import {
   CATEGORY_HEADING,
@@ -80,11 +76,19 @@ export default async function FinalProductPage({ searchParams }: Props) {
   const heading = CATEGORY_HEADING[category];
 
   let products: FlowProduct[];
+  // Per-slug editorial content (What is / comparison / FAQ) for the detail
+  // section that follows the selected product. Weight-loss only.
+  let editorialBySlug: Record<string, PDPProduct> | undefined;
 
   if (category === "weight-loss") {
     // Wegovy Pill first (recommended, on top), then the Mounjaro and Wegovy
     // injections below it.
     const slugs = ["wegovy-pill", "mounjaro", "wegovy"] as const;
+    editorialBySlug = Object.fromEntries(
+      slugs
+        .map((s) => [s, PDP_PRODUCTS[s]] as const)
+        .filter(([, v]) => Boolean(v)),
+    ) as Record<string, PDPProduct>;
 
     const dbProducts = await Promise.all(
       slugs.map((s) => getStorefrontProduct(s).catch(() => null)),
@@ -156,15 +160,6 @@ export default async function FinalProductPage({ searchParams }: Props) {
     });
   }
 
-  // The editorial (What is / graph / safety) sections only exist for the
-  // weight-loss catalogue — render them for the recommended product.
-  const recommendedSlug =
-    products.find((p) => p.recommended)?.slug ?? products[0]?.slug;
-  const editorial =
-    category === "weight-loss" && recommendedSlug
-      ? PDP_PRODUCTS[recommendedSlug]
-      : null;
-
   return (
     <main className="flex min-h-screen flex-col bg-white font-ui text-[#142e2a]">
       {/* Minimal checkout chrome: back + centred logo */}
@@ -209,51 +204,9 @@ export default async function FinalProductPage({ searchParams }: Props) {
         </div>
       </section>
 
-      {/* Interactive selector + sticky bar */}
-      <FinalProductClient products={products} />
-
-      {/* Editorial sections (weight-loss only) */}
-      {editorial ? (
-        <>
-          <section
-            aria-label={`What is ${editorial.title}?`}
-            className="w-full bg-white py-[30px] md:py-10"
-          >
-            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-              <WhatIsSection product={editorial} />
-            </div>
-          </section>
-
-          <section
-            aria-label="Evidence-based comparison"
-            className="w-full bg-white py-[30px] md:py-10"
-          >
-            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-              <div className="mb-8 text-center md:mb-12">
-                <h2 className="font-display text-[26px] font-bold leading-[1.1] tracking-[-0.01em] text-[#142e2a] md:text-[36px]">
-                  Evidence-based{" "}
-                  <em className="font-serif font-normal italic">comparison</em>
-                </h2>
-                <p className="mx-auto mt-2 max-w-[520px] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
-                  Review clinical insights on each treatment&rsquo;s
-                  effectiveness, typical weight-loss outcomes and safety profile,
-                  all to help you make an informed choice.
-                </p>
-              </div>
-              <ComparisonTable active={editorial.comparisonActive} />
-            </div>
-          </section>
-
-          <section
-            aria-label="Safety and FAQs"
-            className="w-full bg-white py-[30px] md:py-10"
-          >
-            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-              <SafetyFaq product={editorial} />
-            </div>
-          </section>
-        </>
-      ) : null}
+      {/* Interactive selector + per-product detail (What is / comparison /
+          FAQ) that follows the selected product */}
+      <FinalProductClient products={products} editorial={editorialBySlug} />
 
       {/* Your next steps */}
       <NextSteps />
