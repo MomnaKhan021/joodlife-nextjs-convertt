@@ -90,9 +90,12 @@
 }
 .db-kpi__spark { width: 56px; height: 22px; flex: none; opacity: 0.9; }
 
-/* ---------- Tabs ---------- */
+/* ---------- Tabs ----------
+   Hidden: collections are navigated from the admin sidebar now, so this
+   in-page tab bar is redundant. The active collection is still driven by
+   the URL ?type=, which the sidebar sets. */
 .db-tabs {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   gap: 4px;
   background: #fff;
