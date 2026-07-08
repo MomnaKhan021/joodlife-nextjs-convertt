@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import WhatIsSection from "@/components/pdp/WhatIsSection";
 import ComparisonTable from "@/components/pdp/ComparisonTable";
-import SafetyFaq from "@/components/pdp/SafetyFaq";
 import type { PDPProduct } from "@/lib/pdp-products";
 
 /** A single selectable dose (label + numeric pack price). */
@@ -275,12 +274,6 @@ export default function FinalProductClient({
                 </p>
               </div>
               <ComparisonTable active={activeEditorial.comparisonActive} />
-            </div>
-          </section>
-
-          <section aria-label="Safety and FAQs" className="w-full bg-white py-[30px] md:py-10">
-            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-              <SafetyFaq product={activeEditorial} />
             </div>
           </section>
         </>
