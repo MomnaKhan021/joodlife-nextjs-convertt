@@ -223,26 +223,45 @@ export async function GET(req: NextRequest) {
       ? `WHERE status NOT IN ('draft')`
       : `WHERE status IN ('submitted', 'reviewed')`;
 
-    const result = (await db.execute(
-      sql.raw(
-        `SELECT id, full_name, email, phone, product_slug, dose, answers, status, created_at, updated_at
-         FROM "consultations"
-         ${whereClause}
-         ORDER BY
-           CASE
-             WHEN answers->>'_review_decision' IS NULL AND
-                  (answers->>'reorder_side_effect_severity' = 'Severe'
-                   OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
-                   OR answers->>'reorder_new_clinical_event' = 'Yes')
-             THEN 0
-             ELSE 1
-           END,
-           created_at ASC
-         LIMIT 200`,
+    // The pending COUNT is computed directly in SQL (NOT derived from the
+    // LIMIT-200 list) — otherwise, with 200+ awaiting consultations the list
+    // is always full and the count appears frozen at 200, so approving a
+    // patient never visibly reduces it. "Pending" = a submitted/reviewed
+    // consultation that hasn't had a clinical decision yet.
+    const [result, countResult] = (await Promise.all([
+      db.execute(
+        sql.raw(
+          `SELECT id, full_name, email, phone, product_slug, dose, answers, status, created_at, updated_at
+           FROM "consultations"
+           ${whereClause}
+           ORDER BY
+             CASE
+               WHEN answers->>'_review_decision' IS NULL AND
+                    (answers->>'reorder_side_effect_severity' = 'Severe'
+                     OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
+                     OR answers->>'reorder_new_clinical_event' = 'Yes')
+               THEN 0
+               ELSE 1
+             END,
+             created_at ASC
+           LIMIT 200`,
+        ),
       ),
-    )) as { rows?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+      db.execute(
+        sql.raw(
+          `SELECT COUNT(*)::int AS n
+           FROM "consultations"
+           WHERE status IN ('submitted', 'reviewed')
+             AND (answers->>'_review_decision') IS NULL`,
+        ),
+      ),
+    ])) as [
+      { rows?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>,
+      { rows?: Array<{ n?: number }> } | Array<{ n?: number }>,
+    ];
 
     const rows = Array.isArray(result) ? result : (result.rows ?? []);
+    const countRows = Array.isArray(countResult) ? countResult : (countResult.rows ?? []);
 
     const consultations = rows.map((r) => {
       let answers: Record<string, unknown> = {};
@@ -298,7 +317,12 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const pending = consultations.filter((c) => !c.reviewed).length;
+    // Real DB count (not capped by the LIMIT-200 list), so the badge moves
+    // the moment a patient is approved/rejected.
+    const pending = Number(
+      (countRows[0] as { n?: number } | undefined)?.n ??
+        consultations.filter((c) => !c.reviewed).length,
+    );
 
     return NextResponse.json({ ok: true, total: consultations.length, pending, consultations });
   } catch (err) {
