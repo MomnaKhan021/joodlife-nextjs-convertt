@@ -112,6 +112,13 @@ const NAV: NavItem[] = [
     section: "content",
     icon: I("M6 3h9l5 5v13a0 0 0 0 1 0 0H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v6h6M8 13h8M8 17h5"),
   },
+  {
+    // Admin-only (no section key) — live integration self-check.
+    label: "System health",
+    href: "/admin-tools/health",
+    match: (p) => p.startsWith("/admin-tools/health"),
+    icon: I("M22 12h-4l-3 9L9 3l-3 9H2"),
+  },
 ];
 
 /** Fired by action pages (approve / dispatch) so the sidebar counts refresh

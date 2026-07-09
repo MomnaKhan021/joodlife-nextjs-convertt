@@ -87,6 +87,7 @@ export function sectionForPath(
   if (p.startsWith("/admin-tools/customers")) return "customers";
   if (p.startsWith("/admin-tools/shopify-import")) return "admin-only";
   if (p.startsWith("/admin-tools/hubspot-sync")) return "admin-only";
+  if (p.startsWith("/admin-tools/health")) return "admin-only";
   if (p.startsWith("/admin-tools/edit/")) {
     const editType = p.split("/")[3]; // /admin-tools/edit/<type>/<id>
     return sectionForType(editType) ?? "admin-only";
