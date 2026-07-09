@@ -26,6 +26,7 @@ import {
   printLabels,
   type LabelData,
 } from "../orders/[id]/dispensingLabel";
+import { refreshAdminBadges } from "../AdminShell";
 
 type DispatchItem = { title: string | null; dose: string | null; quantity: number };
 type Consultation = {
@@ -160,6 +161,8 @@ function OrderCard({
       }
       setNote("Dispensing label printed · marked dispatched");
       onDispatched(o.id, o.trackingNumber ?? "");
+      // Dispatch queue −1, Dispatched +1 in the sidebar, instantly.
+      refreshAdminBadges();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -223,6 +226,8 @@ function OrderCard({
       }).catch(() => {});
       setNote(`Dispatched · Tracking ${j.trackingNumber}`);
       onDispatched(o.id, j.trackingNumber);
+      // Dispatch queue −1, Dispatched +1 in the sidebar, instantly.
+      refreshAdminBadges();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {

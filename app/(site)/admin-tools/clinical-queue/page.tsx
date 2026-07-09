@@ -21,6 +21,7 @@ import {
   fmtNum,
   labelFor,
 } from "@/lib/consultationDisplay";
+import { refreshAdminBadges } from "../AdminShell";
 
 type Consultation = {
   id: number;
@@ -434,6 +435,9 @@ function ConsultationCard({
         const json = await res.json();
         if (!json.ok) throw new Error(json.error ?? "Failed");
         onDecision(c.id, dec, "");
+        // Update the sidebar counts instantly: Clinical Queue −1, and an
+        // approval bumps the Dispatch queue +1 — no refresh needed.
+        refreshAdminBadges();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unknown error");
       } finally {

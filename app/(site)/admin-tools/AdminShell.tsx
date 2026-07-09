@@ -114,40 +114,56 @@ const NAV: NavItem[] = [
   },
 ];
 
+/** Fired by action pages (approve / dispatch) so the sidebar counts refresh
+ *  immediately, with no page reload. */
+export const BADGE_REFRESH_EVENT = "jood:refresh-badges";
+export function refreshAdminBadges() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(BADGE_REFRESH_EVENT));
+  }
+}
+
 function NavBadge({ type }: { type: string }) {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
-    let off = false;
-    if (type === "clinical") {
-      // Show pending count from clinical review queue
-      fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include", cache: "no-store" })
-        .then((r) => r.json())
-        .then((j) => {
-          if (!off && j?.ok && typeof j.pending === "number" && j.pending > 0) setCount(j.pending);
-        })
-        .catch(() => {});
-    } else if (type === "dispensing" || type === "dispatching") {
-      // Both badges come from one counts call: awaiting → Dispatch queue,
-      // dispatched → Dispatched. The numbers shift as orders get tracking.
-      fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include", cache: "no-store" })
-        .then((r) => r.json())
-        .then((j) => {
-          if (off || !j?.ok) return;
-          const n = type === "dispensing" ? j.awaiting : j.dispatched;
-          if (typeof n === "number" && n > 0) setCount(n);
-        })
-        .catch(() => {});
-    } else {
-      fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
-        .then((r) => r.json())
-        .then((j) => {
-          if (!off && j?.ok && typeof j.total === "number") setCount(j.total);
-        })
-        .catch(() => {});
-    }
-    return () => { off = true; };
+    let cancelled = false;
+    const apply = (n: unknown) => {
+      // Always apply the live number (including 0) so a badge clears when its
+      // queue empties — e.g. dispatch the last patient → the count disappears.
+      if (!cancelled && typeof n === "number") setCount(n);
+    };
+    const load = () => {
+      if (type === "clinical") {
+        fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.pending); })
+          .catch(() => {});
+      } else if (type === "dispensing" || type === "dispatching") {
+        // Both badges come from one counts call: awaiting → Dispatch queue,
+        // dispatched → Dispatched.
+        fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(type === "dispensing" ? j.awaiting : j.dispatched); })
+          .catch(() => {});
+      } else {
+        fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.total); })
+          .catch(() => {});
+      }
+    };
+    load();
+    // Re-fetch the moment an action changes the data, and when the window
+    // regains focus — so numbers move without a manual refresh.
+    window.addEventListener(BADGE_REFRESH_EVENT, load);
+    window.addEventListener("focus", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(BADGE_REFRESH_EVENT, load);
+      window.removeEventListener("focus", load);
+    };
   }, [type]);
-  if (count === null) return null;
+  if (count === null || count === 0) return null;
   // Work queues (needs action) → red; reference counts → neutral grey.
   const attention = type === "clinical" || type === "dispensing";
   return (
