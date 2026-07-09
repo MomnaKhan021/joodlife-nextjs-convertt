@@ -247,9 +247,22 @@ export async function GET(req: NextRequest) {
            LIMIT 200`,
         ),
       ),
+      // True per-category counts over the FULL pending set (not the LIMIT-200
+      // list) so the queue tabs and the sidebar badge match. Mirrors tabOf():
+      // reorder first, else "booked" when a video consult preference is set,
+      // else "not booked".
       db.execute(
         sql.raw(
-          `SELECT COUNT(*)::int AS n
+          `SELECT
+             COUNT(*) FILTER (WHERE product_slug = 'reorder')::int AS reorder,
+             COUNT(*) FILTER (
+               WHERE COALESCE(product_slug, '') <> 'reorder'
+                 AND COALESCE(answers->>'video_consultation_preference', '') NOT IN ('', 'false')
+             )::int AS booked,
+             COUNT(*) FILTER (
+               WHERE COALESCE(product_slug, '') <> 'reorder'
+                 AND COALESCE(answers->>'video_consultation_preference', '') IN ('', 'false')
+             )::int AS notbooked
            FROM "consultations"
            WHERE status IN ('submitted', 'reviewed')
              AND (answers->>'_review_decision') IS NULL`,
@@ -257,7 +270,7 @@ export async function GET(req: NextRequest) {
       ),
     ])) as [
       { rows?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>,
-      { rows?: Array<{ n?: number }> } | Array<{ n?: number }>,
+      { rows?: Array<{ reorder?: number; booked?: number; notbooked?: number }> } | Array<{ reorder?: number; booked?: number; notbooked?: number }>,
     ];
 
     const rows = Array.isArray(result) ? result : (result.rows ?? []);
@@ -317,14 +330,25 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Real DB count (not capped by the LIMIT-200 list), so the badge moves
-    // the moment a patient is approved/rejected.
-    const pending = Number(
-      (countRows[0] as { n?: number } | undefined)?.n ??
-        consultations.filter((c) => !c.reviewed).length,
-    );
+    // Real DB counts (not capped by the LIMIT-200 list), so the badge and the
+    // queue tabs match and move the moment a patient is approved/rejected.
+    const cc = (countRows[0] as { reorder?: number; booked?: number; notbooked?: number } | undefined) ?? {};
+    const counts = {
+      booked: Number(cc.booked ?? 0),
+      notbooked: Number(cc.notbooked ?? 0),
+      reorder: Number(cc.reorder ?? 0),
+    };
+    const pendingFromCounts = counts.booked + counts.notbooked + counts.reorder;
+    const pending = pendingFromCounts || consultations.filter((c) => !c.reviewed).length;
 
-    return NextResponse.json({ ok: true, total: consultations.length, pending, consultations });
+    return NextResponse.json({
+      ok: true,
+      total: pending,
+      loaded: consultations.length,
+      pending,
+      counts,
+      consultations,
+    });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: "Fetch failed", detail: err instanceof Error ? err.message : String(err) },

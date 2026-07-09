@@ -562,6 +562,11 @@ export default function ClinicalQueuePage() {
   const [showAll, setShowAll] = useState(false);
   const [tab, setTab] = useState<TabKey>("booked");
   const [query, setQuery] = useState("");
+  // True full-DB counts from the server (pending set) + how many are actually
+  // loaded, so the tab pills/badge reflect the whole queue, not just the page.
+  const [serverCounts, setServerCounts] = useState<Record<TabKey, number> | null>(null);
+  const [totalPending, setTotalPending] = useState<number | null>(null);
+  const [loaded, setLoaded] = useState(0);
 
   const load = useCallback(async (all: boolean) => {
     setLoading(true);
@@ -573,7 +578,19 @@ export default function ClinicalQueuePage() {
       );
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "Failed to load");
-      setConsultations(json.consultations ?? []);
+      const list: Consultation[] = json.consultations ?? [];
+      setConsultations(list);
+      setLoaded(Number(json.loaded ?? list.length));
+      setTotalPending(typeof json.total === "number" ? json.total : null);
+      setServerCounts(
+        json.counts
+          ? {
+              booked: Number(json.counts.booked ?? 0),
+              notbooked: Number(json.counts.notbooked ?? 0),
+              reorder: Number(json.counts.reorder ?? 0),
+            }
+          : null,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -604,12 +621,16 @@ export default function ClinicalQueuePage() {
     );
   }, []);
 
-  // Counts per tab (respecting the pending/all toggle, before search).
-  const counts = useMemo(() => {
+  // Counts per tab. In the default "Pending only" view use the true full-DB
+  // counts from the server (so the tabs sum to the same number as the sidebar
+  // badge — not just the loaded page). In "All" mode fall back to counting the
+  // loaded list.
+  const localCounts = useMemo(() => {
     const base: Record<TabKey, number> = { booked: 0, notbooked: 0, reorder: 0 };
     for (const c of consultations) base[tabOf(c)] += 1;
     return base;
   }, [consultations]);
+  const counts = !showAll && serverCounts ? serverCounts : localCounts;
 
   // Rows for the active tab, filtered by the search query.
   const rows = useMemo(() => {
@@ -702,6 +723,14 @@ export default function ClinicalQueuePage() {
             All
           </button>
         </div>
+
+        {/* Volume note — the queue loads the first 200 for speed; the tab
+            counts + sidebar badge reflect the full pending total. */}
+        {!showAll && totalPending != null && loaded < totalPending ? (
+          <p className="mb-3 text-[12px] text-[#6b7280]">
+            Showing the first {loaded} of {totalPending.toLocaleString("en-GB")} pending — use search to find a specific patient.
+          </p>
+        ) : null}
 
         {/* Content */}
         {loading ? (
