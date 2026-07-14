@@ -20,6 +20,7 @@ import {
   mapOrderStageId,
   updateDealStage,
   findDealsByContactEmail,
+  addNoteToContact,
 } from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
@@ -516,6 +517,52 @@ async function mirrorOrderStageToHubSpot(
   }
 }
 
+type CommentEntry = { text?: unknown; at?: unknown; author?: unknown };
+
+/** Stable key for a timeline entry so we only push genuinely new ones. */
+function commentKey(c: CommentEntry): string {
+  return `${String(c.at ?? "")}|${String(c.text ?? "")}`;
+}
+
+function asCommentArray(v: unknown): CommentEntry[] {
+  let val: unknown = v;
+  if (typeof v === "string") {
+    try {
+      val = JSON.parse(v);
+    } catch {
+      return [];
+    }
+  }
+  return Array.isArray(val) ? (val as CommentEntry[]) : [];
+}
+
+/**
+ * Push newly-added order timeline entries (staff comments + automatic audit
+ * events) to the customer's HubSpot contact as notes. `prev`/`next` are the
+ * admin_comments arrays before and after the save; only the added tail is
+ * sent. Best-effort + fire-and-forget.
+ */
+async function mirrorOrderCommentsToHubSpot(
+  email: string,
+  orderNumber: string,
+  prev: CommentEntry[],
+  next: CommentEntry[],
+): Promise<void> {
+  try {
+    if (!email) return;
+    const seen = new Set(prev.map(commentKey));
+    const fresh = next.filter((c) => c && (c.text ?? "") !== "" && !seen.has(commentKey(c)));
+    for (const c of fresh) {
+      const who = String(c.author ?? "Staff");
+      const label = who === "System" ? "Order timeline" : `Staff note (${who})`;
+      const note = `${label} · Order ${orderNumber}: ${String(c.text ?? "")}`;
+      await fireHubSpot("order:note", () => addNoteToContact(email, note));
+    }
+  } catch {
+    /* never block on HubSpot */
+  }
+}
+
 async function authorize() {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
@@ -703,6 +750,27 @@ export async function POST(req: NextRequest) {
     const where = Number.isFinite(numId)
       ? `id = ${numId}`
       : `CAST(id AS TEXT) = ${esc(id)}`;
+
+    // Capture the pre-save timeline + contact so we can mirror only the newly
+    // added comments/events to HubSpot after the write.
+    let priorComments: CommentEntry[] = [];
+    let noteEmail = "";
+    let noteOrderNumber = "";
+    if (type === "orders" && "admin_comments" in fields) {
+      const prevRow = readRows<{
+        admin_comments: unknown;
+        customer_email: string | null;
+        order_number: string | null;
+      }>(
+        await drizzle.execute(
+          sql.raw(`SELECT admin_comments, customer_email, order_number FROM orders WHERE ${where} LIMIT 1`),
+        ),
+      )[0];
+      priorComments = asCommentArray(prevRow?.admin_comments);
+      noteEmail = (prevRow?.customer_email ?? "").trim();
+      noteOrderNumber = (prevRow?.order_number ?? `#${id}`).trim();
+    }
+
     const setClause = writePairs
       .map(([c, t, v]) => `${c} = ${valueLiteral(t, v)}`)
       .join(", ");
@@ -727,6 +795,13 @@ export async function POST(req: NextRequest) {
     // (mark dispatched, cancel, etc.) — fire-and-forget after the response.
     if (type === "orders" && "status" in fields && Number.isFinite(Number(row.id))) {
       after(() => mirrorOrderStageToHubSpot(drizzle, sql, Number(row.id)));
+    }
+    // Mirror newly-added timeline comments/events to the HubSpot contact.
+    if (type === "orders" && "admin_comments" in fields && noteEmail) {
+      const nextComments = asCommentArray(fields.admin_comments);
+      after(() =>
+        mirrorOrderCommentsToHubSpot(noteEmail, noteOrderNumber, priorComments, nextComments),
+      );
     }
     return NextResponse.json({ ok: true, id: row.id, created: false });
   } catch (err) {
