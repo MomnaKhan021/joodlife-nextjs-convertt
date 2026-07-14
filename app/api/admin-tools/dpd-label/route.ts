@@ -422,11 +422,12 @@ export async function POST(req: NextRequest) {
     notes: string | null;
     status: string | null;
     total_amount: string | number | null;
+    items_json: unknown;
     hubspot_deal_id: string | null;
   };
 
   const orderResult = await drizzle.execute(
-    sql.raw(`SELECT id, order_number, customer_name, customer_email, customer_phone, shipping_address, notes, status, total_amount, hubspot_deal_id FROM orders WHERE id = ${orderId} LIMIT 1`),
+    sql.raw(`SELECT id, order_number, customer_name, customer_email, customer_phone, shipping_address, notes, status, total_amount, items_json, hubspot_deal_id FROM orders WHERE id = ${orderId} LIMIT 1`),
   );
   const orderRows = rows<OrderRow>(orderResult);
   if (!orderRows.length) {
@@ -442,10 +443,35 @@ export async function POST(req: NextRequest) {
       { status: 409 },
     );
   }
+  // Free/test orders legitimately have total_amount = 0 but still hold real
+  // products that must be shipped. Fall back to the line-item value so only a
+  // genuinely empty order (nothing to ship) is blocked.
   const orderTotal = Number(order.total_amount ?? 0) || 0;
-  if (orderTotal <= 0) {
+  const itemsValue = (() => {
+    const raw = order.items_json;
+    let arr: unknown = raw;
+    if (typeof raw === "string") {
+      try {
+        arr = JSON.parse(raw);
+      } catch {
+        return 0;
+      }
+    }
+    if (!Array.isArray(arr)) return 0;
+    return arr.reduce((sum: number, it) => {
+      if (it && typeof it === "object") {
+        const o = it as Record<string, unknown>;
+        const price = Number(o.price) || 0;
+        const qty = Number(o.quantity ?? o.qty ?? 1) || 1;
+        return sum + price * qty;
+      }
+      return sum;
+    }, 0);
+  })();
+  const orderValue = orderTotal > 0 ? orderTotal : itemsValue;
+  if (orderValue <= 0) {
     return NextResponse.json(
-      { ok: false, error: "Order total is £0 — cannot print a dispatch label" },
+      { ok: false, error: "Order has no items to ship — cannot print a dispatch label" },
       { status: 409 },
     );
   }

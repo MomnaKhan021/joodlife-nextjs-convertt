@@ -276,6 +276,7 @@ const SPECS: Record<string, Spec> = {
       payment_method: "text",
       status: "text",
       notes: "textarea",
+      admin_comments: "json",
     },
   },
   consultations: {

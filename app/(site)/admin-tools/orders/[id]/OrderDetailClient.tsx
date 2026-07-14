@@ -16,6 +16,12 @@ type OrderItem = {
   imageUrl?: string | null;
 };
 
+type OrderComment = {
+  text: string;
+  at: string; // ISO timestamp
+  author?: string;
+};
+
 type OrderRow = {
   id: number;
   order_number: string;
@@ -31,6 +37,7 @@ type OrderRow = {
   discount_amount: number | string | null;
   notes: string | null;
   stripe_payment_intent_id: string | null;
+  admin_comments: unknown;
   created_at: string | null;
 };
 
@@ -56,6 +63,33 @@ function parseItems(v: unknown): OrderItem[] {
     }
   }
   return [];
+}
+
+function parseComments(v: unknown): OrderComment[] {
+  let arr: unknown = v;
+  if (typeof v === "string") {
+    try {
+      arr = JSON.parse(v);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((c): OrderComment | null => {
+      if (c && typeof c === "object") {
+        const o = c as Record<string, unknown>;
+        const text = typeof o.text === "string" ? o.text : "";
+        if (!text.trim()) return null;
+        return {
+          text,
+          at: typeof o.at === "string" ? o.at : "",
+          author: typeof o.author === "string" ? o.author : undefined,
+        };
+      }
+      return null;
+    })
+    .filter((c): c is OrderComment => c !== null);
 }
 
 function fmtDateTime(iso: string | null): string {
@@ -157,6 +191,10 @@ export default function OrderDetailClient({ id }: { id: string }) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [savingTags, setSavingTags] = useState(false);
+
+  const [comments, setComments] = useState<OrderComment[]>([]);
+  const [commentInput, setCommentInput] = useState("");
+  const [savingComment, setSavingComment] = useState(false);
   const [refunding, setRefunding] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -188,6 +226,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
         setOrder(row);
         setFulfilled(["shipped", "delivered", "fulfilled"].includes(String(row.status)));
         setNotes(row.notes ?? "");
+        setComments(parseComments(row.admin_comments));
         const rawTags = (row as Record<string, unknown>).tags;
         if (typeof rawTags === "string" && rawTags.trim()) {
           setTags(rawTags.split(",").map((t) => t.trim()).filter(Boolean));
@@ -244,6 +283,27 @@ export default function OrderDetailClient({ id }: { id: string }) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSavingNotes(false);
+    }
+  }
+
+  async function addComment() {
+    const text = commentInput.trim();
+    if (!text || savingComment) return;
+    setSavingComment(true);
+    const entry: OrderComment = {
+      text,
+      at: new Date().toISOString(),
+      author: "Staff",
+    };
+    const next = [...comments, entry];
+    try {
+      await patch({ admin_comments: next });
+      setComments(next);
+      setCommentInput("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingComment(false);
     }
   }
 
@@ -423,11 +483,16 @@ export default function OrderDetailClient({ id }: { id: string }) {
       order.shipping_address.trim() !== "" &&
       order.shipping_address.trim() !== "—") ||
     (!!order.notes && /address:/i.test(order.notes));
+  // Free/test orders legitimately have total_amount = 0 but still contain real
+  // products that must be shipped. Guard on the actual order value (the paid
+  // total, or the line-item subtotal when the total is £0) so only genuinely
+  // empty orders are blocked from dispatch.
+  const orderValue = total > 0 ? total : subtotal;
   const dpdBlockedReason: string | null =
     String(order.status).toLowerCase() === "cancelled"
       ? "Order is cancelled — dispatch label unavailable."
-      : total <= 0
-        ? "Order total is £0 — dispatch label unavailable."
+      : orderValue <= 0
+        ? "Order has no items to ship — dispatch label unavailable."
         : !hasAddress
           ? "No delivery address on record — dispatch label unavailable."
           : null;
@@ -624,18 +689,70 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#e879b9] text-[12px] font-semibold text-white">
                     JL
                   </span>
-                  <div className="flex-1 rounded-[8px] border border-[#babfc3] px-3 py-2 text-[13px] text-[#8a8a8a]">
-                    Leave a comment…
+                  <div className="flex-1">
+                    <textarea
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                          e.preventDefault();
+                          addComment();
+                        }
+                      }}
+                      placeholder="Leave a comment…"
+                      rows={2}
+                      className="w-full resize-y rounded-[8px] border border-[#babfc3] px-3 py-2 text-[13px] text-[#303030] outline-none focus:border-[#303030]"
+                    />
+                    {commentInput.trim() ? (
+                      <div className="mt-2 flex justify-end">
+                        <HeaderBtn primary onClick={addComment}>
+                          {savingComment ? "Posting…" : "Post"}
+                        </HeaderBtn>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <p className="mt-2 text-right text-[12px] text-[#8a8a8a]">
                   Only you and other staff can see comments
                 </p>
 
+                {comments.length > 0 ? (
+                  <ul className="mt-4 flex flex-col gap-3">
+                    {comments
+                      .slice()
+                      .reverse()
+                      .map((c, i) => (
+                        <li key={comments.length - 1 - i} className="flex items-start gap-2.5">
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#e879b9] text-[12px] font-semibold text-white">
+                            JL
+                          </span>
+                          <div className="flex-1 rounded-[8px] bg-[#f6f6f7] px-3 py-2">
+                            <p className="whitespace-pre-line text-[13px] text-[#303030]">{c.text}</p>
+                            <p className="mt-1 text-[11px] text-[#8a8a8a]">
+                              {c.author ?? "Staff"}
+                              {c.at ? ` · ${fmtDateTime(c.at)}` : ""}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                ) : null}
+
                 <p className="mt-4 text-[12px] font-semibold text-[#616161]">Today</p>
                 <ul className="mt-2 flex flex-col gap-3 border-l border-[#e1e3e5] pl-4">
                   <TimelineItem time={fmtTime(created)}>
-                    Order confirmation email sent to {order.customer_name ?? "customer"} ({order.customer_email}).
+                    Order confirmation email sent to {order.customer_name ?? "customer"} (
+                    {order.customer_email ? (
+                      <a
+                        href={`mailto:${order.customer_email}`}
+                        className="text-[#1450b0] hover:underline"
+                      >
+                        {order.customer_email}
+                      </a>
+                    ) : (
+                      "no email"
+                    )}
+                    ).
                   </TimelineItem>
                   <TimelineItem time={fmtTime(created)}>
                     A {gbp(total)} payment was processed on{" "}

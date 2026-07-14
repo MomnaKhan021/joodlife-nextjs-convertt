@@ -92,6 +92,7 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"payment_method\" \"enum_orders_payment_method\" DEFAULT 'test'::enum_orders_payment_method NOT NULL",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"status\" \"enum_orders_status\" DEFAULT 'pending'::enum_orders_status NOT NULL",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"notes\" varchar",
+  "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"admin_comments\" jsonb",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"hubspot_deal_id\" varchar",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"stripe_payment_intent_id\" varchar",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"stripe_session_id\" varchar",
