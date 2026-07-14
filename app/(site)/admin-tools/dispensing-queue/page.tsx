@@ -294,6 +294,17 @@ function OrderCard({
             <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
               Awaiting dispatch
             </span>
+            {!o.hasOrder && (
+              <span
+                title="Approved, but no paid order yet — dispensing label only; DPD needs an order with a delivery address."
+                className="inline-flex items-center gap-1 rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-[12px] font-semibold text-[#8a6116]"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+                </svg>
+                No order — dispensing only
+              </span>
+            )}
           </div>
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
