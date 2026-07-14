@@ -1,10 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function Verify2faPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Only allow internal paths (must start with a single slash) to avoid an
+  // open-redirect; default to the dashboard.
+  const rawNext = searchParams.get("next") ?? "";
+  const next = /^\/[^/]/.test(rawNext) ? rawNext : "/admin-tools";
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +51,7 @@ export default function Verify2faPage() {
       });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Verification failed");
-      router.replace("/admin-tools");
+      router.replace(next);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

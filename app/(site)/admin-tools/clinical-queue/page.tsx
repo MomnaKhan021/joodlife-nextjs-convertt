@@ -677,6 +677,9 @@ export default function ClinicalQueuePage() {
   const [serverCounts, setServerCounts] = useState<Record<TabKey, number> | null>(null);
   const [totalPending, setTotalPending] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(0);
+  // True full-DB red-flag count (pending set), so the badge isn't limited to
+  // the loaded page.
+  const [serverRedFlags, setServerRedFlags] = useState<number | null>(null);
   // Worklist ordering. "consult" = by booked video-consultation time (fetched
   // from HubSpot); "oldest"/"newest" = submission order; "name" = A–Z.
   // Red-flagged unreviewed patients always float to the top regardless.
@@ -704,6 +707,7 @@ export default function ClinicalQueuePage() {
       const list: Consultation[] = json.consultations ?? [];
       setConsultations(list);
       setLoaded(Number(json.loaded ?? list.length));
+      setServerRedFlags(typeof json.redFlags === "number" ? json.redFlags : null);
       setTotalPending(typeof json.total === "number" ? json.total : null);
       setServerCounts(
         json.counts
@@ -840,7 +844,10 @@ export default function ClinicalQueuePage() {
     };
   }, [consultations, meetLinks]);
 
-  const flaggedTotal = consultations.filter((c) => c.hasRedFlags && !c.reviewed).length;
+  // Prefer the true full-DB red-flag count (pending mode); fall back to the
+  // loaded set in "All" mode or if the server count is unavailable.
+  const loadedFlagged = consultations.filter((c) => c.hasRedFlags && !c.reviewed).length;
+  const flaggedTotal = !showAll && serverRedFlags != null ? serverRedFlags : loadedFlagged;
 
   // Ids selectable for batch approval in the current view (unreviewed only).
   const selectableIds = useMemo(
@@ -1030,11 +1037,18 @@ export default function ClinicalQueuePage() {
           </div>
         ) : null}
 
-        {/* Volume note — the queue loads the first 200 for speed; the tab
-            counts + sidebar badge reflect the full pending total. */}
-        {!showAll && totalPending != null && loaded < totalPending ? (
+        {/* Result count — how many patients are showing in this tab, and the
+            true full-DB total for the tab (not just the loaded page). */}
+        {!loading && !error ? (
           <p className="mb-3 text-[12px] text-[#6b7280]">
-            Showing the first {loaded} of {totalPending.toLocaleString("en-GB")} pending — use search to find a specific patient.
+            Showing <span className="font-semibold text-[#374151]">{rows.length.toLocaleString("en-GB")}</span>
+            {" "}
+            {rows.length === 1 ? "patient" : "patients"} in “{TABS.find((t) => t.key === tab)?.label}” (
+            {counts[tab].toLocaleString("en-GB")} total)
+            {!showAll && totalPending != null && loaded < totalPending
+              ? ` · first ${loaded} of ${totalPending.toLocaleString("en-GB")} pending loaded — search to find a specific patient`
+              : ""}
+            .
           </p>
         ) : null}
 

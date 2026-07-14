@@ -262,7 +262,13 @@ export async function GET(req: NextRequest) {
              COUNT(*) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
                  AND COALESCE(answers->>'video_consultation_preference', '') IN ('', 'false')
-             )::int AS notbooked
+             )::int AS notbooked,
+             COUNT(*) FILTER (
+               WHERE answers->>'reorder_side_effect_severity' = 'Severe'
+                 OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
+                 OR answers->>'reorder_new_clinical_event' = 'Yes'
+                 OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
+             )::int AS red_flags
            FROM "consultations"
            WHERE status IN ('submitted', 'reviewed')
              AND (answers->>'_review_decision') IS NULL`,
@@ -332,12 +338,13 @@ export async function GET(req: NextRequest) {
 
     // Real DB counts (not capped by the LIMIT-200 list), so the badge and the
     // queue tabs match and move the moment a patient is approved/rejected.
-    const cc = (countRows[0] as { reorder?: number; booked?: number; notbooked?: number } | undefined) ?? {};
+    const cc = (countRows[0] as { reorder?: number; booked?: number; notbooked?: number; red_flags?: number } | undefined) ?? {};
     const counts = {
       booked: Number(cc.booked ?? 0),
       notbooked: Number(cc.notbooked ?? 0),
       reorder: Number(cc.reorder ?? 0),
     };
+    const redFlags = Number(cc.red_flags ?? 0);
     const pendingFromCounts = counts.booked + counts.notbooked + counts.reorder;
     const pending = pendingFromCounts || consultations.filter((c) => !c.reviewed).length;
 
@@ -347,6 +354,7 @@ export async function GET(req: NextRequest) {
       loaded: consultations.length,
       pending,
       counts,
+      redFlags,
       consultations,
     });
   } catch (err) {
