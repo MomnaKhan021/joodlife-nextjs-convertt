@@ -177,6 +177,41 @@ function OrderCard({
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  // Inline delivery-address capture for orders whose saved address is
+  // incomplete (so DPD can't create a label). Lets staff fix it here.
+  const [addrOpen, setAddrOpen] = useState(false);
+  const [addrInput, setAddrInput] = useState(o.shippingAddress ?? "");
+  const [savingAddr, setSavingAddr] = useState(false);
+  const [localAddr, setLocalAddr] = useState<string | null>(o.shippingAddress);
+  const [localCanDispatch, setLocalCanDispatch] = useState(o.canDispatch);
+
+  async function saveAddress() {
+    const addr = addrInput.trim();
+    if (!addr || savingAddr || !o.orderId) return;
+    setSavingAddr(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin-tools/record?type=orders&id=${o.orderId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ fields: { shipping_address: addr } }),
+        },
+      );
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok || !j.ok) throw new Error(j?.error ?? "Could not save address");
+      setLocalAddr(addr);
+      setLocalCanDispatch(true); // DPD re-validates the saved address on dispatch
+      setAddrOpen(false);
+      setNote("Delivery address saved — you can dispatch now.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingAddr(false);
+    }
+  }
 
   const printDispensing = useCallback(async () => {
     if (busy) return;
@@ -223,8 +258,8 @@ function OrderCard({
       setError("No order/address on file — can't create a DPD label for this patient yet.");
       return;
     }
-    if (!o.canDispatch) {
-      setError("Delivery address is incomplete (missing street/town) — DPD can't create a label. Fix the order address first.");
+    if (!localCanDispatch) {
+      setError("Delivery address is incomplete (missing street/town) — add it below, then dispatch.");
       return;
     }
     if (!window.confirm(`Dispatch order ${o.orderNumber ?? `#${o.id}`} and print the DPD label?`)) return;
@@ -280,7 +315,7 @@ function OrderCard({
     } finally {
       setBusy(false);
     }
-  }, [busy, o.id, o.orderId, o.canDispatch, o.orderNumber, onDispatched]);
+  }, [busy, o.id, o.orderId, localCanDispatch, o.orderNumber, onDispatched]);
 
   return (
     <div className="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
@@ -326,15 +361,27 @@ function OrderCard({
             >
               Print dispensing label
             </button>
+            {o.hasOrder && !localCanDispatch ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setAddrInput(localAddr ?? "");
+                  setAddrOpen((v) => !v);
+                }}
+                className="rounded-lg border border-[#8a6116]/40 bg-[#fef3c7] px-4 py-1.5 text-[13px] font-semibold text-[#8a6116] transition-colors hover:bg-[#fde9a8]"
+              >
+                Add delivery address
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={dispatch}
-              disabled={busy || !o.canDispatch}
+              disabled={busy || !localCanDispatch}
               title={
-                o.canDispatch
+                localCanDispatch
                   ? undefined
                   : o.hasOrder
-                    ? "Delivery address is incomplete (missing street/town)"
+                    ? "Delivery address is incomplete — add it to enable DPD"
                     : "No order/address on file for this patient"
               }
               className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
@@ -342,13 +389,40 @@ function OrderCard({
               {busy ? "Dispatching…" : "Dispatch"}
             </button>
           </div>
-          {!o.canDispatch && (
+          {addrOpen ? (
+            <div className="mt-1 w-full max-w-[340px]">
+              <textarea
+                rows={4}
+                value={addrInput}
+                onChange={(e) => setAddrInput(e.target.value)}
+                placeholder={"House/flat, street\nTown\nPostcode"}
+                className="w-full rounded-[8px] border border-[#d3dabe] px-3 py-2 text-[13px] text-[#142e2a] outline-none focus:border-[#142e2a]"
+              />
+              <div className="mt-1 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAddrOpen(false)}
+                  className="rounded-lg border border-[#d0d3d6] bg-white px-3 py-1 text-[12px] font-medium text-[#616161]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveAddress}
+                  disabled={savingAddr || addrInput.trim().length < 5}
+                  className="rounded-lg bg-[#142e2a] px-3 py-1 text-[12px] font-semibold text-white disabled:opacity-50"
+                >
+                  {savingAddr ? "Saving…" : "Save address"}
+                </button>
+              </div>
+            </div>
+          ) : !localCanDispatch ? (
             <span className="max-w-[280px] text-right text-[11px] text-[#9ca3af]">
               {o.hasOrder
-                ? "Incomplete delivery address — DPD label unavailable."
+                ? "Incomplete delivery address — add it to enable DPD."
                 : "No order/address on file — DPD label unavailable."}
             </span>
-          )}
+          ) : null}
           {note && <span className="text-[12px] text-[#2f5d2a]">{note}</span>}
           {error && <span className="max-w-[280px] text-right text-[12px] text-[#dc2626]">{error}</span>}
           <span className="text-[12px] font-mono text-[#9ca3af]">#{o.id}</span>
@@ -391,9 +465,13 @@ function OrderCard({
               </div>
               <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Delivery address</p>
-                {o.shippingAddress?.trim() ? (
+                {localAddr?.trim() ? (
                   <p className="whitespace-pre-line text-[13px] text-[#303030]">
-                    {o.shippingAddress.trim()}
+                    {localAddr.trim()}
+                  </p>
+                ) : o.hasOrder ? (
+                  <p className="text-[13px] text-[#9ca3af]">
+                    No/incomplete delivery address — use “Add delivery address” above to enable DPD.
                   </p>
                 ) : (
                   <p className="text-[13px] text-[#9ca3af]">
