@@ -1201,39 +1201,186 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
   );
 }
 
-/* ---- GP details (simple text inputs; no autocomplete API yet) ---- */
+/* ---- GP details — searchable practice lookup (England, Scotland, Wales)
+ *      via the jood GP-search proxy, with a manual-entry fallback. ---- */
+
+type GpResult = { name: string; address: string; city: string; postcode: string };
+
+const GP_SEARCH_URL = "https://jood-proxy.vercel.app/api/gp-search";
 
 function GpSlide({ slide, answers, setAnswer }: SlideProps) {
+  const [query, setQuery] = useState<string>(
+    (answers["gp_practice_name"] as string) ?? "",
+  );
+  const [results, setResults] = useState<GpResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [manual, setManual] = useState(false);
+  const selected = Boolean(answers["gp_practice_name"]);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced search against the GP proxy (min 2 chars). Clears any prior
+  // selection while the user is typing a new query.
+  useEffect(() => {
+    if (manual) return;
+    if (query.trim().length < 2) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
+      setResults([]);
+      setOpen(false);
+      return;
+    }
+    // If the query still equals the selected practice name, don't re-search.
+    if (query === answers["gp_practice_name"]) return;
+    if (debounce.current) clearTimeout(debounce.current);
+    debounce.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${GP_SEARCH_URL}?q=${encodeURIComponent(query.trim())}`);
+        const data = (await res.json()) as GpResult[];
+        setResults(Array.isArray(data) ? data : []);
+        setOpen(true);
+      } catch {
+        setResults([]);
+        setOpen(false);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => {
+      if (debounce.current) clearTimeout(debounce.current);
+    };
+  }, [query, manual, answers]);
+
+  function choose(gp: GpResult) {
+    setAnswer("gp_practice_name", gp.name);
+    setAnswer(
+      "gp_practice_full_address",
+      [gp.address, gp.city, gp.postcode].filter(Boolean).join(", "),
+    );
+    setQuery(gp.name);
+    setResults([]);
+    setOpen(false);
+  }
+
+  function clearSelection() {
+    setAnswer("gp_practice_name", "");
+    setAnswer("gp_practice_full_address", "");
+    setQuery("");
+    setResults([]);
+  }
+
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
       <div className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1.5">
-          <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
-            GP practice name (optional)
-          </span>
-          <input
-            type="text"
-            placeholder="e.g. The Mill Practice, Brighton"
-            value={(answers["gp_practice_name"] as string) ?? ""}
-            onChange={(e) => setAnswer("gp_practice_name", e.target.value)}
-            className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
-            Practice address (optional)
-          </span>
-          <textarea
-            rows={3}
-            placeholder="House/flat, street, town, postcode"
-            value={(answers["gp_practice_full_address"] as string) ?? ""}
-            onChange={(e) =>
-              setAnswer("gp_practice_full_address", e.target.value)
-            }
-            className="w-full rounded-lg bg-white px-4 py-3 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-          />
-        </label>
+        {!manual ? (
+          <>
+            {selected && query === answers["gp_practice_name"] ? (
+              <div className="rounded-lg bg-[#eef3e6] p-4 ring-1 ring-[#142e2a]/15">
+                <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                  {answers["gp_practice_name"] as string}
+                </p>
+                <p className="mt-0.5 font-ui text-[13px] text-[#142e2a]/70">
+                  {(answers["gp_practice_full_address"] as string) ?? ""}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearSelection}
+                  className="mt-2 font-ui text-[12px] font-semibold text-[#142e2a] underline hover:no-underline"
+                >
+                  Change practice
+                </button>
+              </div>
+            ) : (
+              <label className="relative flex flex-col gap-1.5">
+                <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
+                  GP practice (optional)
+                </span>
+                <input
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Start typing your GP practice name…"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    if (answers["gp_practice_name"]) clearSelection();
+                  }}
+                  className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
+                />
+                {open ? (
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-[280px] overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-[#142e2a]/15">
+                    {loading ? (
+                      <div className="px-4 py-3 font-ui text-[13px] text-[#142e2a]/60">
+                        Searching…
+                      </div>
+                    ) : results.length === 0 ? (
+                      <div className="px-4 py-3 font-ui text-[13px] text-[#142e2a]/60">
+                        No practices found — try a different search or enter it manually.
+                      </div>
+                    ) : (
+                      results.map((gp, i) => (
+                        <button
+                          type="button"
+                          key={`${gp.name}-${gp.postcode}-${i}`}
+                          onClick={() => choose(gp)}
+                          className="block w-full border-b border-[#142e2a]/8 px-4 py-2.5 text-left last:border-b-0 hover:bg-[#f7f9f2]"
+                        >
+                          <span className="block font-ui text-[13px] font-semibold text-[#142e2a]">
+                            {gp.name}
+                          </span>
+                          <span className="block font-ui text-[12px] text-[#142e2a]/60">
+                            {[gp.address, gp.city, gp.postcode].filter(Boolean).join(", ")}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                ) : null}
+              </label>
+            )}
+            <button
+              type="button"
+              onClick={() => setManual(true)}
+              className="self-start font-ui text-[12px] font-semibold text-[#142e2a] underline hover:no-underline"
+            >
+              Can&apos;t find your practice? Enter it manually
+            </button>
+          </>
+        ) : (
+          <>
+            <label className="flex flex-col gap-1.5">
+              <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
+                GP practice name (optional)
+              </span>
+              <input
+                type="text"
+                placeholder="e.g. The Mill Practice, Brighton"
+                value={(answers["gp_practice_name"] as string) ?? ""}
+                onChange={(e) => setAnswer("gp_practice_name", e.target.value)}
+                className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
+                Practice address (optional)
+              </span>
+              <textarea
+                rows={3}
+                placeholder="House/flat, street, town, postcode"
+                value={(answers["gp_practice_full_address"] as string) ?? ""}
+                onChange={(e) => setAnswer("gp_practice_full_address", e.target.value)}
+                className="w-full rounded-lg bg-white px-4 py-3 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setManual(false)}
+              className="self-start font-ui text-[12px] font-semibold text-[#142e2a] underline hover:no-underline"
+            >
+              ← Search for my practice instead
+            </button>
+          </>
+        )}
         <p className="font-ui text-[12px] text-[#142e2a]/55">
           You can leave this blank if you&apos;d rather we didn&apos;t share an
           outcome letter with your GP.
