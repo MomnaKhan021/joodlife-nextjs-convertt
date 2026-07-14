@@ -147,6 +147,61 @@ export async function GET(req: NextRequest) {
     const orderRows = rowsOf<OrderRow>(ordersRes);
     const account = rowsOf<UserRow>(userRes)[0] ?? null;
 
+    // Weight history — legally required to evidence progress on resupplies.
+    // Combine self-logged weights (weight_logs) with the weight captured on
+    // each consultation/reorder questionnaire. Best-effort: a missing table on
+    // an older deployment must not break the whole customer page.
+    type WeightPoint = { date: string | null; weightKg: number; source: string };
+    const weightHistory: WeightPoint[] = [];
+    try {
+      const wlRes = await drizzle.execute(
+        sql.raw(`
+          SELECT weight_kg, logged_at
+          FROM weight_logs
+          WHERE LOWER(customer_email) = '${esc}'
+          ORDER BY logged_at ASC NULLS LAST, id ASC
+          LIMIT 500
+        `),
+      );
+      for (const r of rowsOf<{ weight_kg: string | number | null; logged_at: string | null }>(wlRes)) {
+        const kg = Number(r.weight_kg);
+        if (Number.isFinite(kg) && kg > 0) {
+          weightHistory.push({ date: r.logged_at, weightKg: kg, source: "logged" });
+        }
+      }
+    } catch {
+      /* weight_logs table absent → skip */
+    }
+    try {
+      const consRes = await drizzle.execute(
+        sql.raw(`
+          SELECT created_at, answers->>'current_weight_kg' AS weight_kg
+          FROM consultations
+          WHERE LOWER(email) = '${esc}' AND answers->>'current_weight_kg' IS NOT NULL
+          ORDER BY created_at ASC NULLS LAST, id ASC
+          LIMIT 500
+        `),
+      );
+      for (const r of rowsOf<{ created_at: string | null; weight_kg: string | null }>(consRes)) {
+        const kg = Number(r.weight_kg);
+        if (Number.isFinite(kg) && kg > 0) {
+          weightHistory.push({ date: r.created_at, weightKg: kg, source: "consultation" });
+        }
+      }
+    } catch {
+      /* consultations weight absent → skip */
+    }
+    // Chronological order for a clean progression line.
+    weightHistory.sort(
+      (a, b) => (a.date ? +new Date(a.date) : 0) - (b.date ? +new Date(b.date) : 0),
+    );
+    const weightChange =
+      weightHistory.length >= 2
+        ? Math.round(
+            (weightHistory[weightHistory.length - 1].weightKg - weightHistory[0].weightKg) * 10,
+          ) / 10
+        : null;
+
     // Name: prefer the account, else the most recent order's customer name.
     const name =
       account?.name ??
@@ -196,6 +251,8 @@ export async function GET(req: NextRequest) {
         refunds,
         productCounts,
       },
+      weightHistory,
+      weightChange,
       orders,
     });
   } catch (err) {

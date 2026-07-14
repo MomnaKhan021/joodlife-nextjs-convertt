@@ -33,6 +33,54 @@ function escapeHtml(s: string): string {
 }
 
 /**
+ * "Please book your video consultation" reminder — sent from the Clinical
+ * Queue for patients who submitted but haven't booked their call yet. Uses the
+ * same HubSpot scheduler CTA as the order emails. Delivery goes through the
+ * configured adapter (real SMTP in prod, console in dev).
+ */
+export async function sendConsultationReminderEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+
+  const html = `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
+    <h1 style="font-size:22px;margin:0 0 12px">Book your consultation, ${escapeHtml(firstName)}</h1>
+    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
+      We've received your questionnaire, but we still need a short video
+      consultation with our clinician before your treatment can be approved and
+      dispatched. It only takes a few minutes.
+    </p>
+    <p style="margin:0 0 24px">
+      <a href="${BOOKING_URL}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
+        Book my consultation
+      </a>
+    </p>
+    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+      From the team at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
+      Questions? Just reply to this email.
+    </p>
+  </div>`;
+
+  const text = `Hi ${firstName},
+
+We've received your questionnaire, but we still need a short video consultation before your treatment can be approved and dispatched.
+
+Book your consultation: ${BOOKING_URL}
+
+From the team at ${url}.`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Book your JoodLife video consultation",
+    html,
+    text,
+  });
+}
+
+/**
  * HTML for the "reset your password" email. Wired into the Users auth config
  * (`auth.forgotPassword.generateEmailHTML`) so the link points at the
  * STOREFRONT reset page (`/reset-password?token=…`) instead of Payload's

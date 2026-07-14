@@ -217,7 +217,35 @@ export async function POST(req: NextRequest) {
   }
 
   const status = body.status === "draft" ? "draft" : "submitted";
-  const answers = body.answers ?? {};
+
+  // Reorder auto-approval: a submitted reorder with NO red flags does not need
+  // pharmacist review — it bypasses the Clinical Queue and drops straight into
+  // the Dispatch Queue (which reads answers._review_decision = 'approved').
+  // Flagged reorders and new consultations still go through clinical review.
+  const isReorder = body.productSlug === "reorder";
+  const redFlags = isReorder && status === "submitted"
+    ? getReorderRedFlags(body.answers ?? {})
+    : [];
+  const hasRedFlags = redFlags.length > 0;
+  const autoApproveReorder = isReorder && status === "submitted" && !hasRedFlags;
+
+  // The persisted status: auto-approved reorders go straight to 'approved' so
+  // they leave the Clinical Queue (which lists submitted/reviewed) and are
+  // picked up by the Dispatch Queue. `status` stays 'submitted' so the HubSpot
+  // mirror below still fires.
+  const dbStatus = autoApproveReorder ? "approved" : status;
+
+  const answers: Record<string, unknown> = {
+    ...(body.answers ?? {}),
+    ...(autoApproveReorder
+      ? {
+          _review_decision: "approved",
+          _review_reason: "Auto-approved reorder — no red flags",
+          _reviewed_by: "Auto (system)",
+          _reviewed_at: new Date().toISOString(),
+        }
+      : {}),
+  };
 
   try {
     const { drizzle, sql } = await getDrizzle();
@@ -228,7 +256,7 @@ export async function POST(req: NextRequest) {
       VALUES
         (${esc(body.fullName)}, ${esc(body.email)}, ${esc(body.phone)},
          ${esc(body.dateOfBirth)}, ${esc(body.productSlug)}, ${esc(body.dose)},
-         ${esc(JSON.stringify(answers))}::jsonb, ${esc(status)},
+         ${esc(JSON.stringify(answers))}::jsonb, ${esc(dbStatus)},
          ${userId ?? "NULL"}, now(), now())
       RETURNING id;
     `;
@@ -242,10 +270,10 @@ export async function POST(req: NextRequest) {
     // Submit (status === 'submitted'). Drafts churn too much.
     if (status === "submitted" && body.email) {
       const [first, ...rest] = (body.fullName ?? "").split(" ");
-      const isReorder = body.productSlug === "reorder";
-      const redFlags = isReorder ? getReorderRedFlags(body.answers ?? {}) : [];
-      const hasRedFlags = redFlags.length > 0;
-      const reorderStatus = hasRedFlags ? "needs_clinical_approval" : "reorder_submitted";
+      // isReorder / redFlags / hasRedFlags are computed above (drive auto-approval).
+      const reorderStatus = hasRedFlags
+        ? "needs_clinical_approval"
+        : "reorder_approved";
 
       // Build the HubSpot note — red-flagged reorders get a bold alert banner
       // at the top so pharmacists (and HubSpot AI) see the issue immediately.
@@ -287,18 +315,20 @@ export async function POST(req: NextRequest) {
             }),
           );
         } else {
-          // ALL reorders (clean or red-flagged) → "Needs Clinical Approval"
-          // in the Patient Order Lifecycle pipeline so the pharmacist queue
-          // always shows them. Red-flagged ones get an alert note + jood_red_flag.
+          // Red-flagged reorders → "Needs Clinical Approval" (pharmacist queue).
+          // Clean reorders auto-approve → "Clinically Approved" so they bypass
+          // the clinical queue and land straight in Dispatch.
           const dealName = hasRedFlags
             ? `Reorder 🚨 RED FLAG — #${insertedId ?? "?"}`
-            : `Reorder — #${insertedId ?? "?"}`;
+            : `Reorder ✓ auto-approved — #${insertedId ?? "?"}`;
           await fireHubSpot("consultation:deal", () =>
             createDeal({
               name: dealName,
               amount: 0,
               contactEmail: body.email!,
-              dealStage: PATIENT_LIFECYCLE_STAGES.needsClinicalApproval,
+              dealStage: hasRedFlags
+                ? PATIENT_LIFECYCLE_STAGES.needsClinicalApproval
+                : PATIENT_LIFECYCLE_STAGES.clinicallyApproved,
               extra: {
                 jood_product_interest: body.productSlug ?? "",
                 jood_consultation_status: reorderStatus,

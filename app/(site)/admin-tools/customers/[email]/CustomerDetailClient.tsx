@@ -29,9 +29,12 @@ type CustomerData = {
     refunds: number;
     productCounts: Record<string, number>;
   };
+  weightHistory?: WeightPoint[];
+  weightChange?: number | null;
   orders: CustomerOrder[];
   error?: string;
 };
+type WeightPoint = { date: string | null; weightKg: number; source: string };
 
 const gbp = (n: number) =>
   n.toLocaleString("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 2 });
@@ -63,6 +66,75 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
     <section className={`rounded-[12px] border border-[#e1e3e5] bg-white shadow-[0_1px_0_rgba(0,0,0,0.05)] ${className}`}>
       {children}
     </section>
+  );
+}
+
+/** Weight progression over time — a small line chart + reading list. Weight
+ *  change is a legal record for GLP-1 resupplies. */
+function WeightTracking({ history, change }: { history: WeightPoint[]; change: number | null | undefined }) {
+  if (!history.length) {
+    return (
+      <Card>
+        <div className="px-5 py-4">
+          <h2 className="text-[14px] font-semibold">Weight tracking</h2>
+          <p className="mt-2 text-[13px] text-[#616161]">No weight recorded yet.</p>
+        </div>
+      </Card>
+    );
+  }
+  const w = 280;
+  const h = 90;
+  const pad = 6;
+  const weights = history.map((p) => p.weightKg);
+  const min = Math.min(...weights);
+  const max = Math.max(...weights);
+  const span = max - min || 1;
+  const stepX = history.length > 1 ? (w - pad * 2) / (history.length - 1) : 0;
+  const y = (kg: number) => pad + (1 - (kg - min) / span) * (h - pad * 2);
+  const pts = history.map((p, i) => `${(pad + i * stepX).toFixed(1)},${y(p.weightKg).toFixed(1)}`).join(" ");
+  const latest = weights[weights.length - 1];
+  const first = weights[0];
+  const down = change != null && change < 0;
+
+  return (
+    <Card>
+      <div className="px-5 py-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-[14px] font-semibold">Weight tracking</h2>
+          {change != null ? (
+            <span className={`text-[13px] font-semibold ${down ? "text-[#0c5132]" : "text-[#8e1f0b]"}`}>
+              {down ? "▼" : "▲"} {Math.abs(change)} kg
+            </span>
+          ) : null}
+        </div>
+        <p className="mt-0.5 text-[12px] text-[#616161]">
+          {first} kg → <span className="font-semibold text-[#1a1a1a]">{latest} kg</span> over{" "}
+          {history.length} reading{history.length === 1 ? "" : "s"}
+        </p>
+        {history.length > 1 ? (
+          <svg viewBox={`0 0 ${w} ${h}`} className="mt-3 w-full" preserveAspectRatio="none" aria-hidden>
+            <polyline points={pts} fill="none" stroke="#142e2a" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            {history.map((p, i) => (
+              <circle key={i} cx={pad + i * stepX} cy={y(p.weightKg)} r="2.5" fill="#142e2a" />
+            ))}
+          </svg>
+        ) : null}
+        <ul className="mt-3 flex flex-col gap-1">
+          {history
+            .slice()
+            .reverse()
+            .map((p, i) => (
+              <li key={i} className="flex items-center justify-between text-[12px]">
+                <span className="text-[#616161]">
+                  {fmtDate(p.date)}
+                  {p.source === "logged" ? " · self-logged" : " · consultation"}
+                </span>
+                <span className="font-semibold text-[#303030]">{p.weightKg} kg</span>
+              </li>
+            ))}
+        </ul>
+      </div>
+    </Card>
   );
 }
 
@@ -190,8 +262,9 @@ export default function CustomerDetailClient({ email }: { email: string }) {
             )}
           </Card>
 
-          {/* RIGHT: contact + products purchased */}
+          {/* RIGHT: contact + weight + products purchased */}
           <div className="flex flex-col gap-4">
+            <WeightTracking history={data.weightHistory ?? []} change={data.weightChange} />
             <Card>
               <div className="px-5 py-4">
                 <h2 className="text-[14px] font-semibold">Contact</h2>

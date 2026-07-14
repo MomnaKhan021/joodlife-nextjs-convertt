@@ -245,25 +245,32 @@ function SummaryBar({
         ))}
       </div>
 
-      {onDecision && !reviewed ? (
+      {c.answers.video_consultation_preference || (onDecision && !reviewed) ? (
         <div className="flex flex-col items-end gap-1">
           <div className="flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => onDecision("approved")}
-              className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
-            >
-              Approve supply
-            </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => onDecision("rejected")}
-              className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
-            >
-              Reject supply
-            </button>
+            {c.answers.video_consultation_preference ? (
+              <JoinCallButton email={c.email} />
+            ) : null}
+            {onDecision && !reviewed ? (
+              <>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => onDecision("approved")}
+                  className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+                >
+                  Approve supply
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => onDecision("rejected")}
+                  className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+                >
+                  Reject supply
+                </button>
+              </>
+            ) : null}
           </div>
           {loading && <span className="text-[12px] text-[#4a5c46]">Saving…</span>}
           {error && <span className="text-[12px] text-[#dc2626]">{error}</span>}
@@ -434,13 +441,64 @@ function JoinCallButton({ email }: { email: string | null }) {
       type="button"
       onClick={onClick}
       title="Open the Google Meet video consultation (link from HubSpot)"
-      className="inline-flex items-center gap-1.5 rounded-full bg-[#1a73e8] px-3 py-0.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#1666d0] disabled:opacity-60"
+      className="inline-flex items-center gap-1.5 rounded-lg bg-[#142e2a] px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#0c2421] disabled:opacity-60"
       disabled={state === "loading"}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M15 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Zm2 2.5 4-2.2v7.4l-4-2.2V10.5Z" />
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M15 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z" />
+        <path d="m17 10 4-2v8l-4-2" />
       </svg>
       {state === "loading" ? "Opening…" : state === "none" ? "No link yet" : "Join call"}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Send reminder — nudges an unbooked patient to book their consult     */
+/* ------------------------------------------------------------------ */
+
+function SendReminderButton({ id, email }: { id: number; email: string | null }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const onClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!email || state === "sending" || state === "sent") return;
+      setState("sending");
+      try {
+        const res = await fetch("/api/admin-tools/send-reminder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ id, email }),
+        });
+        const j = await res.json();
+        setState(res.ok && j.ok ? "sent" : "error");
+      } catch {
+        setState("error");
+      }
+    },
+    [id, email, state],
+  );
+  if (!email) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Email this patient a reminder to book their video consultation"
+      disabled={state === "sending" || state === "sent"}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-[#142e2a]/30 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M4 5h16v14H4z" />
+        <path d="m4 6 8 6 8-6" />
+      </svg>
+      {state === "sending"
+        ? "Sending…"
+        : state === "sent"
+          ? "Reminder sent ✓"
+          : state === "error"
+            ? "Try again"
+            : "Send reminder"}
     </button>
   );
 }
@@ -535,9 +593,6 @@ function ConsultationCard({
                 Red flag
               </span>
             )}
-            {c.answers.video_consultation_preference ? (
-              <JoinCallButton email={c.email} />
-            ) : null}
           </div>
           {c.email && (
             <p className="mt-0.5 text-[12px] text-[#6b7280]">{c.email}</p>
@@ -547,7 +602,15 @@ function ConsultationCard({
             {c.productSlug ? ` · ${c.productSlug}` : ""}
           </p>
         </div>
-        <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+        {/* Top-right actions: Join call (booked) / Send reminder (not booked) */}
+        <div className="flex flex-col items-end gap-1.5">
+          {c.answers.video_consultation_preference ? (
+            <JoinCallButton email={c.email} />
+          ) : !c.isReorder ? (
+            <SendReminderButton id={c.id} email={c.email} />
+          ) : null}
+          <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+        </div>
       </div>
 
       {/* Red flag banner */}

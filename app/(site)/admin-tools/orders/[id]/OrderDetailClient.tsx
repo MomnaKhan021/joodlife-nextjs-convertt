@@ -265,6 +265,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
       const next = fulfilled ? "paid" : "shipped";
       await patch({ status: next });
       setFulfilled(!fulfilled);
+      void logEvent(fulfilled ? "Order marked as not dispatched." : "Order marked as dispatched.");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -307,6 +308,24 @@ export default function OrderDetailClient({ id }: { id: string }) {
     }
   }
 
+  // Append an automatic audit-trail entry to the order timeline (who/what is
+  // recorded as a "System" event with a timestamp). Best-effort: a logging
+  // failure never blocks the underlying action.
+  async function logEvent(text: string) {
+    const entry: OrderComment = {
+      text,
+      at: new Date().toISOString(),
+      author: "System",
+    };
+    const next = [...comments, entry];
+    setComments(next);
+    try {
+      await patch({ admin_comments: next });
+    } catch {
+      /* non-blocking */
+    }
+  }
+
   async function refund() {
     if (!order || refunding) return;
     if (!window.confirm(`Refund ${order.order_number} in full? This cannot be undone.`)) return;
@@ -324,6 +343,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
       setOrder({ ...order, payment_status: "refunded", status: "cancelled" });
       setFulfilled(false);
       setToast(j.viaStripe ? "Refunded via Stripe." : "Order marked refunded.");
+      void logEvent(j.viaStripe ? "Order refunded in full via Stripe." : "Order marked refunded.");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -352,6 +372,9 @@ export default function OrderDetailClient({ id }: { id: string }) {
       },
     );
     printLabels(labels);
+    void logEvent(
+      `Dispensing label printed (${labels.length} item${labels.length === 1 ? "" : "s"}).`,
+    );
   }
 
   async function printDpdLabel() {
@@ -398,6 +421,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
       setOrder({ ...order, status: "shipped" });
       setFulfilled(true);
       setToast(`DPD label created · Tracking: ${j.trackingNumber}`);
+      void logEvent(`Dispatch label printed (DPD) · Tracking ${j.trackingNumber}.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -414,6 +438,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
       setOrder({ ...order, status: "cancelled" });
       setFulfilled(false);
       setToast("Order cancelled.");
+      void logEvent("Order cancelled.");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
