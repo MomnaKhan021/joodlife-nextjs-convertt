@@ -75,6 +75,31 @@ export function verifyTotp(secret: string, token: string, window = 1): boolean {
   return false;
 }
 
+/* ------------------------------------------------------------------ */
+/* Email one-time codes (alternative to the authenticator app)         */
+/* ------------------------------------------------------------------ */
+
+/** A fresh 6-digit numeric code to email to the admin. */
+export function generateEmailOtp(): string {
+  return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+/** SHA-256 hash of a code (we store the hash, never the plain code). */
+export function hashOtp(code: string): string {
+  return crypto.createHash("sha256").update(code.trim()).digest("hex");
+}
+
+/** Constant-time check of a submitted code against a stored hash. */
+export function verifyOtpHash(code: string, hash: string | null | undefined): boolean {
+  if (!hash) return false;
+  const got = hashOtp(code);
+  try {
+    return crypto.timingSafeEqual(Buffer.from(got), Buffer.from(hash));
+  } catch {
+    return false;
+  }
+}
+
 /** otpauth:// URI for manual entry / QR in an authenticator app. */
 export function otpauthUri(secret: string, account: string, issuer = "JoodLife Admin"): string {
   const label = encodeURIComponent(`${issuer}:${account}`);

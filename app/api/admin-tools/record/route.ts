@@ -11,10 +11,16 @@
  * The whitelist of editable columns lives in EDITABLE_COLUMNS so a
  * malicious request can't, say, escalate role=admin or wipe a hash.
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import {
+  fireHubSpot,
+  mapOrderStageId,
+  updateDealStage,
+  findDealsByContactEmail,
+} from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -470,6 +476,46 @@ async function readProductVariants(
   }
 }
 
+/**
+ * Mirror an order's status to its HubSpot deal stage. Called after a status
+ * change from the order page or the batch "Mark as dispatched" action (the DPD
+ * dispatch route already does its own sync). Best-effort + fire-and-forget:
+ * looks up the order's deal id (or finds the deal by customer email), maps the
+ * status to a lifecycle stage, and updates it. Never throws.
+ */
+async function mirrorOrderStageToHubSpot(
+  drizzle: DrizzleLike,
+  sql: SqlRaw,
+  orderId: number,
+): Promise<void> {
+  try {
+    const rows = readRows<{
+      hubspot_deal_id: string | null;
+      customer_email: string | null;
+      status: string | null;
+      payment_status: string | null;
+    }>(
+      await drizzle.execute(
+        sql.raw(
+          `SELECT hubspot_deal_id, customer_email, status, payment_status FROM orders WHERE id = ${orderId} LIMIT 1`,
+        ),
+      ),
+    );
+    const o = rows[0];
+    if (!o) return;
+    const stageId = mapOrderStageId(o.status, o.payment_status);
+    let dealId = (o.hubspot_deal_id ?? "").trim();
+    if (!dealId && o.customer_email) {
+      const deals = await findDealsByContactEmail(o.customer_email);
+      if (deals.ok && deals.data.length) dealId = deals.data[0].id;
+    }
+    if (!dealId) return;
+    await fireHubSpot("order:stage", () => updateDealStage(dealId, stageId));
+  } catch {
+    /* never block the DB write on a HubSpot hiccup */
+  }
+}
+
 async function authorize() {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
@@ -676,6 +722,11 @@ export async function POST(req: NextRequest) {
     }
     if (type === "products" && "variants_json" in fields) {
       await syncProductVariants(drizzle, sql, Number(row.id), fields.variants_json);
+    }
+    // Keep HubSpot's deal stage in step when an order's status changes
+    // (mark dispatched, cancel, etc.) — fire-and-forget after the response.
+    if (type === "orders" && "status" in fields && Number.isFinite(Number(row.id))) {
+      after(() => mirrorOrderStageToHubSpot(drizzle, sql, Number(row.id)));
     }
     return NextResponse.json({ ok: true, id: row.id, created: false });
   } catch (err) {

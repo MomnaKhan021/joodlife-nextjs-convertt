@@ -81,6 +81,35 @@ From the team at ${url}.`;
 }
 
 /**
+ * Two-factor login code — the "email code" alternative to an authenticator
+ * app. Sent to an admin's own address; valid for a few minutes.
+ */
+export async function sendTwoFactorCodeEmail(
+  payload: Payload,
+  opts: { email: string; code: string; name?: string | null },
+): Promise<void> {
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const html = `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;color:#142e2a">
+    <h1 style="font-size:20px;margin:0 0 12px">Your JoodLife admin code</h1>
+    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
+      Hi ${escapeHtml(firstName)}, use this code to finish signing in to the admin portal. It expires in 5 minutes.
+    </p>
+    <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px;color:#142e2a">${escapeHtml(opts.code)}</p>
+    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+      If you didn't try to sign in, someone may have your password — change it as soon as you can.
+    </p>
+  </div>`;
+  const text = `Your JoodLife admin sign-in code is ${opts.code}. It expires in 5 minutes. If you didn't request it, change your password.`;
+  await payload.sendEmail({
+    to: opts.email,
+    subject: `${opts.code} is your JoodLife admin code`,
+    html,
+    text,
+  });
+}
+
+/**
  * HTML for the "reset your password" email. Wired into the Users auth config
  * (`auth.forgotPassword.generateEmailHTML`) so the link points at the
  * STOREFRONT reset page (`/reset-password?token=…`) instead of Payload's

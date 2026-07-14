@@ -12,6 +12,8 @@ export default function SecurityPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [emailMode, setEmailMode] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   async function refresh() {
     const res = await fetch("/api/admin-tools/2fa", { credentials: "include", cache: "no-store" });
@@ -52,11 +54,24 @@ export default function SecurityPage() {
       setCode("");
     }
   }
+  async function startEmailSetup() {
+    setEmailMode(true);
+    setError(null);
+    const j = await post("email-otp");
+    if (j) {
+      setEmailSent(true);
+      setCode("");
+    } else {
+      setEmailMode(false);
+    }
+  }
   async function enable() {
     const j = await post("enable");
     if (j) {
       setSecret(null);
       setOtpauth(null);
+      setEmailMode(false);
+      setEmailSent(false);
       setCode("");
       setToast("Two-factor authentication is now on.");
       await refresh();
@@ -102,15 +117,65 @@ export default function SecurityPage() {
 
           {status && !status.enabled ? (
             <div className="mt-4">
-              {!secret ? (
-                <button
-                  type="button"
-                  onClick={startSetup}
-                  disabled={busy}
-                  className="h-10 rounded-[10px] bg-[#142e2a] px-4 text-[13px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-50"
-                >
-                  {busy ? "Please wait…" : "Set up two-factor auth"}
-                </button>
+              {!secret && !emailMode ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[13px] text-[#303030]">Choose how you&apos;d like to receive your second-step code:</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={startSetup}
+                      disabled={busy}
+                      className="h-10 rounded-[10px] bg-[#142e2a] px-4 text-[13px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-50"
+                    >
+                      {busy ? "Please wait…" : "Authenticator app"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={startEmailSetup}
+                      disabled={busy}
+                      className="h-10 rounded-[10px] border border-[#142e2a]/30 bg-white px-4 text-[13px] font-semibold text-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-50"
+                    >
+                      Email codes
+                    </button>
+                  </div>
+                  <p className="text-[12px] text-[#8a8a8a]">
+                    Authenticator app is most secure; email codes work without any app.
+                  </p>
+                </div>
+              ) : emailMode ? (
+                <div className="flex flex-col gap-3">
+                  <p className="text-[13px] text-[#303030]">
+                    {emailSent
+                      ? "We've emailed you a 6-digit code. Enter it to turn on 2FA:"
+                      : "Sending a code to your email…"}
+                  </p>
+                  <input
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    className="w-[160px] rounded-[10px] border border-[#d3dabe] px-4 py-2.5 text-center text-[18px] font-semibold tracking-[0.25em] text-[#142e2a] outline-none focus:border-[#142e2a]"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={enable}
+                      disabled={busy || code.length < 6}
+                      className="h-10 w-fit rounded-[10px] bg-[#142e2a] px-4 text-[13px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-50"
+                    >
+                      {busy ? "Verifying…" : "Turn on 2FA"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={startEmailSetup}
+                      disabled={busy}
+                      className="h-10 w-fit rounded-[10px] border border-[#142e2a]/30 bg-white px-4 text-[13px] font-semibold text-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-50"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="flex flex-col gap-3">
                   <p className="text-[13px] text-[#303030]">

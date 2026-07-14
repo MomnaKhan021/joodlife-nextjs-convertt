@@ -8,6 +8,29 @@ export default function Verify2faPage() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailing, setEmailing] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+
+  async function emailCode() {
+    if (emailing) return;
+    setEmailing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin-tools/2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action: "email-otp" }),
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j?.error ?? "Could not send email");
+      setEmailSent(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setEmailing(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,7 +62,9 @@ export default function Verify2faPage() {
       >
         <h1 className="text-[20px] font-bold text-[#0c2421]">Two-factor verification</h1>
         <p className="mt-1.5 text-[13px] text-[#616161]">
-          Enter the 6-digit code from your authenticator app to continue.
+          {emailSent
+            ? "Enter the 6-digit code we just emailed you."
+            : "Enter the 6-digit code from your authenticator app — or email yourself one instead."}
         </p>
         <input
           inputMode="numeric"
@@ -58,6 +83,18 @@ export default function Verify2faPage() {
           className="mt-4 h-11 w-full rounded-[10px] bg-[#142e2a] text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-50"
         >
           {busy ? "Verifying…" : "Verify"}
+        </button>
+        <button
+          type="button"
+          onClick={emailCode}
+          disabled={emailing}
+          className="mt-3 w-full text-center text-[13px] font-medium text-[#142e2a] underline hover:no-underline disabled:opacity-50"
+        >
+          {emailing
+            ? "Sending…"
+            : emailSent
+              ? "Resend email code"
+              : "Email me a code instead"}
         </button>
       </form>
     </main>

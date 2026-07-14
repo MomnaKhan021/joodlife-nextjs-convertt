@@ -13,10 +13,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { sendTwoFactorCodeEmail } from "@/lib/account-email";
 import {
   generateSecret,
   otpauthUri,
   verifyTotp,
+  generateEmailOtp,
+  hashOtp,
+  verifyOtpHash,
   signTwoFactorCookie,
   TWOFA_COOKIE,
 } from "@/lib/totp";
@@ -45,22 +49,53 @@ async function ctx() {
   const drizzle = (payload.db as unknown as { drizzle?: DrizzleLike }).drizzle as DrizzleLike;
   const { sql } = (await import("drizzle-orm")) as { sql: SqlRaw };
   return {
+    payload,
     id: String((user as unknown as { id: string | number }).id),
     email: String((user as unknown as { email?: string }).email ?? "admin"),
+    name: (user as unknown as { name?: string }).name ?? null,
     drizzle,
     sql,
   };
 }
 
-type UserRow = { totp_secret: string | null; totp_enabled: boolean | null };
+type UserRow = {
+  totp_secret: string | null;
+  totp_enabled: boolean | null;
+  email_otp_hash: string | null;
+  email_otp_expires: string | null;
+};
 
 async function readTotp(c: NonNullable<Awaited<ReturnType<typeof ctx>>>): Promise<UserRow> {
   const r = rows<UserRow>(
     await c.drizzle.execute(
-      c.sql.raw(`SELECT totp_secret, totp_enabled FROM users WHERE id = ${Number(c.id)} LIMIT 1`),
+      c.sql.raw(
+        `SELECT totp_secret, totp_enabled, email_otp_hash, email_otp_expires FROM users WHERE id = ${Number(c.id)} LIMIT 1`,
+      ),
     ),
   );
-  return r[0] ?? { totp_secret: null, totp_enabled: false };
+  return r[0] ?? { totp_secret: null, totp_enabled: false, email_otp_hash: null, email_otp_expires: null };
+}
+
+/** True if the token is a valid authenticator code (when a secret exists) OR a
+ *  valid, unexpired email code. This is what makes app-or-email interchangeable. */
+function secondFactorOk(u: UserRow, token: string): boolean {
+  if (u.totp_secret && verifyTotp(u.totp_secret, token)) return true;
+  if (
+    u.email_otp_hash &&
+    u.email_otp_expires &&
+    new Date(u.email_otp_expires).getTime() > Date.now() &&
+    verifyOtpHash(token, u.email_otp_hash)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** Clear a used/expired email code so it can't be replayed. */
+async function clearEmailOtp(c: NonNullable<Awaited<ReturnType<typeof ctx>>>): Promise<void> {
+  await c.drizzle.execute(
+    c.sql.raw(`UPDATE users SET email_otp_hash = NULL, email_otp_expires = NULL WHERE id = ${Number(c.id)}`),
+  );
 }
 
 export async function GET() {
@@ -71,6 +106,7 @@ export async function GET() {
     ok: true,
     enabled: Boolean(u.totp_enabled),
     pending: Boolean(u.totp_secret) && !u.totp_enabled,
+    method: u.totp_secret ? "app" : u.totp_enabled ? "email" : null,
   });
 }
 
@@ -88,6 +124,7 @@ export async function POST(req: NextRequest) {
   const token = (body.token ?? "").trim();
   const current = await readTotp(c);
 
+  // Set up the authenticator-app method — generate + store a pending secret.
   if (action === "setup") {
     const secret = generateSecret();
     await c.drizzle.execute(
@@ -98,15 +135,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, secret, otpauth: otpauthUri(secret, c.email) });
   }
 
-  if (action === "enable" || action === "verify") {
-    const secret = current.totp_secret;
-    if (!secret) {
-      return NextResponse.json({ ok: false, error: "No 2FA secret set up yet" }, { status: 400 });
+  // Email a fresh one-time code (used both to enrol the email method and as a
+  // login fallback for the app method). Valid for 5 minutes.
+  if (action === "email-otp") {
+    const code = generateEmailOtp();
+    const expires = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    await c.drizzle.execute(
+      c.sql.raw(
+        `UPDATE users SET email_otp_hash = ${escStr(hashOtp(code))}, email_otp_expires = ${escStr(expires)} WHERE id = ${Number(c.id)}`,
+      ),
+    );
+    try {
+      await sendTwoFactorCodeEmail(c.payload, { email: c.email, code, name: c.name });
+    } catch (e) {
+      return NextResponse.json(
+        { ok: false, error: e instanceof Error ? e.message : "Could not send email" },
+        { status: 502 },
+      );
     }
+    return NextResponse.json({ ok: true, sentTo: c.email });
+  }
+
+  // Turn 2FA on (app or email) / verify at login. Accepts an app code OR a
+  // valid emailed code interchangeably.
+  if (action === "enable" || action === "verify") {
     if (action === "verify" && !current.totp_enabled) {
       return NextResponse.json({ ok: false, error: "2FA is not enabled" }, { status: 400 });
     }
-    if (!verifyTotp(secret, token)) {
+    if (action === "enable" && !current.totp_secret && !current.email_otp_hash) {
+      return NextResponse.json(
+        { ok: false, error: "Start setup first (authenticator app or email code)" },
+        { status: 400 },
+      );
+    }
+    if (!secondFactorOk(current, token)) {
       return NextResponse.json({ ok: false, error: "Incorrect code — try again" }, { status: 401 });
     }
     if (action === "enable") {
@@ -114,6 +176,7 @@ export async function POST(req: NextRequest) {
         c.sql.raw(`UPDATE users SET totp_enabled = true, updated_at = now() WHERE id = ${Number(c.id)}`),
       );
     }
+    await clearEmailOtp(c); // one-time codes never reused
     const res = NextResponse.json({ ok: true, enabled: true });
     res.cookies.set(TWOFA_COOKIE, signTwoFactorCookie(c.id), {
       httpOnly: true,
@@ -126,13 +189,13 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "disable") {
-    // Require a valid current code to switch 2FA off (unless never enabled).
-    if (current.totp_enabled && !verifyTotp(current.totp_secret ?? "", token)) {
+    // Require a valid current code (app or email) to switch 2FA off.
+    if (current.totp_enabled && !secondFactorOk(current, token)) {
       return NextResponse.json({ ok: false, error: "Incorrect code — try again" }, { status: 401 });
     }
     await c.drizzle.execute(
       c.sql.raw(
-        `UPDATE users SET totp_enabled = false, totp_secret = NULL, updated_at = now() WHERE id = ${Number(c.id)}`,
+        `UPDATE users SET totp_enabled = false, totp_secret = NULL, email_otp_hash = NULL, email_otp_expires = NULL, updated_at = now() WHERE id = ${Number(c.id)}`,
       ),
     );
     const res = NextResponse.json({ ok: true, enabled: false });
