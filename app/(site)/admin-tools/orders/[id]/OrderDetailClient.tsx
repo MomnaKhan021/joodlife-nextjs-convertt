@@ -119,7 +119,7 @@ function fmtTime(iso: string | null): string {
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <section
-      className={`rounded-[12px] border border-[#e1e3e5] bg-white shadow-[0_1px_0_rgba(0,0,0,0.05)] ${className}`}
+      className={`rounded-[16px] border border-[#e6e8e3] bg-white shadow-[0_1px_2px_rgba(20,46,42,0.05),0_10px_30px_-20px_rgba(20,46,42,0.25)] ${className}`}
     >
       {children}
     </section>
@@ -129,8 +129,8 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 function PaidBadge({ status }: { status: string | null }) {
   const paid = status === "paid";
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e3e3e3] px-2 py-0.5 text-[12px] font-medium text-[#303030]">
-      <span className={`h-2 w-2 rounded-full ${paid ? "bg-[#303030]" : "bg-[#8a6116]"}`} />
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e3e3e3] px-2 py-0.5 text-[12px] font-medium text-[#142e2a]">
+      <span className={`h-2 w-2 rounded-full ${paid ? "bg-[#142e2a]" : "bg-[#8a6116]"}`} />
       {paid ? "Paid" : status === "refunded" ? "Refunded" : "Payment pending"}
     </span>
   );
@@ -140,10 +140,10 @@ function FulfillBadge({ fulfilled }: { fulfilled: boolean }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[12px] font-medium ${
-        fulfilled ? "bg-[#e3e3e3] text-[#303030]" : "bg-[#ffea8a] text-[#5c4813]"
+        fulfilled ? "bg-[#e3e3e3] text-[#142e2a]" : "bg-[#ffea8a] text-[#5c4813]"
       }`}
     >
-      <span className={`h-2 w-2 rounded-full ${fulfilled ? "bg-[#303030]" : "bg-[#b98900]"}`} />
+      <span className={`h-2 w-2 rounded-full ${fulfilled ? "bg-[#142e2a]" : "bg-[#b98900]"}`} />
       {fulfilled ? "Dispatched" : "Not dispatched"}
     </span>
   );
@@ -164,8 +164,8 @@ function HeaderBtn({
       onClick={onClick}
       className={
         primary
-          ? "inline-flex h-[32px] items-center justify-center rounded-[8px] bg-[#303030] px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-[#1a1a1a]"
-          : "inline-flex h-[32px] items-center justify-center rounded-[8px] border border-[#babfc3] bg-white px-3.5 text-[13px] font-medium text-[#303030] shadow-[0_1px_0_rgba(0,0,0,0.05)] transition-colors hover:bg-[#f7f7f7]"
+          ? "inline-flex h-[34px] items-center justify-center rounded-[9px] bg-[#142e2a] px-4 text-[13px] font-semibold text-white shadow-[0_1px_2px_rgba(20,46,42,0.2)] transition-colors hover:bg-[#0c2421]"
+          : "inline-flex h-[34px] items-center justify-center rounded-[9px] border border-[#d3dabe] bg-white px-4 text-[13px] font-semibold text-[#142e2a] shadow-[0_1px_0_rgba(0,0,0,0.04)] transition-colors hover:bg-[#f7f9f2]"
       }
     >
       {children}
@@ -474,7 +474,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#f1f1f1] px-4 py-10">
+      <main className="min-h-screen bg-[#f7f9f2] px-4 py-10">
         <div className="mx-auto max-w-[1000px] animate-pulse text-[14px] text-[#616161]">
           Loading order…
         </div>
@@ -484,7 +484,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
 
   if (error || !order) {
     return (
-      <main className="min-h-screen bg-[#f1f1f1] px-4 py-10">
+      <main className="min-h-screen bg-[#f7f9f2] px-4 py-10">
         <div className="mx-auto max-w-[1000px] rounded-lg border border-[#e1e3e5] bg-white p-6 text-[14px] text-red-700">
           {error ?? "Order not found."}
         </div>
@@ -523,9 +523,9 @@ export default function OrderDetailClient({ id }: { id: string }) {
           : null;
 
   return (
-    <main className="min-h-screen bg-[#f1f1f1] pb-16 font-ui text-[#303030]">
+    <main className="min-h-screen bg-[#f7f9f2] pb-16 font-ui text-[#142e2a]">
       {toast ? (
-        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-[8px] bg-[#303030] px-4 py-2.5 text-[13px] font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
+        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-[8px] bg-[#142e2a] px-4 py-2.5 text-[13px] font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
           {toast}
         </div>
       ) : null}
@@ -541,8 +541,8 @@ export default function OrderDetailClient({ id }: { id: string }) {
               ‹
             </Link>
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-[20px] font-semibold leading-none text-[#1a1a1a]">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-[23px] font-bold leading-none tracking-[-0.01em] text-[#0c2421]">
                   {order.order_number}
                 </h1>
                 <PaidBadge status={order.payment_status} />
@@ -559,7 +559,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
             </HeaderBtn>
             <Link
               href={`/admin-tools/edit/orders/${order.id}`}
-              className="inline-flex h-[32px] items-center justify-center rounded-[8px] border border-[#babfc3] bg-white px-3.5 text-[13px] font-medium text-[#303030] shadow-[0_1px_0_rgba(0,0,0,0.05)] transition-colors hover:bg-[#f7f7f7]"
+              className="inline-flex h-[32px] items-center justify-center rounded-[8px] border border-[#babfc3] bg-white px-3.5 text-[13px] font-medium text-[#142e2a] shadow-[0_1px_0_rgba(0,0,0,0.05)] transition-colors hover:bg-[#f7f7f7]"
             >
               Edit
             </Link>
@@ -574,7 +574,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   <button
                     type="button"
                     onClick={copyLink}
-                    className="block w-full px-3 py-2 text-left text-[13px] text-[#303030] hover:bg-[#f7f7f7]"
+                    className="block w-full px-3 py-2 text-left text-[13px] text-[#142e2a] hover:bg-[#f7f7f7]"
                   >
                     Copy order link
                   </button>
@@ -601,7 +601,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 <FulfillBadge fulfilled={fulfilled} />
               </div>
               <div className="px-5 pb-2 pt-4">
-                <div className="flex items-center gap-2 rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] font-medium text-[#303030]">
+                <div className="flex items-center gap-2 rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] font-medium text-[#142e2a]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="text-[#616161]">
                     <path d="M2 6.5h11v9H2zM13 9.5h4l3 3v3h-7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
                     <circle cx="6.5" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
@@ -616,14 +616,14 @@ export default function OrderDetailClient({ id }: { id: string }) {
                     key={i}
                     className="flex items-center gap-3 rounded-[8px] border border-[#e1e3e5] px-3 py-3"
                   >
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[8px] bg-[#f1f1f1]">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[8px] bg-[#f7f9f2]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {it.imageUrl ? (
                         <img src={it.imageUrl} alt="" className="h-full w-full object-cover" />
                       ) : null}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium text-[#1450b0]">
+                      <p className="truncate text-[13px] font-medium text-[#142e2a]">
                         {it.title ?? "Item"}
                       </p>
                       {it.dose ? (
@@ -675,7 +675,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                     <circle cx="16.5" cy="17.5" r="1.6" stroke="#616161" strokeWidth="1.6" />
                   </svg>
                   <span className="text-[12px] text-[#616161]">
-                    DPD tracking: <span className="font-medium text-[#303030]">{dpdTracking}</span>
+                    DPD tracking: <span className="font-medium text-[#142e2a]">{dpdTracking}</span>
                   </span>
                 </div>
               )}
@@ -726,7 +726,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                       }}
                       placeholder="Leave a comment…"
                       rows={2}
-                      className="w-full resize-y rounded-[8px] border border-[#babfc3] px-3 py-2 text-[13px] text-[#303030] outline-none focus:border-[#303030]"
+                      className="w-full resize-y rounded-[8px] border border-[#babfc3] px-3 py-2 text-[13px] text-[#142e2a] outline-none focus:border-[#142e2a]"
                     />
                     {commentInput.trim() ? (
                       <div className="mt-2 flex justify-end">
@@ -746,20 +746,36 @@ export default function OrderDetailClient({ id }: { id: string }) {
                     {comments
                       .slice()
                       .reverse()
-                      .map((c, i) => (
-                        <li key={comments.length - 1 - i} className="flex items-start gap-2.5">
-                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#e879b9] text-[12px] font-semibold text-white">
-                            JL
-                          </span>
-                          <div className="flex-1 rounded-[8px] bg-[#f6f6f7] px-3 py-2">
-                            <p className="whitespace-pre-line text-[13px] text-[#303030]">{c.text}</p>
-                            <p className="mt-1 text-[11px] text-[#8a8a8a]">
-                              {c.author ?? "Staff"}
-                              {c.at ? ` · ${fmtDateTime(c.at)}` : ""}
-                            </p>
-                          </div>
-                        </li>
-                      ))}
+                      .map((c, i) => {
+                        const isSystem = c.author === "System";
+                        return (
+                          <li key={comments.length - 1 - i} className="flex items-start gap-2.5">
+                            {isSystem ? (
+                              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#eef3e6] text-[#142e2a]">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                  <circle cx="12" cy="12" r="3" />
+                                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
+                                </svg>
+                              </span>
+                            ) : (
+                              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#e879b9] text-[12px] font-semibold text-white">
+                                JL
+                              </span>
+                            )}
+                            <div
+                              className={`flex-1 rounded-[10px] px-3 py-2 ${
+                                isSystem ? "border border-[#e1e6da] bg-[#f7f9f2]" : "bg-[#f6f6f7]"
+                              }`}
+                            >
+                              <p className="whitespace-pre-line text-[13px] text-[#142e2a]">{c.text}</p>
+                              <p className="mt-1 text-[11px] text-[#8a8a8a]">
+                                {isSystem ? "System · audit log" : c.author ?? "Staff"}
+                                {c.at ? ` · ${fmtDateTime(c.at)}` : ""}
+                              </p>
+                            </div>
+                          </li>
+                        );
+                      })}
                   </ul>
                 ) : null}
 
@@ -770,7 +786,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                     {order.customer_email ? (
                       <a
                         href={`mailto:${order.customer_email}`}
-                        className="text-[#1450b0] hover:underline"
+                        className="text-[#142e2a] hover:underline"
                       >
                         {order.customer_email}
                       </a>
@@ -810,7 +826,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   }}
                   placeholder="No notes from customer"
                   rows={2}
-                  className="mt-2 w-full resize-y rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] text-[#303030] outline-none focus:border-[#303030]"
+                  className="mt-2 w-full resize-y rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] text-[#142e2a] outline-none focus:border-[#142e2a]"
                 />
                 {notesDirty ? (
                   <div className="mt-2 flex justify-end">
@@ -827,7 +843,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
               <div className="px-5 py-4">
                 <h2 className="text-[14px] font-semibold">Channel information</h2>
                 <p className="mt-2 text-[12px] text-[#616161]">Channel</p>
-                <p className="text-[13px] text-[#303030]">JoodLife</p>
+                <p className="text-[13px] text-[#142e2a]">JoodLife</p>
               </div>
             </Card>
 
@@ -838,12 +854,12 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 {order.customer_email ? (
                   <Link
                     href={`/admin-tools/customers/${encodeURIComponent(order.customer_email)}`}
-                    className="mt-2 block text-[13px] font-medium text-[#1450b0] hover:underline"
+                    className="mt-2 block text-[13px] font-medium text-[#142e2a] hover:underline"
                   >
                     {order.customer_name ?? order.customer_email}
                   </Link>
                 ) : (
-                  <p className="mt-2 text-[13px] font-medium text-[#303030]">
+                  <p className="mt-2 text-[13px] font-medium text-[#142e2a]">
                     {order.customer_name ?? "—"}
                   </p>
                 )}
@@ -852,7 +868,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 {order.customer_email ? (
                   <a
                     href={`mailto:${order.customer_email}`}
-                    className="block text-[13px] text-[#1450b0] hover:underline"
+                    className="block text-[13px] text-[#142e2a] hover:underline"
                   >
                     {order.customer_email}
                   </a>
@@ -862,7 +878,7 @@ export default function OrderDetailClient({ id }: { id: string }) {
                     href={`https://wa.me/${order.customer_phone.replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] text-[#1450b0] hover:underline"
+                    className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] text-[#142e2a] hover:underline"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.9 5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2s-1.2.3-4-1.2-4.3-4.3-4.5-4.5-1.3-1.7-1.3-3.2.8-2.2 1.1-2.5.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.5.7c-.2.2-.3.4-.1.7s.8 1.3 1.6 2c1 .9 1.9 1.2 2.2 1.3s.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.6-.1 1.2Z" />
@@ -900,20 +916,20 @@ export default function OrderDetailClient({ id }: { id: string }) {
                     }
                   }}
                   placeholder="Add a tag and press Enter"
-                  className="mt-2 w-full rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] outline-none focus:border-[#303030]"
+                  className="mt-2 w-full rounded-[8px] border border-[#e1e3e5] px-3 py-2 text-[13px] outline-none focus:border-[#142e2a]"
                 />
                 <div className="mt-3 flex flex-wrap gap-2">
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1 rounded-[8px] bg-[#e3e3e3] px-2 py-1 text-[12px] text-[#303030]"
+                      className="inline-flex items-center gap-1 rounded-[8px] bg-[#e3e3e3] px-2 py-1 text-[12px] text-[#142e2a]"
                     >
                       {t}
                       <button
                         type="button"
                         onClick={() => saveTags(tags.filter((x) => x !== t))}
                         aria-label={`Remove ${t}`}
-                        className="text-[#616161] hover:text-[#303030]"
+                        className="text-[#616161] hover:text-[#142e2a]"
                       >
                         ×
                       </button>
@@ -943,10 +959,10 @@ function Row({
   return (
     <div className="flex items-start justify-between gap-3 border-b border-[#e1e3e5] px-3.5 py-2.5 last:border-b-0">
       <div className="min-w-0">
-        <span className={`text-[13px] ${bold ? "font-semibold" : "text-[#303030]"}`}>{label}</span>
+        <span className={`text-[13px] ${bold ? "font-semibold" : "text-[#142e2a]"}`}>{label}</span>
         {sub ? <p className="text-[12px] text-[#616161]">{sub}</p> : null}
       </div>
-      <span className={`shrink-0 text-[13px] ${bold ? "font-semibold" : "text-[#303030]"}`}>
+      <span className={`shrink-0 text-[13px] ${bold ? "font-semibold" : "text-[#142e2a]"}`}>
         {value}
       </span>
     </div>
@@ -957,7 +973,7 @@ function TimelineItem({ children, time }: { children: React.ReactNode; time: str
   return (
     <li className="relative flex items-start justify-between gap-3">
       <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-[#8a8a8a]" />
-      <span className="text-[13px] text-[#303030]">{children}</span>
+      <span className="text-[13px] text-[#142e2a]">{children}</span>
       <span className="shrink-0 text-[12px] text-[#8a8a8a]">{time}</span>
     </li>
   );
