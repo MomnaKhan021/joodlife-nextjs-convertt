@@ -34,10 +34,11 @@ const serverFunction: ServerFunctionClient = async function (args) {
 
 const Layout = async ({ children }: Args) => {
   // Enforce 2FA on the CMS admin too (not just /admin-tools): once an admin has
-  // enabled it, they must pass a code before the CMS renders. No-op for anyone
-  // who hasn't enabled 2FA, and for the login page (no user yet).
+  // enabled it, send them to the dashboard's blocking 2FA prompt before the CMS
+  // renders. After they pass it, the CMS opens normally. No-op for anyone who
+  // hasn't enabled 2FA, and for the login page (no user yet).
   if (await requiresTwoFactor()) {
-    redirect("/admin-tools/verify-2fa?next=/admin");
+    redirect("/admin-tools");
   }
   return (
     <RootLayout
