@@ -83,7 +83,13 @@ export default async function AdminToolsLayout({
   }
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#f1f1f1]" />}>
+    <Suspense
+      fallback={
+        <div className="grid min-h-screen place-items-center bg-[#f7f9f2] text-[14px] text-[#616161]">
+          Loading…
+        </div>
+      }
+    >
       <AdminShell role={user.role} permissions={user.permissions}>
         {children}
       </AdminShell>
