@@ -1088,16 +1088,16 @@ export async function getMeetingLinkForContact(
 }
 
 /**
- * Bulk variant of getMeetingLinkForContact used to sort the Clinical Queue by
- * booked consultation time. Returns a map of email -> scheduled start (ISO
- * string or null), fetched with a small concurrency cap to stay within
- * HubSpot rate limits. Emails with no booked meeting map to null.
+ * Bulk variant of getMeetingLinkForContact for the Clinical Queue — returns a
+ * map of email -> { startsAt, joinUrl } (both null when nothing is booked),
+ * fetched with a small concurrency cap to respect HubSpot rate limits. Used to
+ * sort by consultation time AND to decide whether to show a "Join call" button.
  */
-export async function getMeetingTimesForEmails(
+export async function getMeetingInfoForEmails(
   emails: string[],
-): Promise<Record<string, string | null>> {
+): Promise<Record<string, MeetingLink>> {
   const unique = [...new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
-  const out: Record<string, string | null> = {};
+  const out: Record<string, MeetingLink> = {};
   const CONCURRENCY = 5;
   let i = 0;
   async function worker() {
@@ -1105,9 +1105,9 @@ export async function getMeetingTimesForEmails(
       const email = unique[i++];
       try {
         const res = await getMeetingLinkForContact(email);
-        out[email] = res.ok ? res.data.startsAt : null;
+        out[email] = res.ok ? res.data : { joinUrl: null, startsAt: null };
       } catch {
-        out[email] = null;
+        out[email] = { joinUrl: null, startsAt: null };
       }
     }
   }

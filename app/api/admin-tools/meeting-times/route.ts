@@ -12,7 +12,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { getMeetingTimesForEmails, isHubSpotEnabled } from "@/lib/hubspot";
+import { getMeetingInfoForEmails, isHubSpotEnabled } from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -34,9 +34,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (!isHubSpotEnabled()) {
-    // No HubSpot → no scheduled times; return an empty map rather than error so
-    // the queue silently falls back to submission-order sorting.
-    return NextResponse.json({ ok: true, times: {} });
+    // No HubSpot → no times/links; return empty maps rather than error so the
+    // queue falls back to submission-order sorting and hides Join buttons.
+    return NextResponse.json({ ok: true, times: {}, links: {} });
   }
 
   let body: { emails?: unknown };
@@ -49,6 +49,12 @@ export async function POST(req: NextRequest) {
     ? body.emails.filter((e): e is string => typeof e === "string").slice(0, 60)
     : [];
 
-  const times = await getMeetingTimesForEmails(emails);
-  return NextResponse.json({ ok: true, times });
+  const info = await getMeetingInfoForEmails(emails);
+  const times: Record<string, string | null> = {};
+  const links: Record<string, string | null> = {};
+  for (const [email, v] of Object.entries(info)) {
+    times[email] = v.startsAt;
+    links[email] = v.joinUrl;
+  }
+  return NextResponse.json({ ok: true, times, links });
 }

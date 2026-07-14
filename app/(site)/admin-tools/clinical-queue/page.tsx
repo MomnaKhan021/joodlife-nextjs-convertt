@@ -208,12 +208,14 @@ function SummaryBar({
   loading,
   error,
   onDecision,
+  joinUrl,
 }: {
   c: Consultation;
   reviewed?: boolean;
   loading?: boolean;
   error?: string | null;
   onDecision?: (dec: "approved" | "rejected") => void;
+  joinUrl?: string | null;
 }) {
   const bmi = computeBmi(c.answers);
   const elig = eligibilityStatus(c);
@@ -245,12 +247,10 @@ function SummaryBar({
         ))}
       </div>
 
-      {c.answers.video_consultation_preference || (onDecision && !reviewed) ? (
+      {joinUrl || (onDecision && !reviewed) ? (
         <div className="flex flex-col items-end gap-1">
           <div className="flex flex-wrap justify-end gap-2">
-            {c.answers.video_consultation_preference ? (
-              <JoinCallButton email={c.email} />
-            ) : null}
+            <JoinCallButton joinUrl={joinUrl} />
             {onDecision && !reviewed ? (
               <>
                 <button
@@ -410,46 +410,25 @@ function PatientDetails({ c }: { c: Consultation }) {
 /* Join call — fetches the Google Meet link from HubSpot on demand      */
 /* ------------------------------------------------------------------ */
 
-function JoinCallButton({ email }: { email: string | null }) {
-  const [state, setState] = useState<"idle" | "loading" | "none">("idle");
-  const onClick = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (!email || state === "loading") return;
-      setState("loading");
-      try {
-        const res = await fetch(
-          `/api/admin-tools/meet-link?email=${encodeURIComponent(email)}`,
-          { credentials: "include", cache: "no-store" },
-        );
-        const j = await res.json();
-        if (res.ok && j.ok && j.joinUrl) {
-          window.open(String(j.joinUrl), "_blank", "noopener,noreferrer");
-          setState("idle");
-        } else {
-          setState("none");
-        }
-      } catch {
-        setState("none");
-      }
-    },
-    [email, state],
-  );
-  if (!email) return null;
+/** "Join call" — only rendered when HubSpot actually has a meeting link for
+ *  this patient. Opens the video consultation in a new tab. */
+function JoinCallButton({ joinUrl }: { joinUrl?: string | null }) {
+  if (!joinUrl) return null;
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <a
+      href={joinUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
       title="Open the Google Meet video consultation (link from HubSpot)"
-      className="inline-flex items-center gap-1.5 rounded-lg bg-[#142e2a] px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#0c2421] disabled:opacity-60"
-      disabled={state === "loading"}
+      className="inline-flex items-center gap-1.5 rounded-lg bg-[#142e2a] px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#0c2421]"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M15 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z" />
         <path d="m17 10 4-2v8l-4-2" />
       </svg>
-      {state === "loading" ? "Opening…" : state === "none" ? "No link yet" : "Join call"}
-    </button>
+      Join call
+    </a>
   );
 }
 
@@ -513,12 +492,14 @@ function ConsultationCard({
   selectable,
   selected,
   onToggleSelect,
+  joinUrl,
 }: {
   c: Consultation;
   onDecision: (id: number, decision: string, reason: string) => void;
   selectable?: boolean;
   selected?: boolean;
   onToggleSelect?: (id: number) => void;
+  joinUrl?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -602,11 +583,12 @@ function ConsultationCard({
             {c.productSlug ? ` · ${c.productSlug}` : ""}
           </p>
         </div>
-        {/* Top-right actions: Join call (booked) / Send reminder (not booked) */}
+        {/* Top-right actions: Join call (only when HubSpot has a meeting link) /
+            Send reminder (patients who haven't booked). */}
         <div className="flex flex-col items-end gap-1.5">
-          {c.answers.video_consultation_preference ? (
-            <JoinCallButton email={c.email} />
-          ) : !c.isReorder ? (
+          {joinUrl ? (
+            <JoinCallButton joinUrl={joinUrl} />
+          ) : !c.answers.video_consultation_preference && !c.isReorder ? (
             <SendReminderButton id={c.id} email={c.email} />
           ) : null}
           <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
@@ -645,6 +627,7 @@ function ConsultationCard({
               loading={loading}
               error={error}
               onDecision={runDecision}
+              joinUrl={joinUrl}
             />
             <PatientDetails c={c} />
           </div>
@@ -701,6 +684,8 @@ export default function ClinicalQueuePage() {
   // email -> booked consultation start (ISO) | null, lazily fetched for the
   // consultation-time sort.
   const [meetingTimes, setMeetingTimes] = useState<Record<string, string | null>>({});
+  // email -> booked meeting join URL | null. Absent key = not looked up yet.
+  const [meetLinks, setMeetLinks] = useState<Record<string, string | null>>({});
   const [loadingTimes, setLoadingTimes] = useState(false);
   // Batch approval selection (consultation ids).
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -810,13 +795,17 @@ export default function ClinicalQueuePage() {
 
   // When sorting by consultation time, lazily fetch booked-consult start times
   // from HubSpot for the loaded patients we don't already have.
+  // Look up booked-consult meeting info (start time + join link) from HubSpot
+  // for the loaded patients we haven't checked yet. Runs on load so the "Join
+  // call" button only appears when a link actually exists, and so the
+  // consultation-time sort has real times.
   useEffect(() => {
-    if (sortMode !== "consult") return;
     const emails = consultations
       .filter((c) => c.answers.video_consultation_preference && c.email)
       .map((c) => (c.email ?? "").toLowerCase())
-      .filter((e) => e && !(e in meetingTimes));
+      .filter((e) => e && !(e in meetLinks));
     if (emails.length === 0) return;
+    const batch = emails.slice(0, 60);
     let off = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingTimes(true);
@@ -826,18 +815,22 @@ export default function ClinicalQueuePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ emails: emails.slice(0, 60) }),
+          body: JSON.stringify({ emails: batch }),
         });
         const j = await res.json();
         if (!off && res.ok && j.ok) {
-          // Mark every requested email as resolved (fetched value or null) so
-          // we don't re-request the ones with no booking.
-          const merged: Record<string, string | null> = {};
-          for (const e of emails.slice(0, 60)) merged[e] = j.times?.[e] ?? null;
-          setMeetingTimes((prev) => ({ ...prev, ...merged }));
+          // Resolve every requested email (value or null) so we don't re-request.
+          const times: Record<string, string | null> = {};
+          const links: Record<string, string | null> = {};
+          for (const e of batch) {
+            times[e] = j.times?.[e] ?? null;
+            links[e] = j.links?.[e] ?? null;
+          }
+          setMeetingTimes((prev) => ({ ...prev, ...times }));
+          setMeetLinks((prev) => ({ ...prev, ...links }));
         }
       } catch {
-        /* leave times unset → falls back to submission order */
+        /* leave unset → no Join button, submission-order sort */
       } finally {
         if (!off) setLoadingTimes(false);
       }
@@ -845,7 +838,7 @@ export default function ClinicalQueuePage() {
     return () => {
       off = true;
     };
-  }, [sortMode, consultations, meetingTimes]);
+  }, [consultations, meetLinks]);
 
   const flaggedTotal = consultations.filter((c) => c.hasRedFlags && !c.reviewed).length;
 
@@ -1086,6 +1079,7 @@ export default function ClinicalQueuePage() {
                 selectable
                 selected={selected.has(c.id)}
                 onToggleSelect={toggleSelect}
+                joinUrl={meetLinks[(c.email ?? "").toLowerCase()] ?? null}
               />
             ))}
           </div>
