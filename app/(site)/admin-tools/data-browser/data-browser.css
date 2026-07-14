@@ -234,6 +234,71 @@
 .db-cell-strong { font-weight: 600; color: #1450b0; }
 .db-cell-meta { font-size: 12px; color: #8a8a8a; margin-top: 2px; }
 
+/* ---------- Sortable headers ---------- */
+.db-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.db-sort__arrow { font-size: 10px; color: #b5b5b5; }
+.db-sort--active { color: #1a1a1a; }
+.db-sort--active .db-sort__arrow { color: #303030; }
+
+/* ---------- Checkboxes / batch select ---------- */
+.db-table__check { width: 1%; white-space: nowrap; text-align: center; }
+.db-table__check input,
+.db-card__check input { width: 16px; height: 16px; cursor: pointer; accent-color: #303030; }
+.db-card__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #616161;
+  margin-bottom: 8px;
+}
+
+/* ---------- Job-queue segmented filter ---------- */
+.db-segment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+.db-segment__btn {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid #d0d3d6;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #303030;
+  cursor: pointer;
+}
+.db-segment__btn--active { background: #303030; border-color: #303030; color: #fff; }
+.db-segment__note { font-size: 12px; color: #8a8a8a; margin-left: 6px; }
+
+/* ---------- Batch action bar ---------- */
+.db-batchbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  background: #eef4ff;
+  border: 1px solid #cbdcff;
+  border-radius: 10px;
+}
+.db-batchbar__count { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+
 /* ---------- Status pills ---------- */
 .db-pill {
   display: inline-flex;

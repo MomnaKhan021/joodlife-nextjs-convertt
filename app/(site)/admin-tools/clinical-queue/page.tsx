@@ -400,15 +400,67 @@ function PatientDetails({ c }: { c: Consultation }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Join call — fetches the Google Meet link from HubSpot on demand      */
+/* ------------------------------------------------------------------ */
+
+function JoinCallButton({ email }: { email: string | null }) {
+  const [state, setState] = useState<"idle" | "loading" | "none">("idle");
+  const onClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!email || state === "loading") return;
+      setState("loading");
+      try {
+        const res = await fetch(
+          `/api/admin-tools/meet-link?email=${encodeURIComponent(email)}`,
+          { credentials: "include", cache: "no-store" },
+        );
+        const j = await res.json();
+        if (res.ok && j.ok && j.joinUrl) {
+          window.open(String(j.joinUrl), "_blank", "noopener,noreferrer");
+          setState("idle");
+        } else {
+          setState("none");
+        }
+      } catch {
+        setState("none");
+      }
+    },
+    [email, state],
+  );
+  if (!email) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Open the Google Meet video consultation (link from HubSpot)"
+      className="inline-flex items-center gap-1.5 rounded-full bg-[#1a73e8] px-3 py-0.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#1666d0] disabled:opacity-60"
+      disabled={state === "loading"}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M15 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Zm2 2.5 4-2.2v7.4l-4-2.2V10.5Z" />
+      </svg>
+      {state === "loading" ? "Opening…" : state === "none" ? "No link yet" : "Join call"}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Patient card                                                        */
 /* ------------------------------------------------------------------ */
 
 function ConsultationCard({
   c,
   onDecision,
+  selectable,
+  selected,
+  onToggleSelect,
 }: {
   c: Consultation;
   onDecision: (id: number, decision: string, reason: string) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -460,6 +512,15 @@ function ConsultationCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
+            {selectable && !c.reviewed ? (
+              <input
+                type="checkbox"
+                aria-label={`Select ${c.fullName ?? `patient #${c.id}`} for batch approval`}
+                checked={!!selected}
+                onChange={() => onToggleSelect?.(c.id)}
+                className="h-4 w-4 cursor-pointer accent-[#142e2a]"
+              />
+            ) : null}
             <span className="text-[16px] font-bold text-[#111827]">
               {c.fullName || `Patient #${c.id}`}
             </span>
@@ -474,6 +535,9 @@ function ConsultationCard({
                 Red flag
               </span>
             )}
+            {c.answers.video_consultation_preference ? (
+              <JoinCallButton email={c.email} />
+            ) : null}
           </div>
           {c.email && (
             <p className="mt-0.5 text-[12px] text-[#6b7280]">{c.email}</p>
@@ -567,6 +631,12 @@ export default function ClinicalQueuePage() {
   const [serverCounts, setServerCounts] = useState<Record<TabKey, number> | null>(null);
   const [totalPending, setTotalPending] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(0);
+  // Worklist ordering. "oldest" = FIFO daily worklist (consultation order);
+  // red-flagged unreviewed patients always float to the top regardless.
+  const [sortMode, setSortMode] = useState<"oldest" | "newest" | "name">("oldest");
+  // Batch approval selection (consultation ids).
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
 
   const load = useCallback(async (all: boolean) => {
     setLoading(true);
@@ -645,16 +715,75 @@ export default function ClinicalQueuePage() {
           String(c.id).includes(q)
         );
       })
-      // Red-flagged, unreviewed patients first, then newest.
+      // Red-flagged, unreviewed patients first, then by the chosen order.
       .sort((x, y) => {
         const xf = x.hasRedFlags && !x.reviewed ? 1 : 0;
         const yf = y.hasRedFlags && !y.reviewed ? 1 : 0;
         if (xf !== yf) return yf - xf;
-        return +new Date(y.createdAt) - +new Date(x.createdAt);
+        if (sortMode === "name") {
+          return (x.fullName ?? "").localeCompare(y.fullName ?? "");
+        }
+        const dx = +new Date(x.createdAt);
+        const dy = +new Date(y.createdAt);
+        return sortMode === "oldest" ? dx - dy : dy - dx;
       });
-  }, [consultations, tab, query]);
+  }, [consultations, tab, query, sortMode]);
 
   const flaggedTotal = consultations.filter((c) => c.hasRedFlags && !c.reviewed).length;
+
+  // Ids selectable for batch approval in the current view (unreviewed only).
+  const selectableIds = useMemo(
+    () => rows.filter((c) => !c.reviewed).map((c) => c.id),
+    [rows],
+  );
+
+  // Reset selection when the tab/query/data changes so stale ids can't linger.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelected(new Set());
+  }, [tab, query, showAll]);
+
+  const toggleSelect = useCallback((id: number) => {
+    setSelected((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const batchApprove = useCallback(async () => {
+    if (selected.size === 0 || batchBusy) return;
+    if (!window.confirm(`Approve supply for ${selected.size} selected patient(s)?`)) return;
+    setBatchBusy(true);
+    setError(null);
+    const ids = [...selected];
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) =>
+          fetch("/api/admin-tools/clinical-review", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ id, decision: "approved", reason: "" }),
+          }).then(async (res) => {
+            const j = await res.json();
+            if (!res.ok || !j.ok) throw new Error(j.error ?? "Failed");
+            return id;
+          }),
+        ),
+      );
+      for (const r of results) {
+        if (r.status === "fulfilled") handleDecision(r.value, "approved", "");
+      }
+      setSelected(new Set());
+      refreshAdminBadges();
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) setError(`${failed} of ${ids.length} could not be approved.`);
+    } finally {
+      setBatchBusy(false);
+    }
+  }, [selected, batchBusy, handleDecision]);
 
   return (
     <main className="min-h-screen bg-[#f1f1f1] px-4 py-6 md:px-8">
@@ -722,7 +851,69 @@ export default function ClinicalQueuePage() {
           >
             All
           </button>
+          <label className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
+            Sort
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
+              className="h-9 rounded-lg border border-[#d1d5db] bg-white px-2 text-[13px] text-[#374151] focus:border-[#142e2a] focus:outline-none"
+            >
+              <option value="oldest">Consultation order (oldest first)</option>
+              <option value="newest">Newest first</option>
+              <option value="name">Name (A–Z)</option>
+            </select>
+          </label>
         </div>
+
+        {/* Batch approval bar */}
+        {selectableIds.length > 0 ? (
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-[#cdd8bf] bg-[#eef3e6] px-4 py-2.5">
+            <label className="flex items-center gap-2 text-[13px] font-medium text-[#142e2a]">
+              <input
+                type="checkbox"
+                className="h-4 w-4 cursor-pointer accent-[#142e2a]"
+                checked={selected.size > 0 && selectableIds.every((id) => selected.has(id))}
+                ref={(el) => {
+                  if (el) {
+                    el.indeterminate =
+                      selected.size > 0 &&
+                      !selectableIds.every((id) => selected.has(id));
+                  }
+                }}
+                onChange={(e) =>
+                  setSelected(e.target.checked ? new Set(selectableIds) : new Set())
+                }
+              />
+              Select all in view
+            </label>
+            {selected.size > 0 ? (
+              <>
+                <span className="text-[13px] font-semibold text-[#142e2a]">
+                  {selected.size} selected
+                </span>
+                <button
+                  type="button"
+                  onClick={batchApprove}
+                  disabled={batchBusy}
+                  className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+                >
+                  {batchBusy ? "Approving…" : `Approve ${selected.size} selected`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelected(new Set())}
+                  className="rounded-lg border border-[#142e2a]/30 bg-white px-3 py-1.5 text-[13px] font-medium text-[#142e2a] hover:bg-[#f7f9f2]"
+                >
+                  Clear
+                </button>
+              </>
+            ) : (
+              <span className="text-[12px] text-[#4a5c46]">
+                Tick patients to approve several at once.
+              </span>
+            )}
+          </div>
+        ) : null}
 
         {/* Volume note — the queue loads the first 200 for speed; the tab
             counts + sidebar badge reflect the full pending total. */}
@@ -766,7 +957,14 @@ export default function ClinicalQueuePage() {
         ) : (
           <div className="space-y-3">
             {rows.map((c) => (
-              <ConsultationCard key={c.id} c={c} onDecision={handleDecision} />
+              <ConsultationCard
+                key={c.id}
+                c={c}
+                onDecision={handleDecision}
+                selectable
+                selected={selected.has(c.id)}
+                onToggleSelect={toggleSelect}
+              />
             ))}
           </div>
         )}

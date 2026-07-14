@@ -29,6 +29,9 @@ type ColumnSpec = {
   render?: (row: Row) => React.ReactNode;
   /** Hidden under the breakpoint (px). Default: always visible. */
   hideBelow?: number;
+  /** When set, the header is a clickable sort control; value is the `sort`
+   *  param sent to the list API (must be in that spec's sortableColumns). */
+  sortKey?: string;
 };
 
 type TabSpec = {
@@ -59,24 +62,30 @@ const fmtCurrency = (v: unknown) => {
     : "—";
 };
 
-const fmtRelative = (iso: unknown) => {
+/** Human-readable absolute timestamp: "Today at 12:06 PM", "Yesterday at
+ *  9:30 AM", else "8 Jul 2026 at 12:06 PM". Replaces relative "23h ago"
+ *  formatting per the operational-workflow review. */
+const fmtSmartDateTime = (iso: unknown) => {
   if (typeof iso !== "string" || !iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  const diffMs = Date.now() - d.getTime();
-  const sec = Math.round(diffMs / 1000);
-  if (sec < 60) return "just now";
-  const min = Math.round(sec / 60);
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const day = Math.round(hr / 24);
-  if (day < 30) return `${day}d ago`;
-  return d.toLocaleDateString("en-GB", {
+  const time = d.toLocaleString("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const now = new Date();
+  const dayDiff = Math.round((startOf(now) - startOf(d)) / 86400000);
+  if (dayDiff === 0) return `Today at ${time}`;
+  if (dayDiff === 1) return `Yesterday at ${time}`;
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const date = d.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
-    year: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
   });
+  return `${date} at ${time}`;
 };
 
 const StatusPill = ({ value }: { value: unknown }) => {
@@ -123,19 +132,6 @@ function fulfillmentOf(row: Row): "Dispatched" | "Unfulfilled" {
     /DPD tracking:/i.test(notes);
   return dispatched ? "Dispatched" : "Unfulfilled";
 }
-
-/** Absolute short date+time for the orders list ("8 Jul, 12:06"). */
-const fmtDateTime = (iso: unknown) => {
-  if (typeof iso !== "string" || !iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString("en-GB", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
 /** Tiny inline sparkline for a KPI card (Shopify-style). */
 function Sparkline({ data }: { data: number[] }) {
@@ -217,13 +213,14 @@ const TABS: TabSpec[] = [
       "Customer purchases. Synced from HubSpot Deals + created at checkout.",
     payloadCollectionSlug: "orders",
     columns: [
-      { key: "order_number", label: "Order #", render: (r) => (
+      { key: "order_number", label: "Order #", sortKey: "order_number", render: (r) => (
         <span className="db-cell-strong">{String(r.order_number ?? `#${r.id}`)}</span>
       ) },
-      { key: "created_at", label: "Date", render: (r) => fmtDateTime(r.created_at) },
+      { key: "created_at", label: "Date", sortKey: "created_at", render: (r) => fmtSmartDateTime(r.created_at) },
       {
         key: "customer_name",
         label: "Customer",
+        sortKey: "customer_name",
         render: (r) => (
           <div>
             <div className="db-cell-strong">
@@ -236,6 +233,7 @@ const TABS: TabSpec[] = [
       {
         key: "total_amount",
         label: "Total",
+        sortKey: "total_amount",
         render: (r) => (
           <strong className="db-amount">{fmtCurrency(r.total_amount)}</strong>
         ),
@@ -256,6 +254,7 @@ const TABS: TabSpec[] = [
       {
         key: "payment_status",
         label: "Payment",
+        sortKey: "payment_status",
         render: (r) => <StatusPill value={r.payment_status ?? r.status} />,
       },
     ],
@@ -270,6 +269,7 @@ const TABS: TabSpec[] = [
       {
         key: "full_name",
         label: "Customer",
+        sortKey: "full_name",
         render: (r) => (
           <div>
             <div className="db-cell-strong">
@@ -279,10 +279,10 @@ const TABS: TabSpec[] = [
           </div>
         ),
       },
-      { key: "product_slug", label: "Product" },
+      { key: "product_slug", label: "Product", sortKey: "product_slug" },
       { key: "dose", label: "Dose" },
-      { key: "status", label: "Status", render: (r) => <StatusPill value={r.status} /> },
-      { key: "created_at", label: "Submitted", render: (r) => fmtRelative(r.created_at) },
+      { key: "status", label: "Status", sortKey: "status", render: (r) => <StatusPill value={r.status} /> },
+      { key: "created_at", label: "Submitted", sortKey: "created_at", render: (r) => fmtSmartDateTime(r.created_at) },
     ],
   },
   {
@@ -297,7 +297,7 @@ const TABS: TabSpec[] = [
       {
         key: "published_at",
         label: "Published",
-        render: (r) => fmtRelative(r.published_at ?? r.created_at),
+        render: (r) => fmtSmartDateTime(r.published_at ?? r.created_at),
       },
     ],
   },
@@ -319,7 +319,7 @@ const TABS: TabSpec[] = [
       },
       { key: "role", label: "Role", render: (r) => <StatusPill value={r.role} /> },
       { key: "phone", label: "Phone" },
-      { key: "created_at", label: "Joined", render: (r) => fmtRelative(r.created_at) },
+      { key: "created_at", label: "Joined", render: (r) => fmtSmartDateTime(r.created_at) },
     ],
   },
   {
@@ -361,7 +361,7 @@ const TABS: TabSpec[] = [
           return `${(n / (1024 * 1024)).toFixed(1)} MB`;
         },
       },
-      { key: "created_at", label: "Uploaded", render: (r) => fmtRelative(r.created_at) },
+      { key: "created_at", label: "Uploaded", render: (r) => fmtSmartDateTime(r.created_at) },
     ],
   },
   {
@@ -446,6 +446,16 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Sort: which column + direction. null = server default order.
+  const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" } | null>(null);
+  // Orders "job queue" fulfillment filter. Defaults to unfulfilled work.
+  const [fulfillment, setFulfillment] = useState<"unfulfilled" | "all" | "dispatched">(
+    "unfulfilled",
+  );
+  // Batch multi-select — set of selected row ids on the current page.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
+
   const tab = useMemo(
     () => TABS.find((t) => t.key === activeTab) ?? TABS[0],
     [activeTab]
@@ -468,19 +478,37 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
     return () => clearTimeout(t);
   }, [search]);
 
-  // Reset to page 1 whenever the active tab, search or date filter changes.
+  // Reset to page 1 whenever the active tab, search, date, sort or filter changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }, [activeTab, debouncedSearch, dateFilter]);
+  }, [activeTab, debouncedSearch, dateFilter, sort, fulfillment]);
 
-  // Date filter only applies to the orders tab; clear it when leaving.
+  // Reset per-tab controls when switching collections.
   useEffect(() => {
-    if (activeTab !== "orders") setDateFilter("");
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setSort(null);
+    setSelected(new Set());
+    if (activeTab !== "orders") {
+      setDateFilter("");
+      setFulfillment("unfulfilled");
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [activeTab]);
+
+  // Toggle a column's sort: asc → desc → off (back to default order).
+  const toggleSort = useCallback((key: string) => {
+    setSort((cur) => {
+      if (!cur || cur.key !== key) return { key, dir: "asc" };
+      if (cur.dir === "asc") return { key, dir: "desc" };
+      return null;
+    });
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setErr(null);
+    setSelected(new Set());
     try {
       const params = new URLSearchParams({
         type: activeTab,
@@ -489,6 +517,13 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
       });
       if (debouncedSearch) params.set("q", debouncedSearch);
       if (dateFilter && activeTab === "orders") params.set("date", dateFilter);
+      if (activeTab === "orders" && fulfillment !== "all") {
+        params.set("fulfillment", fulfillment);
+      }
+      if (sort) {
+        params.set("sort", sort.key);
+        params.set("dir", sort.dir);
+      }
       const res = await fetch(`/api/admin-tools/list?${params.toString()}`, {
         credentials: "include",
       });
@@ -505,16 +540,53 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
     } finally {
       setLoading(false);
     }
-  }, [activeTab, debouncedSearch, dateFilter, page]);
+  }, [activeTab, debouncedSearch, dateFilter, fulfillment, sort, page]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchData();
   }, [fetchData]);
 
+  // Batch: mark all selected orders as dispatched (status → shipped).
+  const batchMarkDispatched = useCallback(async () => {
+    if (selected.size === 0 || batchBusy) return;
+    setBatchBusy(true);
+    setErr(null);
+    try {
+      const ids = [...selected];
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/admin-tools/record?type=orders&id=${encodeURIComponent(id)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ fields: { status: "shipped" } }),
+          }),
+        ),
+      );
+      await fetchData();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBatchBusy(false);
+    }
+  }, [selected, batchBusy, fetchData]);
+
   const rows = data?.rows ?? [];
   const total = data?.total ?? 0;
   const pages = data?.pages ?? 1;
+
+  // Batch selection is offered on the Orders tab only.
+  const selectable = activeTab === "orders";
+  const allSelected = rows.length > 0 && rows.every((r) => selected.has(String(r.id)));
+  const someSelected = selected.size > 0;
+  const toggleRow = (id: string) =>
+    setSelected((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   return (
     <section className="db-browser">
@@ -588,6 +660,58 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
         </div>
       </div>
 
+      {/* Orders job-queue filter: unfulfilled work by default */}
+      {activeTab === "orders" ? (
+        <div className="db-segment" role="group" aria-label="Fulfillment filter">
+          {([
+            ["unfulfilled", "To do"],
+            ["dispatched", "Dispatched"],
+            ["all", "All"],
+          ] as const).map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => setFulfillment(val)}
+              className={`db-segment__btn ${fulfillment === val ? "db-segment__btn--active" : ""}`}
+            >
+              {label}
+              {val === "unfulfilled" && fulfillment === "unfulfilled" && total > 0
+                ? ` (${total.toLocaleString("en-GB")})`
+                : ""}
+            </button>
+          ))}
+          {fulfillment === "unfulfilled" ? (
+            <span className="db-segment__note">
+              Work queue — clear this to zero each day.
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Batch action bar — appears when rows are selected (orders only) */}
+      {activeTab === "orders" && selected.size > 0 ? (
+        <div className="db-batchbar" role="region" aria-label="Batch actions">
+          <span className="db-batchbar__count">
+            {selected.size} selected
+          </span>
+          <button
+            type="button"
+            onClick={batchMarkDispatched}
+            disabled={batchBusy}
+            className="db-btn db-btn--primary"
+          >
+            {batchBusy ? "Working…" : "Mark as dispatched"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelected(new Set())}
+            className="db-btn"
+          >
+            Clear
+          </button>
+        </div>
+      ) : null}
+
       {err ? (
         <div className="db-error">
           <strong>Failed to load:</strong> {err}
@@ -601,9 +725,46 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
             <table className="db-table">
               <thead>
                 <tr>
-                  {tab.columns.map((c) => (
-                    <th key={c.key}>{c.label}</th>
-                  ))}
+                  {selectable ? (
+                    <th className="db-table__check">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all on this page"
+                        checked={allSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someSelected && !allSelected;
+                        }}
+                        onChange={() =>
+                          setSelected(
+                            allSelected
+                              ? new Set()
+                              : new Set(rows.map((r) => String(r.id))),
+                          )
+                        }
+                      />
+                    </th>
+                  ) : null}
+                  {tab.columns.map((c) => {
+                    const active = sort?.key === c.sortKey;
+                    return (
+                      <th key={c.key}>
+                        {c.sortKey ? (
+                          <button
+                            type="button"
+                            className={`db-sort ${active ? "db-sort--active" : ""}`}
+                            onClick={() => toggleSort(c.sortKey as string)}
+                          >
+                            {c.label}
+                            <span className="db-sort__arrow" aria-hidden>
+                              {active ? (sort?.dir === "asc" ? "▲" : "▼") : "↕"}
+                            </span>
+                          </button>
+                        ) : (
+                          c.label
+                        )}
+                      </th>
+                    );
+                  })}
                   <th aria-label="Edit">&nbsp;</th>
                 </tr>
               </thead>
@@ -611,12 +772,14 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                 {rows.length === 0 && !loading ? (
                   <tr>
                     <td
-                      colSpan={tab.columns.length + 1}
+                      colSpan={tab.columns.length + 1 + (selectable ? 1 : 0)}
                       className="db-table__empty"
                     >
                       {debouncedSearch
                         ? `No ${tab.label.toLowerCase()} match "${debouncedSearch}".`
-                        : `No ${tab.label.toLowerCase()} yet.`}
+                        : activeTab === "orders" && fulfillment === "unfulfilled"
+                          ? "Nothing to do — the queue is clear. 🎉"
+                          : `No ${tab.label.toLowerCase()} yet.`}
                     </td>
                   </tr>
                 ) : null}
@@ -626,6 +789,19 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                     className="db-table__row--link"
                     onClick={() => router.push(rowHref(tab.key, row))}
                   >
+                    {selectable ? (
+                      <td
+                        className="db-table__check"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          aria-label={`Select order ${String(row.order_number ?? row.id)}`}
+                          checked={selected.has(String(row.id))}
+                          onChange={() => toggleRow(String(row.id))}
+                        />
+                      </td>
+                    ) : null}
                     {tab.columns.map((c) => (
                       <td key={c.key}>
                         {c.render
@@ -660,6 +836,16 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
             ) : null}
             {rows.map((row, idx) => (
               <li key={String(row.id ?? idx)} className="db-card">
+                {selectable ? (
+                  <label className="db-card__check">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(String(row.id))}
+                      onChange={() => toggleRow(String(row.id))}
+                    />
+                    Select
+                  </label>
+                ) : null}
                 <dl className="db-card__list">
                   {tab.columns.map((c) => (
                     <div key={c.key} className="db-card__row">

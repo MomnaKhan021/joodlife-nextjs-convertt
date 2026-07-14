@@ -56,6 +56,12 @@ type SpecRow = {
   columns: string;
   searchableColumns: string[];
   defaultOrderBy: string;
+  /**
+   * Whitelist of columns the UI may sort by, mapped to the raw SQL
+   * expression. Only keys in here are honoured — anything else falls back
+   * to defaultOrderBy — so the `sort` param can be inlined safely.
+   */
+  sortableColumns?: Record<string, string>;
 };
 
 const SPECS: Record<string, SpecRow> = {
@@ -67,6 +73,13 @@ const SPECS: Record<string, SpecRow> = {
       "items_json, notes, created_at, updated_at",
     searchableColumns: ["order_number", "customer_name", "customer_email", "status"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
+    sortableColumns: {
+      created_at: "created_at",
+      order_number: "order_number",
+      customer_name: "LOWER(customer_name)",
+      total_amount: "total_amount",
+      payment_status: "payment_status",
+    },
   },
   consultations: {
     table: "consultations",
@@ -75,6 +88,12 @@ const SPECS: Record<string, SpecRow> = {
       "status, created_at, updated_at",
     searchableColumns: ["email", "full_name", "product_slug", "status"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
+    sortableColumns: {
+      created_at: "created_at",
+      full_name: "LOWER(full_name)",
+      product_slug: "LOWER(product_slug)",
+      status: "status",
+    },
   },
   posts: {
     table: "posts",
@@ -147,6 +166,21 @@ export async function GET(req: NextRequest) {
   const dateParam = (url.searchParams.get("date") ?? "").trim();
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : "";
 
+  // Fulfillment filter (orders only). The Orders tab is a job queue of
+  // UNFULFILLED work by default; "dispatched" flips it to shipped history.
+  // Mirrors the client's fulfillmentOf(): an order counts as dispatched once
+  // its status is shipped/delivered OR it has a DPD tracking note.
+  const fulfillment = (url.searchParams.get("fulfillment") ?? "").trim();
+
+  // Sort — only honoured against the per-spec whitelist; anything else is
+  // ignored and defaultOrderBy applies.
+  const sortKey = (url.searchParams.get("sort") ?? "").trim();
+  const sortDir = (url.searchParams.get("dir") ?? "").trim().toLowerCase() === "asc" ? "ASC" : "DESC";
+  const sortCol = spec.sortableColumns?.[sortKey];
+  const orderBy = sortCol
+    ? `${sortCol} ${sortDir} NULLS LAST, id ${sortDir}`
+    : spec.defaultOrderBy;
+
   const conditions: string[] = [];
   if (q) {
     conditions.push(
@@ -159,6 +193,16 @@ export async function GET(req: NextRequest) {
   }
   if (validDate) {
     conditions.push(`created_at::date = '${validDate}'`);
+  }
+  if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
+    const dispatchedExpr =
+      "(LOWER(status) IN ('shipped','delivered') OR notes ILIKE '%DPD tracking:%')";
+    conditions.push(
+      fulfillment === "dispatched"
+        ? dispatchedExpr
+        : // unfulfilled job queue: not yet dispatched AND not cancelled
+          `NOT ${dispatchedExpr} AND LOWER(status) <> 'cancelled'`,
+    );
   }
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -181,7 +225,7 @@ export async function GET(req: NextRequest) {
         sql.raw(
           `SELECT ${spec.columns} FROM "${spec.table}"
            ${where}
-           ORDER BY ${spec.defaultOrderBy}
+           ORDER BY ${orderBy}
            LIMIT ${pageSize} OFFSET ${offset};`
         )
       ),

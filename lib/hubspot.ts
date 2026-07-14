@@ -994,6 +994,99 @@ export async function getContactById(
   return { ok: true, data: res.data ?? null };
 }
 
+/* ------------------------------------------------------------------ */
+/* Video consultation (Google Meet) links                             */
+/*                                                                    */
+/* After a consult is booked, HubSpot stores the video-call join URL  */
+/* on the associated Meeting/Appointment object. The exact property   */
+/* varies by portal, so we read a generous set of candidates and pull */
+/* out whatever looks like a Meet/Zoom/Teams URL.                     */
+/* ------------------------------------------------------------------ */
+const MEETING_URL_PROPS = [
+  "hs_meeting_location",
+  "hs_meeting_external_url",
+  "hs_meeting_body",
+  "hs_appointment_location",
+  "join_url",
+  "meeting_link",
+  "google_meet_link",
+  "conference_url",
+  "location",
+] as const;
+
+const MEETING_TIME_PROPS = [
+  "hs_meeting_start_time",
+  "hs_appointment_start",
+  "hs_timestamp",
+] as const;
+
+const URL_RE = /https?:\/\/[^\s"'<>)]+/i;
+
+function extractMeetUrl(props: Record<string, string | undefined>): string | null {
+  const values = MEETING_URL_PROPS.map((k) => props[k]).filter(
+    (v): v is string => typeof v === "string" && v.length > 0,
+  );
+  // Prefer a real video-conferencing URL; fall back to any URL present.
+  const preferred =
+    values.find((v) => /meet\.google\.com|zoom\.us|teams\.microsoft|hangouts/i.test(v)) ??
+    values.find((v) => URL_RE.test(v));
+  if (!preferred) return null;
+  const m = preferred.match(URL_RE);
+  return m ? m[0] : null;
+}
+
+export type MeetingLink = { joinUrl: string | null; startsAt: string | null };
+
+/**
+ * Finds the Google Meet (or other video-call) join link for a patient by
+ * email: locates their HubSpot contact, then reads meetings/appointments
+ * associated with that contact and returns the latest one carrying a URL.
+ * Returns { joinUrl: null } (ok) when nothing is booked yet.
+ */
+export async function getMeetingLinkForContact(
+  email: string,
+): Promise<HubSpotResult<MeetingLink>> {
+  if (!email) return { ok: false, status: 400, error: "email required" };
+  const contact = await searchContactByEmail(email);
+  if (!contact.ok) return { ok: false, status: contact.status, error: contact.error };
+  if (!contact.data) return { ok: true, data: { joinUrl: null, startsAt: null } };
+  const contactId = contact.data.id;
+  const propsToRead = [...MEETING_URL_PROPS, ...MEETING_TIME_PROPS];
+
+  for (const objType of ["meetings", "appointments"] as const) {
+    const assoc = await hsFetch<{ results: { toObjectId?: string; id?: string }[] }>(
+      `/crm/v4/objects/contacts/${contactId}/associations/${objType}?limit=100`,
+      { method: "GET" },
+    );
+    if (!assoc.ok || !assoc.data?.results?.length) continue;
+    const ids = assoc.data.results
+      .map((r) => String(r.toObjectId ?? r.id ?? ""))
+      .filter(Boolean);
+    if (!ids.length) continue;
+
+    const batch = await hsFetch<{
+      results: { id: string; properties: Record<string, string | undefined> }[];
+    }>(`/crm/v3/objects/${objType}/batch/read`, {
+      method: "POST",
+      body: JSON.stringify({ properties: propsToRead, inputs: ids.map((id) => ({ id })) }),
+    });
+    if (!batch.ok || !batch.data?.results?.length) continue;
+
+    let best: MeetingLink | null = null;
+    for (const rec of batch.data.results) {
+      const url = extractMeetUrl(rec.properties);
+      if (!url) continue;
+      const startsAt =
+        MEETING_TIME_PROPS.map((k) => rec.properties[k]).find(Boolean) ?? null;
+      if (!best || (startsAt && (!best.startsAt || startsAt > best.startsAt))) {
+        best = { joinUrl: url, startsAt };
+      }
+    }
+    if (best) return { ok: true, data: best };
+  }
+  return { ok: true, data: { joinUrl: null, startsAt: null } };
+}
+
 /**
  * Lists all HubSpot custom-object schemas the token can see. Used
  * by the diag endpoint and by the consultations slug auto-detect.
