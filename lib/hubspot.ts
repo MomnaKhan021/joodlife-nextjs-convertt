@@ -1088,6 +1088,34 @@ export async function getMeetingLinkForContact(
 }
 
 /**
+ * Bulk variant of getMeetingLinkForContact used to sort the Clinical Queue by
+ * booked consultation time. Returns a map of email -> scheduled start (ISO
+ * string or null), fetched with a small concurrency cap to stay within
+ * HubSpot rate limits. Emails with no booked meeting map to null.
+ */
+export async function getMeetingTimesForEmails(
+  emails: string[],
+): Promise<Record<string, string | null>> {
+  const unique = [...new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
+  const out: Record<string, string | null> = {};
+  const CONCURRENCY = 5;
+  let i = 0;
+  async function worker() {
+    while (i < unique.length) {
+      const email = unique[i++];
+      try {
+        const res = await getMeetingLinkForContact(email);
+        out[email] = res.ok ? res.data.startsAt : null;
+      } catch {
+        out[email] = null;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, unique.length) }, worker));
+  return out;
+}
+
+/**
  * Lists all HubSpot custom-object schemas the token can see. Used
  * by the diag endpoint and by the consultations slug auto-detect.
  */

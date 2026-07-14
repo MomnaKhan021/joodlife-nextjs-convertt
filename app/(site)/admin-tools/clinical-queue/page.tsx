@@ -694,9 +694,14 @@ export default function ClinicalQueuePage() {
   const [serverCounts, setServerCounts] = useState<Record<TabKey, number> | null>(null);
   const [totalPending, setTotalPending] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(0);
-  // Worklist ordering. "oldest" = FIFO daily worklist (consultation order);
-  // red-flagged unreviewed patients always float to the top regardless.
-  const [sortMode, setSortMode] = useState<"oldest" | "newest" | "name">("oldest");
+  // Worklist ordering. "consult" = by booked video-consultation time (fetched
+  // from HubSpot); "oldest"/"newest" = submission order; "name" = A–Z.
+  // Red-flagged unreviewed patients always float to the top regardless.
+  const [sortMode, setSortMode] = useState<"consult" | "oldest" | "newest" | "name">("oldest");
+  // email -> booked consultation start (ISO) | null, lazily fetched for the
+  // consultation-time sort.
+  const [meetingTimes, setMeetingTimes] = useState<Record<string, string | null>>({});
+  const [loadingTimes, setLoadingTimes] = useState(false);
   // Batch approval selection (consultation ids).
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
@@ -786,11 +791,61 @@ export default function ClinicalQueuePage() {
         if (sortMode === "name") {
           return (x.fullName ?? "").localeCompare(y.fullName ?? "");
         }
+        if (sortMode === "consult") {
+          // Earliest booked consultation first; unbooked/unknown times last.
+          const tx = meetingTimes[(x.email ?? "").toLowerCase()] ?? null;
+          const ty = meetingTimes[(y.email ?? "").toLowerCase()] ?? null;
+          if (tx !== ty) {
+            if (!tx) return 1;
+            if (!ty) return -1;
+            return +new Date(tx) - +new Date(ty);
+          }
+          return +new Date(x.createdAt) - +new Date(y.createdAt);
+        }
         const dx = +new Date(x.createdAt);
         const dy = +new Date(y.createdAt);
         return sortMode === "oldest" ? dx - dy : dy - dx;
       });
-  }, [consultations, tab, query, sortMode]);
+  }, [consultations, tab, query, sortMode, meetingTimes]);
+
+  // When sorting by consultation time, lazily fetch booked-consult start times
+  // from HubSpot for the loaded patients we don't already have.
+  useEffect(() => {
+    if (sortMode !== "consult") return;
+    const emails = consultations
+      .filter((c) => c.answers.video_consultation_preference && c.email)
+      .map((c) => (c.email ?? "").toLowerCase())
+      .filter((e) => e && !(e in meetingTimes));
+    if (emails.length === 0) return;
+    let off = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadingTimes(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/admin-tools/meeting-times", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ emails: emails.slice(0, 60) }),
+        });
+        const j = await res.json();
+        if (!off && res.ok && j.ok) {
+          // Mark every requested email as resolved (fetched value or null) so
+          // we don't re-request the ones with no booking.
+          const merged: Record<string, string | null> = {};
+          for (const e of emails.slice(0, 60)) merged[e] = j.times?.[e] ?? null;
+          setMeetingTimes((prev) => ({ ...prev, ...merged }));
+        }
+      } catch {
+        /* leave times unset → falls back to submission order */
+      } finally {
+        if (!off) setLoadingTimes(false);
+      }
+    })();
+    return () => {
+      off = true;
+    };
+  }, [sortMode, consultations, meetingTimes]);
 
   const flaggedTotal = consultations.filter((c) => c.hasRedFlags && !c.reviewed).length;
 
@@ -921,10 +976,14 @@ export default function ClinicalQueuePage() {
               onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
               className="h-9 rounded-lg border border-[#d1d5db] bg-white px-2 text-[13px] text-[#374151] focus:border-[#142e2a] focus:outline-none"
             >
-              <option value="oldest">Consultation order (oldest first)</option>
-              <option value="newest">Newest first</option>
+              <option value="consult">Consultation time (booked)</option>
+              <option value="oldest">Submitted (oldest first)</option>
+              <option value="newest">Submitted (newest first)</option>
               <option value="name">Name (A–Z)</option>
             </select>
+            {sortMode === "consult" && loadingTimes ? (
+              <span className="text-[11px] text-[#9ca3af]">loading times…</span>
+            ) : null}
           </label>
         </div>
 

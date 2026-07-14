@@ -4,6 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  printLabels,
+  composeMedicine,
+  dispensingDate,
+  type LabelData,
+} from "../orders/[id]/dispensingLabel";
+
 /**
  * Multi-collection data browser. Tabs across the top, mobile-first
  * card list / desktop table for each collection, with search +
@@ -99,6 +106,41 @@ const StatusPill = ({ value }: { value: unknown }) => {
   else if (["cancelled", "rejected", "inactive", "false", "refunded", "failed"].includes(v)) tone = "off";
   return <span className={`db-pill db-pill--${tone}`}>{String(value ?? "—")}</span>;
 };
+
+/** Parse an order's items_json into { title, dose } line items for labels. */
+function parseOrderLineItems(raw: unknown): Array<{ title: string; dose: string | null }> {
+  let val: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      val = JSON.parse(raw);
+    } catch {
+      return raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((s) => {
+          const m = s.match(/^(.*?)(?:\s*\(([^)]*)\))?\s*[x×]\s*\d+\s*$/i);
+          return m
+            ? { title: m[1].trim(), dose: (m[2] ?? "").trim() || null }
+            : { title: s, dose: null };
+        });
+    }
+  }
+  const arr = Array.isArray(val) ? val : val && typeof val === "object" ? [val] : [];
+  const out: Array<{ title: string; dose: string | null }> = [];
+  for (const el of arr) {
+    if (!el || typeof el !== "object") continue;
+    const it = el as Record<string, unknown>;
+    const title = String(it.title ?? it.name ?? it.product ?? "").trim();
+    if (!title) continue;
+    const dose =
+      (typeof it.dose === "string" && it.dose) ||
+      (typeof it.variant === "string" && it.variant) ||
+      null;
+    out.push({ title, dose });
+  }
+  return out;
+}
 
 /** Count line-items in an order's items_json (string, array, or {body}). */
 function orderItemCount(raw: unknown): number {
@@ -576,6 +618,23 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
   const total = data?.total ?? 0;
   const pages = data?.pages ?? 1;
 
+  // Batch: print dispensing labels for every selected order in one document.
+  function batchPrintLabels() {
+    const chosen = (data?.rows ?? []).filter((r) => selected.has(String(r.id)));
+    if (chosen.length === 0) return;
+    const date = dispensingDate();
+    const labels: LabelData[] = [];
+    for (const row of chosen) {
+      const patient = String(row.customer_name ?? row.customer_email ?? "—").trim() || "—";
+      const items = parseOrderLineItems(row.items_json);
+      for (const it of items.length ? items : [{ title: "", dose: null }]) {
+        const { brand, productLine } = composeMedicine(it.title, it.dose);
+        labels.push({ brand, productName: productLine, patientName: patient, date });
+      }
+    }
+    if (labels.length) printLabels(labels);
+  }
+
   // Batch selection is offered on the Orders tab only.
   const selectable = activeTab === "orders";
   const allSelected = rows.length > 0 && rows.every((r) => selected.has(String(r.id)));
@@ -694,6 +753,13 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           <span className="db-batchbar__count">
             {selected.size} selected
           </span>
+          <button
+            type="button"
+            onClick={batchPrintLabels}
+            className="db-btn"
+          >
+            Print dispensing labels
+          </button>
           <button
             type="button"
             onClick={batchMarkDispatched}
