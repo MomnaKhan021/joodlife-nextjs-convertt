@@ -54,12 +54,43 @@ type DispatchOrder = {
   consultation: Consultation | null;
 };
 
+/** Items to show for a card. Uses the order's line items when present; else
+ *  derives the medicine + dose from the consultation so the pack is still
+ *  visible for approved patients who have no linked order yet. */
+function itemsForCard(o: DispatchOrder): DispatchItem[] {
+  if (o.items.length) return o.items;
+  const a = o.consultation?.answers ?? {};
+  const med =
+    (typeof a.intended_medicine_v2 === "string" && a.intended_medicine_v2) ||
+    (typeof a.most_recent_injection_used_v2 === "string" && a.most_recent_injection_used_v2) ||
+    (o.consultation?.productSlug && o.consultation.productSlug !== "reorder"
+      ? o.consultation.productSlug
+      : "") ||
+    "";
+  const dose =
+    (typeof a.requested_dose === "string" && a.requested_dose) ||
+    (typeof a.reorder_dose_choice === "string" && a.reorder_dose_choice) ||
+    "";
+  if (!med && !dose) return [];
+  return [{ title: med || "Medication", dose: dose || null, quantity: 1 }];
+}
+
 /** Compute BMI from the consultation answers, rounded to 1 dp. */
 function bmiFromAnswers(a: Record<string, unknown>): number | null {
   const w = Number(a.current_weight_kg);
   const h = Number(a.height_cm);
   if (!w || !h) return null;
   return Math.round((w / Math.pow(h / 100, 2)) * 10) / 10;
+}
+
+const isUrl = (v: unknown): v is string =>
+  typeof v === "string" && /^https?:\/\//i.test(v.trim());
+
+/** A nice label for an uploaded-file link, from the answer key. */
+function fileLinkLabel(key: string): string {
+  return /evidence|prescription|upload|image|photo|file|document/i.test(key)
+    ? "View file"
+    : "Open link";
 }
 
 /** Render one answer value readably (dates formatted, arrays joined). */
@@ -101,7 +132,23 @@ function ClinicalSummary({ c }: { c: Consultation }) {
         {rows.map(([k, v]) => (
           <div key={k} className="flex gap-2 text-[13px]">
             <dt className="shrink-0 font-semibold text-[#374151]">{labelFor(k)}:</dt>
-            <dd className="min-w-0 text-[#4b5563]">{answerText(k, v)}</dd>
+            <dd className="min-w-0 break-words text-[#4b5563]">
+              {isUrl(v) ? (
+                <a
+                  href={String(v).trim()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-[#142e2a] underline hover:no-underline"
+                >
+                  {fileLinkLabel(k)}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+              ) : (
+                answerText(k, v)
+              )}
+            </dd>
           </div>
         ))}
       </dl>
@@ -313,23 +360,35 @@ function OrderCard({
             <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Items</p>
-                {o.items.length ? (
-                  <ul className="space-y-0.5">
-                    {o.items.map((it, i) => (
-                      <li key={i} className="text-[13px] text-[#303030]">
-                        {it.title ?? "Item"}{it.dose ? ` · ${it.dose}` : ""} × {it.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-[13px] text-[#9ca3af]">—</p>
-                )}
+                {(() => {
+                  const list = itemsForCard(o);
+                  return list.length ? (
+                    <ul className="space-y-0.5">
+                      {list.map((it, i) => (
+                        <li key={i} className="text-[13px] text-[#303030]">
+                          {it.title ?? "Item"}{it.dose ? ` · ${it.dose}` : ""} × {it.quantity}
+                          {!o.items.length ? (
+                            <span className="ml-1 text-[11px] text-[#9ca3af]">(from consultation)</span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[13px] text-[#9ca3af]">No items on record.</p>
+                  );
+                })()}
               </div>
               <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Delivery address</p>
-                <p className="whitespace-pre-line text-[13px] text-[#303030]">
-                  {o.shippingAddress?.trim() || "—"}
-                </p>
+                {o.shippingAddress?.trim() ? (
+                  <p className="whitespace-pre-line text-[13px] text-[#303030]">
+                    {o.shippingAddress.trim()}
+                  </p>
+                ) : (
+                  <p className="text-[13px] text-[#9ca3af]">
+                    No delivery address — this patient has no linked order yet.
+                  </p>
+                )}
                 {o.customerPhone && <p className="mt-1 text-[12px] text-[#6b7280]">{o.customerPhone}</p>}
               </div>
             </div>
@@ -362,6 +421,7 @@ export default function DispatchQueuePage() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
