@@ -1,15 +1,18 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Verify2faPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // Only allow internal paths (must start with a single slash) to avoid an
-  // open-redirect; default to the dashboard.
-  const rawNext = searchParams.get("next") ?? "";
-  const next = /^\/[^/]/.test(rawNext) ? rawNext : "/admin-tools";
+  // Read ?next from the URL client-side (avoids useSearchParams, which would
+  // suspend this page into the layout's blank fallback). Only allow internal
+  // paths to prevent an open-redirect; default to the dashboard.
+  const [next] = useState(() => {
+    if (typeof window === "undefined") return "/admin-tools";
+    const p = new URLSearchParams(window.location.search).get("next") ?? "";
+    return /^\/[^/]/.test(p) ? p : "/admin-tools";
+  });
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
