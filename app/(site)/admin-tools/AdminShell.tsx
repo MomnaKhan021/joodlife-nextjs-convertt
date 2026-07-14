@@ -119,6 +119,13 @@ const NAV: NavItem[] = [
     match: (p) => p.startsWith("/admin-tools/health"),
     icon: I("M22 12h-4l-3 9L9 3l-3 9H2"),
   },
+  {
+    // Admin-only (no section key) — account security / 2FA.
+    label: "Security",
+    href: "/admin-tools/security",
+    match: (p) => p.startsWith("/admin-tools/security"),
+    icon: I("M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4zM9 12l2 2 4-4"),
+  },
 ];
 
 /** Fired by action pages (approve / dispatch) so the sidebar counts refresh
