@@ -196,7 +196,7 @@ export async function GET(req: NextRequest) {
   }
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
-      "(LOWER(status) IN ('shipped','delivered') OR notes ILIKE '%DPD tracking:%')";
+      "(LOWER(status) IN ('shipped','delivered') OR CAST(notes AS TEXT) ILIKE '%DPD tracking:%')";
     conditions.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
@@ -237,7 +237,7 @@ export async function GET(req: NextRequest) {
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
-      "(LOWER(status) IN ('shipped','delivered') OR notes ILIKE '%DPD tracking:%')";
+      "(LOWER(status) IN ('shipped','delivered') OR CAST(notes AS TEXT) ILIKE '%DPD tracking:%')";
     safeConds.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
