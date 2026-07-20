@@ -219,42 +219,67 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  try {
-    const [rowsResult, countResult] = await Promise.all([
+  const runQueries = (colsExpr: string, whereExpr: string, orderExpr: string) =>
+    Promise.all([
       drizzle.execute(
         sql.raw(
-          `SELECT ${spec.columns} FROM "${spec.table}"
-           ${where}
-           ORDER BY ${orderBy}
-           LIMIT ${pageSize} OFFSET ${offset};`
+          `SELECT ${colsExpr} FROM "${spec.table}" ${whereExpr}
+           ORDER BY ${orderExpr} LIMIT ${pageSize} OFFSET ${offset};`
         )
       ),
-      drizzle.execute(
-        sql.raw(
-          `SELECT COUNT(*)::int AS n FROM "${spec.table}" ${where};`
-        )
-      ),
+      drizzle.execute(sql.raw(`SELECT COUNT(*)::int AS n FROM "${spec.table}" ${whereExpr};`)),
     ]);
-    const rows = readRows<Record<string, unknown>>(rowsResult);
-    const totalRow = readRows<{ n: number }>(countResult)[0];
-    const total = Number(totalRow?.n ?? 0);
-    return NextResponse.json({
-      ok: true,
-      type,
-      page,
-      pageSize,
-      total,
-      pages: Math.max(1, Math.ceil(total / pageSize)),
-      rows,
-    });
-  } catch (err) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Query failed",
-        detail: err instanceof Error ? err.message : String(err),
-      },
-      { status: 500 }
+
+  // Minimal WHERE for the degraded retry: drop the free-text search (its
+  // columns are the likeliest to be missing after schema drift), keep only
+  // the safe, always-present filters.
+  const safeConds: string[] = [];
+  if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
+  if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
+    const dispatchedExpr =
+      "(LOWER(status) IN ('shipped','delivered') OR notes ILIKE '%DPD tracking:%')";
+    safeConds.push(
+      fulfillment === "dispatched"
+        ? dispatchedExpr
+        : `NOT ${dispatchedExpr} AND LOWER(status) <> 'cancelled'`
     );
   }
+  const safeWhere = safeConds.length ? `WHERE ${safeConds.join(" AND ")}` : "";
+
+  let rowsResult: unknown;
+  let countResult: unknown;
+  let degraded: string | null = null;
+  try {
+    [rowsResult, countResult] = await runQueries(spec.columns, where, orderBy);
+  } catch (primaryErr) {
+    // A tailored column / search / sort hit a column that doesn't exist in
+    // this environment. Fall back to a minimal SELECT * so the tab still
+    // loads instead of hard-failing — and report what was skipped.
+    degraded = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
+    try {
+      [rowsResult, countResult] = await runQueries("*", safeWhere, "id DESC");
+    } catch (fallbackErr) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Query failed",
+          detail: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr),
+        },
+        { status: 500 }
+      );
+    }
+  }
+  const rows = readRows<Record<string, unknown>>(rowsResult);
+  const totalRow = readRows<{ n: number }>(countResult)[0];
+  const total = Number(totalRow?.n ?? 0);
+  return NextResponse.json({
+    ok: true,
+    type,
+    page,
+    pageSize,
+    total,
+    pages: Math.max(1, Math.ceil(total / pageSize)),
+    rows,
+    ...(degraded ? { degraded } : {}),
+  });
 }

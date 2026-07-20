@@ -571,7 +571,13 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
       });
       const json = (await res.json()) as ListResponse;
       if (!res.ok || !json.ok) {
-        setErr(json.error ?? `HTTP ${res.status}`);
+        // Surface the real cause (e.g. "column X does not exist"), not just
+        // the generic label, so schema issues are diagnosable.
+        setErr(
+          json.detail
+            ? `${json.error ?? "Error"}: ${json.detail}`
+            : (json.error ?? `HTTP ${res.status}`)
+        );
         setData(null);
         return;
       }
