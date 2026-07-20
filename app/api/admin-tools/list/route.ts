@@ -196,12 +196,12 @@ export async function GET(req: NextRequest) {
   }
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
-      "(LOWER(status::text) IN ('shipped','delivered') OR CAST(notes AS TEXT) ILIKE '%DPD tracking:%')";
+      "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
     conditions.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
         : // unfulfilled job queue: not yet dispatched AND not cancelled
-          `NOT ${dispatchedExpr} AND LOWER(status::text) <> 'cancelled'`,
+          `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`,
     );
   }
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -237,11 +237,11 @@ export async function GET(req: NextRequest) {
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
-      "(LOWER(status::text) IN ('shipped','delivered') OR CAST(notes AS TEXT) ILIKE '%DPD tracking:%')";
+      "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
     safeConds.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
-        : `NOT ${dispatchedExpr} AND LOWER(status::text) <> 'cancelled'`
+        : `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`
     );
   }
   const safeWhere = safeConds.length ? `WHERE ${safeConds.join(" AND ")}` : "";
