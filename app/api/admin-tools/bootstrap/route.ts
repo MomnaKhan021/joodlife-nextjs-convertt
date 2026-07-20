@@ -1,22 +1,24 @@
 /**
- * One-time admin bootstrap.
+ * One-time admin bootstrap / rescue.
  *
- * Promotes an EXISTING user to role = "admin" so they can reach the
- * /admin-tools dashboard. Gated by a secret you set yourself in Vercel:
+ * Lets you create-or-promote an admin account and (optionally) set its
+ * password, so you can get into the /admin-tools dashboard.
  *
- *   1. In Vercel → Project → Settings → Environment Variables, add
- *        ADMIN_BOOTSTRAP_SECRET = <any long random string>
- *      and redeploy.
- *   2. Call (GET or POST):
- *        /api/admin-tools/bootstrap?secret=<that string>&email=you@example.com
- *   3. It sets that user's role to "admin". Log in at /login.
- *   4. DELETE the ADMIN_BOOTSTRAP_SECRET env var afterwards (or the route
- *      returns 503 and does nothing without it).
+ * GATE: pass `secret=` matching EITHER your existing `PAYLOAD_SECRET`
+ * (already in Vercel — no new env var or redeploy needed) OR an
+ * `ADMIN_BOOTSTRAP_SECRET` you add yourself. Without a matching secret the
+ * route does nothing.
  *
- * It NEVER touches passwords and NEVER creates accounts — the target must
- * already exist (sign up at /signup first if needed). Nothing here works
- * unless ADMIN_BOOTSTRAP_SECRET is set AND matches, so it's inert in normal
- * operation.
+ * USAGE (GET or POST):
+ *   Check an account (read-only):
+ *     /api/admin-tools/bootstrap?secret=<SECRET>&email=you@x.com&check=1
+ *   Promote an existing account to admin:
+ *     /api/admin-tools/bootstrap?secret=<SECRET>&email=you@x.com
+ *   Create the account (if missing) as admin AND/OR (re)set its password:
+ *     /api/admin-tools/bootstrap?secret=<SECRET>&email=you@x.com&password=YourPass123
+ *
+ * Then log in at /login. Afterwards, rotate PAYLOAD_SECRET or remove any
+ * ADMIN_BOOTSTRAP_SECRET. Passwords are hashed by Payload's own auth layer.
  */
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -25,61 +27,104 @@ import { getPayloadInstance } from "@/lib/payload";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
-
-async function getDrizzle() {
-  const payload = await getPayloadInstance();
-  const drizzle = (
-    payload.db as unknown as {
-      drizzle?: { execute?: (q: unknown) => Promise<unknown> };
-    }
-  ).drizzle;
-  if (!drizzle?.execute) throw new Error("payload.db.drizzle.execute unavailable");
-  const { sql } = (await import("drizzle-orm")) as {
-    sql: { raw: (s: string) => unknown };
-  };
-  return { drizzle: drizzle as DrizzleLike, sql };
+function authorized(secret: string): boolean {
+  const a = process.env.ADMIN_BOOTSTRAP_SECRET;
+  const p = process.env.PAYLOAD_SECRET;
+  if (!secret) return false;
+  return (Boolean(a) && secret === a) || (Boolean(p) && secret === p);
 }
 
 async function handle(req: NextRequest) {
   const url = new URL(req.url);
-  const expected = process.env.ADMIN_BOOTSTRAP_SECRET;
-  if (!expected) {
-    return NextResponse.json(
-      { error: "Disabled. Set ADMIN_BOOTSTRAP_SECRET in Vercel to enable, then redeploy." },
-      { status: 503 }
-    );
-  }
   const secret =
     url.searchParams.get("secret") || req.headers.get("x-bootstrap-secret") || "";
-  if (secret !== expected) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!authorized(secret)) {
+    return NextResponse.json(
+      {
+        error:
+          "Unauthorized. Pass ?secret=<your PAYLOAD_SECRET> (from Vercel env), or set ADMIN_BOOTSTRAP_SECRET.",
+      },
+      { status: 401 }
+    );
   }
 
   const email = (url.searchParams.get("email") || "").trim().toLowerCase();
+  const password = url.searchParams.get("password") || undefined;
+  const checkOnly = url.searchParams.get("check") != null;
   if (!email) {
     return NextResponse.json({ error: "email query param required" }, { status: 400 });
   }
-  const safe = email.replace(/'/g, "''");
 
   try {
-    const { drizzle, sql } = await getDrizzle();
-    const result = (await drizzle.execute(
-      sql.raw(
-        `UPDATE users SET role = 'admin' WHERE lower(email) = '${safe}' RETURNING id, email, role;`
-      )
-    )) as { rows?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
-    const rows = Array.isArray(result) ? result : (result.rows ?? []);
-    if (rows.length === 0) {
+    const payload = await getPayloadInstance();
+    const found = await payload.find({
+      collection: "users",
+      where: { email: { equals: email } },
+      limit: 1,
+      overrideAccess: true,
+    });
+    const existing = found.docs[0] as
+      | { id: number | string; email: string; role?: string }
+      | undefined;
+
+    if (checkOnly) {
+      return NextResponse.json({
+        exists: Boolean(existing),
+        email,
+        role: existing?.role ?? null,
+        id: existing?.id ?? null,
+        canLoginToDashboard: existing?.role === "admin",
+      });
+    }
+
+    if (existing) {
+      const data: Record<string, unknown> = { role: "admin" };
+      if (password) data.password = password;
+      const updated = await payload.update({
+        collection: "users",
+        id: existing.id,
+        data,
+        overrideAccess: true,
+      });
+      return NextResponse.json({
+        ok: true,
+        action: "promoted" + (password ? "+password-reset" : ""),
+        user: {
+          id: updated.id,
+          email: updated.email,
+          role: (updated as { role?: string }).role,
+        },
+      });
+    }
+
+    // No such user — create as admin, but only if a password was supplied.
+    if (!password) {
       return NextResponse.json(
-        { error: "No user with that email. Sign up at /signup first, then retry.", email },
+        {
+          error:
+            "No user with that email. Add &password=YourPass123 to this URL to create the admin account.",
+          email,
+        },
         { status: 404 }
       );
     }
-    return NextResponse.json({ ok: true, promoted: rows[0] });
+    const created = await payload.create({
+      collection: "users",
+      data: { email, password, role: "admin" },
+      overrideAccess: true,
+    });
+    return NextResponse.json({
+      ok: true,
+      action: "created-admin",
+      user: {
+        id: created.id,
+        email: created.email,
+        role: (created as { role?: string }).role,
+      },
+    });
   } catch (err) {
     return NextResponse.json(
-      { error: "Update failed", detail: err instanceof Error ? err.message : String(err) },
+      { error: "Bootstrap failed", detail: err instanceof Error ? err.message : String(err) },
       { status: 500 }
     );
   }
