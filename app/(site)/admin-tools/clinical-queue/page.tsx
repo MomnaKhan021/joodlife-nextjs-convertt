@@ -693,37 +693,48 @@ export default function ClinicalQueuePage() {
   // Batch approval selection (consultation ids).
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
+  // Whether the last page came back full (200) → there are more to load.
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const load = useCallback(async (all: boolean) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(
-        `/api/admin-tools/clinical-review?status=${all ? "all" : "pending"}`,
-        { credentials: "include", cache: "no-store" },
-      );
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error ?? "Failed to load");
-      const list: Consultation[] = json.consultations ?? [];
-      setConsultations(list);
-      setLoaded(Number(json.loaded ?? list.length));
-      setServerRedFlags(typeof json.redFlags === "number" ? json.redFlags : null);
-      setTotalPending(typeof json.total === "number" ? json.total : null);
-      setServerCounts(
-        json.counts
-          ? {
-              booked: Number(json.counts.booked ?? 0),
-              notbooked: Number(json.counts.notbooked ?? 0),
-              reorder: Number(json.counts.reorder ?? 0),
-            }
-          : null,
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const PAGE = 200;
+
+  const load = useCallback(
+    async (all: boolean, offset = 0, append = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `/api/admin-tools/clinical-review?status=${all ? "all" : "pending"}&offset=${offset}`,
+          { credentials: "include", cache: "no-store" },
+        );
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error ?? "Failed to load");
+        const list: Consultation[] = json.consultations ?? [];
+        setConsultations((prev) => (append ? [...prev, ...list] : list));
+        setLoaded((prev) => (append ? prev + list.length : list.length));
+        setHasMore(list.length >= PAGE);
+        setServerRedFlags(typeof json.redFlags === "number" ? json.redFlags : null);
+        setTotalPending(typeof json.total === "number" ? json.total : null);
+        setServerCounts(
+          json.counts
+            ? {
+                booked: Number(json.counts.booked ?? 0),
+                notbooked: Number(json.counts.notbooked ?? 0),
+                reorder: Number(json.counts.reorder ?? 0),
+              }
+            : null,
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        if (append) setLoadingMore(false);
+        else setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const t = setTimeout(() => load(showAll), 0);
@@ -1045,8 +1056,8 @@ export default function ClinicalQueuePage() {
             {" "}
             {rows.length === 1 ? "patient" : "patients"} in “{TABS.find((t) => t.key === tab)?.label}” (
             {counts[tab].toLocaleString("en-GB")} total)
-            {!showAll && totalPending != null && loaded < totalPending
-              ? ` · first ${loaded} of ${totalPending.toLocaleString("en-GB")} pending loaded — search to find a specific patient`
+            {totalPending != null && loaded < totalPending
+              ? ` · ${loaded.toLocaleString("en-GB")} of ${totalPending.toLocaleString("en-GB")} loaded — Load more below, or search to jump to a patient`
               : ""}
             .
           </p>
@@ -1098,6 +1109,26 @@ export default function ClinicalQueuePage() {
             ))}
           </div>
         )}
+
+        {/* Load more — walks the whole pending set in pages of 200. */}
+        {!loading && !error && hasMore ? (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => load(showAll, consultations.length, true)}
+              disabled={loadingMore}
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loadingMore
+                ? "Loading…"
+                : `Load more${
+                    totalPending != null
+                      ? ` (${Math.max(0, totalPending - loaded).toLocaleString("en-GB")} more)`
+                      : ""
+                  }`}
+            </button>
+          </div>
+        ) : null}
       </div>
     </main>
   );

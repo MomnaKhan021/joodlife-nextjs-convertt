@@ -203,6 +203,14 @@ export async function GET(req: NextRequest) {
   }
 
   const showAll = req.nextUrl.searchParams.get("status") === "all";
+  // Pagination window — the client loads the queue in pages of 200 and can
+  // "Load more" to walk the entire pending set (2,000+) rather than being
+  // capped at the first 200.
+  const PAGE = 200;
+  const offset = Math.max(
+    0,
+    Math.min(100000, Number(req.nextUrl.searchParams.get("offset") ?? 0) || 0)
+  );
 
   try {
     const drizzle = (
@@ -244,7 +252,7 @@ export async function GET(req: NextRequest) {
                ELSE 1
              END,
              created_at ASC
-           LIMIT 200`,
+           LIMIT ${PAGE} OFFSET ${offset}`,
         ),
       ),
       // True per-category counts over the FULL pending set (not the LIMIT-200
