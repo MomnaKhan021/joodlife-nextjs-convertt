@@ -108,13 +108,70 @@ export async function POST(req: NextRequest) {
         : JSON.parse(String(raw ?? "{}"));
     } catch { /* keep empty */ }
 
-    const updatedAnswers = {
+    const updatedAnswers: Record<string, unknown> = {
       ...existingAnswers,
       _review_decision: decision,
       _review_reason: reason ?? "",
       _reviewed_by: reviewerName,
       _reviewed_at: reviewedAt,
     };
+
+    // Connected flow (#2): approving a patient for supply must give them a
+    // dispatchable order so they flow Clinical Queue → Dispatch queue →
+    // Dispatched. If the patient has no order yet, auto-create one from the
+    // consultation (address + treatment), linked back on the consultation.
+    // The DPD-label step later attaches the tracking number to THIS order,
+    // while dispatch stamps the consultation — so both reflect dispatch.
+    if (decision === "approved" && email) {
+      try {
+        const existOrder = (await db.execute(
+          sql.raw(
+            `SELECT order_number FROM "orders" WHERE LOWER(customer_email) = LOWER(${esc(email)}) ORDER BY created_at DESC NULLS LAST, id DESC LIMIT 1`,
+          ),
+        )) as { rows?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+        const existRows = Array.isArray(existOrder) ? existOrder : (existOrder.rows ?? []);
+        if (existRows.length > 0) {
+          updatedAnswers._linked_order_number = existRows[0].order_number ?? null;
+        } else {
+          const a = existingAnswers;
+          const pick = (...keys: string[]): string => {
+            for (const k of keys) {
+              const v = a[k];
+              if (typeof v === "string" && v.trim()) return v.trim();
+            }
+            return "";
+          };
+          const address = pick(
+            "ed_delivery_address",
+            "pd_delivery_address",
+            "delivery_address",
+            "shipping_address",
+            "home_address",
+            "address",
+          );
+          const phone = pick("consultation_mobile_number_v2", "phone", "mobile");
+          const dose = pick("ed_strength", "reorder_dose_choice", "dose", "selected_dose");
+          const productName = String(row.product_slug ?? "treatment")
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (m) => m.toUpperCase());
+          const itemTitle = [productName, dose].filter(Boolean).join(" ");
+          const itemsJson = JSON.stringify([
+            { title: itemTitle, dose: dose || null, price: 0, quantity: 1 },
+          ]);
+          const orderNumber = "JL-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+          await db.execute(
+            sql.raw(
+              `INSERT INTO "orders" (order_number, customer_name, customer_email, customer_phone, shipping_address, items_json, total_amount, status, payment_status, notes, updated_at, created_at)
+               VALUES (${esc(orderNumber)}, ${esc(fullName)}, ${esc(email)}, ${esc(phone)}, ${esc(address)}, ${esc(itemsJson)}::jsonb, 0, 'pending', 'unpaid', ${esc("Auto-created on clinical approval — awaiting dispatch")}, now(), now())`,
+            ),
+          );
+          updatedAnswers._linked_order_number = orderNumber;
+        }
+      } catch (e) {
+        // Non-fatal: the approval itself must still succeed.
+        console.error("[clinical-review] auto-order-on-approve failed", e);
+      }
+    }
 
     // Update the consultation record
     await db.execute(
