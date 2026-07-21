@@ -43,7 +43,11 @@ async function handle(req: NextRequest) {
     overrideAccess: true,
   });
   const doc = found.docs[0] as
-    | { id: string | number; variants?: Array<Record<string, unknown>> }
+    | {
+        id: string | number;
+        variants?: Array<Record<string, unknown>>;
+        variantsJson?: unknown;
+      }
     | undefined;
   if (!doc) {
     return NextResponse.json(
@@ -53,10 +57,26 @@ async function handle(req: NextRequest) {
   }
 
   const variants = Array.isArray(doc.variants) ? doc.variants : [];
-  const updatedVariants = variants.map((v) => ({
+  // Recover a sensible dose label from the legacy variantsJson (or default to
+  // "1.5") so a single structured variant can be created when none exists.
+  const legacy = Array.isArray(doc.variantsJson)
+    ? (doc.variantsJson as Array<Record<string, unknown>>)
+    : [];
+  const seedLabel =
+    (variants[0]?.label as string) ||
+    (legacy[0]?.label as string) ||
+    "1.5";
+
+  // If the product has no structured variant rows, its displayed price comes
+  // from the legacy variantsJson (£149, no compare-at). Seed one real variant
+  // so the price/compare-at actually take effect on the storefront.
+  const base = variants.length > 0 ? variants : [{ label: seedLabel }];
+  const updatedVariants = base.map((v) => ({
     ...v,
+    label: (v.label as string) || seedLabel,
     price,
     comparePrice: compare,
+    stock: (v.stock as number) ?? 100,
   }));
 
   const updated = await payload.update({
@@ -66,7 +86,7 @@ async function handle(req: NextRequest) {
     data: {
       fromPrice: price,
       comparePrice: compare,
-      ...(updatedVariants.length > 0 ? { variants: updatedVariants } : {}),
+      variants: updatedVariants,
     },
   });
 
