@@ -202,21 +202,7 @@ function Section({ title, items }: { title: string; items: Item[] }) {
 /* Sticky summary bar                                                  */
 /* ------------------------------------------------------------------ */
 
-function SummaryBar({
-  c,
-  reviewed,
-  loading,
-  error,
-  onDecision,
-  joinUrl,
-}: {
-  c: Consultation;
-  reviewed?: boolean;
-  loading?: boolean;
-  error?: string | null;
-  onDecision?: (dec: "approved" | "rejected") => void;
-  joinUrl?: string | null;
-}) {
+function SummaryBar({ c }: { c: Consultation }) {
   const bmi = computeBmi(c.answers);
   const elig = eligibilityStatus(c);
   const stats: { label: string; value: React.ReactNode; tone?: string }[] = [
@@ -233,7 +219,7 @@ function SummaryBar({
   // the Approve / Reject supply buttons on the right. It pins to the top of
   // the screen while the pharmacist scrolls the clinical detail below.
   return (
-    <div className="sticky top-0 z-20 -mx-5 mb-3 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-y border-[#cdd8bf] bg-[#eef3e6]/95 px-5 py-3 backdrop-blur">
+    <div className="-mx-5 mb-3 flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-[#cdd8bf] bg-[#eef3e6] px-5 py-3">
       <div className="flex flex-wrap gap-x-8 gap-y-2">
         {stats.map((s) => (
           <div key={s.label} className="flex flex-col">
@@ -246,36 +232,6 @@ function SummaryBar({
           </div>
         ))}
       </div>
-
-      {joinUrl || (onDecision && !reviewed) ? (
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex flex-wrap justify-end gap-2">
-            <JoinCallButton joinUrl={joinUrl} />
-            {onDecision && !reviewed ? (
-              <>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => onDecision("approved")}
-                  className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
-                >
-                  Approve supply
-                </button>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => onDecision("rejected")}
-                  className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
-                >
-                  Reject supply
-                </button>
-              </>
-            ) : null}
-          </div>
-          {loading && <span className="text-[12px] text-[#4a5c46]">Saving…</span>}
-          {error && <span className="text-[12px] text-[#dc2626]">{error}</span>}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -546,56 +502,95 @@ function ConsultationCard({
           : "border-[#e5e7eb] bg-white"
       }`}
     >
-      {/* Header row — name + status. The decision buttons live in the green
-          sticky summary bar below, not here. */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            {selectable && !c.reviewed ? (
-              <input
-                type="checkbox"
-                aria-label={`Select ${c.fullName ?? `patient #${c.id}`} for batch approval`}
-                checked={!!selected}
-                onChange={() => onToggleSelect?.(c.id)}
-                className="h-4 w-4 cursor-pointer accent-[#142e2a]"
-              />
-            ) : null}
-            <span className="text-[16px] font-bold text-[#111827]">
-              {c.fullName || `Patient #${c.id}`}
-            </span>
-            <StatusBadge status={c.status} decision={c.reviewDecision} />
-            {c.isReorder && (
-              <span className="rounded-full bg-[#e7efe0] px-2.5 py-0.5 text-[11px] font-semibold text-[#142e2a]">
-                Reorder
+      {/* Sticky header block: patient identity + the three action buttons +
+          (when expanded) the green metrics bar — all pinned to the top while
+          the clinical detail below scrolls. */}
+      <div className="sticky top-0 z-20 -mx-5 -mt-5 rounded-t-[12px] bg-white px-5 pt-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              {selectable && !c.reviewed ? (
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${c.fullName ?? `patient #${c.id}`} for batch approval`}
+                  checked={!!selected}
+                  onChange={() => onToggleSelect?.(c.id)}
+                  className="h-4 w-4 cursor-pointer accent-[#142e2a]"
+                />
+              ) : null}
+              <span className="text-[16px] font-bold text-[#111827]">
+                {c.fullName || `Patient #${c.id}`}
               </span>
+              <StatusBadge status={c.status} decision={c.reviewDecision} />
+              {c.isReorder && (
+                <span className="rounded-full bg-[#e7efe0] px-2.5 py-0.5 text-[11px] font-semibold text-[#142e2a]">
+                  Reorder
+                </span>
+              )}
+              {c.hasRedFlags && (
+                <span className="rounded-full bg-[#fef2f2] px-2.5 py-0.5 text-[11px] font-bold text-[#b91c1c]">
+                  Red flag
+                </span>
+              )}
+            </div>
+            {c.email && (
+              <p className="mt-0.5 text-[12px] text-[#6b7280]">{c.email}</p>
             )}
-            {c.hasRedFlags && (
-              <span className="rounded-full bg-[#fef2f2] px-2.5 py-0.5 text-[11px] font-bold text-[#b91c1c]">
-                Red flag
-              </span>
-            )}
+            <p className="text-[11px] text-[#9ca3af]">
+              Submitted: {fmt(c.createdAt)}
+              {c.productSlug ? ` · ${c.productSlug}` : ""}
+            </p>
           </div>
-          {c.email && (
-            <p className="mt-0.5 text-[12px] text-[#6b7280]">{c.email}</p>
-          )}
-          <p className="text-[11px] text-[#9ca3af]">
-            Submitted: {fmt(c.createdAt)}
-            {c.productSlug ? ` · ${c.productSlug}` : ""}
-          </p>
+          {/* Top-right actions: Join call / reminder + Approve + Reject */}
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {joinUrl ? (
+                <JoinCallButton joinUrl={joinUrl} />
+              ) : !c.answers.video_consultation_preference && !c.isReorder ? (
+                <SendReminderButton id={c.id} email={c.email} />
+              ) : null}
+              {!c.reviewed && (
+                <>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => runDecision("approved")}
+                    className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+                  >
+                    Approve supply
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => runDecision("rejected")}
+                    className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+                  >
+                    Reject supply
+                  </button>
+                </>
+              )}
+            </div>
+            {loading && <span className="text-[11px] text-[#4a5c46]">Saving…</span>}
+            {error && <span className="text-[11px] text-[#dc2626]">{error}</span>}
+            <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+          </div>
         </div>
-        {/* Top-right actions: Join call (only when HubSpot has a meeting link) /
-            Send reminder (patients who haven't booked). */}
-        <div className="flex flex-col items-end gap-1.5">
-          {joinUrl ? (
-            <JoinCallButton joinUrl={joinUrl} />
-          ) : !c.answers.video_consultation_preference && !c.isReorder ? (
-            <SendReminderButton id={c.id} email={c.email} />
-          ) : null}
-          <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+
+        {/* Show / hide the clinical detail */}
+        <div className="mt-2 pb-2">
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="text-[12px] font-semibold text-[#1450b0] hover:underline"
+          >
+            {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
+          </button>
         </div>
+
+        {/* Green metrics bar — sticks together with the header above */}
+        {open && <SummaryBar c={c} />}
       </div>
 
-      {/* Red flag banner */}
+      {/* Red flag banner (scrolls under the sticky header) */}
       {c.hasRedFlags && !c.reviewed && c.redFlags.length > 0 && (
         <div className="mt-3 rounded-lg border border-[#fca5a5] bg-[#fff1f2] px-4 py-3">
           <p className="mb-1.5 text-[13px] font-bold text-[#b91c1c]">
@@ -609,30 +604,8 @@ function ConsultationCard({
         </div>
       )}
 
-      {/* Expandable clinical detail */}
-      <div className="mt-2">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="text-[12px] font-semibold text-[#1450b0] hover:underline"
-        >
-          {open ? "Hide clinical summary ▲" : "View clinical summary ▼"}
-        </button>
-        {/* On expand: the green sticky bar (metrics + Approve/Reject supply)
-            appears first, then the full clinical detail below it. */}
-        {open && (
-          <div className="mt-3">
-            <SummaryBar
-              c={c}
-              reviewed={c.reviewed}
-              loading={loading}
-              error={error}
-              onDecision={runDecision}
-              joinUrl={joinUrl}
-            />
-            <PatientDetails c={c} />
-          </div>
-        )}
-      </div>
+      {/* Full clinical detail (scrolls) */}
+      {open && <PatientDetails c={c} />}
 
       {/* Decision already recorded */}
       {c.reviewed && (
