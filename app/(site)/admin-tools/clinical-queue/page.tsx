@@ -170,9 +170,9 @@ function Row({ label, value }: { label: string; value: unknown }) {
     fmtValue(value)
   );
   return (
-    <div className="flex flex-col gap-0.5 py-[5px] sm:flex-row sm:gap-4">
-      <dt className="w-[210px] shrink-0 text-[13px] font-semibold text-[#1f2937]">{label}</dt>
-      <dd className="text-[13px] leading-[20px] text-[#4b5563] break-words">{node}</dd>
+    <div className="flex flex-col gap-0.5 border-b border-[#f3f4f6] py-[6px] last:border-b-0 sm:flex-row sm:gap-3">
+      <dt className="w-[160px] shrink-0 text-[13px] font-semibold text-[#1f2937]">{label}</dt>
+      <dd className="min-w-0 flex-1 text-[13px] leading-[20px] text-[#4b5563] break-words">{node}</dd>
     </div>
   );
 }
@@ -189,7 +189,7 @@ function Section({ title, items }: { title: string; items: Item[] }) {
       <h4 className="mb-1 text-[12px] font-bold uppercase tracking-[0.04em] text-[#111827]">
         {title}
       </h4>
-      <dl className="divide-y divide-[#f3f4f6]">
+      <dl className="grid grid-cols-1 gap-x-10 md:grid-cols-2">
         {visible.map((i, idx) => (
           <Row key={idx} label={i.label} value={i.value} />
         ))}
