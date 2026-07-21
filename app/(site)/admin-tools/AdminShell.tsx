@@ -75,6 +75,7 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=products",
     match: (p, t) => t === "products" || p.startsWith("/admin-tools/products"),
     section: "products",
+    badgeType: "products",
     icon: I("M20.6 13.4L13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6zM7.5 7.5h.01"),
   },
   {
@@ -89,6 +90,7 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=users",
     match: (_p, t) => t === "users",
     section: "customers",
+    badgeType: "users",
     icon: I("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"),
   },
   {
@@ -96,6 +98,7 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=consultations",
     match: (_p, t) => t === "consultations",
     section: "consultations",
+    badgeType: "consultations",
     icon: I("M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"),
   },
   {
@@ -103,6 +106,7 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=discounts",
     match: (_p, t) => t === "discounts",
     section: "discounts",
+    badgeType: "discounts",
     icon: I("M9 9h.01M15 15h.01M16 8l-8 8M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"),
   },
   {
@@ -110,6 +114,7 @@ const NAV: NavItem[] = [
     href: "/admin-tools/data-browser?type=posts",
     match: (_p, t) => t === "posts" || t === "media",
     section: "content",
+    badgeType: "posts",
     icon: I("M6 3h9l5 5v13a0 0 0 0 1 0 0H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v6h6M8 13h8M8 17h5"),
   },
   {
