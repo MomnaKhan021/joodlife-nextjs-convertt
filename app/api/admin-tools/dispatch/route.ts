@@ -327,6 +327,56 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    // Also surface orders dispatched directly via the orders flow (marked
+    // shipped/delivered or given a DPD tracking number on the order page) that
+    // aren't already represented by an approved consultation above — so the
+    // Dispatched view matches the Dispatched badge (e.g. JL2429).
+    try {
+      const seen = new Set(
+        orders.map((e) => (e.orderNumber ?? "").toLowerCase()).filter(Boolean),
+      );
+      const dispRes = await drizzle.execute(
+        sql.raw(`
+          SELECT id, order_number, customer_name, customer_email, customer_phone,
+                 shipping_address, notes, status, total_amount, items_json, created_at
+          FROM orders
+          WHERE (LOWER(status::text) IN ('shipped','delivered')
+                 OR COALESCE(CAST(notes AS TEXT), '') ILIKE '%DPD tracking:%')
+          ORDER BY created_at DESC NULLS LAST, id DESC
+          LIMIT 500
+        `),
+      );
+      for (const o of rowsOf<OrderRow>(dispRes)) {
+        const num = (o.order_number ?? "").toLowerCase();
+        if (num && seen.has(num)) continue;
+        orders.push({
+          id: 1_000_000_000 + Number(o.id),
+          orderId: o.id,
+          hasOrder: true,
+          canDispatch: false,
+          orderNumber: o.order_number ?? null,
+          customerName: o.customer_name ?? null,
+          customerEmail: o.customer_email ?? null,
+          customerPhone: o.customer_phone ?? null,
+          shippingAddress: o.shipping_address ?? null,
+          status: "dispatched",
+          total: Number(o.total_amount ?? 0) || 0,
+          createdAt: o.created_at,
+          trackingNumber: parseTracking(o.notes ?? null),
+          dispatched: true,
+          items: normItems(o.items_json),
+          consultation: {
+            fullName: o.customer_name ?? null,
+            dateOfBirth: null,
+            productSlug: null,
+            answers: {},
+          },
+        });
+      }
+    } catch {
+      /* non-fatal — standalone dispatched orders are a bonus view */
+    }
+
     return NextResponse.json({ ok: true, orders });
   } catch (err) {
     return NextResponse.json(
