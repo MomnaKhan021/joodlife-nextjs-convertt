@@ -233,14 +233,7 @@ export default function CartDrawer() {
               Start consultation
             </Link>
           </div>
-        ) : (
-          <div className="border-t border-[#142e2a]/10 px-5 py-4">
-            <div className="flex items-center justify-between font-ui text-[14px] text-[#142e2a]/55">
-              <span>Subtotal</span>
-              <span>£0.00</span>
-            </div>
-          </div>
-        )}
+        ) : null}
       </aside>
     </>
   );

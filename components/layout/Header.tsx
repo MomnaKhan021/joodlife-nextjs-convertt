@@ -172,6 +172,14 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center gap-1.5">
+          {/* Account (mobile) */}
+          <Link
+            href="/profile"
+            aria-label="Account"
+            className="grid h-10 w-10 place-items-center transition-opacity hover:opacity-70"
+          >
+            <PersonIcon />
+          </Link>
           {/* Cart trigger (mobile) */}
           <CartButton onClick={openDrawer} count={itemCount} />
 
