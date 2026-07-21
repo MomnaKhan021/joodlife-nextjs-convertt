@@ -389,6 +389,123 @@ function JoinCallButton({ joinUrl }: { joinUrl?: string | null }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Booked-call timing — classify a meeting relative to now (UK time)    */
+/* ------------------------------------------------------------------ */
+
+const LONDON_TZ = "Europe/London";
+
+type CallTiming = {
+  when: "today" | "tomorrow" | "soon" | "future" | "past";
+  dayDiff: number;
+  timeLabel: string; // "15:00"
+  dateLabel: string; // "Thu 23 Jul"
+  relLabel: string; // "In 3 days"
+};
+
+/** YYYY-MM-DD for a date in UK time (en-CA formats ISO-style). */
+function londonYMD(d: Date): string {
+  return d.toLocaleDateString("en-CA", { timeZone: LONDON_TZ });
+}
+function ymdToUTC(ymd: string): number {
+  const [y, m, day] = ymd.split("-").map(Number);
+  return Date.UTC(y, (m || 1) - 1, day || 1);
+}
+
+/** Classify a booked meeting's start time relative to "now" in UK time. */
+function describeCall(iso: string): CallTiming | null {
+  const start = new Date(iso);
+  if (Number.isNaN(start.getTime())) return null;
+  const now = new Date();
+  const dayDiff = Math.round(
+    (ymdToUTC(londonYMD(start)) - ymdToUTC(londonYMD(now))) / 86_400_000,
+  );
+  const timeLabel = start.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: LONDON_TZ,
+  });
+  const dateLabel = start.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: LONDON_TZ,
+  });
+  let when: CallTiming["when"];
+  if (dayDiff === 0) when = "today";
+  else if (dayDiff === 1) when = "tomorrow";
+  else if (dayDiff > 1 && dayDiff <= 3) when = "soon";
+  else if (dayDiff > 3) when = "future";
+  else when = "past";
+  const relLabel = dayDiff > 1 ? `In ${dayDiff} days` : dateLabel;
+  return { when, dayDiff, timeLabel, dateLabel, relLabel };
+}
+
+/** A pill summarising a patient's booked video-consultation time. Green +
+ *  pulsing for calls happening today, amber for calls in the next couple of
+ *  days (with a "within 48–72 hours" note), muted for later/past, and an
+ *  "awaiting booking" state when the patient chose a video consult but has no
+ *  scheduled meeting in HubSpot yet. Nothing for reorders. */
+function MeetingBadge({
+  meetingTime,
+  videoPref,
+  isReorder,
+}: {
+  meetingTime?: string | null;
+  videoPref: boolean;
+  isReorder: boolean;
+}) {
+  if (isReorder) return null;
+  const timing = meetingTime ? describeCall(meetingTime) : null;
+
+  if (timing) {
+    const today = timing.when === "today";
+    const upcoming = timing.when === "tomorrow" || timing.when === "soon";
+    const tone = today
+      ? "border-[#16a34a]/30 bg-[#f0fdf4] text-[#166534]"
+      : upcoming
+        ? "border-[#d97706]/30 bg-[#fffbeb] text-[#92400e]"
+        : "border-[#e5e7eb] bg-[#f9fafb] text-[#6b7280]";
+    let label: string;
+    if (timing.when === "today") label = `Call today · ${timing.timeLabel}`;
+    else if (timing.when === "tomorrow") label = `Call tomorrow · ${timing.timeLabel}`;
+    else if (timing.when === "soon")
+      label = `Call ${timing.relLabel.toLowerCase()} · ${timing.dateLabel}, ${timing.timeLabel}`;
+    else if (timing.when === "future")
+      label = `Call ${timing.dateLabel}, ${timing.timeLabel}`;
+    else label = `Call was ${timing.dateLabel}, ${timing.timeLabel}`;
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold ${tone}`}
+        >
+          {today && (
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#16a34a] opacity-70" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#16a34a]" />
+            </span>
+          )}
+          {label}
+        </span>
+        {upcoming && (
+          <span className="text-[11px] text-[#92400e]">
+            Your team will call within 48–72 hours.
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (videoPref) {
+    return (
+      <span className="inline-flex items-center rounded-full border border-[#d97706]/30 bg-[#fffbeb] px-2.5 py-1 text-[12px] font-semibold text-[#92400e]">
+        No call time booked yet
+      </span>
+    );
+  }
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
 /* Send reminder — nudges an unbooked patient to book their consult     */
 /* ------------------------------------------------------------------ */
 
@@ -449,6 +566,7 @@ function ConsultationCard({
   selected,
   onToggleSelect,
   joinUrl,
+  meetingTime,
 }: {
   c: Consultation;
   onDecision: (id: number, decision: string, reason: string) => void;
@@ -456,6 +574,7 @@ function ConsultationCard({
   selected?: boolean;
   onToggleSelect?: (id: number) => void;
   joinUrl?: string | null;
+  meetingTime?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -541,12 +660,17 @@ function ConsultationCard({
               {c.productSlug ? ` · ${c.productSlug}` : ""}
             </p>
           </div>
-          {/* Top-right actions: Join call / reminder + Approve + Reject */}
+          {/* Top-right actions: call time + Join call / reminder + Approve + Reject */}
           <div className="flex flex-col items-end gap-1.5">
+            <MeetingBadge
+              meetingTime={meetingTime}
+              videoPref={!!c.answers.video_consultation_preference}
+              isReorder={c.isReorder}
+            />
             <div className="flex flex-wrap items-center justify-end gap-2">
               {joinUrl ? (
                 <JoinCallButton joinUrl={joinUrl} />
-              ) : !c.answers.video_consultation_preference && !c.isReorder ? (
+              ) : !meetingTime && !c.isReorder ? (
                 <SendReminderButton id={c.id} email={c.email} />
               ) : null}
               {!c.reviewed && (
@@ -1078,6 +1202,7 @@ export default function ClinicalQueuePage() {
                 selected={selected.has(c.id)}
                 onToggleSelect={toggleSelect}
                 joinUrl={meetLinks[(c.email ?? "").toLowerCase()] ?? null}
+                meetingTime={meetingTimes[(c.email ?? "").toLowerCase()] ?? null}
               />
             ))}
           </div>
