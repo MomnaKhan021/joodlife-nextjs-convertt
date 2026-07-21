@@ -188,12 +188,27 @@ function resolveSecret(): string {
   if (explicit && explicit.length >= 16) return explicit;
 
   if (DATABASE_URL) {
+    // Derive from a NORMALISED seed — the host (minus any "-pooler" suffix)
+    // plus the database name — NOT the raw URL. The raw URL carries the
+    // password and query params (and differs between the pooled / unpooled
+    // endpoints), so hashing it means the signing secret silently changes
+    // whenever Neon rotates credentials or a different connection variant is
+    // resolved — which invalidates every login session. Normalising keeps the
+    // fallback secret stable across those changes. (Set PAYLOAD_SECRET to opt
+    // out of this fallback entirely.)
+    let seed = DATABASE_URL;
+    try {
+      const u = new URL(DATABASE_URL);
+      const host = u.hostname.replace(/-pooler\b/, "");
+      seed = `${host}${u.pathname}`;
+    } catch {
+      // Non-URL connection string — fall back to the raw value.
+    }
     const derived = crypto
       .createHash("sha256")
-      .update(`payload:${DATABASE_URL}`)
+      .update(`payload:${seed}`)
       .digest("hex");
     if (process.env.NODE_ENV !== "test") {
-      // eslint-disable-next-line no-console
       console.warn(
         "[payload] PAYLOAD_SECRET not set — falling back to a deterministic " +
           "secret derived from DATABASE_URL. Set PAYLOAD_SECRET in Vercel env " +
