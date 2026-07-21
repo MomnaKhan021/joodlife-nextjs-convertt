@@ -716,6 +716,28 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Friendly guard for NOT NULL columns on create — otherwise the DB rejects
+  // the INSERT with a cryptic "Failed query" (this is what broke "Add product":
+  // products.title and products.description are NOT NULL).
+  const REQUIRED_ON_CREATE: Record<string, string[]> = {
+    products: ["title", "description"],
+  };
+  if (id === "new") {
+    const required = REQUIRED_ON_CREATE[type] ?? [];
+    const missing = required.filter((c) => {
+      const pair = writePairs.find(([col]) => col === c);
+      const v = pair?.[2];
+      return v == null || String(v).trim() === "";
+    });
+    if (missing.length) {
+      const labels = missing.map((c) => c.replace(/_/g, " "));
+      return NextResponse.json(
+        { ok: false, error: `Please fill in: ${labels.join(", ")}.` },
+        { status: 400 }
+      );
+    }
+  }
+
   let drizzle: DrizzleLike;
   let sql: SqlRaw;
   try {
