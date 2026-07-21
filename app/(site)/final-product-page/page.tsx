@@ -97,8 +97,17 @@ export default async function FinalProductPage({ searchParams }: Props) {
 
       products = dbWl.map((db) => {
         const editorial = PDP_PRODUCTS[db.slug];
-        const doses =
-          db.variants.length > 0
+        // The oral tablet (Wegovy Pills) is a single-option product — show one
+        // price, not a multi-dose grid like the injections.
+        const isPillProduct = /pill/i.test(db.slug) || /pill/i.test(db.title);
+        const doses = isPillProduct
+          ? [
+              {
+                label: "",
+                price: db.fromPrice ?? db.variants[0]?.price ?? db.subscriptionPrice ?? 0,
+              },
+            ]
+          : db.variants.length > 0
             ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
             : [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
         return {
