@@ -49,6 +49,24 @@ export type OrderSummary = {
   itemCount: number;
 };
 
+/** First non-null value among a set of candidate column names. Lets us read
+ *  a row from `SELECT *` without knowing the exact column spelling / whether
+ *  an optional column (e.g. payment_status) exists in this DB. */
+function pick(r: Record<string, unknown>, ...keys: string[]): unknown {
+  for (const k of keys) {
+    if (k in r && r[k] != null) return r[k];
+  }
+  return null;
+}
+
+function toIso(v: unknown): string {
+  if (v) {
+    const d = new Date(v as string);
+    if (!Number.isNaN(d.getTime())) return d.toISOString();
+  }
+  return new Date().toISOString();
+}
+
 export async function getOrdersForEmail(email: string): Promise<OrderSummary[]> {
   const clean = email?.trim().toLowerCase();
   if (!clean) return [];
@@ -56,9 +74,12 @@ export async function getOrdersForEmail(email: string): Promise<OrderSummary[]> 
   if (!d) return [];
   try {
     const safe = clean.replace(/'/g, "''");
+    // SELECT * (not a fixed column list) so an absent optional column — e.g.
+    // payment_status — can never make the whole query fail and silently wipe
+    // the customer's orders.
     const res = await d.drizzle.execute(
       d.sql.raw(`
-        SELECT order_number, total_amount, status, payment_status, items_json, created_at
+        SELECT *
         FROM "orders"
         WHERE lower(customer_email) = '${safe}'
         ORDER BY created_at DESC
@@ -66,7 +87,7 @@ export async function getOrdersForEmail(email: string): Promise<OrderSummary[]> 
       `),
     );
     return toRows(res).map((r) => {
-      let items: unknown = r.items_json;
+      let items: unknown = pick(r, "items_json", "items");
       if (typeof items === "string") {
         try {
           items = JSON.parse(items);
@@ -74,14 +95,13 @@ export async function getOrdersForEmail(email: string): Promise<OrderSummary[]> 
           items = [];
         }
       }
+      const total = pick(r, "total_amount", "total", "amount");
       return {
-        orderNumber: String(r.order_number ?? ""),
-        total: r.total_amount != null ? Number(r.total_amount) : null,
-        status: (r.status as string) ?? null,
-        paymentStatus: (r.payment_status as string) ?? null,
-        date: r.created_at
-          ? new Date(r.created_at as string).toISOString()
-          : new Date().toISOString(),
+        orderNumber: String(pick(r, "order_number", "orderNumber", "id") ?? ""),
+        total: total != null ? Number(total) : null,
+        status: (pick(r, "status") as string) ?? null,
+        paymentStatus: (pick(r, "payment_status", "paymentStatus") as string) ?? null,
+        date: toIso(pick(r, "created_at", "createdAt")),
         itemCount: Array.isArray(items) ? items.length : 0,
       };
     });
@@ -107,9 +127,11 @@ export async function getConsultationsForEmail(
   if (!d) return [];
   try {
     const safe = clean.replace(/'/g, "''");
+    // SELECT * so an absent optional column (e.g. dose) can't make the query
+    // fail and hide the customer's consultations.
     const res = await d.drizzle.execute(
       d.sql.raw(`
-        SELECT id, product_slug, status, dose, created_at
+        SELECT *
         FROM "consultations"
         WHERE lower(email) = '${safe}'
         ORDER BY created_at DESC
@@ -117,13 +139,11 @@ export async function getConsultationsForEmail(
       `),
     );
     return toRows(res).map((r) => ({
-      id: Number(r.id),
-      productSlug: (r.product_slug as string) ?? null,
-      status: (r.status as string) ?? null,
-      dose: (r.dose as string) ?? null,
-      date: r.created_at
-        ? new Date(r.created_at as string).toISOString()
-        : new Date().toISOString(),
+      id: Number(pick(r, "id") ?? 0),
+      productSlug: (pick(r, "product_slug", "productSlug") as string) ?? null,
+      status: (pick(r, "status") as string) ?? null,
+      dose: (pick(r, "dose") as string) ?? null,
+      date: toIso(pick(r, "created_at", "createdAt")),
     }));
   } catch {
     return [];
