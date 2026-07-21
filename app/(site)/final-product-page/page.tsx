@@ -119,10 +119,16 @@ export default async function FinalProductPage({ searchParams }: Props) {
           doses,
         };
       });
-      // Guarantee exactly one expanded (recommended) card.
-      if (!products.some((p) => p.recommended) && products[0]) {
-        products[0].recommended = true;
-      }
+      // Wegovy Pills (the oral tablet) goes on top and is the recommended pick.
+      // Detect it by slug/title so spelling ("wegovy-pill" vs "wegovy-pills")
+      // doesn't matter; the rest keep their dashboard display order.
+      const isPill = (p: FlowProduct) =>
+        /pill/i.test(p.slug) || /pill/i.test(p.title);
+      products.sort((a, b) => (isPill(b) ? 1 : 0) - (isPill(a) ? 1 : 0));
+      // Exactly one expanded/recommended card — the top one (the pill).
+      products.forEach((p, i) => {
+        p.recommended = i === 0;
+      });
     } else {
       // ── Fallback: editorial trio (no dashboard weight-loss products yet) ──
       const slugs = ["wegovy-pill", "mounjaro", "wegovy"] as const;
