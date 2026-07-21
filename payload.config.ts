@@ -271,6 +271,16 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: DATABASE_URL,
+      // Serverless-safe pooling. Without these, node-postgres defaults to 10
+      // connections per instance and never releases idle ones — so across
+      // many Vercel instances Neon's connection slots get exhausted
+      // ("remaining connection slots are reserved for roles with the SUPERUSER
+      // attribute"). Keep each instance's footprint tiny and drop idle
+      // connections quickly so slots free up between requests.
+      max: 3,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 10_000,
+      allowExitOnIdle: true,
     },
     // Auto-sync the Drizzle schema with Postgres so first-boot doesn't
     // hit "relation X does not exist". On Vercel this turns the
