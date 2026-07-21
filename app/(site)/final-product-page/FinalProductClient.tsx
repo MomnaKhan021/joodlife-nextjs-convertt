@@ -251,7 +251,7 @@ export default function FinalProductClient({
                             <div className="mt-3">
                               {/* Fit-content chip — dose label on top, price
                                   stacked on the next row. */}
-                              <div className="inline-flex w-fit flex-col items-start gap-1 rounded-[10px] border border-[#142e2a] bg-[#142e2a] px-4 py-3 text-white">
+                              <div className="inline-flex w-fit flex-col items-center gap-1 rounded-[10px] border border-[#142e2a] bg-[#142e2a] px-4 py-3 text-center text-white">
                                 <span className="font-ui text-[14px] font-bold leading-[18px]">
                                   {dose.label}
                                 </span>
