@@ -56,6 +56,7 @@ export async function GET(_req: NextRequest) {
     { name: "consultations — metrics window", q: `SELECT COUNT(*)::int AS n FROM "consultations" WHERE created_at >= now() - interval '7 days'` },
     { name: "clinical queue — pending", q: `SELECT COUNT(*)::int AS n FROM "consultations" WHERE status IN ('submitted','reviewed')` },
     { name: "clinical queue — approved (dispatch pipeline)", q: `SELECT COUNT(*)::int AS n FROM "consultations" WHERE answers->>'_review_decision' = 'approved'` },
+    { name: "clinical queue — red flags", q: `SELECT COUNT(*) FILTER (WHERE answers->>'reorder_side_effect_severity' = 'Severe' OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding') OR answers->>'reorder_new_clinical_event' = 'Yes' OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious'])::int AS n FROM "consultations" WHERE status IN ('submitted','reviewed') AND (answers->>'_review_decision') IS NULL` },
     { name: "products — list", q: `SELECT COUNT(*)::int AS n FROM "products"` },
     { name: "products — variants", q: `SELECT COUNT(*)::int AS n FROM "products_variants"` },
     { name: "products — images", q: `SELECT COUNT(*)::int AS n FROM "products_images"` },
