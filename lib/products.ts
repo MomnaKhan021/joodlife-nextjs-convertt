@@ -20,6 +20,7 @@ export type StorefrontProduct = {
   cardCopy: string | null;
   description: string;
   category: string;
+  treatment: string | null;
   fromPrice: number | null;
   comparePrice: number | null;
   subscriptionPrice: number | null;
@@ -42,6 +43,7 @@ type Row = {
   card_copy: string | null;
   description: string;
   category: string;
+  treatment: string | null;
   from_price: string | null;
   compare_price: string | null;
   subscription_price: string | null;
@@ -90,7 +92,7 @@ async function rawQuery<T>(sql: string): Promise<T[]> {
   return Array.isArray(result) ? result : (result.rows ?? []);
 }
 
-const SELECT_COLUMNS = `id, title, slug, tagline, card_copy, description, category,
+const SELECT_COLUMNS = `id, title, slug, tagline, card_copy, description, category, treatment,
        from_price, compare_price, subscription_price, display_order, footer_color,
        hero_image_url, gallery_image_urls, variants_json,
        rating_value, rating_count, badge, is_active`;
@@ -194,6 +196,7 @@ function rowToProduct(
     cardCopy: row.card_copy,
     description: row.description,
     category: row.category,
+    treatment: (row.treatment as string | null) ?? null,
     fromPrice: row.from_price !== null ? Number(row.from_price) : null,
     comparePrice:
       row.compare_price !== null ? Number(row.compare_price) : null,

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { PDP_PRODUCTS, type PDPProduct } from "@/lib/pdp-products";
-import { getStorefrontProduct } from "@/lib/products";
+import { getStorefrontProduct, listStorefrontProducts } from "@/lib/products";
 import {
   CATEGORY_HEADING,
   getCatalogProducts,
@@ -81,57 +81,88 @@ export default async function FinalProductPage({ searchParams }: Props) {
   let editorialBySlug: Record<string, PDPProduct> | undefined;
 
   if (category === "weight-loss") {
-    // Wegovy Pill first (recommended, on top), then the Mounjaro and Wegovy
-    // injections below it.
-    const slugs = ["wegovy-pill", "mounjaro", "wegovy"] as const;
-    editorialBySlug = Object.fromEntries(
-      slugs
-        .map((s) => [s, PDP_PRODUCTS[s]] as const)
-        .filter(([, v]) => Boolean(v)),
-    ) as Record<string, PDPProduct>;
-
-    const dbProducts = await Promise.all(
-      slugs.map((s) => getStorefrontProduct(s).catch(() => null)),
+    // DB-first: show whatever weight-loss products the dashboard holds, with
+    // their real variants / prices / images / titles. Fall back to the
+    // editorial trio only if the dashboard has no weight-loss products yet.
+    const dbWl = (await listStorefrontProducts().catch(() => [])).filter(
+      (p) => (p.treatment ?? "") === "weight-loss",
     );
 
-    products = slugs.map((slug, i) => {
-      const editorial = PDP_PRODUCTS[slug];
-      const db = dbProducts[i];
-      // Prefer real dashboard data over the editorial catalogue:
-      //  1. dashboard variants (real dose options), else
-      //  2. the dashboard's own price as a single option — so a product
-      //     with no variants configured (e.g. the Wegovy Pill) shows its
-      //     ACTUAL price instead of fabricated editorial dose variants, else
-      //  3. the editorial catalogue as a last resort (no dashboard product).
-      let doses: { label: string; price: number }[];
-      if (db && db.variants.length > 0) {
-        doses = db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }));
-      } else if (db && (db.fromPrice != null || db.subscriptionPrice != null)) {
-        doses = [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
-      } else {
-        doses = editorial.dosages.map((d) => ({
-          label: mgLabel(d.label),
-          price: parsePrice(d.perPack),
-        }));
+    if (dbWl.length > 0) {
+      editorialBySlug = Object.fromEntries(
+        dbWl
+          .map((p) => [p.slug, PDP_PRODUCTS[p.slug]] as const)
+          .filter(([, v]) => Boolean(v)),
+      ) as Record<string, PDPProduct>;
+
+      products = dbWl.map((db) => {
+        const editorial = PDP_PRODUCTS[db.slug];
+        const doses =
+          db.variants.length > 0
+            ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
+            : [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
+        return {
+          slug: db.slug,
+          productId: db.id,
+          title: db.title,
+          italicWord: editorial?.italicWord ?? "",
+          image:
+            db.heroImageUrl ??
+            db.galleryImageUrls?.[0] ??
+            editorial?.gallery?.[0]?.src ??
+            "",
+          lede: db.tagline ?? editorial?.lede ?? "",
+          blurb: WL_META[db.slug]?.blurb ?? db.tagline ?? editorial?.lede?.slice(0, 90) ?? "",
+          recommended:
+            (db.badge ?? "").toLowerCase().includes("recommend") ||
+            WL_META[db.slug]?.recommended === true,
+          doses,
+        };
+      });
+      // Guarantee exactly one expanded (recommended) card.
+      if (!products.some((p) => p.recommended) && products[0]) {
+        products[0].recommended = true;
       }
-      return {
-        slug,
-        productId: db?.id ?? FALLBACK_ID[slug] ?? 0,
-        title: editorial.title,
-        italicWord: editorial.italicWord,
-        // Image comes from the dashboard product (hero, else first gallery
-        // image); editorial art is only a last resort if none is uploaded.
-        image:
-          db?.heroImageUrl ??
-          db?.galleryImageUrls?.[0] ??
-          editorial.gallery[0]?.src ??
-          "",
-        lede: editorial.lede,
-        blurb: WL_META[slug]?.blurb ?? editorial.lede.slice(0, 90),
-        recommended: WL_META[slug]?.recommended,
-        doses,
-      };
-    });
+    } else {
+      // ── Fallback: editorial trio (no dashboard weight-loss products yet) ──
+      const slugs = ["wegovy-pill", "mounjaro", "wegovy"] as const;
+      editorialBySlug = Object.fromEntries(
+        slugs.map((s) => [s, PDP_PRODUCTS[s]] as const).filter(([, v]) => Boolean(v)),
+      ) as Record<string, PDPProduct>;
+      const dbProducts = await Promise.all(
+        slugs.map((s) => getStorefrontProduct(s).catch(() => null)),
+      );
+      products = slugs.map((slug, i) => {
+        const editorial = PDP_PRODUCTS[slug];
+        const db = dbProducts[i];
+        let doses: { label: string; price: number }[];
+        if (db && db.variants.length > 0) {
+          doses = db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }));
+        } else if (db && (db.fromPrice != null || db.subscriptionPrice != null)) {
+          doses = [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
+        } else {
+          doses = editorial.dosages.map((d) => ({
+            label: mgLabel(d.label),
+            price: parsePrice(d.perPack),
+          }));
+        }
+        return {
+          slug,
+          productId: db?.id ?? FALLBACK_ID[slug] ?? 0,
+          title: editorial.title,
+          italicWord: editorial.italicWord,
+          image:
+            db?.heroImageUrl ??
+            db?.galleryImageUrls?.[0] ??
+            editorial.gallery[0]?.src ??
+            "",
+          lede: editorial.lede,
+          blurb: WL_META[slug]?.blurb ?? editorial.lede.slice(0, 90),
+          recommended: WL_META[slug]?.recommended,
+          doses,
+        };
+      });
+    }
   } else {
     // ED / PD: layer any matching CMS product on top of the editorial
     // catalogue so dashboard-managed prices/variants win when present.
