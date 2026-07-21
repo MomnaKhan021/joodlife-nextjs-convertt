@@ -139,9 +139,23 @@ function treatmentStage(a: Record<string, unknown>): string {
   return "—";
 }
 
-function tabOf(c: Consultation): TabKey {
-  if (c.isReorder) return "reorder";
-  return c.answers.video_consultation_preference ? "booked" : "notbooked";
+/**
+ * Which tab a patient belongs in.
+ *
+ * - Reorders and any red-flagged consultation go to "Reorder" (they need
+ *   priority clinical attention).
+ * - "Video consultation booked" holds patients who chose a video consult AND
+ *   have an actual scheduled meeting time. `meetingTime` is the HubSpot start
+ *   time for this patient: `undefined` = not looked up yet (treated optimistically
+ *   as booked so rows don't flash), a string = has a real meeting, `null` =
+ *   looked up and no meeting exists → they drop to "Consultation not booked".
+ */
+function categorize(c: Consultation, meetingTime?: string | null): TabKey {
+  if (c.isReorder || c.hasRedFlags) return "reorder";
+  const pref = !!c.answers.video_consultation_preference;
+  if (!pref) return "notbooked";
+  if (meetingTime === undefined) return "booked";
+  return meetingTime ? "booked" : "notbooked";
 }
 
 /* ------------------------------------------------------------------ */
@@ -368,8 +382,26 @@ function PatientDetails({ c }: { c: Consultation }) {
 
 /** "Join call" — only rendered when HubSpot actually has a meeting link for
  *  this patient. Opens the video consultation in a new tab. */
-function JoinCallButton({ joinUrl }: { joinUrl?: string | null }) {
+function JoinCallButton({ joinUrl, disabled }: { joinUrl?: string | null; disabled?: boolean }) {
   if (!joinUrl) return null;
+  const icon = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M15 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z" />
+      <path d="m17 10 4-2v8l-4-2" />
+    </svg>
+  );
+  // Past consultation → the call already happened, so joining is disabled.
+  if (disabled) {
+    return (
+      <span
+        title="This consultation has already taken place"
+        className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-[#e5e7eb] px-3.5 py-1.5 text-[13px] font-semibold text-[#9ca3af]"
+      >
+        {icon}
+        Call ended
+      </span>
+    );
+  }
   return (
     <a
       href={joinUrl}
@@ -379,10 +411,7 @@ function JoinCallButton({ joinUrl }: { joinUrl?: string | null }) {
       title="Open the Google Meet video consultation (link from HubSpot)"
       className="inline-flex items-center gap-1.5 rounded-lg bg-[#142e2a] px-3.5 py-1.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#0c2421]"
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M15 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z" />
-        <path d="m17 10 4-2v8l-4-2" />
-      </svg>
+      {icon}
       Join call
     </a>
   );
@@ -637,9 +666,22 @@ function ConsultationCard({
                   className="h-4 w-4 cursor-pointer accent-[#142e2a]"
                 />
               ) : null}
-              <span className="text-[16px] font-bold text-[#111827]">
-                {c.fullName || `Patient #${c.id}`}
-              </span>
+              {c.email ? (
+                <a
+                  href={`/admin-tools/customers/${encodeURIComponent(c.email)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Open this customer's full record in a new tab"
+                  className="text-[16px] font-bold text-[#111827] hover:text-[#1450b0] hover:underline"
+                >
+                  {c.fullName || `Patient #${c.id}`}
+                </a>
+              ) : (
+                <span className="text-[16px] font-bold text-[#111827]">
+                  {c.fullName || `Patient #${c.id}`}
+                </span>
+              )}
               <StatusBadge status={c.status} decision={c.reviewDecision} />
               {c.isReorder && (
                 <span className="rounded-full bg-[#e7efe0] px-2.5 py-0.5 text-[11px] font-semibold text-[#142e2a]">
@@ -653,7 +695,16 @@ function ConsultationCard({
               )}
             </div>
             {c.email && (
-              <p className="mt-0.5 text-[12px] text-[#6b7280]">{c.email}</p>
+              <a
+                href={`/admin-tools/customers/${encodeURIComponent(c.email)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Open this customer's full record in a new tab"
+                className="mt-0.5 block w-fit text-[12px] text-[#6b7280] hover:text-[#1450b0] hover:underline"
+              >
+                {c.email}
+              </a>
             )}
             <p className="text-[11px] text-[#9ca3af]">
               Submitted: {fmt(c.createdAt)}
@@ -669,7 +720,10 @@ function ConsultationCard({
             />
             <div className="flex flex-wrap items-center justify-end gap-2">
               {joinUrl ? (
-                <JoinCallButton joinUrl={joinUrl} />
+                <JoinCallButton
+                  joinUrl={joinUrl}
+                  disabled={!!(meetingTime && describeCall(meetingTime)?.when === "past")}
+                />
               ) : !meetingTime && !c.isReorder ? (
                 <SendReminderButton id={c.id} email={c.email} />
               ) : null}
@@ -862,16 +916,27 @@ export default function ClinicalQueuePage() {
   // loaded list.
   const localCounts = useMemo(() => {
     const base: Record<TabKey, number> = { booked: 0, notbooked: 0, reorder: 0 };
-    for (const c of consultations) base[tabOf(c)] += 1;
+    for (const c of consultations) {
+      const mt = meetingTimes[(c.email ?? "").toLowerCase()];
+      base[categorize(c, mt)] += 1;
+    }
     return base;
-  }, [consultations]);
-  const counts = !showAll && serverCounts ? serverCounts : localCounts;
+  }, [consultations, meetingTimes]);
+  // Booked / not-booked are meeting-aware (depend on HubSpot times fetched
+  // client-side), so their pills come from the loaded set. Reorder is fully
+  // known server-side, so keep the true full-DB count for that pill.
+  const counts: Record<TabKey, number> = {
+    booked: localCounts.booked,
+    notbooked: localCounts.notbooked,
+    reorder: !showAll && serverCounts ? serverCounts.reorder : localCounts.reorder,
+  };
 
   // Rows for the active tab, filtered by the search query.
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return consultations
-      .filter((c) => tabOf(c) === tab)
+    const mtOf = (c: Consultation) => meetingTimes[(c.email ?? "").toLowerCase()];
+    const list = consultations
+      .filter((c) => categorize(c, mtOf(c)) === tab)
       .filter((c) => {
         if (!q) return true;
         return (
@@ -879,30 +944,47 @@ export default function ClinicalQueuePage() {
           (c.email ?? "").toLowerCase().includes(q) ||
           String(c.id).includes(q)
         );
-      })
-      // Red-flagged, unreviewed patients first, then by the chosen order.
-      .sort((x, y) => {
-        const xf = x.hasRedFlags && !x.reviewed ? 1 : 0;
-        const yf = y.hasRedFlags && !y.reviewed ? 1 : 0;
-        if (xf !== yf) return yf - xf;
-        if (sortMode === "name") {
-          return (x.fullName ?? "").localeCompare(y.fullName ?? "");
-        }
-        if (sortMode === "consult") {
-          // Earliest booked consultation first; unbooked/unknown times last.
-          const tx = meetingTimes[(x.email ?? "").toLowerCase()] ?? null;
-          const ty = meetingTimes[(y.email ?? "").toLowerCase()] ?? null;
-          if (tx !== ty) {
-            if (!tx) return 1;
-            if (!ty) return -1;
-            return +new Date(tx) - +new Date(ty);
-          }
-          return +new Date(x.createdAt) - +new Date(y.createdAt);
-        }
-        const dx = +new Date(x.createdAt);
-        const dy = +new Date(y.createdAt);
-        return sortMode === "oldest" ? dx - dy : dy - dx;
       });
+
+    // Booked tab: upcoming calls (today + future) soonest-first on top; calls
+    // that have already happened sink to the bottom, latest first.
+    if (tab === "booked") {
+      return list.sort((x, y) => {
+        const tx = mtOf(x) || null;
+        const ty = mtOf(y) || null;
+        const px = tx && (describeCall(tx)?.when === "past") ? 1 : 0;
+        const py = ty && (describeCall(ty)?.when === "past") ? 1 : 0;
+        if (px !== py) return px - py; // upcoming (0) before past (1)
+        const vx = tx ? +new Date(tx) : Infinity;
+        const vy = ty ? +new Date(ty) : Infinity;
+        // Upcoming: soonest first (asc). Past: most recent first (desc).
+        return px === 0 ? vx - vy : vy - vx;
+      });
+    }
+
+    // Other tabs: red-flagged, unreviewed patients first, then chosen order.
+    return list.sort((x, y) => {
+      const xf = x.hasRedFlags && !x.reviewed ? 1 : 0;
+      const yf = y.hasRedFlags && !y.reviewed ? 1 : 0;
+      if (xf !== yf) return yf - xf;
+      if (sortMode === "name") {
+        return (x.fullName ?? "").localeCompare(y.fullName ?? "");
+      }
+      if (sortMode === "consult") {
+        // Earliest booked consultation first; unbooked/unknown times last.
+        const tx = mtOf(x) ?? null;
+        const ty = mtOf(y) ?? null;
+        if (tx !== ty) {
+          if (!tx) return 1;
+          if (!ty) return -1;
+          return +new Date(tx) - +new Date(ty);
+        }
+        return +new Date(x.createdAt) - +new Date(y.createdAt);
+      }
+      const dx = +new Date(x.createdAt);
+      const dy = +new Date(y.createdAt);
+      return sortMode === "oldest" ? dx - dy : dy - dx;
+    });
   }, [consultations, tab, query, sortMode, meetingTimes]);
 
   // When sorting by consultation time, lazily fetch booked-consult start times

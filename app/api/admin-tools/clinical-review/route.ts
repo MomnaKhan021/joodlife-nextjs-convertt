@@ -319,13 +319,30 @@ export async function GET(req: NextRequest) {
       db.execute(
         sql.raw(
           `SELECT
-             COUNT(*) FILTER (WHERE product_slug = 'reorder')::int AS reorder,
+             COUNT(*) FILTER (WHERE product_slug = 'reorder' OR COALESCE((
+               answers->>'reorder_side_effect_severity' = 'Severe'
+               OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
+               OR answers->>'reorder_new_clinical_event' = 'Yes'
+               OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
+             ), false))::int AS reorder,
              COUNT(*) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
+                 AND NOT COALESCE((
+                   answers->>'reorder_side_effect_severity' = 'Severe'
+                   OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
+                   OR answers->>'reorder_new_clinical_event' = 'Yes'
+                   OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
+                 ), false)
                  AND COALESCE(answers->>'video_consultation_preference', '') NOT IN ('', 'false')
              )::int AS booked,
              COUNT(*) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
+                 AND NOT COALESCE((
+                   answers->>'reorder_side_effect_severity' = 'Severe'
+                   OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
+                   OR answers->>'reorder_new_clinical_event' = 'Yes'
+                   OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
+                 ), false)
                  AND COALESCE(answers->>'video_consultation_preference', '') IN ('', 'false')
              )::int AS notbooked,
              COUNT(*) FILTER (
