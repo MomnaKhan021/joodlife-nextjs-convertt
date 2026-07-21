@@ -12,6 +12,7 @@ export type Dosage = {
   label: string;       // "2.5 mg"
   perPack: string;     // "£90.00"
   perMonth?: string;   // optional monthly price under the pack
+  compareAt?: string | null; // "compare at" original price, struck-through
 };
 
 export type GraphPoint = { x: string; weight: number };

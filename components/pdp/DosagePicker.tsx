@@ -32,6 +32,8 @@ export default function DosagePicker({
   // The headline price reflects the currently-selected dosage (falling back
   // to the "from" price only when there are no variants).
   const selectedPrice = dosages[selectedIndex]?.perPack ?? fromPrice;
+  // "Compare at" original price for the selected dose (shown struck-through).
+  const selectedCompareAt = dosages[selectedIndex]?.compareAt ?? null;
 
   // A SIMPLE product (single option with no dose/strength label — e.g. a
   // beauty or one-off item) shows just its price: no strength grid, no
@@ -86,8 +88,15 @@ export default function DosagePicker({
       {/* Price + CTA */}
       <div className="flex flex-col gap-3 pt-2">
         <div className="flex flex-col">
-          <span className="font-display text-[26px] font-bold tracking-[-0.01em] text-[#142e2a]">
-            {selectedPrice}
+          <span className="flex items-baseline gap-2">
+            <span className="font-display text-[26px] font-bold tracking-[-0.01em] text-[#142e2a]">
+              {selectedPrice}
+            </span>
+            {selectedCompareAt && (
+              <span className="font-ui text-[16px] text-[#142e2a]/45 line-through">
+                {selectedCompareAt}
+              </span>
+            )}
           </span>
           {!isSimple && (
             <span className="font-ui text-[14px] text-[#142e2a]/70">
