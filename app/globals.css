@@ -262,3 +262,17 @@ a[href] {
   border-radius: 1rem;
   border: 0;
 }
+
+/* iOS Safari auto-zooms the whole page in when you focus a form field whose
+   font-size is below 16px — our inputs are 14px, so every tap zooms. Force a
+   minimum 16px on touch devices (iPhone / iPad) so typing never triggers the
+   zoom. Scoped to coarse-pointer (touch) devices, so the designed 14px sizes
+   are untouched on desktop. Not layered, so it wins over Tailwind's text-[…]
+   utilities. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
