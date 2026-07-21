@@ -62,16 +62,17 @@ function mergePdp(db: StorefrontProduct, content: PDPProduct): PDPProduct {
   // bogus dose the checkout can't reprice ("dose not available").
   const dosages =
     db.variants.length > 0
-      ? db.variants.map((v) => ({
-          label: v.label,
-          perPack: formatGBP(v.price),
-          // Show the "compare at" price struck-through only when it's genuinely
-          // higher than the sale price.
-          compareAt:
-            v.comparePrice != null && v.comparePrice > v.price
-              ? formatGBP(v.comparePrice)
-              : null,
-        }))
+      ? db.variants.map((v) => {
+          // "Compare at" original price: the variant's own, else the
+          // product-level compare price — shown struck-through only when it's
+          // genuinely higher than this dose's sale price.
+          const cmp = v.comparePrice ?? db.comparePrice ?? null;
+          return {
+            label: v.label,
+            perPack: formatGBP(v.price),
+            compareAt: cmp != null && cmp > v.price ? formatGBP(cmp) : null,
+          };
+        })
       : fromValue != null
         ? [{ label: "", perPack: formatGBP(fromValue) }]
         : content.dosages;
