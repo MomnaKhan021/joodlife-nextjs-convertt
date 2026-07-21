@@ -9,8 +9,9 @@ import WhatIsSection from "@/components/pdp/WhatIsSection";
 import ComparisonTable from "@/components/pdp/ComparisonTable";
 import type { PDPProduct } from "@/lib/pdp-products";
 
-/** A single selectable dose (label + numeric pack price). */
-export type FlowDose = { label: string; price: number };
+/** A single selectable dose (label + numeric pack price + optional
+ *  strike-through compare-at price). */
+export type FlowDose = { label: string; price: number; compareAt?: number | null };
 
 /** A treatment the patient can choose after their consultation. */
 export type FlowProduct = {
@@ -29,6 +30,31 @@ export type FlowProduct = {
 
 function fmtGBP(n: number) {
   return `£${n.toFixed(2)}`;
+}
+
+/** Price with an optional struck-through compare-at price beside it
+ *  (only shown when the compare-at is genuinely higher). */
+function PriceTag({
+  price,
+  compareAt,
+  className = "",
+  strikeClassName = "",
+}: {
+  price: number;
+  compareAt?: number | null;
+  className?: string;
+  strikeClassName?: string;
+}) {
+  return (
+    <span className={className}>
+      {fmtGBP(price)}
+      {compareAt != null && compareAt > price ? (
+        <s className={`ml-1.5 font-normal opacity-50 ${strikeClassName}`}>
+          {fmtGBP(compareAt)}
+        </s>
+      ) : null}
+    </span>
+  );
 }
 
 function CheckCircle() {
@@ -99,8 +125,10 @@ export default function FinalProductClient({
     router.push("/checkout");
   }
 
-  const fromPrice = (p: FlowProduct) =>
-    Math.min(...p.doses.map((d) => d.price));
+  const cheapestDose = (p: FlowProduct) =>
+    p.doses.reduce((lo, d) => (d.price < lo.price ? d : lo), p.doses[0]);
+  const fromPrice = (p: FlowProduct) => cheapestDose(p)?.price ?? 0;
+  const fromCompare = (p: FlowProduct) => cheapestDose(p)?.compareAt ?? null;
 
   return (
     <>
@@ -158,9 +186,11 @@ export default function FinalProductClient({
                         </span>
                         <span className="mt-1 block font-ui text-[13px] font-medium text-[#142e2a] md:text-[14px]">
                           From{" "}
-                          <span className="font-bold">
-                            {fmtGBP(fromPrice(p))}
-                          </span>
+                          <PriceTag
+                            price={fromPrice(p)}
+                            compareAt={fromCompare(p)}
+                            className="font-bold"
+                          />
                         </span>
                       </span>
                       {on ? <CheckCircle /> : null}
@@ -169,9 +199,10 @@ export default function FinalProductClient({
                     {/* Expanded dose selector for the active product */}
                     {on ? (
                       <div className="border-t border-[#142e2a]/10 px-4 pb-4 pt-4 md:px-5 md:pb-5">
-                        {/* Dose grid only when the product has real dose
-                            options — a single-price product (e.g. the pill)
-                            shows just its price, no fabricated dose grid. */}
+                        {/* Multi-dose injections show a dose grid. The oral
+                            tablet (Wegovy Pills) has a single option, so it
+                            shows one selectable chip — its variant/dose is
+                            still displayed (e.g. "1.5mg"), just not as a grid. */}
                         {active.doses.length > 1 ? (
                           <>
                             <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
@@ -200,23 +231,41 @@ export default function FinalProductClient({
                                     <span className="font-ui text-[14px] font-bold leading-[18px]">
                                       {d.label}
                                     </span>
-                                    <span
+                                    <PriceTag
+                                      price={d.price}
+                                      compareAt={d.compareAt}
                                       className={`font-ui text-[12px] leading-[16px] ${
                                         sel ? "text-white/80" : "text-[#142e2a]/60"
                                       }`}
-                                    >
-                                      {fmtGBP(d.price)}
-                                    </span>
+                                    />
                                   </button>
                                 );
                               })}
+                            </div>
+                          </>
+                        ) : dose?.label ? (
+                          <>
+                            <p className="font-ui text-[14px] font-semibold text-[#142e2a]">
+                              Your dose
+                            </p>
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between rounded-[10px] border border-[#142e2a] bg-[#142e2a] px-4 py-3 text-white">
+                                <span className="font-ui text-[14px] font-bold leading-[18px]">
+                                  {dose.label}
+                                </span>
+                                <PriceTag
+                                  price={dose.price}
+                                  compareAt={dose.compareAt}
+                                  className="font-ui text-[13px] leading-[16px] text-white/85"
+                                />
+                              </div>
                             </div>
                           </>
                         ) : null}
 
                         <div
                           className={`flex items-center justify-between ${
-                            active.doses.length > 1
+                            active.doses.length > 1 || dose?.label
                               ? "mt-4 border-t border-[#142e2a]/10 pt-4"
                               : ""
                           }`}
@@ -225,9 +274,11 @@ export default function FinalProductClient({
                             {dose?.label ? `${dose.label} ` : ""}
                             {active.title}
                           </span>
-                          <span className="font-display text-[16px] font-bold text-[#142e2a]">
-                            {fmtGBP(dose?.price ?? 0)}
-                          </span>
+                          <PriceTag
+                            price={dose?.price ?? 0}
+                            compareAt={dose?.compareAt}
+                            className="font-display text-[16px] font-bold text-[#142e2a]"
+                          />
                         </div>
 
                         <button

@@ -102,14 +102,33 @@ export default async function FinalProductPage({ searchParams }: Props) {
         const isPillProduct = /pill/i.test(db.slug) || /pill/i.test(db.title);
         const doses = isPillProduct
           ? [
-              {
-                label: "",
-                price: db.fromPrice ?? db.variants[0]?.price ?? db.subscriptionPrice ?? 0,
-              },
+              // Single option — keep its variant/dose label (e.g. "1.5mg") so
+              // it's visible, just not rendered as a multi-dose grid.
+              db.variants[0]
+                ? {
+                    label: mgLabel(db.variants[0].label),
+                    price: db.variants[0].price,
+                    compareAt: db.variants[0].comparePrice ?? db.comparePrice ?? null,
+                  }
+                : {
+                    label: "",
+                    price: db.fromPrice ?? db.subscriptionPrice ?? 0,
+                    compareAt: db.comparePrice ?? null,
+                  },
             ]
           : db.variants.length > 0
-            ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
-            : [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
+            ? db.variants.map((v) => ({
+                label: mgLabel(v.label),
+                price: v.price,
+                compareAt: v.comparePrice ?? db.comparePrice ?? null,
+              }))
+            : [
+                {
+                  label: "",
+                  price: db.fromPrice ?? db.subscriptionPrice ?? 0,
+                  compareAt: db.comparePrice ?? null,
+                },
+              ];
         return {
           slug: db.slug,
           productId: db.id,
@@ -150,11 +169,21 @@ export default async function FinalProductPage({ searchParams }: Props) {
       products = slugs.map((slug, i) => {
         const editorial = PDP_PRODUCTS[slug];
         const db = dbProducts[i];
-        let doses: { label: string; price: number }[];
+        let doses: { label: string; price: number; compareAt?: number | null }[];
         if (db && db.variants.length > 0) {
-          doses = db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }));
+          doses = db.variants.map((v) => ({
+            label: mgLabel(v.label),
+            price: v.price,
+            compareAt: v.comparePrice ?? db.comparePrice ?? null,
+          }));
         } else if (db && (db.fromPrice != null || db.subscriptionPrice != null)) {
-          doses = [{ label: "", price: db.fromPrice ?? db.subscriptionPrice ?? 0 }];
+          doses = [
+            {
+              label: "",
+              price: db.fromPrice ?? db.subscriptionPrice ?? 0,
+              compareAt: db.comparePrice ?? null,
+            },
+          ];
         } else {
           doses = editorial.dosages.map((d) => ({
             label: mgLabel(d.label),
@@ -189,7 +218,11 @@ export default async function FinalProductPage({ searchParams }: Props) {
       const db = dbProducts[i];
       const doses =
         db && db.variants.length > 0
-          ? db.variants.map((v) => ({ label: mgLabel(v.label), price: v.price }))
+          ? db.variants.map((v) => ({
+              label: mgLabel(v.label),
+              price: v.price,
+              compareAt: v.comparePrice ?? db.comparePrice ?? null,
+            }))
           : c.doses.map((d) => ({ ...d, label: mgLabel(d.label) }));
       return {
         slug: c.slug,
