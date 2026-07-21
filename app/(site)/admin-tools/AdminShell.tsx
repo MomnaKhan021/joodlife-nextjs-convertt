@@ -157,12 +157,19 @@ function NavBadge({ type }: { type: string }) {
           .then((r) => r.json())
           .then((j) => { if (j?.ok) apply(j.pending); })
           .catch(() => {});
-      } else if (type === "dispensing" || type === "dispatching") {
-        // Both badges come from one counts call: awaiting → Dispatch queue,
-        // dispatched → Dispatched.
+      } else if (type === "dispensing") {
+        // Dispatch queue = patients approved & awaiting dispatch.
         fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
-          .then((j) => { if (j?.ok) apply(type === "dispensing" ? j.awaiting : j.dispatched); })
+          .then((j) => { if (j?.ok) apply(j.awaiting); })
+          .catch(() => {});
+      } else if (type === "dispatching") {
+        // Dispatched = orders actually dispatched (shipped/delivered or with a
+        // DPD tracking note) — same definition as the Orders "Dispatched" tab,
+        // so the badge matches (e.g. JL2429 → 1).
+        fetch(`/api/admin-tools/list?type=orders&fulfillment=dispatched&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.total); })
           .catch(() => {});
       } else {
         fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
