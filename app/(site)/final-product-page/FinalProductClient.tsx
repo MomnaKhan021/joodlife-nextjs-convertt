@@ -249,7 +249,9 @@ export default function FinalProductClient({
                               Your dose
                             </p>
                             <div className="mt-3">
-                              <div className="flex items-center justify-between rounded-[10px] border border-[#142e2a] bg-[#142e2a] px-4 py-3 text-white">
+                              {/* Fit-content chip — only as wide as the dose +
+                                  price, not a full-width bar. */}
+                              <div className="inline-flex w-fit items-center gap-3 rounded-[10px] border border-[#142e2a] bg-[#142e2a] px-4 py-3 text-white">
                                 <span className="font-ui text-[14px] font-bold leading-[18px]">
                                   {dose.label}
                                 </span>
