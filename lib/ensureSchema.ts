@@ -304,6 +304,15 @@ const STATEMENTS: string[] = [
 
 let ensured = false;
 
+/**
+ * Bump this whenever STATEMENTS changes. The full DDL list only runs when the
+ * version stored in the database differs — otherwise boot does ONE fast
+ * lookup instead of ~100 sequential statements. That repair loop used to run
+ * on every cold start, adding several seconds before the first request
+ * (users saw login "taking forever" after the site had been idle).
+ */
+const SCHEMA_VERSION = "v1";
+
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
   const drizzle = (
@@ -315,6 +324,29 @@ export async function ensureFullSchema(payload: Payload): Promise<void> {
   const { sql } = (await import("drizzle-orm")) as {
     sql: { raw: (s: string) => unknown };
   };
+  const asRows = (x: unknown): Array<Record<string, unknown>> => {
+    if (Array.isArray(x)) return x as Array<Record<string, unknown>>;
+    const r = (x as { rows?: Array<Record<string, unknown>> })?.rows;
+    return Array.isArray(r) ? r : [];
+  };
+
+  // Fast path: if the stored schema version matches, the repair already ran —
+  // skip the whole statement list (one ~30ms query instead of seconds).
+  try {
+    const res = await drizzle.execute(
+      sql.raw(
+        `SELECT value FROM "app_schema_meta" WHERE key = 'schema_version' LIMIT 1`,
+      ),
+    );
+    const current = String(asRows(res)[0]?.value ?? "");
+    if (current === SCHEMA_VERSION) {
+      ensured = true;
+      return;
+    }
+  } catch {
+    /* meta table missing — first run; fall through to the full repair */
+  }
+
   let failures = 0;
   for (const stmt of STATEMENTS) {
     try {
@@ -330,6 +362,29 @@ export async function ensureFullSchema(payload: Payload): Promise<void> {
   }
   if (failures) {
     payload.logger?.warn?.(`ensureFullSchema: ${failures}/${STATEMENTS.length} statements failed (non-fatal)`);
+  }
+
+  // Record the version so subsequent boots take the fast path. Only when the
+  // full list ran cleanly — failures mean the repair should retry next boot.
+  if (failures === 0) {
+    try {
+      await drizzle.execute(
+        sql.raw(
+          `CREATE TABLE IF NOT EXISTS "app_schema_meta" (key varchar PRIMARY KEY, value varchar NOT NULL)`,
+        ),
+      );
+      await drizzle.execute(
+        sql.raw(
+          `INSERT INTO "app_schema_meta" (key, value) VALUES ('schema_version', '${SCHEMA_VERSION}')
+           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        ),
+      );
+    } catch (err) {
+      payload.logger?.warn?.({
+        msg: "ensureFullSchema: could not persist schema version (repair will re-run next boot)",
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
   ensured = true;
 }
