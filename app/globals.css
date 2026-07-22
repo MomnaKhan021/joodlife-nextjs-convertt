@@ -300,3 +300,20 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   opacity: 0;
   cursor: pointer;
 }
+
+/* Consultation flow fields sit as white inputs on white cards and rely on
+   Tailwind's low-opacity `ring` for their outline. Safari renders that ring
+   inconsistently, so the fields can look invisible. Give every field in the
+   flow a solid, always-rendered border (plain hex — no color-mix / @property
+   that older Safari mishandles). Not layered, so it wins over the utilities. */
+.consult-flow input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.consult-flow textarea,
+.consult-flow select {
+  border: 1px solid #b8c4a9;
+  background-color: #ffffff;
+}
+.consult-flow input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+.consult-flow textarea:focus,
+.consult-flow select:focus {
+  border-color: #142e2a;
+}

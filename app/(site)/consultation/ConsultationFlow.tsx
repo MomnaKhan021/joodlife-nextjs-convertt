@@ -274,7 +274,7 @@ export default function ConsultationFlow({
   }
 
   return (
-    <section className="mx-auto w-full max-w-[760px] px-5 py-8 md:py-12">
+    <section className="consult-flow mx-auto w-full max-w-[760px] px-5 py-8 md:py-12">
       {/* Progress bar (hidden on consent slide) */}
       {slide.step > 0 && (
         <div className="mb-8 flex items-center gap-3">
@@ -1202,12 +1202,14 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
               ? "✓ Uploaded — Continue"
               : "Tap to upload a photo or screenshot"}
         </span>
+        {/* sr-only (not display:none) so iOS Safari reliably opens the
+            file / camera picker when the label is tapped. */}
         <input
           type="file"
           accept="image/*,.pdf"
           onChange={handleFile}
           disabled={busy}
-          className="hidden"
+          className="sr-only"
         />
       </label>
       <button
