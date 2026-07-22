@@ -418,6 +418,63 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    // Consultations carry no name (HubSpot sync leaves full_name null), so
+    // resolve a display name by email: prefer a registered account's name,
+    // else the most recent order's customer_name. One extra lookup for the
+    // ~200 emails on this page.
+    const asRows = (x: unknown): Array<Record<string, unknown>> => {
+      if (Array.isArray(x)) return x as Array<Record<string, unknown>>;
+      const r = (x as { rows?: Array<Record<string, unknown>> })?.rows;
+      return Array.isArray(r) ? r : [];
+    };
+    const emails = Array.from(
+      new Set(
+        consultations
+          .map((c) => String(c.email ?? "").trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    );
+    if (emails.length > 0) {
+      const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
+      try {
+        const [userRes, orderRes] = await Promise.all([
+          db.execute(
+            sql.raw(
+              `SELECT LOWER(email) AS email, name FROM users
+               WHERE LOWER(email) IN (${inList}) AND name IS NOT NULL AND TRIM(name) <> ''`,
+            ),
+          ),
+          db.execute(
+            sql.raw(
+              `SELECT DISTINCT ON (LOWER(customer_email)) LOWER(customer_email) AS email, customer_name
+               FROM orders
+               WHERE LOWER(customer_email) IN (${inList})
+                 AND customer_name IS NOT NULL AND TRIM(customer_name) <> ''
+               ORDER BY LOWER(customer_email), created_at DESC`,
+            ),
+          ),
+        ]);
+        const nameByEmail: Record<string, string> = {};
+        for (const r of asRows(orderRes)) {
+          const e = String(r.email ?? "");
+          if (e) nameByEmail[e] = String(r.customer_name ?? "");
+        }
+        // Account name wins over the order name.
+        for (const r of asRows(userRes)) {
+          const e = String(r.email ?? "");
+          if (e) nameByEmail[e] = String(r.name ?? "");
+        }
+        for (const c of consultations) {
+          if (!c.fullName) {
+            const nm = nameByEmail[String(c.email ?? "").toLowerCase()];
+            if (nm) c.fullName = nm;
+          }
+        }
+      } catch {
+        /* name lookup is best-effort — fall back to "Patient #id" */
+      }
+    }
+
     // Real DB counts (not capped by the LIMIT-200 list), so the badge and the
     // queue tabs match and move the moment a patient is approved/rejected.
     const cc = (countRows[0] as { reorder?: number; booked?: number; notbooked?: number; red_flags?: number } | undefined) ?? {};

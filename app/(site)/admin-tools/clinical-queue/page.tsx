@@ -910,18 +910,50 @@ export default function ClinicalQueuePage() {
     );
   }, []);
 
-  // Counts per tab. In the default "Pending only" view use the true full-DB
-  // counts from the server (so the tabs sum to the same number as the sidebar
-  // badge — not just the loaded page). In "All" mode fall back to counting the
-  // loaded list.
+  // Collapse duplicate consultations for the same customer. HubSpot syncs can
+  // create several rows per patient (same email + treatment), which showed up
+  // as the same person twice in the queue. Keep one per (email + treatment):
+  // prefer an unreviewed row, then the one that booked a video consult, then
+  // the most recent submission.
+  const dedupedConsultations = useMemo(() => {
+    const best = new Map<string, Consultation>();
+    for (const c of consultations) {
+      const email = (c.email ?? "").trim().toLowerCase();
+      // No email → can't dedupe reliably; keep as-is under a unique key.
+      const key = email ? `${email}|${c.productSlug ?? ""}` : `id:${c.id}`;
+      const cur = best.get(key);
+      if (!cur) {
+        best.set(key, c);
+        continue;
+      }
+      const score = (x: Consultation) =>
+        (x.reviewed ? 0 : 2) +
+        (x.answers.video_consultation_preference ? 1 : 0);
+      const sc = score(c);
+      const scCur = score(cur);
+      if (
+        sc > scCur ||
+        (sc === scCur && +new Date(c.createdAt) > +new Date(cur.createdAt)) ||
+        (sc === scCur &&
+          +new Date(c.createdAt) === +new Date(cur.createdAt) &&
+          c.id > cur.id)
+      ) {
+        best.set(key, c);
+      }
+    }
+    return Array.from(best.values());
+  }, [consultations]);
+
+  // Counts per tab, computed over the de-duplicated set. Booked / not-booked
+  // are meeting-aware (client-side); reorder keeps the true server count.
   const localCounts = useMemo(() => {
     const base: Record<TabKey, number> = { booked: 0, notbooked: 0, reorder: 0 };
-    for (const c of consultations) {
+    for (const c of dedupedConsultations) {
       const mt = meetingTimes[(c.email ?? "").toLowerCase()];
       base[categorize(c, mt)] += 1;
     }
     return base;
-  }, [consultations, meetingTimes]);
+  }, [dedupedConsultations, meetingTimes]);
   // Booked / not-booked are meeting-aware (depend on HubSpot times fetched
   // client-side), so their pills come from the loaded set. Reorder is fully
   // known server-side, so keep the true full-DB count for that pill.
@@ -935,7 +967,7 @@ export default function ClinicalQueuePage() {
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const mtOf = (c: Consultation) => meetingTimes[(c.email ?? "").toLowerCase()];
-    const list = consultations
+    const list = dedupedConsultations
       .filter((c) => categorize(c, mtOf(c)) === tab)
       .filter((c) => {
         if (!q) return true;
@@ -985,7 +1017,7 @@ export default function ClinicalQueuePage() {
       const dy = +new Date(y.createdAt);
       return sortMode === "oldest" ? dx - dy : dy - dx;
     });
-  }, [consultations, tab, query, sortMode, meetingTimes]);
+  }, [dedupedConsultations, tab, query, sortMode, meetingTimes]);
 
   // When sorting by consultation time, lazily fetch booked-consult start times
   // from HubSpot for the loaded patients we don't already have.
@@ -1283,8 +1315,16 @@ export default function ClinicalQueuePage() {
                 selectable
                 selected={selected.has(c.id)}
                 onToggleSelect={toggleSelect}
-                joinUrl={meetLinks[(c.email ?? "").toLowerCase()] ?? null}
-                meetingTime={meetingTimes[(c.email ?? "").toLowerCase()] ?? null}
+                joinUrl={
+                  c.answers.video_consultation_preference
+                    ? (meetLinks[(c.email ?? "").toLowerCase()] ?? null)
+                    : null
+                }
+                meetingTime={
+                  c.answers.video_consultation_preference
+                    ? (meetingTimes[(c.email ?? "").toLowerCase()] ?? null)
+                    : undefined
+                }
               />
             ))}
           </div>
