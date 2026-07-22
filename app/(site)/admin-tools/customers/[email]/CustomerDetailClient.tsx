@@ -268,7 +268,7 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                       className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-[#fafbfb]"
                     >
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-[#1450b0]">
+                        <p className="text-[13px] font-semibold text-[#142e2a] underline decoration-[#142e2a]/25 underline-offset-2">
                           {o.orderNumber ?? `#${o.id}`}
                         </p>
                         <p className="text-[12px] text-[#616161]">
@@ -294,8 +294,11 @@ export default function CustomerDetailClient({ email }: { email: string }) {
             <WeightTracking history={data.weightHistory ?? []} change={data.weightChange} />
             <Card>
               <div className="px-5 py-4">
-                <h2 className="text-[14px] font-semibold">Contact</h2>
-                <a href={`mailto:${customer.email}`} className="mt-2 block break-all text-[13px] text-[#1450b0]">
+                <h2 className="text-[14px] font-semibold text-[#142e2a]">Contact</h2>
+                <a
+                  href={`mailto:${customer.email}`}
+                  className="mt-2 block break-all text-[13px] font-medium text-[#142e2a] underline decoration-[#142e2a]/30 underline-offset-2 transition-colors hover:decoration-[#142e2a]"
+                >
                   {customer.email}
                 </a>
                 {customer.phone ? (
@@ -303,7 +306,7 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                     href={waLink(customer.phone)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 inline-flex items-center gap-1.5 text-[13px] text-[#1450b0]"
+                    className="mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#142e2a] underline decoration-[#142e2a]/30 underline-offset-2 transition-colors hover:decoration-[#142e2a]"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.9 5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2s-1.2.3-4-1.2-4.3-4.3-4.5-4.5-1.3-1.7-1.3-3.2.8-2.2 1.1-2.5.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.5.7c-.2.2-.3.4-.1.7s.8 1.3 1.6 2c1 .9 1.9 1.2 2.2 1.3s.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.6-.1 1.2Z" />

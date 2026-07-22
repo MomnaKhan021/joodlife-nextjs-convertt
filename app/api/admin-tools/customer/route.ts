@@ -78,6 +78,12 @@ function parseItems(raw: unknown): Item[] {
   for (const el of arr) {
     if (!el || typeof el !== "object") continue;
     const it = el as Record<string, unknown>;
+    // HubSpot sync stores unparseable item strings as {note:"raw", body:"…"} —
+    // recover a product name from the raw text instead of dropping the item.
+    if (!it.title && !it.name && !it.product && typeof it.body === "string" && it.body.trim()) {
+      out.push(...parseItems(it.body));
+      continue;
+    }
     const title = String(it.title ?? it.name ?? it.product ?? "").trim();
     if (!title) continue;
     out.push({
@@ -196,6 +202,32 @@ export async function GET(req: NextRequest) {
     weightHistory.sort(
       (a, b) => (a.date ? +new Date(a.date) : 0) - (b.date ? +new Date(b.date) : 0),
     );
+
+    // Medicine names from the patient's consultations — used as a fallback for
+    // "Products purchased" when orders carry no line items (most HubSpot-synced
+    // deals store no jood_order_items, so items_json is empty).
+    const consultationMeds: string[] = [];
+    try {
+      const medRes = await drizzle.execute(
+        sql.raw(`
+          SELECT COALESCE(
+                   NULLIF(answers->>'intended_medicine_v2',''),
+                   NULLIF(answers->>'most_recent_injection_used_v2',''),
+                   NULLIF(product_slug,'')
+                 ) AS med
+          FROM consultations
+          WHERE LOWER(email) = '${esc}' AND status <> 'draft'
+          ORDER BY created_at DESC NULLS LAST, id DESC
+          LIMIT 20
+        `),
+      );
+      for (const r of rowsOf<{ med: string | null }>(medRes)) {
+        const m = (r.med ?? "").trim();
+        if (m && m !== "reorder") consultationMeds.push(m);
+      }
+    } catch {
+      /* fallback only — ignore */
+    }
     const weightChange =
       weightHistory.length >= 2
         ? Math.round(
@@ -235,6 +267,15 @@ export async function GET(req: NextRequest) {
         items,
       };
     });
+
+    // Orders exist but none carried line items → show what the patient
+    // actually bought using their consultation medicine (deduped, most
+    // recent first), one count per order.
+    if (Object.keys(productCounts).length === 0 && orders.length > 0 && consultationMeds.length > 0) {
+      const uniqueMeds = Array.from(new Set(consultationMeds));
+      const per = Math.max(1, Math.floor(orders.length / uniqueMeds.length));
+      for (const med of uniqueMeds) productCounts[med] = per;
+    }
 
     return NextResponse.json({
       ok: true,
