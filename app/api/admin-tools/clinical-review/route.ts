@@ -318,6 +318,25 @@ export async function GET(req: NextRequest) {
                THEN 0
                ELSE 1
              END,
+             -- Global call-time order (cached from HubSpot in _meeting_start):
+             -- upcoming calls first (soonest first), then finished calls
+             -- (most recent first), then patients with no known call time.
+             CASE
+               WHEN COALESCE(answers->>'_meeting_start','') ~ '^\\d{4}-\\d{2}-\\d{2}'
+                    AND (answers->>'_meeting_start')::timestamptz >= now() THEN 0
+               WHEN COALESCE(answers->>'_meeting_start','') ~ '^\\d{4}-\\d{2}-\\d{2}' THEN 1
+               ELSE 2
+             END,
+             CASE
+               WHEN COALESCE(answers->>'_meeting_start','') ~ '^\\d{4}-\\d{2}-\\d{2}'
+                    AND (answers->>'_meeting_start')::timestamptz >= now()
+               THEN (answers->>'_meeting_start')::timestamptz
+             END ASC,
+             CASE
+               WHEN COALESCE(answers->>'_meeting_start','') ~ '^\\d{4}-\\d{2}-\\d{2}'
+                    AND (answers->>'_meeting_start')::timestamptz < now()
+               THEN (answers->>'_meeting_start')::timestamptz
+             END DESC,
              created_at ASC
            LIMIT ${PAGE} OFFSET ${offset}`,
         ),

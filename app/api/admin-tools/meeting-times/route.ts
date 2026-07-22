@@ -56,5 +56,40 @@ export async function POST(req: NextRequest) {
     times[email] = v.startsAt;
     links[email] = v.joinUrl;
   }
+
+  // Persist each lookup onto the patient's consultation rows so the queue can
+  // ORDER BY call time server-side (upcoming first, then latest finished) and
+  // future page loads skip the HubSpot round-trip. Best effort — a failure
+  // here never breaks the response.
+  try {
+    const drizzle = (
+      payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }
+    ).drizzle;
+    const { sql: drizzleSql } = (await import("drizzle-orm")) as {
+      sql: { raw: (s: string) => unknown };
+    };
+    if (drizzle?.execute) {
+      const checkedAt = new Date().toISOString();
+      for (const email of emails) {
+        const key = email.trim().toLowerCase();
+        if (!key) continue;
+        const patch = JSON.stringify({
+          _meeting_start: times[key] ?? null,
+          _meeting_join: links[key] ?? null,
+          _meeting_checked_at: checkedAt,
+        }).replace(/'/g, "''");
+        await drizzle.execute(
+          drizzleSql.raw(
+            `UPDATE "consultations"
+             SET answers = COALESCE(answers, '{}'::jsonb) || '${patch}'::jsonb
+             WHERE LOWER(email) = '${key.replace(/'/g, "''")}' AND status <> 'draft'`,
+          ),
+        );
+      }
+    }
+  } catch {
+    /* cache write is best-effort */
+  }
+
   return NextResponse.json({ ok: true, times, links });
 }

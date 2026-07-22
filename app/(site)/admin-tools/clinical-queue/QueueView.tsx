@@ -874,6 +874,27 @@ export default function QueueView({
         if (!json.ok) throw new Error(json.error ?? "Failed to load");
         const list: Consultation[] = json.consultations ?? [];
         setConsultations((prev) => (append ? [...prev, ...list] : list));
+        // Seed call times/links from the DB cache (written by the
+        // meeting-times endpoint) so rows show their call badge instantly and
+        // only stale/unknown patients hit HubSpot. Cache fresh = last 12h.
+        {
+          const cutoff = Date.now() - 12 * 3600e3;
+          const times: Record<string, string | null> = {};
+          const links: Record<string, string | null> = {};
+          for (const c of list) {
+            const e = (c.email ?? "").trim().toLowerCase();
+            if (!e) continue;
+            const checked = c.answers?._meeting_checked_at;
+            if (typeof checked === "string" && +new Date(checked) > cutoff) {
+              times[e] = typeof c.answers._meeting_start === "string" ? c.answers._meeting_start : null;
+              links[e] = typeof c.answers._meeting_join === "string" ? c.answers._meeting_join : null;
+            }
+          }
+          if (Object.keys(times).length > 0) {
+            setMeetingTimes((prev) => ({ ...times, ...prev }));
+            setMeetLinks((prev) => ({ ...links, ...prev }));
+          }
+        }
         setServerRedFlags(typeof json.redFlags === "number" ? json.redFlags : null);
         setTotalPending(typeof json.total === "number" ? json.total : null);
         setServerCounts(
