@@ -982,19 +982,29 @@ export default function ClinicalQueuePage() {
         );
       });
 
-    // Booked tab: upcoming calls (today + future) soonest-first on top; calls
-    // that have already happened sink to the bottom, latest first.
+    // Booked tab, top to bottom: upcoming calls (soonest first), then finished
+    // calls (most recent first), then rows whose HubSpot meeting lookup hasn't
+    // resolved yet. Pending rows used to rank as "upcoming with infinite
+    // time", which floated a wall of no-button rows above every real call.
     if (tab === "booked") {
+      const rank = (t: string | null) => {
+        if (!t) return 2; // lookup pending — bottom
+        return describeCall(t)?.when === "past" ? 1 : 0;
+      };
       return list.sort((x, y) => {
         const tx = mtOf(x) || null;
         const ty = mtOf(y) || null;
-        const px = tx && (describeCall(tx)?.when === "past") ? 1 : 0;
-        const py = ty && (describeCall(ty)?.when === "past") ? 1 : 0;
-        if (px !== py) return px - py; // upcoming (0) before past (1)
-        const vx = tx ? +new Date(tx) : Infinity;
-        const vy = ty ? +new Date(ty) : Infinity;
+        const rx = rank(tx);
+        const ry = rank(ty);
+        if (rx !== ry) return rx - ry;
+        if (rx === 2) {
+          // Both pending — newest submission first.
+          return +new Date(y.createdAt) - +new Date(x.createdAt);
+        }
+        const vx = +new Date(tx!);
+        const vy = +new Date(ty!);
         // Upcoming: soonest first (asc). Past: most recent first (desc).
-        return px === 0 ? vx - vy : vy - vx;
+        return rx === 0 ? vx - vy : vy - vx;
       });
     }
 
