@@ -282,11 +282,21 @@ export async function GET(req: NextRequest) {
     };
     const sql = drizzleSql;
 
+    // Queue split (read-only EXISTS check — no schema impact):
+    //   clinical  = the patient's email also appears on an order
+    //   marketing = consultation only, no order yet (follow-up leads)
+    const queue = req.nextUrl.searchParams.get("queue") === "marketing" ? "marketing" : "clinical";
+    const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email))`;
+    const queueCond =
+      queue === "marketing"
+        ? `(email IS NULL OR NOT ${orderExists})`
+        : `(email IS NOT NULL AND ${orderExists})`;
+
     // Pending = submitted consultations (new patients) + reorder submissions
     // waiting review. Exclude drafts and already-decided ones unless showAll.
     const whereClause = showAll
-      ? `WHERE status NOT IN ('draft')`
-      : `WHERE status IN ('submitted', 'reviewed')`;
+      ? `WHERE status NOT IN ('draft') AND ${queueCond}`
+      : `WHERE status IN ('submitted', 'reviewed') AND ${queueCond}`;
 
     // The pending COUNT is computed directly in SQL (NOT derived from the
     // LIMIT-200 list) — otherwise, with 200+ awaiting consultations the list
@@ -353,7 +363,8 @@ export async function GET(req: NextRequest) {
              )::int AS red_flags
            FROM "consultations"
            WHERE status IN ('submitted', 'reviewed')
-             AND (answers->>'_review_decision') IS NULL`,
+             AND (answers->>'_review_decision') IS NULL
+             AND ${queueCond}`,
         ),
       ),
     ])) as [

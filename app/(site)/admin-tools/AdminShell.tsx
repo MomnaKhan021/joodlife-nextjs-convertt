@@ -71,6 +71,14 @@ const NAV: NavItem[] = [
     icon: I("M16 3h5v5M21 3l-9 9M3 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"),
   },
   {
+    label: "Marketing queue",
+    href: "/admin-tools/marketing-queue",
+    match: (p) => p.startsWith("/admin-tools/marketing-queue"),
+    section: "clinical",
+    badgeType: "marketing",
+    icon: I("M3 11l18-8-8 18-2-8-8-2z"),
+  },
+  {
     label: "Products",
     href: "/admin-tools/data-browser?type=products",
     match: (p, t) => t === "products" || p.startsWith("/admin-tools/products"),
@@ -154,6 +162,12 @@ function NavBadge({ type }: { type: string }) {
     const load = () => {
       if (type === "clinical") {
         fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.pending); })
+          .catch(() => {});
+      } else if (type === "marketing") {
+        // Marketing queue = consultations from patients with no order yet.
+        fetch(`/api/admin-tools/clinical-review?status=pending&queue=marketing`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
           .then((j) => { if (j?.ok) apply(j.pending); })
           .catch(() => {});
