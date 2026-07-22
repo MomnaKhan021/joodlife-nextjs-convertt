@@ -862,6 +862,29 @@ function PhoneSlide({ slide, answers, setAnswer }: SlideProps) {
   );
 }
 
+/* ---- Date field icon (Safari draws none, so we supply our own) ---- */
+
+function DateFieldIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#142e2a]/45"
+    >
+      <rect x="3" y="4.5" width="18" height="16" rx="2" />
+      <path d="M3 9.5h18M8 3v3M16 3v3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Shared classes for the native date inputs — a clearly visible box (so the
+ *  field never looks empty in Safari) with room for the calendar glyph. */
+const DATE_INPUT_CLASS =
+  "h-12 w-full rounded-lg border border-[#142e2a]/25 bg-white px-4 pr-11 font-ui text-[14px] text-[#142e2a] outline-none transition-shadow focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/30";
+
 /* ---- DOB (with age computation + age-gate validation) ---- */
 
 function DobSlide({ slide, answers, setAnswer }: SlideProps) {
@@ -876,18 +899,21 @@ function DobSlide({ slide, answers, setAnswer }: SlideProps) {
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <input
-        type="date"
-        autoComplete="bday"
-        max={new Date().toISOString().split("T")[0]}
-        value={value}
-        onChange={(e) => {
-          const v = e.target.value;
-          setAnswer(slide.field!, v);
-          setAnswer("_age", calcAge(v));
-        }}
-        className="h-12 w-full max-w-[320px] rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-      />
+      <div className="relative w-full max-w-[320px]">
+        <input
+          type="date"
+          autoComplete="bday"
+          max={new Date().toISOString().split("T")[0]}
+          value={value}
+          onChange={(e) => {
+            const v = e.target.value;
+            setAnswer(slide.field!, v);
+            setAnswer("_age", calcAge(v));
+          }}
+          className={DATE_INPUT_CLASS}
+        />
+        <DateFieldIcon />
+      </div>
       {warning ? (
         <p className="mt-3 font-ui text-[13px] text-red-700">{warning}</p>
       ) : null}
@@ -1118,13 +1144,16 @@ function DateSlide({ slide, answers, setAnswer }: SlideProps) {
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <input
-        type="date"
-        max={new Date().toISOString().split("T")[0]}
-        value={(answers[slide.field!] as string) ?? ""}
-        onChange={(e) => setAnswer(slide.field!, e.target.value)}
-        className="h-12 w-full max-w-[320px] rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
-      />
+      <div className="relative w-full max-w-[320px]">
+        <input
+          type="date"
+          max={new Date().toISOString().split("T")[0]}
+          value={(answers[slide.field!] as string) ?? ""}
+          onChange={(e) => setAnswer(slide.field!, e.target.value)}
+          className={DATE_INPUT_CLASS}
+        />
+        <DateFieldIcon />
+      </div>
     </SlideShell>
   );
 }

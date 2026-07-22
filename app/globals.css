@@ -276,3 +276,27 @@ a[href] {
     font-size: 16px;
   }
 }
+
+/* Date inputs render very differently across browsers. Safari (esp. iOS) draws
+   no calendar icon and doesn't reliably fill/align the field, so a faint-
+   bordered white date field can look completely empty/invisible. Normalise the
+   box so it's always a visible, tappable field, and hide the native picker
+   indicator (we render our own calendar glyph) so Chrome/Safari look the same. */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  min-height: 3rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+}
