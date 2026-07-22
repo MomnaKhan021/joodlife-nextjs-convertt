@@ -459,12 +459,16 @@ function describeCall(iso: string): CallTiming | null {
     month: "short",
     timeZone: LONDON_TZ,
   });
+  // Time-aware, not just day-aware: a call whose start time has already passed
+  // counts as "past" (finished) even if it's still today — so a 9am call
+  // viewed at 4pm sinks to the bottom with Join disabled, and only calls still
+  // ahead of now sit at the top.
   let when: CallTiming["when"];
-  if (dayDiff === 0) when = "today";
+  if (start.getTime() < now.getTime()) when = "past";
+  else if (dayDiff === 0) when = "today";
   else if (dayDiff === 1) when = "tomorrow";
   else if (dayDiff > 1 && dayDiff <= 3) when = "soon";
-  else if (dayDiff > 3) when = "future";
-  else when = "past";
+  else when = "future";
   const relLabel = dayDiff > 1 ? `In ${dayDiff} days` : dateLabel;
   return { when, dayDiff, timeLabel, dateLabel, relLabel };
 }
