@@ -22,6 +22,7 @@ import {
   labelFor,
 } from "@/lib/consultationDisplay";
 import { refreshAdminBadges } from "../AdminShell";
+import Pagination from "../Pagination";
 
 type Consultation = {
   id: number;
@@ -837,7 +838,6 @@ export default function QueueView({
   // loaded, so the tab pills/badge reflect the whole queue, not just the page.
   const [serverCounts, setServerCounts] = useState<Record<TabKey, number> | null>(null);
   const [totalPending, setTotalPending] = useState<number | null>(null);
-  const [loaded, setLoaded] = useState(0);
   // True full-DB red-flag count (pending set), so the badge isn't limited to
   // the loaded page.
   const [serverRedFlags, setServerRedFlags] = useState<number | null>(null);
@@ -854,8 +854,8 @@ export default function QueueView({
   // Batch approval selection (consultation ids).
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
-  // Whether the last page came back full (200) → there are more to load.
-  const [hasMore, setHasMore] = useState(false);
+  // Numbered pagination (1, 2, 3 …) over the server's 200-row pages.
+  const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const PAGE = 200;
@@ -874,8 +874,6 @@ export default function QueueView({
         if (!json.ok) throw new Error(json.error ?? "Failed to load");
         const list: Consultation[] = json.consultations ?? [];
         setConsultations((prev) => (append ? [...prev, ...list] : list));
-        setLoaded((prev) => (append ? prev + list.length : list.length));
-        setHasMore(list.length >= PAGE);
         setServerRedFlags(typeof json.redFlags === "number" ? json.redFlags : null);
         setTotalPending(typeof json.total === "number" ? json.total : null);
         setServerCounts(
@@ -898,9 +896,15 @@ export default function QueueView({
   );
 
   useEffect(() => {
-    const t = setTimeout(() => load(showAll), 0);
+    const t = setTimeout(() => load(showAll, (page - 1) * PAGE), 0);
     return () => clearTimeout(t);
-  }, [showAll, load]);
+  }, [showAll, load, page]);
+
+  const goToPage = useCallback((p: number) => {
+    setPage(Math.max(1, p));
+    // Jump back to the top so the new page starts in view.
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handleDecision = useCallback((id: number, decision: string, reason: string) => {
     setConsultations((prev) =>
@@ -1200,7 +1204,7 @@ export default function QueueView({
             className="h-9 flex-1 min-w-[220px] rounded-lg border border-[#d1d5db] bg-white px-3 text-[13px] text-[#374151] placeholder:text-[#9ca3af] focus:border-[#142e2a] focus:outline-none"
           />
           <button
-            onClick={() => setShowAll(false)}
+            onClick={() => { setShowAll(false); setPage(1); }}
             className={`h-9 rounded-lg px-4 text-[13px] font-medium transition-colors ${
               !showAll ? "bg-[#142e2a] text-white" : "border border-[#d1d5db] bg-white text-[#374151] hover:bg-[#f3f4f6]"
             }`}
@@ -1208,7 +1212,7 @@ export default function QueueView({
             Pending only
           </button>
           <button
-            onClick={() => setShowAll(true)}
+            onClick={() => { setShowAll(true); setPage(1); }}
             className={`h-9 rounded-lg px-4 text-[13px] font-medium transition-colors ${
               showAll ? "bg-[#142e2a] text-white" : "border border-[#d1d5db] bg-white text-[#374151] hover:bg-[#f3f4f6]"
             }`}
@@ -1291,8 +1295,8 @@ export default function QueueView({
             {" "}
             {rows.length === 1 ? "patient" : "patients"} in “{TABS.find((t) => t.key === tab)?.label}” (
             {counts[tab].toLocaleString("en-GB")} total)
-            {totalPending != null && loaded < totalPending
-              ? ` · ${loaded.toLocaleString("en-GB")} of ${totalPending.toLocaleString("en-GB")} loaded — Load more below, or search to jump to a patient`
+            {totalPending != null && totalPending > PAGE
+              ? ` · page ${page} of ${Math.max(1, Math.ceil(totalPending / PAGE))} (${totalPending.toLocaleString("en-GB")} in this queue) — use the page numbers below, or search to jump to a patient`
               : ""}
             .
           </p>
@@ -1354,24 +1358,14 @@ export default function QueueView({
           </div>
         )}
 
-        {/* Load more — walks the whole pending set in pages of 200. */}
-        {!loading && !error && hasMore ? (
-          <div className="mt-4 flex justify-center">
-            <button
-              type="button"
-              onClick={() => load(showAll, consultations.length, true)}
-              disabled={loadingMore}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loadingMore
-                ? "Loading…"
-                : `Load more${
-                    totalPending != null
-                      ? ` (${Math.max(0, totalPending - loaded).toLocaleString("en-GB")} more)`
-                      : ""
-                  }`}
-            </button>
-          </div>
+        {/* Numbered pagination over the queue's 200-row server pages. */}
+        {!error ? (
+          <Pagination
+            page={page}
+            totalPages={totalPending != null ? Math.max(1, Math.ceil(totalPending / PAGE)) : 1}
+            onPage={goToPage}
+            disabled={loading || loadingMore}
+          />
         ) : null}
       </div>
     </main>

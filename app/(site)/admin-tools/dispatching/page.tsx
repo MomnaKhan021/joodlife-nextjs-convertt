@@ -8,6 +8,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import Pagination from "./../Pagination";
+
 type DispatchOrder = {
   id: number;
   orderNumber: string | null;
@@ -36,11 +38,14 @@ function trackingUrl(tracking: string) {
   return `https://www.dpdlocal.co.uk/apps/tracking/?reference=${encodeURIComponent(tracking)}`;
 }
 
+const PAGE_SIZE = 20;
+
 export default function DispatchedPage() {
   const [orders, setOrders] = useState<DispatchOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -89,7 +94,7 @@ export default function DispatchedPage() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { setQ(e.target.value); setPage(1); }}
           placeholder="Search by name, order number or tracking…"
           className="h-9 w-full max-w-[360px] rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] outline-none focus:border-[#142e2a]"
         />
@@ -128,7 +133,7 @@ export default function DispatchedPage() {
               </tr>
             </thead>
             <tbody>
-              {dispatched.map((o) => {
+              {dispatched.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((o) => {
                 const clickable = Boolean(o.trackingNumber);
                 return (
                   <tr
@@ -177,6 +182,11 @@ export default function DispatchedPage() {
               })}
             </tbody>
           </table>
+          <Pagination
+            page={page}
+            totalPages={Math.max(1, Math.ceil(dispatched.length / PAGE_SIZE))}
+            onPage={setPage}
+          />
         </div>
       )}
     </div>

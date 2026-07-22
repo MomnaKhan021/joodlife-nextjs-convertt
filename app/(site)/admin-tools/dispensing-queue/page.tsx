@@ -27,6 +27,7 @@ import {
   type LabelData,
 } from "../orders/[id]/dispensingLabel";
 import { refreshAdminBadges } from "../AdminShell";
+import Pagination from "../Pagination";
 
 type DispatchItem = { title: string | null; dose: string | null; quantity: number };
 type Consultation = {
@@ -488,11 +489,14 @@ function OrderCard({
   );
 }
 
+const PAGE_SIZE = 20;
+
 export default function DispatchQueuePage() {
   const [orders, setOrders] = useState<DispatchOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -541,7 +545,7 @@ export default function DispatchQueuePage() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { setQ(e.target.value); setPage(1); }}
           placeholder="Search by name, email or order number…"
           className="h-9 w-full max-w-[360px] rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] outline-none focus:border-[#142e2a]"
         />
@@ -568,21 +572,28 @@ export default function DispatchQueuePage() {
           No orders awaiting dispatch.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {awaiting.map((o) => (
-            <OrderCard
-              key={o.id}
-              o={o}
-              onDispatched={(id, tracking) =>
-                setOrders((prev) =>
-                  prev.map((x) =>
-                    x.id === id ? { ...x, dispatched: true, trackingNumber: tracking, status: "shipped" } : x,
-                  ),
-                )
-              }
-            />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-3">
+            {awaiting.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((o) => (
+              <OrderCard
+                key={o.id}
+                o={o}
+                onDispatched={(id, tracking) =>
+                  setOrders((prev) =>
+                    prev.map((x) =>
+                      x.id === id ? { ...x, dispatched: true, trackingNumber: tracking, status: "shipped" } : x,
+                    ),
+                  )
+                }
+              />
+            ))}
+          </div>
+          <Pagination
+            page={page}
+            totalPages={Math.max(1, Math.ceil(awaiting.length / PAGE_SIZE))}
+            onPage={setPage}
+          />
+        </>
       )}
     </div>
   );
