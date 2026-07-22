@@ -21,6 +21,8 @@ type CustomerData = {
     phone: string | null;
     joinedAt: string | null;
     hasAccount: boolean;
+    accountId?: number | null;
+    role?: string | null;
   };
   stats: {
     totalOrders: number;
@@ -203,15 +205,40 @@ export default function CustomerDetailClient({ email }: { email: string }) {
           >
             ‹
           </Link>
-          <div className="min-w-0">
-            <h1 className="text-[20px] font-semibold leading-tight text-[#1a1a1a]">
-              {customer.name || customer.email}
-            </h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-[20px] font-semibold leading-tight text-[#1a1a1a]">
+                {customer.name || customer.email}
+              </h1>
+              {customer.role ? (
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
+                    customer.role === "admin"
+                      ? "bg-[#142e2a] text-white"
+                      : customer.role === "staff"
+                        ? "bg-[#e7efe0] text-[#142e2a]"
+                        : "bg-[#f1f1f1] text-[#616161]"
+                  }`}
+                >
+                  {customer.role}
+                </span>
+              ) : null}
+            </div>
             <p className="mt-1 text-[13px] text-[#616161]">
               {customer.hasAccount ? "Customer" : "Guest (no account)"}
               {customer.joinedAt ? ` · joined ${fmtDate(customer.joinedAt)}` : ""}
             </p>
           </div>
+          {/* Manage access — opens the user editor (role: customer / staff /
+              admin + per-section staff permissions). Only when an account exists. */}
+          {customer.accountId ? (
+            <Link
+              href={`/admin-tools/edit/users/${customer.accountId}`}
+              className="mt-1 inline-flex h-9 shrink-0 items-center rounded-[8px] bg-[#142e2a] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+            >
+              Manage access
+            </Link>
+          ) : null}
         </div>
 
         {/* KPI strip */}

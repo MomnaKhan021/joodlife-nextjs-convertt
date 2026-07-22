@@ -105,6 +105,7 @@ type UserRow = {
   name: string | null;
   email: string | null;
   phone: string | null;
+  role: string | null;
   created_at: string | null;
 };
 
@@ -135,7 +136,7 @@ export async function GET(req: NextRequest) {
       ),
       drizzle.execute(
         sql.raw(`
-          SELECT id, name, email, phone, created_at
+          SELECT id, name, email, phone, role, created_at
           FROM users
           WHERE LOWER(email) = '${esc}'
           ORDER BY id ASC
@@ -243,6 +244,10 @@ export async function GET(req: NextRequest) {
         phone: account?.phone ?? null,
         joinedAt: account?.created_at ?? null,
         hasAccount: Boolean(account),
+        // For the "Manage access" control on the customer page: link to the
+        // user editor (role dropdown + staff permissions) and show the role.
+        accountId: account?.id ?? null,
+        role: account?.role ?? null,
       },
       stats: {
         totalOrders: orders.length,
