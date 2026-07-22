@@ -78,7 +78,13 @@ async function handle(req: NextRequest) {
     }
 
     if (existing) {
-      const data: Record<string, unknown> = { role: "admin" };
+      // Always clear any failed-login lockout so a password reset via this
+      // rescue endpoint immediately lets the user back in.
+      const data: Record<string, unknown> = {
+        role: "admin",
+        loginAttempts: 0,
+        lockUntil: null,
+      };
       if (password) data.password = password;
       const updated = await payload.update({
         collection: "users",
