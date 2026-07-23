@@ -288,15 +288,25 @@ input[type="time"] {
   min-height: 3rem;
   -webkit-appearance: none;
   appearance: none;
+  position: relative;
+  cursor: pointer;
 }
 input[type="date"]::-webkit-date-and-time-value,
 input[type="datetime-local"]::-webkit-date-and-time-value,
 input[type="time"]::-webkit-date-and-time-value {
   text-align: left;
 }
+/* Stretch the (invisible) native picker trigger across the WHOLE field, so
+   clicking anywhere — including on our drawn calendar glyph — opens the
+   browser's date picker. With the default hit-area it sat only in a small
+   corner, which made the visible icon feel dead. */
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
   cursor: pointer;
 }
