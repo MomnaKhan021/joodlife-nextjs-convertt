@@ -130,9 +130,86 @@ function captureError(err: unknown) {
 
 // Bump this when shipping a new diag — lets us confirm the function
 // is the latest build.
-const VERSION = "diag-v23-shopify-import";
+const VERSION = "diag-v24-secured";
+
+/**
+ * Diagnostics are secret-gated for production. Pass ?secret=<PAYLOAD_SECRET>
+ * (or ADMIN_BOOTSTRAP_SECRET). Unauthenticated callers get a bare liveness
+ * ping only — no env details, no maintenance actions (previously seed/migrate
+ * were callable by anyone, which is not acceptable on a live pharmacy).
+ */
+function diagAuthorized(req: NextRequest): boolean {
+  const s =
+    req.nextUrl.searchParams.get("secret") ||
+    req.headers.get("x-diag-secret") ||
+    "";
+  if (!s || s.length < 16) return false;
+  const p = process.env.PAYLOAD_SECRET;
+  const a = process.env.ADMIN_BOOTSTRAP_SECRET;
+  return (Boolean(p) && s === p) || (Boolean(a) && s === a);
+}
+
+/** Aggregate row counts — safe, non-PII go-live health numbers. */
+async function tableCounts() {
+  const { getPayloadInstance } = await import("@/lib/payload");
+  const payload = await getPayloadInstance();
+  const drizzle = (
+    payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }
+  ).drizzle;
+  const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
+  const asRows = (x: unknown): Array<Record<string, unknown>> =>
+    Array.isArray(x) ? (x as Array<Record<string, unknown>>) : ((x as { rows?: Array<Record<string, unknown>> })?.rows ?? []);
+  const out: Record<string, number | string> = {};
+  for (const t of ["users", "orders", "consultations", "products", "posts", "discounts"]) {
+    try {
+      const r = asRows(await drizzle!.execute!(sql.raw(`SELECT COUNT(*)::int AS n FROM "${t}"`)));
+      out[t] = Number(r[0]?.n ?? 0);
+    } catch (e) {
+      out[t] = `error: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+  return out;
+}
+
+/** Live HubSpot connectivity check — one lightweight authenticated API call. */
+async function hubspotPing(): Promise<{ ok: boolean; detail: string }> {
+  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+  if (!token) return { ok: false, detail: "HUBSPOT_ACCESS_TOKEN not set" };
+  try {
+    const r = await fetch("https://api.hubapi.com/crm/v3/objects/contacts?limit=1", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!r.ok) return { ok: false, detail: `HubSpot API responded ${r.status}` };
+    const j = (await r.json()) as { results?: unknown[] };
+    return { ok: true, detail: `connected (sample fetch ok, results: ${j.results?.length ?? 0})` };
+  } catch (e) {
+    return { ok: false, detail: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 export async function GET(req: NextRequest) {
+  if (!diagAuthorized(req)) {
+    // Bare liveness only — no env/config detail for anonymous callers.
+    return NextResponse.json({ ok: true, service: "joodlife", version: VERSION });
+  }
+
+  // ?status=1 — one-call go-live health report: DB counts + HubSpot + email.
+  if (req.nextUrl.searchParams.get("status") === "1") {
+    const [counts, hubspot] = await Promise.all([tableCounts(), hubspotPing()]);
+    return NextResponse.json({
+      ok: true,
+      version: VERSION,
+      db: counts,
+      hubspot,
+      email: {
+        smtpConfigured: Boolean(process.env.SMTP_HOST),
+        note: process.env.SMTP_HOST
+          ? "SMTP configured — transactional email active"
+          : "SMTP_HOST not set — password-reset / account emails are NOT being sent",
+      },
+    });
+  }
   // Optional ?probe=media — returns the raw media rows so we can
   // verify what's actually in the `url` column (Payload's REST API
   // overrides url on read for upload collections, which masks the
@@ -205,6 +282,15 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // ALL maintenance actions (migrate / seed-products / promote / …) mutate the
+  // database — secret required, no exceptions.
+  if (!diagAuthorized(req)) {
+    return NextResponse.json(
+      { ok: false, error: "Unauthorized — pass ?secret=<PAYLOAD_SECRET>" },
+      { status: 403 },
+    );
+  }
+
   const action = req.nextUrl.searchParams.get("action");
 
   // POST /api/diag?action=migrate — forces the Drizzle schema push so
