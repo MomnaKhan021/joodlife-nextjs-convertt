@@ -174,7 +174,7 @@ export default function WeightLossDetail() {
           <ul className="grid grid-cols-2 gap-2.5">
             {[...LEFT_CHIPS, ...RIGHT_CHIPS].map(renderChip)}
           </ul>
-          <div className="relative mx-auto mt-5 h-[240px] w-[150px]">
+          <div className="relative mx-auto mt-5 h-[320px] w-[200px]">
             <Image
               src="/assets/category/wl-man.png"
               alt="A member supported through his weight-loss journey"
@@ -188,8 +188,8 @@ export default function WeightLossDetail() {
 
         {/* Desktop: chips flank the portrait — left column high, right
             staggered lower; portrait sits behind (absolute). */}
-        <div className="relative mt-6 hidden h-[350px] w-full shrink-0 lg:block">
-          <div className="absolute bottom-0 left-1/2 z-0 h-[330px] w-[180px] -translate-x-1/2">
+        <div className="relative mt-6 hidden h-[400px] w-full shrink-0 lg:block">
+          <div className="absolute bottom-0 left-1/2 z-0 h-[380px] w-[210px] -translate-x-1/2">
             <Image
               src="/assets/category/wl-man.png"
               alt=""
@@ -218,14 +218,14 @@ export default function WeightLossDetail() {
           Continuous, expert guidance
         </h3>
 
-        <div className="relative mt-6 h-[320px] w-full flex-1 overflow-hidden rounded-[16px]">
+        <div className="relative mt-6 h-[400px] w-full flex-1 overflow-hidden rounded-[16px] md:h-[440px]">
           <Image
             src="/assets/category/wl-checkin.png"
             alt="Monthly video check-in with a licensed clinician"
             fill
             quality={90}
             sizes="(max-width: 1024px) 90vw, 560px"
-            className="object-contain"
+            className="object-cover"
           />
         </div>
 

@@ -91,7 +91,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
         onSlideChange={(s) => setActive(s.realIndex)}
         speed={600}
         spaceBetween={20}
-        slidesPerView={1.1}
+        slidesPerView={1}
         loop={canLoop}
         breakpoints={{
           640: { slidesPerView: 1.6, spaceBetween: 20 },

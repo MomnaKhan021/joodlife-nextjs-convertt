@@ -136,7 +136,7 @@ export default function Reviews() {
             modules={[Pagination, A11y]}
             speed={500}
             spaceBetween={20}
-            slidesPerView={1.1}
+            slidesPerView={1}
             breakpoints={{
               640: { slidesPerView: 1.6 },
               768: { slidesPerView: 2.2 },

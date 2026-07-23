@@ -36,7 +36,7 @@ export default function PeriodDetail() {
           travelling, attending a special event or planning ahead, our UK clinicians can
           assess whether norethisterone is appropriate for you.
         </p>
-        <div className="relative mt-6 h-[220px] w-full sm:h-[260px] md:h-[300px]">
+        <div className="relative -mb-6 mt-6 h-[260px] w-full sm:h-[300px] md:-mb-8 md:h-[340px]">
           <Image
             src="/assets/category/period-hand.png"
             alt="Hand holding a Norethisterone tablet"

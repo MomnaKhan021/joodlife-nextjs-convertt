@@ -180,7 +180,7 @@ export default function CategoryPreview({
           {/* Section content cards — pulled up to overlap the portrait's
               lower half; their backdrop-blur softens the figure behind. */}
           {children ? (
-            <div className="relative z-10 -mt-[120px] md:-mt-[185px]">{children}</div>
+            <div className="relative z-10 -mt-[150px] md:-mt-[185px]">{children}</div>
           ) : (
             <p className="relative z-10 mx-auto mt-8 max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
               {category.blurb}

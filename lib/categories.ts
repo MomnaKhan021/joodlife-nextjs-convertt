@@ -105,6 +105,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     ],
     cardImage: "/assets/figma/hero-two-women-desktop.png",
     heroImage: "/assets/category/wl-hero.png",
+    heroImageScale: 1.18,
     imageAlt: "A woman laughing after a successful weight-loss journey",
     theme: {
       base: "#142e2a",
@@ -132,7 +133,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     cardImage: "/assets/home/hero-ed-man.png",
     heroImage: "/assets/category/ed-hero.png",
     heroBackdrop: "/assets/category/ed-clouds.png",
-    heroImageScale: 1.28,
+    heroImageScale: 1.45,
     imageAlt: "Man considering his options for erectile-dysfunction treatment",
     theme: {
       base: "#1a8ec1",
@@ -161,6 +162,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     ],
     cardImage: "/assets/home/hero-pd-woman.png",
     heroImage: "/assets/category/period-hero.png",
+    heroImageScale: 1.18,
     heroCards: "/assets/category/pd-cards.png",
     heroBackdrop: "/assets/category/pd-backdrop.png",
     heroBackdropFade: "#e3a6bb",
