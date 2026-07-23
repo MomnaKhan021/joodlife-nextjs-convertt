@@ -48,11 +48,41 @@ function resolveDb(): { name: string | null; value: string | null } {
   return { name: null, value: null };
 }
 
+/** Host of a Postgres URL (no credentials), or null. */
+function dbHostOf(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Branch guard: when EXPECTED_DB_HOST is set (the main-branch Neon endpoint,
+ * e.g. "ep-late-frost-aml667fh"), report whether the connected database
+ * matches it. "-pooler" and region suffixes are ignored so both the pooled and
+ * direct endpoints of the same branch pass.
+ */
+function dbBranchCheck(url: string | null | undefined) {
+  const expectedRaw = (process.env.EXPECTED_DB_HOST ?? "").trim();
+  const host = dbHostOf(url);
+  if (!expectedRaw) return { host, expected: null, matchesMainBranch: null };
+  const norm = (h: string) => h.split(".")[0].replace(/-pooler$/, "");
+  const expected = norm(expectedRaw);
+  return {
+    host,
+    expected: expectedRaw,
+    matchesMainBranch: host ? norm(host) === expected : false,
+  };
+}
+
 function envSnapshot() {
   const db = resolveDb();
   return {
     DATABASE_URL_resolved_from: db.name,
     DATABASE_URL: describe(db.value ?? undefined),
+    db_branch_check: dbBranchCheck(db.value),
     PAYLOAD_SECRET: describe(process.env.PAYLOAD_SECRET),
     NEXT_PUBLIC_SERVER_URL: describe(process.env.NEXT_PUBLIC_SERVER_URL),
     PAYLOAD_PUBLIC_SERVER_URL: describe(process.env.PAYLOAD_PUBLIC_SERVER_URL),

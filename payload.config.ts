@@ -66,6 +66,35 @@ function resolveDatabaseUrl(): string {
 const DATABASE_URL = resolveDatabaseUrl();
 
 /**
+ * Database branch guard. This Neon database is ONLY for JoodLife and the app
+ * must always run against the MAIN branch. Set EXPECTED_DB_HOST in Vercel to
+ * the main branch's endpoint id (e.g. "ep-late-frost-aml667fh"); if a deploy
+ * ever resolves a different host (a preview branch, or a swapped/reconnected
+ * integration — the cause of the July 2026 "empty database" incident), this
+ * logs an unmissable error on boot and /api/diag reports the mismatch.
+ * Pooled ("-pooler") and direct endpoints of the same branch both pass.
+ */
+(() => {
+  const expected = (process.env.EXPECTED_DB_HOST ?? "").trim();
+  if (!expected || !DATABASE_URL) return;
+  let host = "";
+  try {
+    host = new URL(DATABASE_URL).hostname;
+  } catch {
+    return;
+  }
+  const norm = (h: string) => h.split(".")[0].replace(/-pooler$/, "");
+  if (norm(host) !== norm(expected)) {
+    console.error(
+      `[db-branch-guard] ✖ DATABASE MISMATCH: connected to "${host}" but ` +
+        `EXPECTED_DB_HOST is "${expected}". This deploy is NOT using the ` +
+        `JoodLife main-branch database — fix the Vercel database env vars ` +
+        `before trusting any data on this deployment.`,
+    );
+  }
+})();
+
+/**
  * Resolve the canonical public URL for this deployment. Payload uses
  * `serverURL` to build absolute links in account emails (verify-email /
  * reset-password) and elsewhere, so it must point at the real site — not a
