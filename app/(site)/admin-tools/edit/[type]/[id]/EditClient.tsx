@@ -626,6 +626,11 @@ function AnswersEditor({
                 </label>
               );
             }
+            // Uploaded files (evidence photos etc.) are stored as URLs —
+            // keep the value editable but add a link that opens the image
+            // in a new tab so pharmacists can actually view it.
+            const isUrlValue =
+              typeof raw === "string" && /^https?:\/\//i.test(raw.trim());
             return (
               <label key={k} className="ed-field">
                 <span className="ed-label">{labelFor(k)}</span>
@@ -635,6 +640,16 @@ function AnswersEditor({
                   onChange={(e) => update(k, e.target.value)}
                   className="ed-input"
                 />
+                {isUrlValue ? (
+                  <a
+                    href={String(raw).trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex w-fit items-center gap-1 text-[13px] font-semibold text-[#1450b0] underline underline-offset-2 hover:text-[#0f3d86]"
+                  >
+                    View image / file ↗
+                  </a>
+                ) : null}
               </label>
             );
           })}
