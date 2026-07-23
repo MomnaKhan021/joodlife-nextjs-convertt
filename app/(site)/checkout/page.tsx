@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import CheckoutClient from "./CheckoutClient";
+import CheckoutCartButton from "@/components/checkout/CheckoutCartButton";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export default function CheckoutPage() {
   return (
     <main className="flex min-h-screen flex-col bg-[#fbfbf6] font-ui text-[#142e2a]">
       {/* ── Header: centred JOOD wordmark ── */}
-      <header className="flex h-[84px] shrink-0 items-center justify-center border-b border-[#142e2a]/10 bg-white">
+      <header className="relative flex h-[84px] shrink-0 items-center justify-center border-b border-[#142e2a]/10 bg-white">
         <Link href="/" aria-label="JoodLife home">
           <Image
             src="/assets/icons/logo-wesmount.svg"
@@ -28,6 +29,9 @@ export default function CheckoutPage() {
             priority
           />
         </Link>
+        {/* Top-right cart icon — opens the drawer so items can be reviewed
+            or removed without leaving checkout. */}
+        <CheckoutCartButton />
       </header>
 
       {/* ── Body ── */}

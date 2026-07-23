@@ -8,8 +8,6 @@ interface DosagePickerProps {
   fromPrice: string;
   /** Called when "Am I Eligible?" CTA is clicked */
   onEligibilityCheck?: (dosage: Dosage) => void;
-  /** Called when "Add to Cart" CTA is clicked */
-  onAddToCart?: (dosage: Dosage) => void;
 }
 
 /**
@@ -18,14 +16,13 @@ interface DosagePickerProps {
  * Renders a grid of dosage cards (6 across on desktop, 2 across on
  * mobile). Each card shows the dose label and its pack price. The
  * selected dose gets a dark-green outline. Below the grid: the "from"
- * monthly price + two stacked CTAs ("Add to Cart" primary,
- * "Am I Eligible?" secondary).
+ * monthly price + the single "Check if I'm Eligible" CTA (no direct
+ * add-to-cart — purchase happens on the post-consultation page).
  */
 export default function DosagePicker({
   dosages,
   fromPrice,
   onEligibilityCheck,
-  onAddToCart,
 }: DosagePickerProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -106,17 +103,13 @@ export default function DosagePicker({
         </div>
 
         <div className="flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => onAddToCart?.(dosages[selectedIndex])}
-            className="inline-flex h-[54px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-bold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142e2a]"
-          >
-            Continue
-          </button>
+          {/* No direct add-to-cart on product pages — medication is only
+              purchasable after the consultation, from the final product
+              page. Eligibility is the single (primary) CTA. */}
           <button
             type="button"
             onClick={() => onEligibilityCheck?.(dosages[selectedIndex])}
-            className="inline-flex h-[54px] w-full items-center justify-center rounded-lg border-2 border-[#142e2a] bg-transparent px-6 font-ui text-[14px] font-bold uppercase tracking-[0.06em] text-[#142e2a] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142e2a]"
+            className="inline-flex h-[54px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-bold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142e2a]"
           >
             Check if I&apos;m Eligible
           </button>

@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import DosagePicker from "./DosagePicker";
 import { PlusIcon } from "./PdpIcons";
-import { useCart } from "@/components/cart/CartContext";
 import type { Dosage, PDPProduct } from "@/lib/pdp-products";
 
 interface ProductInfoProps {
@@ -20,18 +18,8 @@ interface ProductInfoProps {
  * dashboard product id (e.g. DB momentarily unavailable). Normally the
  * DB id passed via props is used.
  */
-const PRODUCT_ID_BY_SLUG: Record<string, number> = {
-  mounjaro: 1001,
-  wegovy: 1002,
-  "wegovy-pill": 1003,
-};
 
 /** "£90.00" → 90, "From £112" → 112, falls back to 0 on garbage. */
-function parsePrice(formatted: string): number {
-  const match = formatted.match(/(\d[\d,]*\.?\d*)/);
-  if (!match) return 0;
-  return Number.parseFloat(match[1].replace(/,/g, "")) || 0;
-}
 
 /**
  * Product info column — Figma 3:1664 (right side).
@@ -45,24 +33,13 @@ function parsePrice(formatted: string): number {
  *   6. Three service chips (Next-day delivery / Safe payment / etc)
  *   7. Accordions: How it works / Is X safe? / Side effects
  */
-export default function ProductInfo({ product, productId }: ProductInfoProps) {
+// productId stays in the props interface (callers still pass it) but is no
+// longer read — adding to cart moved to the post-consultation page.
+export default function ProductInfo({ product }: ProductInfoProps) {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const router = useRouter();
-  const { addItem, openDrawer } = useCart();
 
-  const handleAddToCart = (dosage: Dosage) => {
-    addItem({
-      productId: productId ?? PRODUCT_ID_BY_SLUG[product.slug] ?? 0,
-      slug: product.slug,
-      title: product.title,
-      // Blank label = simple product with no dose → send null so checkout
-      // reprices by the product's base price instead of matching a variant.
-      dose: dosage.label || null,
-      price: parsePrice(dosage.perPack),
-      imageUrl: product.gallery[0]?.src ?? null,
-    });
-    openDrawer();
-  };
+
 
   const handleEligibility = (dosage: Dosage) => {
     const params = new URLSearchParams({
@@ -113,7 +90,6 @@ export default function ProductInfo({ product, productId }: ProductInfoProps) {
       <DosagePicker
         dosages={product.dosages}
         fromPrice={product.fromPrice}
-        onAddToCart={handleAddToCart}
         onEligibilityCheck={handleEligibility}
       />
 
