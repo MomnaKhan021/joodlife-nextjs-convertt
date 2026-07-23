@@ -123,7 +123,7 @@ export default function MegaMenu({ onNavigate }: { onNavigate?: () => void }) {
               </li>
             ))}
           </ul>
-          <span className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-transform duration-200 group-hover/promo:-translate-y-0.5">
+          <span className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-shadow duration-200 group-hover/promo:shadow-[0_8px_20px_rgba(0,0,0,0.25)]">
             Explore More
           </span>
         </div>

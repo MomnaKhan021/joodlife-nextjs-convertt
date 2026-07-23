@@ -127,7 +127,7 @@ function ShopCard({
   return (
     <article
       ref={ref as never}
-      className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-3xl transition-[transform,box-shadow,opacity] ease-out hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(20,46,42,0.16)]"
+      className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-3xl transition-[box-shadow,opacity] ease-out hover:shadow-[0_24px_48px_rgba(20,46,42,0.16)]"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible
