@@ -218,7 +218,7 @@ export default function WeightLossDetail() {
           Continuous, expert guidance
         </h3>
 
-        <div className="relative mt-6 h-[400px] w-full flex-1 overflow-hidden rounded-[16px] md:h-[440px]">
+        <div className="relative mt-6 min-h-[400px] w-full flex-1 overflow-hidden rounded-[16px] md:min-h-[440px]">
           <Image
             src="/assets/category/wl-checkin.png"
             alt="Monthly video check-in with a licensed clinician"
