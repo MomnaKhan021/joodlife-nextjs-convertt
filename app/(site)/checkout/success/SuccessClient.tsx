@@ -159,12 +159,16 @@ export default function SuccessClient({ orderNumber }: { orderNumber: string }) 
       ) : null}
 
       <div className="mt-10 flex flex-col items-center gap-3 md:flex-row md:justify-center">
-        <Link
-          href="/consultation"
+        {/* Same HubSpot video-consultation scheduler as the order
+            confirmation email (BOOKING_URL in lib/account-email.ts). */}
+        <a
+          href="https://meetings-eu1.hubspot.com/jood-life"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#0c2421] md:w-auto"
         >
           Book consultation
-        </Link>
+        </a>
         <Link
           href="/login?next=/profile"
           className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-[#142e2a]/25 bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] transition-colors hover:bg-[#f7f9f2] md:w-auto"
