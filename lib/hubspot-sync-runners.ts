@@ -28,6 +28,16 @@ import {
 export type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
 export type SqlRaw = { raw: (s: string) => unknown };
 
+
+/** HubSpot dates arrive as ISO strings or epoch-ms — normalise to an ISO
+ *  string usable as a timestamptz literal, or null when absent/invalid. */
+function hsDate(v: unknown): string | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  const d = Number.isFinite(n) && n > 1e11 ? new Date(n) : new Date(String(v));
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 export type PageStats = {
   inserted: number;
   updated: number;
@@ -162,12 +172,15 @@ export async function runContactsPage(
     const lastName = c.properties.lastname ?? "";
     const phone = c.properties.phone ?? null;
     const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+    // Original contact-creation time from HubSpot — used as the "joined" date.
+    const contactCreatedLit = (() => { const v = hsDate(c.properties.createdate); return v ? `'${v}'::timestamptz` : "NULL"; })();
 
     try {
       const updateStmt = `
         UPDATE "users"
         SET name = ${esc(fullName || email.split("@")[0])},
             phone = COALESCE(${esc(phone)}, phone),
+            created_at = COALESCE(${contactCreatedLit}, created_at),
             updated_at = now()
         WHERE email = ${esc(email)}
         RETURNING id;
@@ -186,7 +199,7 @@ export async function runContactsPage(
         VALUES
           (${esc(fullName || email.split("@")[0])}, ${esc(email)},
            'customer', ${esc(hash)}, ${esc(salt)}, ${esc(phone)},
-           now(), now())
+           now(), COALESCE(${contactCreatedLit}, now()))
         ON CONFLICT DO NOTHING
         RETURNING id;
       `;
@@ -266,6 +279,8 @@ export async function runDealsPage(
 
   for (const d of deals) {
     const p = d.properties;
+    // Original deal creation time from HubSpot — NOT the import time.
+    const dealCreatedLit = (() => { const v = hsDate(p.createdate); return v ? `'${v}'::timestamptz` : "NULL"; })();
     const dealId = d.id;
     // Declared outside the try so the catch block can tag the error
     // with the step that threw.
@@ -349,6 +364,7 @@ export async function runDealsPage(
               status           = ${esc(status)},
               notes            = COALESCE(${esc(orderNotes)}, notes),
               user_id          = COALESCE(${escNum(userId)}, user_id),
+              created_at       = COALESCE(${dealCreatedLit}, created_at),
               updated_at       = now()
           WHERE hubspot_deal_id = ${esc(dealId)}
           RETURNING id;
@@ -377,6 +393,7 @@ export async function runDealsPage(
               status           = ${esc(status)},
               notes            = COALESCE(${esc(orderNotes)}, notes),
               user_id          = COALESCE(${escNum(userId)}, user_id),
+              created_at       = COALESCE(${dealCreatedLit}, created_at),
               updated_at       = now()
           WHERE order_number = ${esc(orderNumber)}
           RETURNING id;
@@ -394,6 +411,7 @@ export async function runDealsPage(
               status           = ${esc(status)},
               notes            = COALESCE(${esc(orderNotes)}, notes),
               user_id          = COALESCE(${escNum(userId)}, user_id),
+              created_at       = COALESCE(${dealCreatedLit}, created_at),
               updated_at       = now()
           WHERE order_number = ${esc(orderNumber)}
           RETURNING id;
@@ -420,7 +438,7 @@ export async function runDealsPage(
              ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
              ${escNum(totalAmount)}, ${escNum(discountAmount)},
              ${esc(paymentMethod)}, ${esc(status)},
-             ${esc(orderNotes)}, now(), now())
+             ${esc(orderNotes)}, now(), COALESCE(${dealCreatedLit}, now()))
           ON CONFLICT DO NOTHING
           RETURNING id;
         `
@@ -437,7 +455,7 @@ export async function runDealsPage(
              ${esc(shippingAddress)}, ${itemsLiteral}::jsonb,
              ${escNum(totalAmount)}, ${escNum(discountAmount)},
              ${esc(paymentMethod)}, ${esc(status)},
-             ${esc(orderNotes)}, now(), now())
+             ${esc(orderNotes)}, now(), COALESCE(${dealCreatedLit}, now()))
           ON CONFLICT DO NOTHING
           RETURNING id;
         `;
@@ -514,6 +532,9 @@ export async function runConsultationsPage(
         p.hs_meeting_outcome ??
         p.hs_appointment_status;
       const status = mapConsultationStatus(rawStatus);
+      // Original submission time from HubSpot — NOT the import time.
+      const createdAtIso = hsDate(p.hs_createdate ?? p.createdate);
+      const createdLit = createdAtIso ? `'${createdAtIso}'::timestamptz` : "NULL";
 
       // Answers: try a JSON `answers` property first; otherwise
       // build a minimal payload from the appointment metadata so
@@ -555,6 +576,7 @@ export async function runConsultationsPage(
               answers        = ${answersLiteral}::jsonb,
               status         = ${esc(status)},
               user_id        = COALESCE(${escNum(userId)}, user_id),
+              created_at     = COALESCE(${createdLit}, created_at),
               updated_at     = now()
           WHERE hubspot_object_id = ${esc(objectId)}
           RETURNING id;
@@ -577,7 +599,7 @@ export async function runConsultationsPage(
              ${esc(phone || null)}, ${esc(dateOfBirth || null)},
              ${esc(productSlug || null)}, ${esc(dose || null)},
              ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
-             now(), now())
+             now(), COALESCE(${createdLit}, now()))
           RETURNING id;
         `
         : `
@@ -590,7 +612,7 @@ export async function runConsultationsPage(
              ${esc(phone || null)}, ${esc(dateOfBirth || null)},
              ${esc(productSlug || null)}, ${esc(dose || null)},
              ${answersLiteral}::jsonb, ${esc(status)}, ${escNum(userId)},
-             now(), now())
+             now(), COALESCE(${createdLit}, now()))
           RETURNING id;
         `;
       const insertRes = await drizzle.execute(sql.raw(insertStmt));

@@ -28,8 +28,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Admin session OR the maintenance secret (so the call-time cache can be
+  // backfilled for the WHOLE queue from a script, not just viewed pages).
+  const secret = req.nextUrl.searchParams.get("secret") ?? "";
+  const secretOk =
+    secret.length >= 16 &&
+    ((Boolean(process.env.PAYLOAD_SECRET) && secret === process.env.PAYLOAD_SECRET) ||
+      (Boolean(process.env.ADMIN_BOOTSTRAP_SECRET) && secret === process.env.ADMIN_BOOTSTRAP_SECRET));
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!user || (user as unknown as { role?: string }).role !== "admin") {
+  const isAdminUser = Boolean(user && (user as unknown as { role?: string }).role === "admin");
+  if (!isAdminUser && !secretOk) {
     return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
   }
 
@@ -39,15 +47,60 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, times: {}, links: {} });
   }
 
-  let body: { emails?: unknown };
-  try {
-    body = (await req.json()) as { emails?: unknown };
-  } catch {
-    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+  const drizzleForRead = (
+    payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }
+  ).drizzle;
+  const { sql: sqlForRead } = (await import("drizzle-orm")) as {
+    sql: { raw: (s: string) => unknown };
+  };
+  const asRows = (x: unknown): Array<Record<string, unknown>> =>
+    Array.isArray(x) ? (x as Array<Record<string, unknown>>) : ((x as { rows?: Array<Record<string, unknown>> })?.rows ?? []);
+
+  let emails: string[] = [];
+  // ?backfill=1 — pick the next batch of pending video-consult patients whose
+  // call time hasn't been cached (or is stale), so a simple loop can cache the
+  // entire queue and the global upcoming-first ordering becomes accurate.
+  const backfill = req.nextUrl.searchParams.get("backfill") === "1";
+  let remaining = 0;
+  if (backfill) {
+    if (!drizzleForRead?.execute) {
+      return NextResponse.json({ ok: false, error: "db unavailable" }, { status: 500 });
+    }
+    const cond = `status IN ('submitted', 'reviewed')
+        AND email IS NOT NULL AND TRIM(email) <> ''
+        AND COALESCE(answers->>'video_consultation_preference', '') NOT IN ('', 'false')
+        AND (
+          answers->>'_meeting_checked_at' IS NULL
+          OR NOT (COALESCE(answers->>'_meeting_checked_at','') ~ '^\\d{4}-\\d{2}-\\d{2}')
+          OR (answers->>'_meeting_checked_at')::timestamptz < now() - interval '12 hours'
+        )`;
+    const rows = asRows(
+      await drizzleForRead.execute(
+        sqlForRead.raw(
+          `SELECT DISTINCT LOWER(email) AS email FROM "consultations" WHERE ${cond} LIMIT 40`,
+        ),
+      ),
+    );
+    emails = rows.map((r) => String(r.email ?? "")).filter(Boolean);
+    const cnt = asRows(
+      await drizzleForRead.execute(
+        sqlForRead.raw(
+          `SELECT COUNT(DISTINCT LOWER(email))::int AS n FROM "consultations" WHERE ${cond}`,
+        ),
+      ),
+    );
+    remaining = Math.max(0, Number(cnt[0]?.n ?? 0) - emails.length);
+  } else {
+    let body: { emails?: unknown };
+    try {
+      body = (await req.json()) as { emails?: unknown };
+    } catch {
+      return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+    }
+    emails = Array.isArray(body.emails)
+      ? body.emails.filter((e): e is string => typeof e === "string").slice(0, 60)
+      : [];
   }
-  const emails = Array.isArray(body.emails)
-    ? body.emails.filter((e): e is string => typeof e === "string").slice(0, 60)
-    : [];
 
   const info = await getMeetingInfoForEmails(emails);
   const times: Record<string, string | null> = {};
@@ -91,5 +144,10 @@ export async function POST(req: NextRequest) {
     /* cache write is best-effort */
   }
 
-  return NextResponse.json({ ok: true, times, links });
+  return NextResponse.json({
+    ok: true,
+    times,
+    links,
+    ...(backfill ? { processed: emails.length, remaining } : {}),
+  });
 }
