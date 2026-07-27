@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/sections/home/Footer";
 import RichText from "@/components/blog/RichText";
 import PostCard from "@/components/blog/PostCard";
+import EnquiryForm from "@/components/blog/EnquiryForm";
 import {
   categoryLabel,
   formatPublishedDate,
@@ -203,6 +204,11 @@ export default async function BlogPostPage({
           </div>
         </div>
       </article>
+
+      {/* Enquiry — ask a question about this article (goes to HubSpot) */}
+      <section aria-label="Send an enquiry" className="mx-auto w-full max-w-[760px] px-6 pb-4 md:px-0">
+        <EnquiryForm source={`https://joodlife.shop/blogs/${post.slug}`} />
+      </section>
 
       {/* Related */}
       {related.length > 0 ? (

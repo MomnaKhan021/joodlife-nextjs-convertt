@@ -311,7 +311,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v1";
+const SCHEMA_VERSION = "v2";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

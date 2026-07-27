@@ -137,6 +137,14 @@ export const Posts: CollectionConfig = {
       fields: [{ name: "tag", type: "text", required: true }],
     },
     {
+      name: "authorName",
+      type: "text",
+      admin: {
+        description:
+          "Byline shown on the article (e.g. \"Dr Sarah Ahmed\"). Overrides the linked author account's name.",
+      },
+    },
+    {
       name: "author",
       type: "relationship",
       relationTo: "users",

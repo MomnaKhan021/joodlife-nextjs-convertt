@@ -100,7 +100,7 @@ const LIST_SELECT = `p.id, p.title, p.slug, p.excerpt,
        COALESCE(m.url, p.hero_image_url) AS hero_image_url,
        COALESCE(m.alt, p.title)          AS hero_image_alt,
        p.category, p.published_at,
-       u.name AS author_name`;
+       COALESCE(p.author_name, u.name) AS author_name`;
 
 const LIST_FROM = `FROM posts p
        LEFT JOIN media m ON m.id = p.hero_image_id

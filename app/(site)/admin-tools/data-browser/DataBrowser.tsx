@@ -107,6 +107,53 @@ const StatusPill = ({ value }: { value: unknown }) => {
   return <span className={`db-pill db-pill--${tone}`}>{String(value ?? "—")}</span>;
 };
 
+/** One-click Published ⇄ Draft switch for blog posts, straight from the list.
+ *  Optimistic: the pill flips immediately, then persists via the record API. */
+const PostStatusToggle = ({ id, initial }: { id: number; initial: string }) => {
+  const [status, setStatus] = useState(initial || "draft");
+  const [busy, setBusy] = useState(false);
+  const next = status === "published" ? "draft" : "published";
+  const flip = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    const prev = status;
+    setStatus(next);
+    try {
+      const res = await fetch(`/api/admin-tools/record?type=posts&id=${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ fields: { status: next } }),
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j.error ?? "failed");
+    } catch {
+      setStatus(prev); // revert on failure
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={flip}
+      disabled={busy}
+      title={`Click to ${next === "published" ? "publish" : "move to draft"}`}
+      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors disabled:opacity-50"
+      style={
+        status === "published"
+          ? { background: "#cdfee1", color: "#0c5132", borderColor: "#9be3bd" }
+          : { background: "#ffea8a", color: "#5c4813", borderColor: "#eeda7a" }
+      }
+    >
+      {status === "published" ? "Published" : "Draft"}
+      <span aria-hidden style={{ opacity: 0.6 }}>⇄</span>
+    </button>
+  );
+};
+
 /** Parse an order's items_json into { title, dose } line items for labels. */
 function parseOrderLineItems(raw: unknown): Array<{ title: string; dose: string | null }> {
   let val: unknown = raw;
@@ -337,7 +384,13 @@ const TABS: TabSpec[] = [
     columns: [
       { key: "title", label: "Title" },
       { key: "category", label: "Category" },
-      { key: "status", label: "Status", render: (r) => <StatusPill value={r.status} /> },
+      {
+        key: "status",
+        label: "Status",
+        render: (r) => (
+          <PostStatusToggle id={Number(r.id)} initial={String(r.status ?? "draft")} />
+        ),
+      },
       {
         key: "published_at",
         label: "Published",

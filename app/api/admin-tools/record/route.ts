@@ -310,6 +310,7 @@ const SPECS: Record<string, Spec> = {
       slug: "text",
       excerpt: "textarea",
       body_html: "textarea",
+      author_name: "text",
       hero_image_url: "text",
       category: "text",
       status: "text",
