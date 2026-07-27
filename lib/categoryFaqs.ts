@@ -20,20 +20,24 @@ export const CATEGORY_FAQS: Record<CategoryKey, Faq[]> = {
   ],
   "erectile-dysfunction": [
     {
-      q: "Are erectile-dysfunction treatments effective?",
-      a: "Clinically approved ED treatments are highly effective for most men. After a short assessment, a UK-registered prescriber recommends the option best suited to you.",
+      q: "How do erectile dysfunction treatments work?",
+      a: "Erectile dysfunction treatments help improve blood flow to the penis, making it easier to get and maintain an erection when you are sexually aroused. After your online consultation, a licensed provider will review your health details and recommend a suitable treatment option.",
     },
     {
-      q: "Is my order discreet?",
-      a: "Completely. Treatments arrive in plain, unbranded packaging with next-day delivery, so your privacy is always protected.",
+      q: "Are ED treatments safe?",
+      a: "Yes. All treatments are MHRA/GPhC licensed and prescribed by UK-registered clinicians only after reviewing your full health assessment to confirm they are appropriate for you.",
     },
     {
-      q: "Do I need to see a doctor in person?",
-      a: "No. Complete the online assessment and a licensed clinician reviews it remotely before approving a suitable, safe treatment.",
+      q: "Is the consultation private?",
+      a: "Completely. Your assessment is confidential and treatments arrive in plain, unbranded packaging with discreet next-day delivery, so your privacy is always protected.",
     },
     {
-      q: "Can I get ongoing support?",
-      a: "Yes — our clinical team is available 24/7 via WhatsApp to answer questions and adjust your treatment if needed.",
+      q: "How quickly can I receive my medication?",
+      a: "Once approved, your treatment is dispensed by our pharmacy and sent with discreet, next-day delivery so you can start when it suits you.",
+    },
+    {
+      q: "Can my treatment be adjusted if needed?",
+      a: "Yes — our clinical team is available to review how you're getting on and can adjust your treatment plan for the best results.",
     },
   ],
   "period-delay": [

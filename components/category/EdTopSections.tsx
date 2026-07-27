@@ -140,7 +140,7 @@ export function EdHero() {
               <Trustpilot dark />
             </Reveal>
             <Reveal as="div" delay={60}>
-              <h1 className="mt-5 max-w-[16ch] font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.025em] text-white md:text-[54px]">
+              <h1 className="mt-5 max-w-[16ch] font-display text-[32px] font-semibold leading-[1.16] tracking-[-0.025em] text-white md:text-[54px] md:leading-[1.08]">
                 Regain confidence &amp;{" "}
                 <em className="font-serif font-normal italic">
                   control your performance
@@ -212,7 +212,7 @@ export function EdJourney() {
               </span>
               <h2
                 id="ed-journey"
-                className="mt-4 font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]"
+                className="mt-4 font-display text-[30px] font-semibold leading-[1.18] tracking-[-0.02em] text-white md:text-[44px] md:leading-[1.1]"
               >
                 What to expect in{" "}
                 <em className="font-serif font-normal italic">your journey</em>

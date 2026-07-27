@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
+import EdConfidenceStat from "@/components/category/EdConfidenceStat";
 
 /**
  * Erectile-dysfunction page sections — Figma "Joodlife - Next js (Erectile
@@ -73,128 +74,94 @@ const BENEFITS = [
 
 const STEPS = [
   {
-    step: "Step 01",
+    step: "Step 1",
     n: "01",
     title: "Health assessment",
     body: "Complete a quick confidential form about your health, symptoms, and treatment goals.",
   },
   {
-    step: "Step 02",
+    step: "Step 2",
     n: "02",
     title: "Expert review",
     body: "A licensed provider reviews your answers and recommends a suitable erectile dysfunction treatment.",
   },
   {
-    step: "Step 03",
+    step: "Step 3",
     n: "03",
     title: "Get medication",
     body: "If approved, your treatment is delivered discreetly with clear instructions and ongoing support.",
   },
 ];
 
-/** Assessment-card mockup used by the step cards and the quiz card. Built in
- *  CSS rather than a flat export so it stays sharp at every breakpoint. */
-function AssessmentMock({ tone = "light" }: { tone?: "light" | "dark" }) {
-  const cardBg = tone === "dark" ? "bg-white" : "bg-white";
+/** Assessment-card mockup (step 01 + the quiz card). Built in CSS in the same
+ *  visual language as the home-page "How it works" illustrations — a cream
+ *  progress card behind a white assessment card with a dark-green arrow. */
+function AssessmentMock() {
   return (
-    <div className="relative mx-auto h-[150px] w-[190px]" aria-hidden>
-      <span className="absolute right-0 top-1 h-[104px] w-[112px] rotate-[10deg] rounded-[12px] bg-[#dfe9d8]" />
-      <div
-        className={`absolute left-0 top-4 w-[130px] rounded-[12px] ${cardBg} p-3 shadow-[0_8px_20px_rgba(20,46,42,0.14)]`}
-      >
-        <p className="font-ui text-[11px] font-bold leading-[14px] text-[#142e2a]">
-          Erectile Health
-          <br />
-          Assessment
+    <div className="relative mx-auto h-[210px] w-[260px]" aria-hidden>
+      {/* Progress card behind (cream) */}
+      <div className="absolute right-0 top-1 w-[150px] rotate-[7deg] rounded-[16px] bg-[#eef2e6] p-3 shadow-[0_10px_24px_rgba(20,46,42,0.10)]">
+        <p className="font-ui text-[10px] font-semibold text-[#142e2a]/70">
+          Your Progress
         </p>
-        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#142e2a] px-2 py-1 font-ui text-[9px] font-semibold text-white">
-          Get Started
-          <span className="grid h-3 w-3 place-items-center rounded-full bg-[#4eabd2] text-[7px]">
-            →
-          </span>
-        </span>
-      </div>
-      <span className="absolute bottom-2 right-3 font-serif text-[30px] italic leading-none text-[#142e2a]">
-        ♂
-      </span>
-    </div>
-  );
-}
-
-/** Step-03 "get medication" mock — a "Ready to Get Medication?" card with a
- *  personalised-care graph and the treatment tablet, matching the Figma. */
-function MedicationMock() {
-  return (
-    <div className="relative mx-auto h-[150px] w-[200px]" aria-hidden>
-      {/* Personalised-care graph card (behind, right) */}
-      <div className="absolute right-0 top-2 w-[120px] rounded-[12px] bg-[#f2f5ec] p-2.5 shadow-[0_8px_20px_rgba(20,46,42,0.10)]">
-        <p className="font-ui text-[8.5px] font-semibold leading-tight text-[#142e2a]/70">
-          Your Personalized Care
-        </p>
-        <svg viewBox="0 0 100 40" className="mt-1 h-8 w-full" aria-hidden>
+        <svg viewBox="0 0 120 60" className="mt-1 h-[54px] w-full" aria-hidden>
           <polyline
-            points="0,34 20,28 40,30 60,16 80,18 100,6"
+            points="4,50 30,44 56,30 84,22 116,8"
             fill="none"
-            stroke="#1a8ec1"
+            stroke="#142e2a"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       </div>
-      {/* Main call-to-action card (front, left) */}
-      <div className="absolute left-0 top-8 w-[140px] rounded-[12px] bg-white p-3 shadow-[0_10px_24px_rgba(20,46,42,0.16)]">
-        <p className="font-ui text-[11px] font-bold leading-[14px] text-[#142e2a]">
-          Ready to Get
+      {/* White assessment card (front) */}
+      <div className="absolute left-0 top-10 w-[184px] rounded-[16px] bg-white p-4 shadow-[0_16px_34px_rgba(20,46,42,0.16)]">
+        <p className="font-display text-[16px] font-semibold leading-[20px] text-[#142e2a]">
+          Erectile Health
           <br />
-          Medication?
+          Assessment
         </p>
-        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#142e2a] px-2 py-1 font-ui text-[9px] font-semibold text-white">
-          Continue
-          <span className="grid h-3 w-3 place-items-center rounded-full bg-[#4eabd2] text-[7px]">
+        <div className="mt-3 flex items-center justify-between">
+          <span className="font-ui text-[11px] font-semibold text-[#142e2a]/60">
+            Get Started
+          </span>
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-[#142e2a] text-[13px] text-white">
             →
           </span>
-        </span>
-      </div>
-      {/* Treatment tablet */}
-      <div className="absolute bottom-0 right-5 h-[32px] w-[62px]">
-        <Image
-          src="/assets/category/ed-pill.png"
-          alt=""
-          fill
-          sizes="62px"
-          className="object-contain"
-        />
+        </div>
       </div>
     </div>
   );
 }
 
-/** Visual at the top of each "How it works" step card. Step 02 uses a real
- *  clinician photo with a Certified badge; steps 01 / 03 use CSS mockups. */
+/** Visual at the top of each "How it works" step card. Steps 02 / 03 reuse the
+ *  home-page illustrations (same clinician + "Ready to Get Medication?" art) so
+ *  the ED page stays consistent with the rest of the site; step 01 is the CSS
+ *  assessment mock in the same palette. */
 function StepVisual({ i }: { i: number }) {
-  if (i === 1) {
+  if (i === 0) {
     return (
-      <div className="relative h-[172px] w-full overflow-hidden rounded-[12px]">
-        <Image
-          src="/assets/category/ed-doctor.jpg"
-          alt="A UK-registered clinician who reviews your assessment"
-          fill
-          sizes="(max-width: 768px) 90vw, 360px"
-          className="object-cover object-top"
-        />
-        <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[#1a8ec1] px-2.5 py-1 font-ui text-[10px] font-bold text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-          <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-white text-[8px] text-[#1a8ec1]">
-            ✓
-          </span>
-          Certified
-        </span>
+      <div className="flex h-[240px] w-full items-center justify-center">
+        <AssessmentMock />
       </div>
     );
   }
+  const src =
+    i === 1 ? "/assets/figma/hiw-step2.png" : "/assets/figma/hiw-step3-v2.png";
+  const alt =
+    i === 1
+      ? "A UK-registered clinician who reviews your assessment"
+      : "Your personalised treatment prepared and delivered";
   return (
-    <div className="flex h-[172px] items-center justify-center rounded-[12px] bg-white/70">
-      {i === 2 ? <MedicationMock /> : <AssessmentMock />}
+    <div className="relative h-[240px] w-full">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 768px) 90vw, 380px"
+        className="object-contain"
+      />
     </div>
   );
 }
@@ -275,20 +242,22 @@ function EdHowItWorks() {
           </p>
         </Reveal>
 
-        <ul className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
+        <ul className="mt-8 grid gap-5 md:grid-cols-3">
           {STEPS.map((s, i) => (
             <Reveal as="li" key={s.n} delay={i * 110}>
-              <div className="flex h-full flex-col rounded-[16px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5 md:p-6">
+              <div className="flex h-full flex-col items-center gap-6 rounded-[20px] bg-[#f7f9f2] px-6 pt-6 md:px-8 md:pt-8">
                 <StepVisual i={i} />
-                <span className="mt-5 inline-flex w-fit items-center rounded-full bg-[#142e2a] px-3 py-1 font-ui text-[11px] font-semibold text-white">
-                  {s.step}
-                </span>
-                <p className="mt-3 font-display text-[19px] font-semibold leading-[1.2] text-[#142e2a]">
-                  {s.title}
-                </p>
-                <p className="mt-2 font-ui text-[13px] leading-[19px] text-[#142e2a]/70">
-                  {s.body}
-                </p>
+                <div className="flex flex-col items-center gap-3 pb-8 text-center">
+                  <span className="inline-flex items-center rounded-full bg-[#142e2a]/[0.06] px-4 py-1.5 font-ui text-[13px] font-medium text-[#142e2a]">
+                    {s.step}
+                  </span>
+                  <h3 className="font-display text-[20px] font-semibold leading-[26px] text-[#142e2a] md:text-[23px]">
+                    {s.title}
+                  </h3>
+                  <p className="max-w-[34ch] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px]">
+                    {s.body}
+                  </p>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -319,22 +288,8 @@ function EdConfidence() {
               sizes="(max-width: 1024px) 92vw, 560px"
               className="object-cover object-top"
             />
-            {/* 89% stat overlay */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0d1f2a] via-[#0d1f2a]/70 to-transparent p-5 pt-12">
-              <div className="mb-2 flex items-center justify-between font-ui text-[10px] text-white/70">
-                <span>0%</span>
-                <span>100%</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/25">
-                <span className="block h-full w-[89%] rounded-full bg-[#b4ff9f]" />
-              </div>
-              <p className="mt-3 font-display text-[30px] font-bold leading-none text-white md:text-[34px]">
-                89%
-              </p>
-              <p className="mt-1 max-w-[24ch] font-ui text-[12px] leading-[17px] text-white/80">
-                Members reported improved confidence in intimacy
-              </p>
-            </div>
+            {/* 89% stat overlay — animates up on scroll */}
+            <EdConfidenceStat />
           </div>
         </Reveal>
 
@@ -347,7 +302,7 @@ function EdConfidence() {
           </span>
           <h2
             id="ed-conf"
-            className="mt-3 font-display text-[28px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[38px]"
+            className="mt-3 font-display text-[28px] font-semibold leading-[1.22] tracking-[-0.02em] text-[#142e2a] md:text-[38px] md:leading-[1.12]"
           >
             Confidence in the{" "}
             <em className="font-serif font-normal italic">
@@ -422,7 +377,7 @@ function EdGetToKnow() {
           {/* Quiz card */}
           <Reveal as="div">
             <div className="flex h-full flex-col items-center justify-between rounded-[16px] bg-[#142e2a] p-6 text-center md:p-8">
-              <AssessmentMock tone="dark" />
+              <AssessmentMock />
               <p className="mt-6 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
                 Answer a few simple questions so we can understand your symptoms
                 and match you with the right treatment option.
