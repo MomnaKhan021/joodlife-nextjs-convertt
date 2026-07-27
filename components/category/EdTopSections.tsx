@@ -125,10 +125,21 @@ export function EdHero() {
             sizes="(max-width: 1280px) 100vw, 1280px"
             className="object-cover object-[72%_center]"
           />
-          {/* Legibility gradient — strong on the left where the copy sits */}
+          {/* Legibility gradient. Mobile: the copy spans most of the card, so
+              a stronger, more even scrim keeps the white text readable over the
+              bright part of the photo. Desktop: a left-weighted gradient that
+              still reveals the man on the right. */}
           <div
             aria-hidden
-            className="absolute inset-0"
+            className="absolute inset-0 md:hidden"
+            style={{
+              background:
+                "linear-gradient(120deg, rgba(6,20,26,0.92) 0%, rgba(6,20,26,0.74) 52%, rgba(6,20,26,0.52) 100%)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 hidden md:block"
             style={{
               background:
                 "linear-gradient(90deg, rgba(6,20,26,0.86) 0%, rgba(6,20,26,0.62) 40%, rgba(6,20,26,0.15) 66%, rgba(6,20,26,0) 82%)",
