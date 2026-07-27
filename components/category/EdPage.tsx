@@ -280,7 +280,7 @@ function EdConfidence() {
     <section aria-labelledby="ed-conf" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto grid w-full max-w-[1200px] items-center gap-8 lg:grid-cols-2 lg:gap-12">
         <Reveal as="div" className="relative order-2 lg:order-1">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[16px] md:aspect-[16/11]">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] sm:aspect-[4/3] lg:aspect-[16/13]">
             <Image
               src="/assets/category/ed-confidence.jpg"
               alt="A man feeling more confident after treatment"
@@ -377,7 +377,9 @@ function EdGetToKnow() {
           {/* Quiz card */}
           <Reveal as="div">
             <div className="flex h-full flex-col items-center justify-between rounded-[16px] bg-[#142e2a] p-6 text-center md:p-8">
-              <AssessmentMock />
+              <div className="scale-110 md:scale-125">
+                <AssessmentMock />
+              </div>
               <p className="mt-6 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
                 Answer a few simple questions so we can understand your symptoms
                 and match you with the right treatment option.
@@ -442,10 +444,11 @@ function EdCtaBanner() {
             className="relative overflow-hidden rounded-[16px] md:rounded-[24px]"
             style={{
               background:
-                "linear-gradient(105deg, #c7e8ef 0%, #dcf1ec 55%, #edf7f2 100%)",
+                "radial-gradient(125% 135% at 52% 122%, #ffffff 0%, #ffffff 30%, #e2f2ed 62%, #c7e8ef 100%)",
             }}
           >
-            {/* Man — centred, bleeding up from the bottom (desktop) */}
+            {/* Man — centred, bleeding up from the bottom (desktop). His studio
+                backdrop is pure white, so the white radial core blends it in. */}
             <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[460px] -translate-x-1/2 md:block">
               <Image
                 src="/assets/category/ed-cta.jpg"

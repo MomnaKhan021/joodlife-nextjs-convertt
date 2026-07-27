@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
+
 import Reveal from "@/components/ui/Reveal";
 
 /**
@@ -69,6 +71,34 @@ function Stars() {
 }
 
 export default function EdReviews() {
+  const trackRef = useRef<HTMLUListElement>(null);
+  const [active, setActive] = useState(0);
+
+  const onScroll = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const cards = Array.from(el.children) as HTMLElement[];
+    const mid = el.scrollLeft + el.clientWidth / 2;
+    let best = 0;
+    let bestDist = Infinity;
+    cards.forEach((c, i) => {
+      const center = c.offsetLeft + c.offsetWidth / 2;
+      const d = Math.abs(center - mid);
+      if (d < bestDist) {
+        bestDist = d;
+        best = i;
+      }
+    });
+    setActive(best);
+  }, []);
+
+  const goTo = (i: number) => {
+    const el = trackRef.current;
+    if (!el) return;
+    const card = el.children[i] as HTMLElement | undefined;
+    if (card) el.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
+  };
+
   return (
     <section
       aria-labelledby="ed-reviews"
@@ -101,14 +131,16 @@ export default function EdReviews() {
           </p>
         </Reveal>
 
-        {/* Review cards */}
-        <ul className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Review swiper — horizontal scroll-snap with pagination dots */}
+        <ul
+          ref={trackRef}
+          onScroll={onScroll}
+          className="mt-9 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {REVIEWS.map((r, i) => (
-            <Reveal
-              as="li"
+            <li
               key={`${r.name}-${i}`}
-              delay={(i % 3) * 90}
-              className="flex h-full flex-col rounded-[14px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5"
+              className="flex w-[86%] shrink-0 snap-start flex-col rounded-[14px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5 sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]"
             >
               <Stars />
               {r.title && (
@@ -135,9 +167,25 @@ export default function EdReviews() {
                   </p>
                 </div>
               </div>
-            </Reveal>
+            </li>
           ))}
         </ul>
+
+        {/* Pagination dots */}
+        <div className="mt-6 flex justify-center gap-2">
+          {REVIEWS.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Go to review ${i + 1}`}
+              aria-current={active === i}
+              onClick={() => goTo(i)}
+              className={`h-2 rounded-full transition-all ${
+                active === i ? "w-5 bg-[#142e2a]" : "w-2 bg-[#142e2a]/25 hover:bg-[#142e2a]/40"
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

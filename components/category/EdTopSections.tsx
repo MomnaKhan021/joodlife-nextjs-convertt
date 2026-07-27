@@ -5,6 +5,7 @@ import Reveal from "@/components/ui/Reveal";
 import TestimonialCarousel, {
   type Testimonial,
 } from "@/components/category/TestimonialCarousel";
+import EdTimeline from "@/components/category/EdTimeline";
 
 /**
  * Top-of-page ED sections — Figma "Erectile dysfunction" (node 18:811):
@@ -134,7 +135,7 @@ export function EdHero() {
             className="absolute inset-0 md:hidden"
             style={{
               background:
-                "linear-gradient(120deg, rgba(6,20,26,0.92) 0%, rgba(6,20,26,0.74) 52%, rgba(6,20,26,0.52) 100%)",
+                "linear-gradient(165deg, rgba(6,20,26,0.86) 0%, rgba(6,20,26,0.6) 55%, rgba(6,20,26,0.78) 100%)",
             }}
           />
           <div
@@ -220,40 +221,8 @@ export function EdJourney() {
               </h2>
             </Reveal>
 
-            {/* Timeline */}
-            <div className="relative mt-10">
-              {/* Horizontal connector (desktop) */}
-              <div
-                aria-hidden
-                className="absolute left-1 right-1 top-[9px] hidden border-t-2 border-dashed border-white/40 md:block"
-              />
-              {/* Vertical connector (mobile) */}
-              <div
-                aria-hidden
-                className="absolute bottom-6 left-[9px] top-2 border-l-2 border-dashed border-white/40 md:hidden"
-              />
-              <ul className="grid gap-8 md:grid-cols-3 md:gap-6">
-                {JOURNEY.map((j, i) => (
-                  <Reveal as="li" key={j.tag} delay={i * 110} className="relative">
-                    <span
-                      aria-hidden
-                      className="grid h-5 w-5 place-items-center rounded-full bg-white/30 ring-4 ring-[#3ba7d6]"
-                    >
-                      <span className="h-2 w-2 rounded-full bg-white" />
-                    </span>
-                    <span className="mt-4 inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 font-ui text-[10px] font-semibold uppercase tracking-[0.06em] text-white">
-                      {j.tag}
-                    </span>
-                    <h3 className="mt-2.5 font-display text-[19px] font-semibold text-white md:text-[21px]">
-                      {j.title}
-                    </h3>
-                    <p className="mt-1.5 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
-                      {j.body}
-                    </p>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
+            {/* Timeline — animated progress fill */}
+            <EdTimeline stages={JOURNEY} />
 
             {/* Thumbs-up cut-out + wavy curve + CTAs */}
             <div className="relative mt-2 flex justify-center md:-mt-4">

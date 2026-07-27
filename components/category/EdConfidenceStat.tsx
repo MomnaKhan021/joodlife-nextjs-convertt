@@ -57,7 +57,7 @@ export default function EdConfidenceStat() {
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/25">
         <span
-          className="block h-full rounded-full bg-[#b4ff9f] transition-[width] duration-700 ease-out"
+          className="block h-full rounded-full bg-gradient-to-r from-[#3fa7d6] to-[#6fd0e6] transition-[width] duration-700 ease-out"
           style={{ width: `${value}%` }}
         />
       </div>
