@@ -123,7 +123,7 @@ export function EdHero() {
             priority
             quality={85}
             sizes="(max-width: 1280px) 100vw, 1280px"
-            className="object-cover object-[72%_center]"
+            className="object-cover object-[64%_center]"
           />
           {/* Legibility gradient. Mobile: the copy spans most of the card, so
               a stronger, more even scrim keeps the white text readable over the
