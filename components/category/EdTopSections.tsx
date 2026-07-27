@@ -206,16 +206,6 @@ export function EdJourney() {
               "linear-gradient(180deg, #3ba7d6 0%, #2f8fc0 52%, #2a83b4 100%)",
           }}
         >
-          {/* Radiating ray fan, faint */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-[0.12]"
-            style={{
-              background:
-                "repeating-conic-gradient(from 90deg at 50% 120%, rgba(255,255,255,0.9) 0deg 1deg, transparent 1deg 7deg)",
-            }}
-          />
-
           <div className="relative">
             <Reveal as="div">
               <span className="inline-flex items-center rounded-full bg-white/20 px-3.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
@@ -223,7 +213,7 @@ export function EdJourney() {
               </span>
               <h2
                 id="ed-journey"
-                className="mt-4 font-display text-[30px] font-semibold leading-[1.18] tracking-[-0.02em] text-white md:text-[44px] md:leading-[1.1]"
+                className="mt-4 font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-white md:text-[40px] md:leading-[1.1]"
               >
                 What to expect in{" "}
                 <em className="font-serif font-normal italic">your journey</em>
@@ -232,9 +222,15 @@ export function EdJourney() {
 
             {/* Timeline */}
             <div className="relative mt-10">
+              {/* Horizontal connector (desktop) */}
               <div
                 aria-hidden
                 className="absolute left-1 right-1 top-[9px] hidden border-t-2 border-dashed border-white/40 md:block"
+              />
+              {/* Vertical connector (mobile) */}
+              <div
+                aria-hidden
+                className="absolute bottom-6 left-[9px] top-2 border-l-2 border-dashed border-white/40 md:hidden"
               />
               <ul className="grid gap-8 md:grid-cols-3 md:gap-6">
                 {JOURNEY.map((j, i) => (
@@ -265,14 +261,14 @@ export function EdJourney() {
                 aria-hidden
                 viewBox="0 0 1200 260"
                 preserveAspectRatio="none"
-                className="pointer-events-none absolute inset-x-0 top-1/2 h-[180px] w-full -translate-y-1/2 opacity-70"
+                className="pointer-events-none absolute inset-x-0 top-1/2 hidden h-[180px] w-full -translate-y-1/2 md:block"
               >
                 <path
                   d="M0 210 C 220 210, 300 60, 520 90 S 900 220, 1200 60"
                   fill="none"
-                  stroke="rgba(255,255,255,0.55)"
-                  strokeWidth="2"
-                  strokeDasharray="2 10"
+                  stroke="rgba(255,255,255,0.7)"
+                  strokeWidth="2.5"
+                  strokeDasharray="2 11"
                   strokeLinecap="round"
                 />
               </svg>

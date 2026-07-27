@@ -102,27 +102,27 @@ function AccordionColumn({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-white/10 md:border-b-0">
+    <div className="border-b border-white/10 lg:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between py-4 md:cursor-default md:py-0"
+        className="flex w-full cursor-pointer items-center justify-between py-4 lg:cursor-default lg:py-0"
       >
-        <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white md:text-[16.3px] md:leading-[20px]">
+        <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
           {title}
         </h3>
-        <span className="md:hidden">
+        <span className="lg:hidden">
           <ChevronIcon open={open} />
         </span>
       </button>
       <div
-        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-5 ${
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out lg:!grid-rows-[1fr] lg:!opacity-100 lg:mt-5 ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="overflow-hidden">
-          <div className="pb-5 md:pb-0">
+          <div className="pb-5 lg:pb-0">
             <FooterLinks items={items} />
           </div>
         </div>
@@ -161,29 +161,29 @@ function SocialButton({
 function SocialColumn() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-white/10 md:border-b-0">
+    <div className="border-b border-white/10 lg:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between py-4 md:cursor-default md:py-0"
+        className="flex w-full cursor-pointer items-center justify-between py-4 lg:cursor-default lg:py-0"
       >
-        <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white md:text-[16.3px] md:leading-[20px]">
+        <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
           Follow
         </h3>
-        <span className="md:hidden">
+        <span className="lg:hidden">
           <ChevronIcon open={open} />
         </span>
       </button>
       <div
-        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 md:mt-5 md:overflow-visible ${
+        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out lg:!grid-rows-[1fr] lg:!opacity-100 lg:mt-5 lg:overflow-visible ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <div className="overflow-hidden md:overflow-visible">
+        <div className="overflow-hidden lg:overflow-visible">
           {/* py on desktop gives the hover lift + shadow room so icons
               aren't clipped by the accordion wrappers. */}
-          <div className="flex items-center gap-3 pb-5 md:pb-0 md:py-1.5">
+          <div className="flex items-center gap-3 pb-5 lg:pb-0 lg:py-1.5">
             <SocialButton href="https://www.tiktok.com/@myjoodlife" label="TikTok">
               <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11.4 0H8.6v10.7c0 1.3-1 2.3-2.3 2.3a2.3 2.3 0 0 1-2.3-2.3A2.3 2.3 0 0 1 6.3 8.4V5.6A5.1 5.1 0 0 0 1.2 10.7 5.1 5.1 0 0 0 6.3 15.8a5.1 5.1 0 0 0 5.1-5.1V5.3c.9.6 2 1 3.2 1V3.5a3.6 3.6 0 0 1-3.2-3.5z" />
@@ -232,7 +232,7 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <div>
           {/* ───── ROW 1 — logo + columns + Have-a-question card ───── */}
-          <div className="flex flex-col gap-8 py-10 md:flex-row md:items-start md:gap-10 md:py-12 lg:py-[60px]">
+          <div className="flex flex-col gap-8 py-10 lg:flex-row lg:items-start lg:gap-10 lg:py-[60px]">
             <div className="flex-shrink-0">
               <Image
                 src="/assets/figma/footer-logo-2.png"
@@ -240,12 +240,12 @@ export default function Footer() {
                 width={165}
                 height={69}
                 quality={95}
-                className="h-[50px] w-auto md:h-[69px]"
+                className="h-[50px] w-auto lg:h-[69px]"
                 priority={false}
               />
             </div>
 
-            <div className="flex flex-1 flex-col md:grid md:grid-cols-4 md:gap-8 md:pl-6 lg:gap-10">
+            <div className="flex flex-1 flex-col lg:grid lg:grid-cols-4 lg:gap-8 lg:pl-6 lg:gap-10">
               <AccordionColumn title="Jood" items={JOOD_LINKS} />
               <AccordionColumn title="Treatments" items={TREATMENTS} />
               <AccordionColumn title="Policy" items={POLICY} />

@@ -8,10 +8,7 @@ import EdPage, { EdCtaBanner } from "@/components/category/EdPage";
 import CategoryFaq from "@/components/category/CategoryFaq";
 import Footer from "@/sections/home/Footer";
 
-import { CATEGORIES } from "@/lib/categories";
 import { CATEGORY_FAQS } from "@/lib/categoryFaqs";
-
-const category = CATEGORIES["erectile-dysfunction"];
 
 export const metadata: Metadata = {
   title: "Erectile Dysfunction Treatment — Discreet & clinically approved | JoodLife",
@@ -32,7 +29,7 @@ export const metadata: Metadata = {
  */
 export default function ErectileDysfunctionPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-white">
+    <main className="flex min-h-screen flex-col overflow-x-clip bg-white">
       <AnnouncementBar />
       <Header />
 
@@ -52,7 +49,7 @@ export default function ErectileDysfunctionPage() {
 
       <CategoryFaq
         items={CATEGORY_FAQS["erectile-dysfunction"]}
-        accent={category.theme.base}
+        accent="#142e2a"
       />
 
       <EdCtaBanner />

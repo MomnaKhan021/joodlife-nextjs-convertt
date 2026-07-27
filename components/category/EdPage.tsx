@@ -174,7 +174,7 @@ function TreatmentPlan() {
         <Reveal as="div">
           <h2
             id="ed-plan"
-            className="font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#142e2a] md:text-[38px]"
+            className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             A treatment plan that{" "}
             <em className="font-serif font-normal italic">works</em> around you
@@ -232,7 +232,7 @@ function EdHowItWorks() {
         <Reveal as="div" className="text-center">
           <h2
             id="ed-how"
-            className="font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#142e2a] md:text-[38px]"
+            className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             How it <em className="font-serif font-normal italic">works</em>
           </h2>
@@ -302,7 +302,7 @@ function EdConfidence() {
           </span>
           <h2
             id="ed-conf"
-            className="mt-3 font-display text-[28px] font-semibold leading-[1.22] tracking-[-0.02em] text-[#142e2a] md:text-[38px] md:leading-[1.12]"
+            className="mt-3 font-display text-[30px] font-semibold leading-[1.2] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             Confidence in the{" "}
             <em className="font-serif font-normal italic">
@@ -362,7 +362,7 @@ function EdGetToKnow() {
         <Reveal as="div" className="text-center">
           <h2
             id="ed-know"
-            className="font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#142e2a] md:text-[38px]"
+            className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             Let&rsquo;s get to{" "}
             <em className="font-serif font-normal italic">know</em> you
@@ -438,38 +438,44 @@ function EdCtaBanner() {
     <section className="w-full bg-white px-5 pb-14 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div">
-          <div className="relative overflow-hidden rounded-[16px] bg-[#5eb3d7] md:rounded-[20px]">
-            <div className="grid items-end gap-6 md:grid-cols-2">
-              <div className="p-6 md:p-10">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-white/25 text-white">
+          <div
+            className="relative overflow-hidden rounded-[16px] md:rounded-[20px]"
+            style={{
+              background:
+                "linear-gradient(100deg, #7cc6dc 0%, #a9ddd6 50%, #d9f1ea 100%)",
+            }}
+          >
+            <div className="grid items-center gap-6 md:grid-cols-2 md:gap-0">
+              <div className="p-6 md:p-10 lg:p-12">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#142e2a] text-white">
                   <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
                     <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" />
                   </svg>
                 </span>
-                <h2 className="mt-4 font-display text-[28px] font-semibold leading-[1.14] tracking-[-0.02em] text-white md:text-[36px]">
+                <h2 className="mt-4 font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.08]">
                   Take the first step{" "}
                   <em className="font-serif font-normal italic">
                     toward better confidence
                   </em>
                 </h2>
-                <p className="mt-3 max-w-[40ch] font-ui text-[13.5px] leading-[20px] text-white/85">
+                <p className="mt-3 max-w-[42ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
                   Simple, discreet support for erectile dysfunction, designed
                   around your health, routine, and privacy.
                 </p>
                 <Link
                   href={START}
-                  className="btn-cta mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-white/90"
+                  className="btn-cta mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
                 >
                   Get Started
                 </Link>
               </div>
-              <div className="relative h-[240px] w-full md:h-[320px]">
+              <div className="relative h-[260px] w-full self-end md:h-[340px]">
                 <Image
                   src="/assets/category/ed-cta.jpg"
                   alt="A man confident about starting treatment"
                   fill
                   sizes="(max-width: 768px) 92vw, 560px"
-                  className="object-cover object-top"
+                  className="object-contain object-bottom md:object-[center_bottom]"
                 />
               </div>
             </div>
