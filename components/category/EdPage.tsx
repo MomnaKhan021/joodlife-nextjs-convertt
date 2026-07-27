@@ -121,6 +121,35 @@ function AssessmentMock({ tone = "light" }: { tone?: "light" | "dark" }) {
   );
 }
 
+/** Step-02 "expert review" mock — a clinician note card with the Certified
+ *  badge. Composed in CSS so it stays sharp and needs no extra photography. */
+function ReviewMock() {
+  return (
+    <div className="relative mx-auto h-[150px] w-[190px]" aria-hidden>
+      <span className="absolute left-2 top-2 h-[110px] w-[120px] -rotate-[8deg] rounded-[12px] bg-[#dfe9d8]" />
+      <div className="absolute right-0 top-3 w-[136px] rounded-[12px] bg-white p-3 shadow-[0_8px_20px_rgba(20,46,42,0.14)]">
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#eef3e6] font-ui text-[11px] font-bold text-[#142e2a]">
+            Dr
+          </span>
+          <div className="flex-1">
+            <span className="block h-1.5 w-full rounded-full bg-[#142e2a]/15" />
+            <span className="mt-1 block h-1.5 w-2/3 rounded-full bg-[#142e2a]/10" />
+          </div>
+        </div>
+        <p className="mt-2.5 font-ui text-[9.5px] font-semibold leading-[13px] text-[#142e2a]">
+          Clinical review complete
+        </p>
+        <span className="mt-1 block h-1.5 w-full rounded-full bg-[#142e2a]/10" />
+        <span className="mt-1 block h-1.5 w-4/5 rounded-full bg-[#142e2a]/10" />
+      </div>
+      <span className="absolute bottom-2 left-3 inline-flex items-center gap-1 rounded-full bg-[#1a8ec1] px-2 py-1 font-ui text-[9px] font-bold text-white">
+        ✓ Certified
+      </span>
+    </div>
+  );
+}
+
 /* ── 1. Benefits: "A treatment plan that works around you" ──────────── */
 function TreatmentPlan() {
   return (
@@ -202,22 +231,7 @@ function EdHowItWorks() {
             <Reveal as="li" key={s.n} delay={i * 110}>
               <div className="flex h-full flex-col rounded-[16px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5 md:p-6">
                 <div className="flex items-center justify-center rounded-[12px] bg-white/70 py-4">
-                  {i === 1 ? (
-                    <div className="relative h-[150px] w-[150px] overflow-hidden rounded-full">
-                      <Image
-                        src="/assets/category/ed-confidence.png"
-                        alt="A licensed provider who reviews your assessment"
-                        fill
-                        sizes="150px"
-                        className="object-cover object-top"
-                      />
-                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-[#1a8ec1] px-2 py-0.5 font-ui text-[9px] font-bold text-white">
-                        ✓ Certified
-                      </span>
-                    </div>
-                  ) : (
-                    <AssessmentMock />
-                  )}
+                  {i === 1 ? <ReviewMock /> : <AssessmentMock />}
                 </div>
                 <span className="mt-5 inline-flex w-fit items-center rounded-full bg-[#142e2a] px-3 py-1 font-ui text-[11px] font-semibold text-white">
                   {s.step}
@@ -252,7 +266,7 @@ function EdConfidence() {
         <Reveal as="div" className="relative order-2 lg:order-1">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[16px] md:aspect-[16/11]">
             <Image
-              src="/assets/category/ed-confidence.png"
+              src="/assets/category/ed-confidence.jpg"
               alt="A man feeling more confident after treatment"
               fill
               sizes="(max-width: 1024px) 92vw, 560px"
@@ -379,7 +393,7 @@ function EdGetToKnow() {
           <Reveal as="div" delay={120}>
             <div className="relative h-full min-h-[300px] overflow-hidden rounded-[16px] md:min-h-[340px]">
               <Image
-                src="/assets/category/ed-progress.png"
+                src="/assets/category/ed-progress.jpg"
                 alt="A man staying active while on treatment"
                 fill
                 sizes="(max-width: 768px) 92vw, 560px"
@@ -449,7 +463,7 @@ function EdCtaBanner() {
               </div>
               <div className="relative h-[240px] w-full md:h-[320px]">
                 <Image
-                  src="/assets/category/ed-cta.png"
+                  src="/assets/category/ed-cta.jpg"
                   alt="A man confident about starting treatment"
                   fill
                   sizes="(max-width: 768px) 92vw, 560px"
