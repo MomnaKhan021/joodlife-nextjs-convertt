@@ -476,8 +476,15 @@ function EdCtaBanner() {
                 around your health, routine, and privacy.
               </p>
 
-              {/* Man (mobile) */}
-              <div className="relative mt-6 h-[230px] w-full md:hidden">
+              {/* Man (mobile) — white radial behind so the pure-white studio
+                  backdrop blends into the card instead of reading as a box */}
+              <div
+                className="relative mt-6 h-[240px] w-full md:hidden"
+                style={{
+                  background:
+                    "radial-gradient(75% 85% at 50% 100%, #ffffff 0%, #ffffff 58%, rgba(255,255,255,0) 100%)",
+                }}
+              >
                 <Image
                   src="/assets/category/ed-cta.jpg"
                   alt="A man confident about starting treatment"
