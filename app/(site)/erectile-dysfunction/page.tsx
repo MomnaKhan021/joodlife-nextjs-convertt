@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
-import CategoryPreview from "@/components/home/CategoryPreview";
-import EdDetail from "@/components/category/EdDetail";
+import { EdHero, EdJourney } from "@/components/category/EdTopSections";
+import EdReviews from "@/components/category/EdReviews";
 import EdPage, { EdCtaBanner } from "@/components/category/EdPage";
 import CategoryFaq from "@/components/category/CategoryFaq";
 import Footer from "@/sections/home/Footer";
@@ -36,15 +36,19 @@ export default function ErectileDysfunctionPage() {
       <AnnouncementBar />
       <Header />
 
-      {/* Blue hero + in-hero cards (pill band, goals, testimonial) */}
-      <CategoryPreview category={category} priority>
-        <EdDetail />
-      </CategoryPreview>
+      {/* Photo hero banner */}
+      <EdHero />
+
+      {/* Social proof — 3000+ happy customers */}
+      <EdReviews />
+
+      {/* "What to expect in your journey" teal timeline + goals + testimonial */}
+      <div id="assessment" className="scroll-mt-28">
+        <EdJourney />
+      </div>
 
       {/* Light editorial sections */}
-      <div id="assessment" className="scroll-mt-28">
-        <EdPage />
-      </div>
+      <EdPage />
 
       <CategoryFaq
         items={CATEGORY_FAQS["erectile-dysfunction"]}

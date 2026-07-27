@@ -121,31 +121,80 @@ function AssessmentMock({ tone = "light" }: { tone?: "light" | "dark" }) {
   );
 }
 
-/** Step-02 "expert review" mock — a clinician note card with the Certified
- *  badge. Composed in CSS so it stays sharp and needs no extra photography. */
-function ReviewMock() {
+/** Step-03 "get medication" mock — a "Ready to Get Medication?" card with a
+ *  personalised-care graph and the treatment tablet, matching the Figma. */
+function MedicationMock() {
   return (
-    <div className="relative mx-auto h-[150px] w-[190px]" aria-hidden>
-      <span className="absolute left-2 top-2 h-[110px] w-[120px] -rotate-[8deg] rounded-[12px] bg-[#dfe9d8]" />
-      <div className="absolute right-0 top-3 w-[136px] rounded-[12px] bg-white p-3 shadow-[0_8px_20px_rgba(20,46,42,0.14)]">
-        <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#eef3e6] font-ui text-[11px] font-bold text-[#142e2a]">
-            Dr
-          </span>
-          <div className="flex-1">
-            <span className="block h-1.5 w-full rounded-full bg-[#142e2a]/15" />
-            <span className="mt-1 block h-1.5 w-2/3 rounded-full bg-[#142e2a]/10" />
-          </div>
-        </div>
-        <p className="mt-2.5 font-ui text-[9.5px] font-semibold leading-[13px] text-[#142e2a]">
-          Clinical review complete
+    <div className="relative mx-auto h-[150px] w-[200px]" aria-hidden>
+      {/* Personalised-care graph card (behind, right) */}
+      <div className="absolute right-0 top-2 w-[120px] rounded-[12px] bg-[#f2f5ec] p-2.5 shadow-[0_8px_20px_rgba(20,46,42,0.10)]">
+        <p className="font-ui text-[8.5px] font-semibold leading-tight text-[#142e2a]/70">
+          Your Personalized Care
         </p>
-        <span className="mt-1 block h-1.5 w-full rounded-full bg-[#142e2a]/10" />
-        <span className="mt-1 block h-1.5 w-4/5 rounded-full bg-[#142e2a]/10" />
+        <svg viewBox="0 0 100 40" className="mt-1 h-8 w-full" aria-hidden>
+          <polyline
+            points="0,34 20,28 40,30 60,16 80,18 100,6"
+            fill="none"
+            stroke="#1a8ec1"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </div>
-      <span className="absolute bottom-2 left-3 inline-flex items-center gap-1 rounded-full bg-[#1a8ec1] px-2 py-1 font-ui text-[9px] font-bold text-white">
-        ✓ Certified
-      </span>
+      {/* Main call-to-action card (front, left) */}
+      <div className="absolute left-0 top-8 w-[140px] rounded-[12px] bg-white p-3 shadow-[0_10px_24px_rgba(20,46,42,0.16)]">
+        <p className="font-ui text-[11px] font-bold leading-[14px] text-[#142e2a]">
+          Ready to Get
+          <br />
+          Medication?
+        </p>
+        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#142e2a] px-2 py-1 font-ui text-[9px] font-semibold text-white">
+          Continue
+          <span className="grid h-3 w-3 place-items-center rounded-full bg-[#4eabd2] text-[7px]">
+            →
+          </span>
+        </span>
+      </div>
+      {/* Treatment tablet */}
+      <div className="absolute bottom-0 right-5 h-[32px] w-[62px]">
+        <Image
+          src="/assets/category/ed-pill.png"
+          alt=""
+          fill
+          sizes="62px"
+          className="object-contain"
+        />
+      </div>
+    </div>
+  );
+}
+
+/** Visual at the top of each "How it works" step card. Step 02 uses a real
+ *  clinician photo with a Certified badge; steps 01 / 03 use CSS mockups. */
+function StepVisual({ i }: { i: number }) {
+  if (i === 1) {
+    return (
+      <div className="relative h-[172px] w-full overflow-hidden rounded-[12px]">
+        <Image
+          src="/assets/category/ed-doctor.jpg"
+          alt="A UK-registered clinician who reviews your assessment"
+          fill
+          sizes="(max-width: 768px) 90vw, 360px"
+          className="object-cover object-top"
+        />
+        <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[#1a8ec1] px-2.5 py-1 font-ui text-[10px] font-bold text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+          <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-white text-[8px] text-[#1a8ec1]">
+            ✓
+          </span>
+          Certified
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex h-[172px] items-center justify-center rounded-[12px] bg-white/70">
+      {i === 2 ? <MedicationMock /> : <AssessmentMock />}
     </div>
   );
 }
@@ -230,9 +279,7 @@ function EdHowItWorks() {
           {STEPS.map((s, i) => (
             <Reveal as="li" key={s.n} delay={i * 110}>
               <div className="flex h-full flex-col rounded-[16px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5 md:p-6">
-                <div className="flex items-center justify-center rounded-[12px] bg-white/70 py-4">
-                  {i === 1 ? <ReviewMock /> : <AssessmentMock />}
-                </div>
+                <StepVisual i={i} />
                 <span className="mt-5 inline-flex w-fit items-center rounded-full bg-[#142e2a] px-3 py-1 font-ui text-[11px] font-semibold text-white">
                   {s.step}
                 </span>
