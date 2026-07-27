@@ -455,7 +455,7 @@ function EdCtaBanner() {
                 alt="A man confident about starting treatment"
                 fill
                 sizes="460px"
-                className="object-contain object-bottom"
+                className="object-contain object-bottom mix-blend-multiply"
               />
             </div>
 
@@ -490,7 +490,7 @@ function EdCtaBanner() {
                   alt="A man confident about starting treatment"
                   fill
                   sizes="92vw"
-                  className="object-contain object-bottom"
+                  className="object-contain object-bottom mix-blend-multiply"
                 />
               </div>
 
