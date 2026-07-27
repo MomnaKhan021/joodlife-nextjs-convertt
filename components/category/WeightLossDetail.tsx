@@ -174,7 +174,7 @@ export default function WeightLossDetail() {
           <ul className="grid grid-cols-2 gap-2.5">
             {[...LEFT_CHIPS, ...RIGHT_CHIPS].map(renderChip)}
           </ul>
-          <div className="relative mx-auto mt-5 h-[320px] w-[200px]">
+          <div className="relative mx-auto mt-5 aspect-[150/212] w-[210px]">
             <Image
               src="/assets/category/wl-man.png"
               alt="A member supported through his weight-loss journey"
@@ -207,7 +207,7 @@ export default function WeightLossDetail() {
           </ul>
         </div>
 
-        <div className="mt-auto w-full pt-7">
+        <div className="mt-auto w-full pt-4 md:pt-7">
           <GhostButton href="/consultation?product=weight-loss">Start Your Journey</GhostButton>
         </div>
       </Reveal>
@@ -218,7 +218,7 @@ export default function WeightLossDetail() {
           Continuous, expert guidance
         </h3>
 
-        <div className="relative mt-6 min-h-[400px] w-full flex-1 overflow-hidden rounded-[16px] md:min-h-[440px]">
+        <div className="relative mt-[18px] aspect-[300/211] w-full overflow-hidden rounded-[16px] md:rounded-[20px]">
           <Image
             src="/assets/category/wl-checkin.png"
             alt="Monthly video check-in with a licensed clinician"
