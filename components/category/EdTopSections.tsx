@@ -200,7 +200,7 @@ export function EdJourney() {
     >
       <div className="mx-auto w-full max-w-[1280px]">
         <div
-          className="relative overflow-hidden rounded-[16px] px-6 py-10 md:rounded-[24px] md:px-12 md:py-14"
+          className="relative overflow-hidden rounded-[16px] px-6 pb-8 pt-10 md:rounded-[24px] md:px-12 md:pb-10 md:pt-14"
           style={{
             background:
               "linear-gradient(180deg, #3ba7d6 0%, #2f8fc0 52%, #2a83b4 100%)",
@@ -256,7 +256,7 @@ export function EdJourney() {
             </div>
 
             {/* Thumbs-up cut-out + wavy curve + CTAs */}
-            <div className="relative mt-6 flex justify-center md:mt-4">
+            <div className="relative mt-2 flex justify-center md:-mt-4">
               <svg
                 aria-hidden
                 viewBox="0 0 1200 260"

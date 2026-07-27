@@ -1,5 +1,7 @@
 "use client";
 
+import Reveal from "@/components/ui/Reveal";
+
 /**
  * "3000+ happy customers" review wall — Figma ED page (node 18:811).
  * Trustpilot badge, headline and a responsive grid of erectile-dysfunction
@@ -73,7 +75,7 @@ export default function EdReviews() {
       className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]"
     >
       <div className="mx-auto w-full max-w-[1200px]">
-        <div className="flex flex-col items-center text-center">
+        <Reveal as="div" className="flex flex-col items-center text-center">
           {/* Trustpilot */}
           <div className="flex items-center gap-2 font-ui text-[13px] text-[#142e2a]">
             <span className="font-semibold">
@@ -97,13 +99,15 @@ export default function EdReviews() {
             Our patients value the expert support, clear communication, and
             lasting confidence that follows.
           </p>
-        </div>
+        </Reveal>
 
         {/* Review cards */}
         <ul className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {REVIEWS.map((r, i) => (
-            <li
+            <Reveal
+              as="li"
               key={`${r.name}-${i}`}
+              delay={(i % 3) * 90}
               className="flex h-full flex-col rounded-[14px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5"
             >
               <Stars />
@@ -131,7 +135,7 @@ export default function EdReviews() {
                   </p>
                 </div>
               </div>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </div>

@@ -393,7 +393,7 @@ function EdGetToKnow() {
 
           {/* Progress card */}
           <Reveal as="div" delay={120}>
-            <div className="relative h-full min-h-[300px] overflow-hidden rounded-[16px] md:min-h-[340px]">
+            <div className="relative h-full min-h-[340px] overflow-hidden rounded-[16px] md:min-h-[380px]">
               <Image
                 src="/assets/category/ed-progress.jpg"
                 alt="A man staying active while on treatment"
@@ -439,46 +439,67 @@ function EdCtaBanner() {
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div">
           <div
-            className="relative overflow-hidden rounded-[16px] md:rounded-[20px]"
+            className="relative overflow-hidden rounded-[16px] md:rounded-[24px]"
             style={{
               background:
-                "linear-gradient(100deg, #7cc6dc 0%, #a9ddd6 50%, #d9f1ea 100%)",
+                "linear-gradient(105deg, #c7e8ef 0%, #dcf1ec 55%, #edf7f2 100%)",
             }}
           >
-            <div className="grid items-center gap-6 md:grid-cols-2 md:gap-0">
-              <div className="p-6 md:p-10 lg:p-12">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#142e2a] text-white">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
-                    <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" />
-                  </svg>
-                </span>
-                <h2 className="mt-4 font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.08]">
-                  Take the first step{" "}
-                  <em className="font-serif font-normal italic">
-                    toward better confidence
-                  </em>
-                </h2>
-                <p className="mt-3 max-w-[42ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
-                  Simple, discreet support for erectile dysfunction, designed
-                  around your health, routine, and privacy.
-                </p>
-                <Link
-                  href={START}
-                  className="btn-cta mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
-                >
-                  Get Started
-                </Link>
-              </div>
-              <div className="relative h-[260px] w-full self-end md:h-[340px]">
+            {/* Man — centred, bleeding up from the bottom (desktop) */}
+            <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[460px] -translate-x-1/2 md:block">
+              <Image
+                src="/assets/category/ed-cta.jpg"
+                alt="A man confident about starting treatment"
+                fill
+                sizes="460px"
+                className="object-contain object-bottom"
+              />
+            </div>
+
+            <div className="relative flex flex-col p-6 md:min-h-[320px] md:p-12">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#142e2a] text-white">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" />
+                </svg>
+              </span>
+              <h2 className="mt-4 max-w-[15ch] font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]">
+                Take the first step{" "}
+                <em className="font-serif font-normal italic">
+                  toward better confidence
+                </em>
+              </h2>
+              <p className="mt-3 max-w-[34ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+                Simple, discreet support for erectile dysfunction, designed
+                around your health, routine, and privacy.
+              </p>
+
+              {/* Man (mobile) */}
+              <div className="relative mt-6 h-[230px] w-full md:hidden">
                 <Image
                   src="/assets/category/ed-cta.jpg"
                   alt="A man confident about starting treatment"
                   fill
-                  sizes="(max-width: 768px) 92vw, 560px"
-                  className="object-contain object-bottom md:object-[center_bottom]"
+                  sizes="92vw"
+                  className="object-contain object-bottom"
                 />
               </div>
+
+              {/* Get Started — white/outline, bottom on mobile */}
+              <Link
+                href={START}
+                className="btn-cta mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:hidden"
+              >
+                Get Started
+              </Link>
             </div>
+
+            {/* Get Started — bottom-right on desktop */}
+            <Link
+              href={START}
+              className="btn-cta absolute bottom-10 right-12 hidden h-12 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:inline-flex"
+            >
+              Get Started
+            </Link>
           </div>
         </Reveal>
       </div>
