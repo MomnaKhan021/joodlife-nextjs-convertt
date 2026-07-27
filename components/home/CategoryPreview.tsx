@@ -38,7 +38,7 @@ export default function CategoryPreview({
   return (
     <section
       aria-label={`${category.eyebrow} — ${category.title} ${category.titleAccent}`}
-      className="w-full bg-white px-4 py-[30px] md:px-0 md:py-10"
+      className="w-full bg-white px-0 py-[7px] md:py-10"
       style={
         {
           "--cat-base": theme.base,
@@ -52,7 +52,7 @@ export default function CategoryPreview({
           weight loss uses the solid base colour. Fully responsive, no raster
           stretch/letterbox artifacts. */}
       <div
-        className="relative overflow-hidden rounded-[24px] pb-10 pt-12 md:pb-14 md:pt-16 lg:pt-20"
+        className="relative overflow-hidden rounded-[16px] pb-10 pt-12 md:rounded-[24px] md:pb-14 md:pt-16 lg:pt-20"
         style={{
           background: theme.sectionBg ?? theme.base,
           color: theme.onBase,
@@ -104,7 +104,7 @@ export default function CategoryPreview({
               </Reveal>
             )}
             <Reveal as="div" delay={60}>
-              <h2 className="max-w-[18ch] font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.025em] md:text-[48px] md:leading-[1.08]">
+              <h2 className="max-w-[18ch] font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.025em] md:text-[48px] md:leading-[1.08]">
                 {category.title}{" "}
                 <em className="font-serif font-normal italic">{category.titleAccent}</em>
               </h2>
@@ -161,7 +161,7 @@ export default function CategoryPreview({
               <div className="absolute bottom-[42%] left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-nowrap items-stretch justify-center gap-2.5 md:w-full md:items-center md:gap-3">
                 <Link
                   href={isReturningPatient && category.key === "weight-loss" ? "/reorder" : `/consultation?product=${category.key}`}
-                  className="btn-cta inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-white px-3 py-1.5 text-center font-ui text-[12px] font-semibold leading-tight text-[#142e2a] shadow-lg md:min-h-12 md:flex-none md:px-7 md:text-[15px]"
+                  className="btn-cta inline-flex min-h-[50px] flex-1 items-center justify-center rounded-lg bg-white px-3 py-1.5 text-center font-ui text-[12px] font-semibold leading-tight text-[#142e2a] shadow-lg md:min-h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
                   {isReturningPatient && category.key === "weight-loss"
                     ? "Reorder"
@@ -169,7 +169,7 @@ export default function CategoryPreview({
                 </Link>
                 <Link
                   href={category.learnMoreHref ?? category.href}
-                  className="btn-cta inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-3 py-1.5 text-center font-ui text-[12px] font-semibold leading-tight text-white backdrop-blur-sm hover:bg-white/10 md:min-h-12 md:flex-none md:px-7 md:text-[15px]"
+                  className="btn-cta inline-flex min-h-[50px] flex-1 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-3 py-1.5 text-center font-ui text-[12px] font-semibold leading-tight text-white backdrop-blur-sm hover:bg-white/10 md:min-h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
                   Learn More
                 </Link>

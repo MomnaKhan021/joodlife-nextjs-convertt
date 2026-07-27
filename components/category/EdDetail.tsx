@@ -49,11 +49,11 @@ const TESTIMONIALS: Testimonial[] = [
 
 export default function EdDetail() {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4 md:gap-5">
       {/* Treatment card */}
       <Reveal
         as="div"
-        className="grid min-h-[300px] items-center gap-6 rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:min-h-[330px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
+        className="grid min-h-[300px] items-center gap-6 rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:min-h-[330px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
       >
         <p className="max-w-[46ch] font-ui text-[15px] leading-relaxed text-white/90">
           Take control of your erectile health with safe, discreet, clinician-led care.
@@ -77,12 +77,12 @@ export default function EdDetail() {
         </Link>
       </Reveal>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-2">
         {/* Goals card — heading top-left, goal chips centred on the right
             over the portrait (Figma). min-w-0 lets the card shrink to the
             column instead of the carousel's content forcing an auto track
             wider than the viewport (clipped by the section's overflow). */}
-        <Reveal as="div" className="relative min-w-0 min-h-[360px] overflow-hidden rounded-[24px] md:min-h-[400px]">
+        <Reveal as="div" className="relative min-w-0 min-h-[360px] overflow-hidden rounded-[16px] md:rounded-[24px] md:min-h-[400px]">
           <Image
             src="/assets/category/ed-goals.png"
             alt="Man considering his treatment goals"

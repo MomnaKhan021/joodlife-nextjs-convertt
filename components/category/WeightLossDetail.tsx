@@ -100,7 +100,7 @@ function WegovyIntroCard() {
   return (
     <Reveal
       as="div"
-      className="relative overflow-hidden rounded-[24px] bg-black/20 p-6 backdrop-blur-[20px] md:p-8 lg:p-10"
+      className="relative overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 backdrop-blur-[20px] md:p-8 lg:p-10"
     >
       <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
         <div className="flex flex-col">
@@ -154,11 +154,11 @@ function WegovyIntroCard() {
 
 export default function WeightLossDetail() {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4 md:gap-5">
       <WegovyIntroCard />
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
-      <Reveal as="div" className="order-2 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
+      <Reveal as="div" className="order-2 flex flex-col items-center rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
         <h3 className="font-display text-[22px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           It&rsquo;s more than treatment,{" "}
           <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
@@ -213,7 +213,7 @@ export default function WeightLossDetail() {
       </Reveal>
 
       {/* Card B — continuous expert guidance (first on mobile per Figma) */}
-      <Reveal as="div" delay={120} className="order-1 flex flex-col items-center rounded-[24px] bg-black/20 p-6 text-center backdrop-blur-[20px] md:p-8 lg:order-2">
+      <Reveal as="div" delay={120} className="order-1 flex flex-col items-center rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 text-center backdrop-blur-[20px] md:p-8 lg:order-2">
         <h3 className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           Continuous, expert guidance
         </h3>

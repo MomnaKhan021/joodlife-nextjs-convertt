@@ -25,11 +25,11 @@ const TAGS = [
 
 export default function PeriodDetail() {
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
       {/* Norethisterone treatment card */}
       <Reveal
         as="div"
-        className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:p-8"
+        className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:p-8"
       >
         <p className="max-w-[42ch] font-ui text-[15px] leading-relaxed text-white/90">
           Delay your period safely and discreetly when you need to. Whether you&rsquo;re
@@ -54,7 +54,7 @@ export default function PeriodDetail() {
       <Reveal
         as="div"
         delay={120}
-        className="relative flex min-h-[380px] flex-col items-center overflow-hidden rounded-[24px] bg-black/12 p-6 backdrop-blur-[20px] md:min-h-[420px] md:p-8"
+        className="relative flex min-h-[380px] flex-col items-center overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:min-h-[420px] md:p-8"
       >
         <h3 className="relative z-10 max-w-[20ch] text-center font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
           Understand Your Cycle and Hormone Health
