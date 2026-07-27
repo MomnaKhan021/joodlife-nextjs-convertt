@@ -3,12 +3,9 @@ import type { Metadata } from "next";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import CategoryPreview from "@/components/home/CategoryPreview";
-import UspStrip from "@/components/home/UspStrip";
-import FeatureGrid from "@/sections/home/FeatureGrid";
-import HowItWorks from "@/sections/home/HowItWorks";
-import Reviews from "@/sections/home/Reviews";
+import EdDetail from "@/components/category/EdDetail";
+import EdPage, { EdCtaBanner } from "@/components/category/EdPage";
 import CategoryFaq from "@/components/category/CategoryFaq";
-import CtaBanner from "@/sections/home/CtaBanner";
 import Footer from "@/sections/home/Footer";
 
 import { CATEGORIES } from "@/lib/categories";
@@ -23,22 +20,38 @@ export const metadata: Metadata = {
   alternates: { canonical: "/erectile-dysfunction" },
 };
 
-/** Men's Health — Erectile Dysfunction sub-page (/erectile-dysfunction). */
+/**
+ * Men's Health — Erectile Dysfunction page (/erectile-dysfunction).
+ *
+ * Follows the Figma "Erectile dysfunction — 2026, May 26" layout: the blue
+ * hero with its goals / testimonial / pill cards, then the light editorial run
+ * (benefits grid, three-step "How it works", the "Confidence in the moments
+ * that matter most" split, "Let's get to know you"), FAQ, and the closing CTA
+ * banner. Every section is responsive: stacked on mobile, 2-up on tablet, the
+ * Figma grid on desktop.
+ */
 export default function ErectileDysfunctionPage() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
 
-      <CategoryPreview category={category} variant="hero" priority />
-      <UspStrip />
+      {/* Blue hero + in-hero cards (pill band, goals, testimonial) */}
+      <CategoryPreview category={category} priority>
+        <EdDetail />
+      </CategoryPreview>
+
+      {/* Light editorial sections */}
       <div id="assessment" className="scroll-mt-28">
-        <FeatureGrid />
+        <EdPage />
       </div>
-      <HowItWorks />
-      <Reviews />
-      <CategoryFaq items={CATEGORY_FAQS["erectile-dysfunction"]} accent={category.theme.base} />
-      <CtaBanner />
+
+      <CategoryFaq
+        items={CATEGORY_FAQS["erectile-dysfunction"]}
+        accent={category.theme.base}
+      />
+
+      <EdCtaBanner />
       <Footer />
     </main>
   );
