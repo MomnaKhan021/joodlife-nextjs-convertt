@@ -1237,7 +1237,9 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
 
 type GpResult = { name: string; address: string; city: string; postcode: string };
 
-const GP_SEARCH_URL = "https://jood-proxy.vercel.app/api/gp-search";
+// Same-origin route (app/api/gp-search) — the external proxy is blocked by
+// the site's CSP in browsers, so the server fetches it for us instead.
+const GP_SEARCH_URL = "/api/gp-search";
 
 function GpSlide({ slide, answers, setAnswer }: SlideProps) {
   const [query, setQuery] = useState<string>(
