@@ -22,6 +22,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import {
+  fireHubSpot,
+  upsertContact,
+  addNoteToContact,
+  updateDealStage,
+  findDealsByContactEmail,
+  isHubSpotEnabled,
+  PATIENT_LIFECYCLE_STAGES,
+} from "@/lib/hubspot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -428,6 +437,54 @@ export async function POST(req: NextRequest) {
         WHERE id = ${id}
       `),
     );
+
+    // Mirror to HubSpot so the patient lifecycle board matches the dashboard:
+    // contact status -> dispatched, newest deal -> the "Dispatched" pipeline
+    // stage, and a timeline note carrying the DPD tracking number.
+    if (isHubSpotEnabled()) {
+      try {
+        const row = (await drizzle.execute(
+          sql.raw(`SELECT email, full_name FROM consultations WHERE id = ${id} LIMIT 1`),
+        )) as { rows?: Array<{ email?: string; full_name?: string }> } | Array<{ email?: string; full_name?: string }>;
+        const rows = Array.isArray(row) ? row : (row.rows ?? []);
+        const email = (rows[0]?.email ?? "").trim();
+        const fullName = (rows[0]?.full_name ?? "").trim() || `Patient #${id}`;
+        if (email) {
+          const dispatchNote =
+            `<p><b>Order dispatched</b></p>` +
+            `<p>Patient: ${fullName} · Consultation reference: #${id}</p>` +
+            (tracking
+              ? `<p>DPD tracking: <b>${tracking}</b> — ` +
+                `<a href="https://www.dpdlocal.co.uk/apps/tracking/?reference=${encodeURIComponent(tracking)}">track parcel</a></p>`
+              : "") +
+            `<p>Dispatched at ${nowIso}</p>`;
+          // Fire-and-forget — never block or fail the dispatch response.
+          void (async () => {
+            await fireHubSpot("dispatch:contact", () =>
+              upsertContact({
+                email,
+                extra: {
+                  jood_consultation_status: "dispatched",
+                  ...(tracking ? { jood_tracking_number: tracking } : {}),
+                },
+              }),
+            );
+            await fireHubSpot("dispatch:deal-stage", async () => {
+              const dealsRes = await findDealsByContactEmail(email);
+              if (!dealsRes.ok || dealsRes.data.length === 0) return { ok: true, data: { id: "" } };
+              const latestDeal = dealsRes.data[0];
+              return updateDealStage(latestDeal.id, PATIENT_LIFECYCLE_STAGES.dispatched, {
+                jood_consultation_status: "dispatched",
+              });
+            });
+            await fireHubSpot("dispatch:note", () => addNoteToContact(email, dispatchNote));
+          })();
+        }
+      } catch {
+        /* HubSpot mirror is best-effort — dispatch already succeeded */
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       id,
