@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { hideBeforeSql } from "@/lib/adminHide";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -104,6 +105,7 @@ export async function GET() {
         SELECT status, payment_status, notes, total_amount, items_json, created_at
         FROM orders
         WHERE LOWER(COALESCE(status::text, '')) <> 'cancelled'
+          ${hideBeforeSql("created_at") ? `AND ${hideBeforeSql("created_at")}` : ""}
         ORDER BY created_at DESC NULLS LAST, id DESC
         LIMIT 5000
       `),

@@ -270,6 +270,10 @@ function OrdersKpiStrip() {
     };
   }, []);
 
+  // Nothing to summarise when there are no orders — hide the strip entirely
+  // rather than showing a row of zeros.
+  if (s && s.orders === 0) return null;
+
   const num = (n: number | undefined) =>
     typeof n === "number" ? n.toLocaleString("en-GB") : "—";
   const cards: { label: string; value: string; spark?: number[] }[] = [
@@ -905,7 +909,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                       {debouncedSearch
                         ? `No ${tab.label.toLowerCase()} match "${debouncedSearch}".`
                         : activeTab === "orders" && fulfillment === "unfulfilled"
-                          ? "Nothing to do — the queue is clear. 🎉"
+                          ? "Nothing to do — the queue is clear."
                           : `No ${tab.label.toLowerCase()} yet.`}
                     </td>
                   </tr>

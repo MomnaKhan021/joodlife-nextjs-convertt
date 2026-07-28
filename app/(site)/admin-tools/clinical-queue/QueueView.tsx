@@ -601,6 +601,7 @@ function ConsultationCard({
   onToggleSelect,
   joinUrl,
   meetingTime,
+  mode = "clinical",
 }: {
   c: Consultation;
   onDecision: (id: number, decision: string, reason: string) => void;
@@ -609,6 +610,7 @@ function ConsultationCard({
   onToggleSelect?: (id: number) => void;
   joinUrl?: string | null;
   meetingTime?: string | null;
+  mode?: "clinical" | "marketing";
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -724,32 +726,41 @@ function ConsultationCard({
               isReorder={c.isReorder}
             />
             <div className="flex flex-wrap items-center justify-end gap-2">
-              {joinUrl ? (
-                <JoinCallButton
-                  joinUrl={joinUrl}
-                  disabled={!!(meetingTime && describeCall(meetingTime)?.when === "past")}
-                />
-              ) : !meetingTime && !c.isReorder ? (
+              {mode === "marketing" ? (
+                // Abandoned checkout = a lead with no order. The only action is
+                // to nudge them to come back and complete checkout — no supply
+                // to approve/dispatch here.
                 <SendReminderButton id={c.id} email={c.email} />
-              ) : null}
-              {!c.reviewed && (
+              ) : (
                 <>
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => runDecision("approved")}
-                    className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
-                  >
-                    Approve supply
-                  </button>
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => runDecision("rejected")}
-                    className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
-                  >
-                    Reject supply
-                  </button>
+                  {joinUrl ? (
+                    <JoinCallButton
+                      joinUrl={joinUrl}
+                      disabled={!!(meetingTime && describeCall(meetingTime)?.when === "past")}
+                    />
+                  ) : !meetingTime && !c.isReorder ? (
+                    <SendReminderButton id={c.id} email={c.email} />
+                  ) : null}
+                  {!c.reviewed && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => runDecision("approved")}
+                        className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
+                      >
+                        Approve supply
+                      </button>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => runDecision("rejected")}
+                        className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+                      >
+                        Reject supply
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -1360,8 +1371,9 @@ export default function QueueView({
               <ConsultationCard
                 key={c.id}
                 c={c}
+                mode={mode}
                 onDecision={handleDecision}
-                selectable
+                selectable={mode !== "marketing"}
                 selected={selected.has(c.id)}
                 onToggleSelect={toggleSelect}
                 joinUrl={

@@ -30,6 +30,11 @@ import { refreshAdminBadges } from "../AdminShell";
 import Pagination from "../Pagination";
 
 type DispatchItem = { title: string | null; dose: string | null; quantity: number };
+type InventoryBatch = {
+  medicineName: string | null;
+  batchNumber: string;
+  expiryDate?: string | null;
+};
 type Consultation = {
   fullName: string | null;
   dateOfBirth: string | null;
@@ -170,11 +175,14 @@ function fmtDateTime(iso: string | null) {
 function OrderCard({
   o,
   onDispatched,
+  batches,
 }: {
   o: DispatchOrder;
   onDispatched: (id: number, tracking: string) => void;
+  batches: InventoryBatch[];
 }) {
   const [busy, setBusy] = useState(false);
+  const [batch, setBatch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -223,7 +231,7 @@ function OrderCard({
     const labels: LabelData[] = (o.items.length ? o.items : [{ title: null, dose: null, quantity: 1 }]).map(
       (it): LabelData => {
         const { brand, productLine } = composeMedicine(it.title, it.dose);
-        return { brand, productName: productLine, patientName: patient, date };
+        return { brand, productName: productLine, patientName: patient, date, batchNumber: batch || null };
       },
     );
     printLabels(labels);
@@ -251,7 +259,7 @@ function OrderCard({
     } finally {
       setBusy(false);
     }
-  }, [busy, o.id, o.orderNumber, o.customerName, o.items, o.trackingNumber, onDispatched]);
+  }, [busy, batch, o.id, o.orderNumber, o.customerName, o.items, o.trackingNumber, onDispatched]);
 
   const dispatch = useCallback(async () => {
     if (busy) return;
@@ -353,7 +361,23 @@ function OrderCard({
 
         {/* Top-right actions */}
         <div className="flex flex-col items-end gap-1.5">
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {/* Which stock batch is being dispensed — prints on the label. */}
+            <select
+              value={batch}
+              onChange={(e) => setBatch(e.target.value)}
+              title="Select the stock batch being dispensed"
+              className="rounded-lg border border-[#142e2a]/30 bg-white px-2.5 py-1.5 text-[13px] font-medium text-[#142e2a]"
+            >
+              <option value="">Batch…</option>
+              {batches.map((b) => (
+                <option key={b.batchNumber} value={b.batchNumber}>
+                  {b.medicineName ? `${b.medicineName} · ` : ""}
+                  {b.batchNumber}
+                  {b.expiryDate ? ` (exp ${new Date(b.expiryDate).toLocaleDateString("en-GB")})` : ""}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
               onClick={printDispensing}
@@ -497,6 +521,7 @@ export default function DispatchQueuePage() {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [batches, setBatches] = useState<InventoryBatch[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -518,6 +543,30 @@ export default function DispatchQueuePage() {
     void load();
   }, [load]);
 
+  // Load the pharmacy stock batches once, for the dispensing-label dropdown.
+  useEffect(() => {
+    let off = false;
+    fetch("/api/admin-tools/inventory", { credentials: "include", cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (!off && j?.ok && Array.isArray(j.items)) {
+          setBatches(
+            (j.items as Array<Record<string, unknown>>)
+              .filter((it) => typeof it.batchNumber === "string" && it.batchNumber)
+              .map((it) => ({
+                medicineName: (it.medicineName as string) ?? null,
+                batchNumber: it.batchNumber as string,
+                expiryDate: (it.expiryDate as string) ?? null,
+              })),
+          );
+        }
+      })
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, []);
+
   const awaiting = useMemo(() => {
     const list = orders.filter((o) => !o.dispatched);
     const term = q.trim().toLowerCase();
@@ -533,7 +582,7 @@ export default function DispatchQueuePage() {
   return (
     <div className="mx-auto w-full max-w-[1000px] px-5 py-6 md:px-8 md:py-8">
       <header className="mb-5">
-        <h1 className="text-[22px] font-bold tracking-tight text-[#1a1a1a]">Dispatch queue</h1>
+        <h1 className="text-[22px] font-bold tracking-tight text-[#1a1a1a]">To Dispatch</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
           Patients approved for supply in the clinical queue. Print the dispensing
           label for the pack, then Dispatch to create the DPD parcel label and
@@ -578,6 +627,7 @@ export default function DispatchQueuePage() {
               <OrderCard
                 key={o.id}
                 o={o}
+                batches={batches}
                 onDispatched={(id, tracking) =>
                   setOrders((prev) =>
                     prev.map((x) =>

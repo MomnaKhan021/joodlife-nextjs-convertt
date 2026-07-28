@@ -18,6 +18,8 @@ export type LabelData = {
   patientName: string;
   /** Dispensing date, already formatted (dd/MM/yyyy). */
   date: string;
+  /** Inventory batch number selected at dispense time. Optional. */
+  batchNumber?: string | null;
 };
 
 /* Static text that appears on every label. (The JOOD logo, pharmacy
@@ -143,10 +145,14 @@ function labelMarkup(l: LabelData): string {
   // caption), so we print ONLY the variable data, positioned to land in
   // the blank middle area between the pre-printed top caption and the
   // pre-printed rule/footer.
+  const batchHtml = l.batchNumber?.trim()
+    ? `<div class="batch">Batch: ${esc(l.batchNumber.trim())}</div>`
+    : "";
   return `<div class="label"><div class="content">
     <div class="top">
       <div class="pname">${brand}${nameHtml}</div>
       <div class="instruction">${esc(INSTRUCTION_TEXT)}</div>
+      ${batchHtml}
     </div>
     <div class="spacer"></div>
     <div class="who">
@@ -196,6 +202,7 @@ export function buildLabelsDocument(labels: LabelData[]): string {
     font-size: 5.6pt; line-height: 1.3; margin-top: 1.1mm;
     color: ${BRAND_GREEN};
   }
+  .batch { font-size: 5.6pt; font-weight: 700; margin-top: 0.8mm; color: ${BRAND_GREEN}; }
   .spacer { flex: 1 1 auto; }
   .who {
     display: flex; justify-content: space-between; align-items: flex-end;
