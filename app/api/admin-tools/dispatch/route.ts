@@ -355,7 +355,6 @@ export async function GET(req: NextRequest) {
           FROM orders
           WHERE (LOWER(status::text) IN ('shipped','delivered')
                  OR COALESCE(CAST(notes AS TEXT), '') ILIKE '%DPD tracking:%')
-                ${hideCond ? `AND ${hideCond}` : ""}
           ORDER BY created_at DESC NULLS LAST, id DESC
           LIMIT 500
         `),

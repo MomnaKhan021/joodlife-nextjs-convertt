@@ -208,7 +208,11 @@ export async function GET(req: NextRequest) {
   // Legacy-data hide: keep only rows created at/after the cutoff for the
   // hidden collections (orders / consultations / customers). Rows stay in the
   // DB; this is a reversible display filter. See lib/adminHide.ts.
-  const hideCond = HIDE_TYPES.has(type) ? hideBeforeSql("created_at") : "";
+  // The Dispatched view is a historical log and must KEEP its legacy records,
+  // so it opts out of the hide even though orders are otherwise hidden.
+  const isDispatchedView = type === "orders" && fulfillment === "dispatched";
+  const hideCond =
+    HIDE_TYPES.has(type) && !isDispatchedView ? hideBeforeSql("created_at") : "";
   if (hideCond) conditions.push(hideCond);
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
