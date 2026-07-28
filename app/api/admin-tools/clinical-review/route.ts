@@ -12,6 +12,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { hideBeforeSql } from "@/lib/adminHide";
 import {
   fireHubSpot,
   upsertContact,
@@ -294,9 +295,14 @@ export async function GET(req: NextRequest) {
 
     // Pending = submitted consultations (new patients) + reorder submissions
     // waiting review. Exclude drafts and already-decided ones unless showAll.
+    // Legacy-data hide (reversible display filter — see lib/adminHide.ts):
+    // only surface consultations created at/after the cutoff.
+    const hideCond = hideBeforeSql("created_at");
+    const hideAnd = hideCond ? ` AND ${hideCond}` : "";
+
     const whereClause = showAll
-      ? `WHERE status NOT IN ('draft') AND ${queueCond}`
-      : `WHERE status IN ('submitted', 'reviewed') AND ${queueCond}`;
+      ? `WHERE status NOT IN ('draft') AND ${queueCond}${hideAnd}`
+      : `WHERE status IN ('submitted', 'reviewed') AND ${queueCond}${hideAnd}`;
 
     // The pending COUNT is computed directly in SQL (NOT derived from the
     // LIMIT-200 list) — otherwise, with 200+ awaiting consultations the list
@@ -383,7 +389,7 @@ export async function GET(req: NextRequest) {
            FROM "consultations"
            WHERE status IN ('submitted', 'reviewed')
              AND (answers->>'_review_decision') IS NULL
-             AND ${queueCond}`,
+             AND ${queueCond}${hideAnd}`,
         ),
       ),
     ])) as [

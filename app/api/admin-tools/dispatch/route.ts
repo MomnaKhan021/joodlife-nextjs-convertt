@@ -22,6 +22,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { hideBeforeSql } from "@/lib/adminHide";
 import {
   fireHubSpot,
   upsertContact,
@@ -212,7 +213,10 @@ export async function GET(req: NextRequest) {
   }
 
   // Approved-for-supply is the gate into the pipeline.
-  const APPROVED_WHERE = `answers->>'_review_decision' = 'approved'`;
+  const hideCond = hideBeforeSql("created_at");
+  const APPROVED_WHERE =
+    `answers->>'_review_decision' = 'approved'` +
+    (hideCond ? ` AND ${hideCond}` : "");
 
   // Lightweight counts for the sidebar badges. awaiting = approved but not yet
   // dispatched; dispatched = approved with a _dispatched_at stamp. As soon as
@@ -351,6 +355,7 @@ export async function GET(req: NextRequest) {
           FROM orders
           WHERE (LOWER(status::text) IN ('shipped','delivered')
                  OR COALESCE(CAST(notes AS TEXT), '') ILIKE '%DPD tracking:%')
+                ${hideCond ? `AND ${hideCond}` : ""}
           ORDER BY created_at DESC NULLS LAST, id DESC
           LIMIT 500
         `),

@@ -19,6 +19,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { hideBeforeSql, HIDE_TYPES } from "@/lib/adminHide";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -204,6 +205,12 @@ export async function GET(req: NextRequest) {
           `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`,
     );
   }
+  // Legacy-data hide: keep only rows created at/after the cutoff for the
+  // hidden collections (orders / consultations / customers). Rows stay in the
+  // DB; this is a reversible display filter. See lib/adminHide.ts.
+  const hideCond = HIDE_TYPES.has(type) ? hideBeforeSql("created_at") : "";
+  if (hideCond) conditions.push(hideCond);
+
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
   let drizzle: DrizzleLike;
@@ -244,6 +251,7 @@ export async function GET(req: NextRequest) {
         : `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`
     );
   }
+  if (hideCond) safeConds.push(hideCond);
   const safeWhere = safeConds.length ? `WHERE ${safeConds.join(" AND ")}` : "";
 
   let rowsResult: unknown;
