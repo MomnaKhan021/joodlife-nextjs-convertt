@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { hideBeforeSql } from "@/lib/adminHide";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -109,16 +110,22 @@ export async function GET(req: NextRequest) {
     if (days > 1) start.setDate(start.getDate() - (days - 1));
     const startIso = start.toISOString();
 
+    // Legacy-data hide — the analytics must reflect the same fresh-start view
+    // as the rest of the admin (orders / consultations / customers reset to 0
+    // until new data comes in). See lib/adminHide.ts.
+    const hc = hideBeforeSql("created_at");
+    const hideAnd = hc ? ` AND ${hc}` : "";
+
     const [ordersRes, consultsRes, repeatRes, usersRes] = await Promise.all([
       drizzle.execute(
         sql.raw(
           `SELECT created_at, total_amount, status, payment_status, customer_email
-           FROM orders WHERE created_at >= '${startIso}';`,
+           FROM orders WHERE created_at >= '${startIso}'${hideAnd};`,
         ),
       ),
       drizzle.execute(
         sql.raw(
-          `SELECT created_at, status FROM consultations WHERE created_at >= '${startIso}';`,
+          `SELECT created_at, status FROM consultations WHERE created_at >= '${startIso}'${hideAnd};`,
         ),
       ),
       drizzle.execute(
@@ -127,14 +134,14 @@ export async function GET(req: NextRequest) {
            FROM orders
            WHERE customer_email IS NOT NULL AND customer_email <> ''
              AND COALESCE(LOWER(status::text), '') <> 'cancelled'
-             AND COALESCE(LOWER(payment_status::text), '') NOT IN ('refunded', 'failed')
+             AND COALESCE(LOWER(payment_status::text), '') NOT IN ('refunded', 'failed')${hideAnd}
            GROUP BY 1;`,
         ),
       ),
       drizzle.execute(
         sql.raw(
           `SELECT COUNT(*)::int AS n FROM users
-           WHERE COALESCE(role::text, 'customer') = 'customer' AND created_at >= '${startIso}';`,
+           WHERE COALESCE(role::text, 'customer') = 'customer' AND created_at >= '${startIso}'${hideAnd};`,
         ),
       ),
     ]);
