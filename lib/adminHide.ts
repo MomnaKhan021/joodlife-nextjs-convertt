@@ -11,7 +11,7 @@
  * Put in place when the operator asked for a clean slate ahead of re-syncing
  * data from HubSpot. Any NEW record created after the cutoff shows normally.
  */
-export const HIDE_BEFORE: string | null = "2026-07-28T10:46:00Z";
+export const HIDE_BEFORE: string | null = "2026-07-28 10:46:00+00";
 
 /**
  * Raw SQL condition that keeps only rows created at/after the cutoff.
