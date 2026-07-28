@@ -4,9 +4,14 @@
     {
       "path": "/api/hubspot/sync-all",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/abandoned-reminders",
+      "schedule": "0 9 * * *"
     }
   ],
   "functions": {
-    "app/api/hubspot/sync-all/route.ts": { "maxDuration": 300 }
+    "app/api/hubspot/sync-all/route.ts": { "maxDuration": 300 },
+    "app/api/cron/abandoned-reminders/route.ts": { "maxDuration": 60 }
   }
 }

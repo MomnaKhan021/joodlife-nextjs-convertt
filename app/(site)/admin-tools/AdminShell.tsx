@@ -166,10 +166,10 @@ function NavBadge({ type }: { type: string }) {
           .then((j) => { if (j?.ok) apply(j.pending); })
           .catch(() => {});
       } else if (type === "marketing") {
-        // Marketing queue = consultations from patients with no order yet.
-        fetch(`/api/admin-tools/clinical-review?status=pending&queue=marketing`, { credentials: "include", cache: "no-store" })
+        // Abandoned Checkout = shoppers with an unfinished cart.
+        fetch(`/api/admin-tools/abandoned-carts?count=1`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
-          .then((j) => { if (j?.ok) apply(j.pending); })
+          .then((j) => { if (j?.ok) apply(j.count); })
           .catch(() => {});
       } else if (type === "dispensing") {
         // Dispatch queue = patients approved & awaiting dispatch.

@@ -484,6 +484,18 @@ export async function POST(req: NextRequest) {
     const id = rows[0]?.id;
     if (!id) throw new Error("Insert did not return an id");
 
+    // Cart recovered — drop this shopper out of the Abandoned Checkout queue.
+    try {
+      await drizzle.execute(
+        sql.raw(
+          `UPDATE "abandoned_carts" SET recovered_at = now(), updated_at = now()
+           WHERE LOWER(email) = ${esc(customer.email.toLowerCase())} AND recovered_at IS NULL`,
+        ),
+      );
+    } catch {
+      /* non-fatal — never let cart cleanup break an order */
+    }
+
     if (idempotencyKey) {
       idempotencyStore(idempotencyKey, {
         orderId: id,

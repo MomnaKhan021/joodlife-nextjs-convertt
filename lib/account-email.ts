@@ -394,3 +394,77 @@ Dispatch: ${url}/admin-tools/dispensing-queue`;
     }
   }
 }
+
+/**
+ * Abandoned-cart reminder — nudges a shopper who left items in their cart
+ * without completing checkout. Sent from the Abandoned Checkout queue (manual)
+ * and the daily reminder cron (automated). A WhatsApp contact link is included
+ * so recipients can reply on WhatsApp; the message itself goes via email.
+ */
+export async function sendAbandonedCartEmail(
+  payload: Payload,
+  opts: {
+    email: string;
+    name?: string | null;
+    items?: Array<{ title?: string | null; dose?: string | null; quantity?: number }>;
+    total?: number | null;
+    whatsapp?: string | null;
+  },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const checkoutUrl = `${url}/checkout`;
+  const waNumber = (opts.whatsapp ?? "447756099075").replace(/[^\d]/g, "");
+  const waLink = `https://wa.me/${waNumber}`;
+
+  const lines = (opts.items ?? [])
+    .filter((i) => (i.title ?? "").trim())
+    .map(
+      (i) =>
+        `<li style="margin:0 0 4px">${escapeHtml(String(i.title))}${
+          i.dose ? ` · ${escapeHtml(String(i.dose))}` : ""
+        }${i.quantity && i.quantity > 1 ? ` × ${i.quantity}` : ""}</li>`,
+    )
+    .join("");
+  const itemsHtml = lines
+    ? `<ul style="font-size:14px;line-height:20px;margin:0 0 16px;padding-left:18px;color:#142e2a">${lines}</ul>`
+    : "";
+
+  const html = `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
+    <h1 style="font-size:22px;margin:0 0 12px">You left something behind, ${escapeHtml(firstName)}</h1>
+    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
+      Your items are still saved in your basket. Pick up right where you left
+      off — it only takes a moment to complete your order.
+    </p>
+    ${itemsHtml}
+    <p style="margin:0 0 20px">
+      <a href="${checkoutUrl}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
+        Complete my order
+      </a>
+    </p>
+    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.75;margin:0 0 8px">
+      Prefer to chat? Message us on
+      <a href="${waLink}" style="color:#142e2a;font-weight:600">WhatsApp</a>
+      and we'll help you finish up.
+    </p>
+    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+      From the team at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
+    </p>
+  </div>`;
+
+  const text = `Hi ${firstName},
+
+Your items are still saved in your basket — complete your order here: ${checkoutUrl}
+
+Prefer to chat? Message us on WhatsApp: ${waLink}
+
+From the team at ${url}.`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "You left items in your basket — complete your order",
+    html,
+    text,
+  });
+}

@@ -146,6 +146,36 @@ function CheckoutForm() {
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
+  // Abandoned-cart capture: once we know the shopper's email and they still
+  // have items, snapshot the cart server-side (debounced). If they complete
+  // checkout, /api/checkout marks it recovered; if not, it surfaces in the
+  // Abandoned Checkout queue and the daily reminder cron nudges them.
+  useEffect(() => {
+    if (redirecting) return;
+    const em = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) || items.length === 0) return;
+    const t = setTimeout(() => {
+      void fetch("/api/cart/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: em,
+          name: `${firstName} ${lastName}`.trim(),
+          phone: phone.trim(),
+          total: subtotal,
+          items: items.map((i) => ({
+            slug: i.slug,
+            title: i.title,
+            dose: i.dose,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+        }),
+      }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [email, firstName, lastName, phone, items, subtotal, redirecting]);
+
   // Restore previously-saved contact details (client-only; the form isn't
   // rendered until the cart hydrates, so this can't cause a hydration
   // mismatch). The setState calls are intentional one-shot restores.

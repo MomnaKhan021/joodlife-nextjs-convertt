@@ -69,6 +69,12 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
   "CREATE UNIQUE INDEX IF NOT EXISTS discounts_code_idx ON public.discounts USING btree (code)",
   "CREATE INDEX IF NOT EXISTS discounts_updated_at_idx ON public.discounts USING btree (updated_at)",
+  // Abandoned carts — true cart-abandonment capture for the Abandoned Checkout
+  // queue + automated reminder emails. Not a Payload collection (managed via
+  // raw SQL like the rest of the admin surfaces).
+  "CREATE TABLE IF NOT EXISTS \"abandoned_carts\" (\n  \"id\" serial,\n  \"email\" varchar NOT NULL,\n  \"customer_name\" varchar,\n  \"phone\" varchar,\n  \"items_json\" jsonb,\n  \"total_amount\" numeric,\n  \"source\" varchar,\n  \"recovered_at\" timestamptz,\n  \"last_reminded_at\" timestamptz,\n  \"reminder_count\" integer DEFAULT 0,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+  "CREATE UNIQUE INDEX IF NOT EXISTS abandoned_carts_email_idx ON public.abandoned_carts USING btree (LOWER(email))",
+  "CREATE INDEX IF NOT EXISTS abandoned_carts_recovered_idx ON public.abandoned_carts USING btree (recovered_at)",
   "CREATE INDEX IF NOT EXISTS discounts_created_at_idx ON public.discounts USING btree (created_at)",
   "CREATE TABLE IF NOT EXISTS \"media\" (\n  \"id\" serial,\n  \"alt\" varchar NOT NULL,\n  \"caption\" varchar,\n  \"url\" varchar NOT NULL,\n  \"filename\" varchar,\n  \"mime_type\" varchar,\n  \"filesize\" numeric,\n  \"width\" numeric,\n  \"height\" numeric,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"alt\" varchar",
@@ -311,7 +317,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v2";
+const SCHEMA_VERSION = "v3";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

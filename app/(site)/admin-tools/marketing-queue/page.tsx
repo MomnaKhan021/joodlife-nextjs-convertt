@@ -1,10 +1,10 @@
-import QueueView from "../clinical-queue/QueueView";
+import AbandonedCheckoutView from "./AbandonedCheckoutView";
 
 /**
- * Marketing Queue — patients who completed a consultation but have NOT placed
- * an order yet (follow-up leads). Same view as the Clinical Queue, filtered
- * server-side by "no matching order for this email".
+ * Abandoned Checkout — true cart abandonment. Shoppers who added items to their
+ * basket but didn't complete checkout (captured by /api/cart/track), with
+ * manual + automated (daily cron) reminder emails to recover the sale.
  */
 export default function MarketingQueuePage() {
-  return <QueueView mode="marketing" />;
+  return <AbandonedCheckoutView />;
 }
