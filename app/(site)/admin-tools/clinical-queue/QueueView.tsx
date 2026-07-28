@@ -1178,7 +1178,7 @@ export default function QueueView({
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-[20px] font-semibold text-[#1a1a1a]">
-              {mode === "marketing" ? "Marketing Queue" : "Clinical Approval Queue"}
+              {mode === "marketing" ? "Abandoned Checkout" : "Clinical Check"}
             </h1>
             <p className="mt-0.5 text-[13px] text-[#6b7280]">
               {mode === "marketing"

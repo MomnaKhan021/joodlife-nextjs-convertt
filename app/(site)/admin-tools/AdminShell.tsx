@@ -47,7 +47,7 @@ const NAV: NavItem[] = [
     icon: I("M6 7h12l1 13H5L6 7zM9 9V6a3 3 0 0 1 6 0v3"),
   },
   {
-    label: "Clinical Queue",
+    label: "Clinical Check",
     href: "/admin-tools/clinical-queue",
     match: (p) => p.startsWith("/admin-tools/clinical-queue"),
     badgeType: "clinical",
@@ -71,7 +71,7 @@ const NAV: NavItem[] = [
     icon: I("M16 3h5v5M21 3l-9 9M3 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"),
   },
   {
-    label: "Marketing queue",
+    label: "Abandoned Checkout",
     href: "/admin-tools/marketing-queue",
     match: (p) => p.startsWith("/admin-tools/marketing-queue"),
     section: "clinical",
