@@ -101,14 +101,8 @@ const NAV: NavItem[] = [
     badgeType: "users",
     icon: I("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"),
   },
-  {
-    label: "Consultations",
-    href: "/admin-tools/data-browser?type=consultations",
-    match: (_p, t) => t === "consultations",
-    section: "consultations",
-    badgeType: "consultations",
-    icon: I("M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"),
-  },
+  // Consultations tab intentionally hidden from the sidebar for now (data is
+  // still accessible via /admin-tools/data-browser?type=consultations).
   {
     label: "Discounts",
     href: "/admin-tools/data-browser?type=discounts",
