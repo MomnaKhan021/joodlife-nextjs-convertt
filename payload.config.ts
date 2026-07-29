@@ -271,6 +271,30 @@ export default buildConfig({
     } catch (err) {
       payload.logger?.error?.({ msg: "ensureFullSchema (onInit) failed", err });
     }
+    // Promote allowlisted staff to admin on every boot (survives redeploys and
+    // DB restores). Only touches accounts that already exist; never creates or
+    // sets passwords.
+    try {
+      const { ADMIN_ALLOWLIST } = await import("@/lib/adminAllowlist");
+      const inList = [...ADMIN_ALLOWLIST]
+        .map((e) => `'${e.replace(/'/g, "''")}'`)
+        .join(", ");
+      const drizzle = (
+        payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }
+      ).drizzle;
+      if (inList && drizzle?.execute) {
+        const { sql } = await import("drizzle-orm");
+        await drizzle.execute(
+          sql.raw(
+            `UPDATE "users" SET role = 'admin'
+               WHERE LOWER(email) IN (${inList})
+                 AND COALESCE(role::text, '') <> 'admin'`,
+          ),
+        );
+      }
+    } catch (err) {
+      payload.logger?.error?.({ msg: "admin allowlist promotion (onInit) failed", err });
+    }
   },
   admin: {
     user: Users.slug,

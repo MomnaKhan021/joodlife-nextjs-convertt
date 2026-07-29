@@ -78,6 +78,21 @@ export const Users: CollectionConfig = {
     admin: ({ req: { user } }) => user?.role === "admin",
   },
   hooks: {
+    beforeChange: [
+      // Allowlisted emails are always admins — a fresh signup with one of these
+      // addresses is promoted immediately (see lib/adminAllowlist.ts).
+      async ({ data }) => {
+        try {
+          const { isAllowlistedAdmin } = await import("@/lib/adminAllowlist");
+          if (data?.email && isAllowlistedAdmin(String(data.email))) {
+            data.role = "admin";
+          }
+        } catch {
+          /* non-fatal */
+        }
+        return data;
+      },
+    ],
     afterChange: [
       // Mirror to HubSpot on signup + admin edits. Fire-and-forget so
       // user-facing flows aren't blocked by HubSpot latency.
