@@ -89,8 +89,64 @@ async function handle(req: NextRequest) {
     }
   }
 
-  console.info("[cron:abandoned-reminders]", { via: auth.via, due: due.length, sent, failed });
-  return NextResponse.json({ ok: true, due: due.length, sent, failed });
+  // Consultation-only leads (filled a consultation, no order yet). Reminder
+  // cadence is tracked inside the answers JSON so no schema change is needed.
+  const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email))`;
+  const cDue = rowsOf<{ id: number; email: string; full_name: string | null; phone: string | null }>(
+    await drizzle.execute(
+      sql.raw(`
+        SELECT id, email, full_name, phone
+          FROM "consultations"
+         WHERE status IN ('submitted','reviewed')
+           AND email IS NOT NULL AND email <> ''
+           AND NOT ${orderExists}
+           AND (answers->>'_abandoned_dismissed') IS NULL
+           AND created_at < now() - interval '30 minutes'
+           AND (
+                (answers->>'_cart_reminded_at') IS NULL
+                OR (answers->>'_cart_reminded_at')::timestamptz < now() - interval '20 hours'
+               )
+           AND COALESCE((answers->>'_cart_reminder_count')::int, 0) < 3
+         ORDER BY updated_at ASC
+         LIMIT 200
+      `),
+    ),
+  );
+
+  for (const c of cDue) {
+    try {
+      await sendAbandonedCartEmail(payload, {
+        email: c.email,
+        name: c.full_name,
+        items: [],
+        total: null,
+        whatsapp: c.phone,
+      });
+      await drizzle.execute(
+        sql.raw(
+          `UPDATE "consultations"
+             SET answers = jsonb_set(
+                   jsonb_set(COALESCE(answers, '{}'::jsonb), '{_cart_reminded_at}', to_jsonb(now()::text)),
+                   '{_cart_reminder_count}',
+                   to_jsonb(COALESCE((answers->>'_cart_reminder_count')::int, 0) + 1)
+                 ),
+                 updated_at = now()
+           WHERE id = ${c.id}`,
+        ),
+      );
+      sent += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  console.info("[cron:abandoned-reminders]", {
+    via: auth.via,
+    due: due.length + cDue.length,
+    sent,
+    failed,
+  });
+  return NextResponse.json({ ok: true, carts: due.length, consultations: cDue.length, sent, failed });
 }
 
 export const GET = handle;
