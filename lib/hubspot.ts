@@ -1075,11 +1075,19 @@ export async function getMeetingLinkForContact(
     let best: MeetingLink | null = null;
     for (const rec of batch.data.results) {
       const url = extractMeetUrl(rec.properties);
-      if (!url) continue;
       const startsAt =
         MEETING_TIME_PROPS.map((k) => rec.properties[k]).find(Boolean) ?? null;
-      if (!best || (startsAt && (!best.startsAt || startsAt > best.startsAt))) {
+      // A booking counts if it has a start time OR a join URL — do NOT discard
+      // a meeting just because it has no recognised join link. Many scheduler
+      // bookings carry only a start time, and the booked-status + call badge
+      // must still light up (the "Join call" button simply won't show).
+      if (!url && !startsAt) continue;
+      if (!best) {
         best = { joinUrl: url, startsAt };
+      } else if (startsAt && (!best.startsAt || startsAt > best.startsAt)) {
+        best = { joinUrl: url ?? best.joinUrl, startsAt };
+      } else if (url && !best.joinUrl) {
+        best = { joinUrl: url, startsAt: best.startsAt };
       }
     }
     if (best) return { ok: true, data: best };

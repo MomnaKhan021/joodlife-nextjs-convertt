@@ -28,7 +28,7 @@ function rowsOf<T>(r: unknown): T[] {
   return [];
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
   if (!user || (user.role !== "admin" && user.role !== "staff")) {
@@ -40,6 +40,20 @@ export async function GET() {
   const { sql } = (await import("drizzle-orm")) as { sql: SqlRaw };
   const cut = HIDE_BEFORE ?? null;
   const cutExpr = cut ? `'${cut}'::timestamptz` : "NULL::timestamptz";
+
+  // ?email=<addr> → probe the live HubSpot meeting lookup for that patient, to
+  // see exactly what we get back (contact found? meeting start time? join URL?).
+  const probeEmail = new URL(req.url).searchParams.get("email");
+  if (probeEmail) {
+    try {
+      const { getMeetingLinkForContact, isHubSpotEnabled } = await import("@/lib/hubspot");
+      const enabled = isHubSpotEnabled();
+      const res = enabled ? await getMeetingLinkForContact(probeEmail.trim().toLowerCase()) : null;
+      return NextResponse.json({ ok: true, email: probeEmail, hubspotEnabled: enabled, meetingLookup: res });
+    } catch (err) {
+      return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
+    }
+  }
 
   try {
     const [now, orders, consults, totals] = await Promise.all([

@@ -890,17 +890,23 @@ export default function QueueView({
         // meeting-times endpoint) so rows show their call badge instantly and
         // only stale/unknown patients hit HubSpot. Cache fresh = last 12h.
         {
-          const cutoff = Date.now() - 12 * 3600e3;
           const times: Record<string, string | null> = {};
           const links: Record<string, string | null> = {};
           for (const c of list) {
             const e = (c.email ?? "").trim().toLowerCase();
             if (!e) continue;
             const checked = c.answers?._meeting_checked_at;
-            if (typeof checked === "string" && +new Date(checked) > cutoff) {
-              times[e] = typeof c.answers._meeting_start === "string" ? c.answers._meeting_start : null;
-              links[e] = typeof c.answers._meeting_join === "string" ? c.answers._meeting_join : null;
-            }
+            if (typeof checked !== "string") continue;
+            const age = Date.now() - +new Date(checked);
+            const start =
+              typeof c.answers._meeting_start === "string" ? c.answers._meeting_start : null;
+            // Trust a POSITIVE result (a real meeting) for 12h. Re-check a
+            // NEGATIVE (no meeting) after 1h so a patient who books later is
+            // detected promptly instead of being stuck "not booked" for 12h.
+            const fresh = start ? age < 12 * 3600e3 : age < 1 * 3600e3;
+            if (!fresh) continue;
+            times[e] = start;
+            links[e] = typeof c.answers._meeting_join === "string" ? c.answers._meeting_join : null;
           }
           if (Object.keys(times).length > 0) {
             setMeetingTimes((prev) => ({ ...times, ...prev }));
