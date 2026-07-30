@@ -1083,8 +1083,12 @@ export default function QueueView({
   // call" button only appears when a link actually exists, and so the
   // consultation-time sort has real times.
   useEffect(() => {
+    // Look up meeting info for EVERY loaded patient (by email), not only those
+    // whose video_consultation_preference flag is set — a patient can book via
+    // the HubSpot scheduler without that flag, and we must still detect the
+    // booking so they land in the "Booked" tab.
     const emails = consultations
-      .filter((c) => c.answers.video_consultation_preference && c.email)
+      .filter((c) => c.email)
       .map((c) => (c.email ?? "").toLowerCase())
       .filter((e) => e && !(e in meetLinks));
     if (emails.length === 0) return;
@@ -1377,16 +1381,8 @@ export default function QueueView({
                 selectable={mode !== "marketing"}
                 selected={selected.has(c.id)}
                 onToggleSelect={toggleSelect}
-                joinUrl={
-                  c.answers.video_consultation_preference
-                    ? (meetLinks[(c.email ?? "").toLowerCase()] ?? null)
-                    : null
-                }
-                meetingTime={
-                  c.answers.video_consultation_preference
-                    ? (meetingTimes[(c.email ?? "").toLowerCase()] ?? null)
-                    : undefined
-                }
+                joinUrl={meetLinks[(c.email ?? "").toLowerCase()] ?? null}
+                meetingTime={meetingTimes[(c.email ?? "").toLowerCase()] ?? undefined}
               />
             ))}
           </div>
