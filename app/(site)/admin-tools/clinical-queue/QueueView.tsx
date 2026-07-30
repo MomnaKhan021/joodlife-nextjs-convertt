@@ -153,10 +153,11 @@ function treatmentStage(a: Record<string, unknown>): string {
  */
 function categorize(c: Consultation, meetingTime?: string | null): TabKey {
   if (c.isReorder || c.hasRedFlags) return "reorder";
-  const pref = !!c.answers.video_consultation_preference;
-  if (!pref) return "notbooked";
-  if (meetingTime === undefined) return "booked";
-  return meetingTime ? "booked" : "notbooked";
+  // Booked = the patient actually has a scheduled meeting time, OR they opted
+  // for a video consultation. Either way they belong in the "booked" tab — a
+  // real booking must never fall into "not booked".
+  if (meetingTime) return "booked";
+  return c.answers.video_consultation_preference ? "booked" : "notbooked";
 }
 
 /* ------------------------------------------------------------------ */

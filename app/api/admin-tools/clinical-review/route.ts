@@ -368,7 +368,8 @@ export async function GET(req: NextRequest) {
                    OR answers->>'reorder_new_clinical_event' = 'Yes'
                    OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
                  ), false)
-                 AND COALESCE(answers->>'video_consultation_preference', '') NOT IN ('', 'false')
+                 AND (COALESCE(answers->>'video_consultation_preference', '') NOT IN ('', 'false')
+                      OR COALESCE(answers->>'_meeting_start', '') ~ '^\\d{4}-\\d{2}-\\d{2}')
              )::int AS booked,
              COUNT(*) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
@@ -379,6 +380,7 @@ export async function GET(req: NextRequest) {
                    OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
                  ), false)
                  AND COALESCE(answers->>'video_consultation_preference', '') IN ('', 'false')
+                 AND COALESCE(answers->>'_meeting_start', '') !~ '^\\d{4}-\\d{2}-\\d{2}'
              )::int AS notbooked,
              COUNT(*) FILTER (
                WHERE answers->>'reorder_side_effect_severity' = 'Severe'
