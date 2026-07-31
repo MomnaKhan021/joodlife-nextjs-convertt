@@ -36,11 +36,28 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      ({ data, operation, req }) => {
+      async ({ data, operation, req }) => {
         if (operation === "create") {
           if (!data.user && req.user) data.user = req.user.id;
           if (!data.orderNumber) {
-            data.orderNumber = `JL-${Date.now().toString(36).toUpperCase()}`;
+            try {
+              const drizzle = (
+                req.payload.db as unknown as {
+                  drizzle?: { execute?: (q: unknown) => Promise<unknown> };
+                }
+              ).drizzle;
+              if (drizzle?.execute) {
+                const { sql } = await import("drizzle-orm");
+                const { nextOrderNumber } = await import("@/lib/orderNumber");
+                data.orderNumber = await nextOrderNumber(
+                  drizzle as { execute: (q: unknown) => Promise<unknown> },
+                  sql as { raw: (s: string) => unknown },
+                );
+              }
+            } catch {
+              /* fall through */
+            }
+            if (!data.orderNumber) data.orderNumber = `JL${Date.now()}`;
           }
         }
         return data;

@@ -75,6 +75,10 @@ const STATEMENTS: string[] = [
   "CREATE TABLE IF NOT EXISTS \"abandoned_carts\" (\n  \"id\" serial,\n  \"email\" varchar NOT NULL,\n  \"customer_name\" varchar,\n  \"phone\" varchar,\n  \"items_json\" jsonb,\n  \"total_amount\" numeric,\n  \"source\" varchar,\n  \"recovered_at\" timestamptz,\n  \"last_reminded_at\" timestamptz,\n  \"reminder_count\" integer DEFAULT 0,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "CREATE UNIQUE INDEX IF NOT EXISTS abandoned_carts_email_idx ON public.abandoned_carts USING btree (LOWER(email))",
   "CREATE INDEX IF NOT EXISTS abandoned_carts_recovered_idx ON public.abandoned_carts USING btree (recovered_at)",
+  // Sequential order numbers for the new site: JL3000, JL3001, … Starting at
+  // 3000 keeps them clear of the legacy/Shopify JL2xxx range so every JL3000+
+  // number is a new-site order. Same number shows in the admin and all emails.
+  "CREATE SEQUENCE IF NOT EXISTS \"orders_jl_seq\" START WITH 3000 INCREMENT BY 1 MINVALUE 3000",
   "CREATE INDEX IF NOT EXISTS discounts_created_at_idx ON public.discounts USING btree (created_at)",
   "CREATE TABLE IF NOT EXISTS \"media\" (\n  \"id\" serial,\n  \"alt\" varchar NOT NULL,\n  \"caption\" varchar,\n  \"url\" varchar NOT NULL,\n  \"filename\" varchar,\n  \"mime_type\" varchar,\n  \"filesize\" numeric,\n  \"width\" numeric,\n  \"height\" numeric,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"alt\" varchar",
@@ -317,7 +321,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v3";
+const SCHEMA_VERSION = "v4";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

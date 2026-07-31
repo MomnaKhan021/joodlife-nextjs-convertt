@@ -32,6 +32,61 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const BRAND = "#142e2a";
+
+/**
+ * Shared branded email shell. Every outbound email is wrapped in this so they
+ * all carry the Jood logo, typography, colours and pharmacy footer — one
+ * consistent, trustworthy look instead of the plain, scam-looking messages.
+ */
+export function emailShell(
+  inner: string,
+  opts?: { preheader?: string; baseUrl?: string },
+): string {
+  const url = (opts?.baseUrl || siteUrl()).replace(/\/$/, "");
+  const logo = `${url}/assets/figma/footer-logo-2.png`;
+  const year = new Date().getFullYear();
+  const preheader = opts?.preheader
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${escapeHtml(
+        opts.preheader,
+      )}</div>`
+    : "";
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light only" /></head>
+<body style="margin:0;padding:0;background:#eef1e9;-webkit-font-smoothing:antialiased">
+${preheader}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+      <tr><td style="background:${BRAND};padding:22px 32px">
+        <img src="${logo}" alt="JoodLife" height="34" style="height:34px;width:auto;display:block;border:0" />
+      </td></tr>
+      <tr><td style="padding:32px;color:${BRAND}">
+        ${inner}
+      </td></tr>
+      <tr><td style="background:${BRAND};padding:22px 32px">
+        <p style="margin:0 0 6px;font-size:13px;line-height:19px;color:#ffffff;font-weight:600">JoodLife — clinically guided care, delivered discreetly.</p>
+        <p style="margin:0 0 8px;font-size:12px;line-height:18px;color:rgba(255,255,255,.72)">
+          <a href="${url}" style="color:#d3dabe;text-decoration:none">${escapeHtml(url.replace(/^https?:\/\//, ""))}</a>
+          &nbsp;·&nbsp; Questions? Just reply to this email.
+        </p>
+        <p style="margin:0;font-size:11px;line-height:16px;color:rgba(255,255,255,.55)">
+          © ${year} Jood Pharmacy, a GPhC-registered pharmacy (9012990). Medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+}
+
+/** A brand CTA button (dark-green pill). */
+function btn(href: string, label: string): string {
+  return `<p style="margin:0 0 8px"><a href="${href}" style="display:inline-block;background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 24px;border-radius:10px;font-size:14px;font-weight:600">${label}</a></p>`;
+}
+
 /**
  * "Please book your video consultation" reminder — sent from the Clinical
  * Queue for patients who submitted but haven't booked their call yet. Uses the
@@ -45,24 +100,16 @@ export async function sendConsultationReminderEmail(
   const url = siteUrl();
   const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
 
-  const html = `
-  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
-    <h1 style="font-size:22px;margin:0 0 12px">Book your consultation, ${escapeHtml(firstName)}</h1>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      We've received your questionnaire, but we still need a short video
-      consultation with our clinician before your treatment can be approved and
-      dispatched. It only takes a few minutes.
-    </p>
-    <p style="margin:0 0 24px">
-      <a href="${BOOKING_URL}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-        Book my consultation
-      </a>
-    </p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
-      From the team at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
-      Questions? Just reply to this email.
-    </p>
-  </div>`;
+  const html = emailShell(
+    `<h1 style="font-size:22px;margin:0 0 12px;color:#142e2a">Book your consultation, ${escapeHtml(firstName)}</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 20px;color:#142e2a">
+       We've received your questionnaire, but we still need a short video
+       consultation with our clinician before your treatment can be approved and
+       dispatched. It only takes a few minutes.
+     </p>
+     ${btn(BOOKING_URL, "Book my consultation")}`,
+    { preheader: "Book your video consultation to continue" },
+  );
 
   const text = `Hi ${firstName},
 
@@ -89,17 +136,17 @@ export async function sendTwoFactorCodeEmail(
   opts: { email: string; code: string; name?: string | null },
 ): Promise<void> {
   const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
-  const html = `
-  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;color:#142e2a">
-    <h1 style="font-size:20px;margin:0 0 12px">Your JoodLife admin code</h1>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      Hi ${escapeHtml(firstName)}, use this code to finish signing in to the admin portal. It expires in 5 minutes.
-    </p>
-    <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px;color:#142e2a">${escapeHtml(opts.code)}</p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
-      If you didn't try to sign in, someone may have your password — change it as soon as you can.
-    </p>
-  </div>`;
+  const html = emailShell(
+    `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">Your JoodLife admin code</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       Hi ${escapeHtml(firstName)}, use this code to finish signing in to the admin portal. It expires in 5 minutes.
+     </p>
+     <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px;color:#142e2a">${escapeHtml(opts.code)}</p>
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+       If you didn't try to sign in, someone may have your password — change it as soon as you can.
+     </p>`,
+    { preheader: "Your admin sign-in code" },
+  );
   const text = `Your JoodLife admin sign-in code is ${opts.code}. It expires in 5 minutes. If you didn't request it, change your password.`;
   await payload.sendEmail({
     to: opts.email,
@@ -126,28 +173,24 @@ export function resetPasswordEmailHTML(opts: {
   const firstName =
     String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
 
-  return `
-  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
-    <h1 style="font-size:22px;margin:0 0 16px">Reset your password</h1>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      Hi ${escapeHtml(firstName)}, we received a request to reset the password for
-      your JoodLife account. Click the button below to choose a new one. This
-      link expires in 1 hour.
-    </p>
-    <p style="margin:0 0 24px">
-      <a href="${resetUrl}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-        Reset my password
-      </a>
-    </p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0 0 8px">
-      Or paste this link into your browser:<br />
-      <a href="${resetUrl}" style="color:#142e2a;word-break:break-all">${escapeHtml(resetUrl)}</a>
-    </p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
-      If you didn't request this, you can safely ignore this email — your
-      password won't change.
-    </p>
-  </div>`;
+  return emailShell(
+    `<h1 style="font-size:22px;margin:0 0 16px;color:#142e2a">Reset your password</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 20px;color:#142e2a">
+       Hi ${escapeHtml(firstName)}, we received a request to reset the password for
+       your JoodLife account. Click the button below to choose a new one. This
+       link expires in 1 hour.
+     </p>
+     ${btn(resetUrl, "Reset my password")}
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:12px 0 0">
+       Or paste this link into your browser:<br />
+       <a href="${resetUrl}" style="color:#142e2a;word-break:break-all">${escapeHtml(resetUrl)}</a>
+     </p>
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:12px 0 0">
+       If you didn't request this, you can safely ignore this email — your
+       password won't change.
+     </p>`,
+    { baseUrl: url, preheader: "Reset your JoodLife password" },
+  );
 }
 
 export async function sendWelcomeEmail(
@@ -158,24 +201,19 @@ export async function sendWelcomeEmail(
   const firstName = String(user.name ?? "").trim().split(/\s+/)[0] || "there";
   const loginUrl = `${url}/login`;
 
-  const html = `
-  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
-    <h1 style="font-size:22px;margin:0 0 16px">Welcome to JoodLife, ${escapeHtml(firstName)} 👋</h1>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      Your account has been created successfully. You can now sign in to manage
-      your treatments, orders and account details.
-    </p>
-    <p style="margin:0 0 24px">
-      <a href="${loginUrl}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-        Go to your account
-      </a>
-    </p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
-      This account is registered to <strong>${escapeHtml(user.email)}</strong> at
-      <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
-      If you didn't create this account, please ignore this email.
-    </p>
-  </div>`;
+  const html = emailShell(
+    `<h1 style="font-size:22px;margin:0 0 16px;color:#142e2a">Welcome to JoodLife, ${escapeHtml(firstName)}</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 20px;color:#142e2a">
+       Your account has been created successfully. You can now sign in to manage
+       your treatments, orders and account details.
+     </p>
+     ${btn(loginUrl, "Go to your account")}
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:12px 0 0">
+       This account is registered to <strong>${escapeHtml(user.email)}</strong>.
+       If you didn't create this account, please ignore this email.
+     </p>`,
+    { preheader: "Your JoodLife account is ready" },
+  );
 
   const text = `Welcome to JoodLife, ${firstName}!
 
@@ -273,25 +311,21 @@ export async function sendOrderConfirmationEmail(
       </p>
       ${bookConsultationBtn}`;
 
-  const html = `
-  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
-    <h1 style="font-size:22px;margin:0 0 8px">Thank you for your order, ${escapeHtml(firstName)}</h1>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      We've received your order <strong>${escapeHtml(opts.orderNumber)}</strong>.
-      A clinician will review it before anything is dispatched.
-    </p>
-    <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 12px">
-      ${rows}
-    </table>
-    <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right">
-      Total: ${gbp(opts.total)}
-    </p>
-    ${nextStepHtml}
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
-      Order placed at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
-      Questions? Just reply to this email.
-    </p>
-  </div>`;
+  const html = emailShell(
+    `<h1 style="font-size:22px;margin:0 0 8px;color:#142e2a">Thank you for your order, ${escapeHtml(firstName)}</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       We've received your order <strong>${escapeHtml(opts.orderNumber)}</strong>.
+       A clinician will review it before anything is dispatched.
+     </p>
+     <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 12px">
+       ${rows}
+     </table>
+     <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right;color:#142e2a">
+       Total: ${gbp(opts.total)}
+     </p>
+     ${nextStepHtml}`,
+    { preheader: `Order ${opts.orderNumber} received — book your consultation` },
+  );
 
   const bookText = `Book your consultation: ${BOOKING_URL}`;
   const nextStepText = opts.isReorder
@@ -352,24 +386,19 @@ Order placed at ${url}. Questions? Just reply to this email.`;
         </tr>`;
       })
       .join("");
-    const adminHtml = `
-    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
-      <h1 style="font-size:20px;margin:0 0 8px">New order — ${escapeHtml(opts.orderNumber)}</h1>
-      <p style="font-size:14px;line-height:22px;margin:0 0 14px">
-        <strong>${escapeHtml(opts.name || "Customer")}</strong>
-        (${escapeHtml(opts.email)}) placed an order${opts.isReorder ? " (reorder)" : ""}.
-      </p>
-      <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 8px">
-        ${adminRows}
-      </table>
-      <p style="font-size:15px;font-weight:700;margin:0 0 18px;text-align:right">Total: ${gbp(opts.total)}</p>
-      <p style="margin:0 0 20px">
-        <a href="${url}/admin-tools/dispensing-queue" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600">
-          Open dispatch queue
-        </a>
-      </p>
-      <p style="font-size:12px;color:#142e2a;opacity:.6;margin:0">Sent automatically by JoodLife.</p>
-    </div>`;
+    const adminHtml = emailShell(
+      `<h1 style="font-size:20px;margin:0 0 8px;color:#142e2a">New order — ${escapeHtml(opts.orderNumber)}</h1>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:#142e2a">
+         <strong>${escapeHtml(opts.name || "Customer")}</strong>
+         (${escapeHtml(opts.email)}) placed an order${opts.isReorder ? " (reorder)" : ""}.
+       </p>
+       <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 8px">
+         ${adminRows}
+       </table>
+       <p style="font-size:15px;font-weight:700;margin:0 0 18px;text-align:right;color:#142e2a">Total: ${gbp(opts.total)}</p>
+       ${btn(`${url}/admin-tools/dispensing-queue`, "Open To Dispatch")}`,
+      { preheader: `New order ${opts.orderNumber} from ${opts.name || opts.email}` },
+    );
     const adminText = `New order ${opts.orderNumber}
 Customer: ${opts.name || "Customer"} (${opts.email})${opts.isReorder ? " (reorder)" : ""}
 ${opts.items
@@ -430,28 +459,21 @@ export async function sendAbandonedCartEmail(
     ? `<ul style="font-size:14px;line-height:20px;margin:0 0 16px;padding-left:18px;color:#142e2a">${lines}</ul>`
     : "";
 
-  const html = `
-  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#142e2a">
-    <h1 style="font-size:22px;margin:0 0 12px">You left something behind, ${escapeHtml(firstName)}</h1>
-    <p style="font-size:15px;line-height:22px;margin:0 0 16px">
-      Your items are still saved in your basket. Pick up right where you left
-      off — it only takes a moment to complete your order.
-    </p>
-    ${itemsHtml}
-    <p style="margin:0 0 20px">
-      <a href="${checkoutUrl}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-        Complete my order
-      </a>
-    </p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.75;margin:0 0 8px">
-      Prefer to chat? Message us on
-      <a href="${waLink}" style="color:#142e2a;font-weight:600">WhatsApp</a>
-      and we'll help you finish up.
-    </p>
-    <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
-      From the team at <a href="${url}" style="color:#142e2a">${escapeHtml(url)}</a>.
-    </p>
-  </div>`;
+  const html = emailShell(
+    `<h1 style="font-size:22px;margin:0 0 12px;color:#142e2a">You left something behind, ${escapeHtml(firstName)}</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       Your items are still saved in your basket. Pick up right where you left
+       off — it only takes a moment to complete your order.
+     </p>
+     ${itemsHtml}
+     ${btn(checkoutUrl, "Complete my order")}
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.75;margin:12px 0 0">
+       Prefer to chat? Message us on
+       <a href="${waLink}" style="color:#142e2a;font-weight:600">WhatsApp</a>
+       and we'll help you finish up.
+     </p>`,
+    { preheader: "Your basket is waiting — complete your order" },
+  );
 
   const text = `Hi ${firstName},
 

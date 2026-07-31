@@ -13,6 +13,7 @@ import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { hideBeforeSql } from "@/lib/adminHide";
+import { nextOrderNumber } from "@/lib/orderNumber";
 import {
   fireHubSpot,
   upsertContact,
@@ -159,7 +160,7 @@ export async function POST(req: NextRequest) {
           const itemsJson = JSON.stringify([
             { title: itemTitle, dose: dose || null, price: 0, quantity: 1 },
           ]);
-          const orderNumber = "JL-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+          const orderNumber = await nextOrderNumber(db, sql);
           await db.execute(
             sql.raw(
               `INSERT INTO "orders" (order_number, customer_name, customer_email, customer_phone, shipping_address, items_json, total_amount, status, payment_status, notes, updated_at, created_at)

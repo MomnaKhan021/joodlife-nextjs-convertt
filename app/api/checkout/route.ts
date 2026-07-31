@@ -22,6 +22,7 @@ import { z } from "zod";
 import { getPayloadInstance } from "@/lib/payload";
 import { addNoteToContact, createDeal, fireHubSpot, mapOrderStageId, upsertContact } from "@/lib/hubspot";
 import { sendOrderConfirmationEmail } from "@/lib/account-email";
+import { nextOrderNumber } from "@/lib/orderNumber";
 import {
   sanitizeText,
   sanitizeMultiline,
@@ -448,11 +449,8 @@ export async function POST(req: NextRequest) {
   const payMethod = isFree ? "test" : "card";
   const payStatus = isFree ? "paid" : "unpaid";
 
-  // 8. Insert
-  const orderNumber = `JL-${Math.random()
-    .toString(36)
-    .slice(2, 7)
-    .toUpperCase()}`;
+  // 8. Insert — sequential order number (JL3000, JL3001, …)
+  const orderNumber = await nextOrderNumber(drizzle, sql);
 
   // Audit fields — recorded with every order
   const userAgent = sanitizeText(req.headers.get("user-agent") ?? "", 500);
