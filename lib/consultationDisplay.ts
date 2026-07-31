@@ -26,6 +26,8 @@ export const CONSULTATION_LABELS: Record<string, string> = {
   reorder_side_effect_severity: "Side-effect severity",
   reorder_new_clinical_event: "Anything changed since last order",
   reorder_new_clinical_event_details: "What changed",
+  reorder_weight_loss_goal: "Weight still to lose",
+  reorder_medical_history: "Medical history & medicines",
   reorder_pregnancy_flag: "Pregnancy status",
   reorder_four_weeks_complete: "4+ weeks on current dose",
   reorder_callback_request: "Clinician callback requested",

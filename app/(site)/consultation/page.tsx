@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import ConsultationFlow from "./ConsultationFlow";
 import { getCurrentUser } from "@/lib/auth";
@@ -33,7 +34,15 @@ export default async function ConsultationPage({ searchParams }: Props) {
   let productSlug = requestedSlug;
   if (!productSlug || productSlug === "reorder") {
     const user = await getCurrentUser();
-    if (user?.email) {
+
+    // Reorder is for signed-in returning customers only: we need their account
+    // to find their treatment records. Not signed in → sign in first, then
+    // come straight back to the reorder flow.
+    if (!user?.email) {
+      if (requestedSlug === "reorder") {
+        redirect("/login?next=/reorder");
+      }
+    } else {
       const orders = await getOrdersForEmail(user.email);
       const hasPaidOrder = orders.some(
         (o) =>
@@ -41,7 +50,13 @@ export default async function ConsultationPage({ searchParams }: Props) {
           o.paymentStatus !== "refunded" &&
           o.paymentStatus !== "failed",
       );
-      if (hasPaidOrder) productSlug = "reorder";
+      if (hasPaidOrder) {
+        productSlug = "reorder";
+      } else if (requestedSlug === "reorder") {
+        // Signed in but never ordered — not a returning patient, so the short
+        // resupply form doesn't apply. Run the full consultation instead.
+        productSlug = "weight-loss";
+      }
     }
   }
 

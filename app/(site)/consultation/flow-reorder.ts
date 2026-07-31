@@ -17,7 +17,7 @@
  */
 import { type SlideDef } from "./flow";
 
-export const REORDER_TOTAL_STEPS = 9;
+export const REORDER_TOTAL_STEPS = 10;
 
 /** Common side effects — no automatic red flag. */
 export const REORDER_COMMON_SIDE_EFFECTS = [
@@ -126,13 +126,29 @@ export const REORDER_SLIDES: SlideDef[] = [
     next: () => "s_weight",
   },
 
-  // ── STEP 4 — Current weight ─────────────────────────────────────
+  // ── STEP 4 — Current weight + goal ──────────────────────────────
   {
     id: "s_weight",
     type: "weight",
     step: 4,
     title: "What's your current weight?",
     field: "current_weight_kg",
+    next: () => "s_goal_weight",
+  },
+  {
+    id: "s_goal_weight",
+    type: "single",
+    step: 4,
+    title: "How much more weight would you like to lose?",
+    subtitle: "This helps your clinician tailor your ongoing plan.",
+    field: "reorder_weight_loss_goal",
+    options: [
+      "Under 5 kg (under 11 lbs)",
+      "5–10 kg (11–22 lbs)",
+      "10–20 kg (22–44 lbs)",
+      "More than 20 kg (44+ lbs)",
+      "I'm not sure",
+    ],
     next: () => "s_change",
   },
 
@@ -169,14 +185,37 @@ export const REORDER_SLIDES: SlideDef[] = [
     title: "Are you currently:",
     field: "reorder_pregnancy_flag",
     options: ["Pregnant", "Trying for a baby", "Breastfeeding", "None of these"],
+    next: () => "s_gp",
+  },
+
+  // ── STEP 7 — GP details + medical history update ────────────────
+  {
+    id: "s_gp",
+    type: "gp",
+    step: 7,
+    title: "Confirm your GP details",
+    subtitle:
+      "The practice where you're registered. If you share your GP details, we'll keep them informed about your treatment — this supports safe, coordinated care.",
+    field: "gp_practice_name",
+    next: () => "s_medical_history",
+  },
+  {
+    id: "s_medical_history",
+    type: "textarea",
+    step: 7,
+    title: "Your medical history and current medicines",
+    subtitle:
+      "List any medical conditions and the medicines you take. If nothing has changed since your last order, just write “No changes”.",
+    field: "reorder_medical_history",
+    placeholder: "e.g. Type 2 diabetes; metformin 500 mg — or “No changes”",
     next: () => "s_dose",
   },
 
-  // ── STEP 7 — Next dose ──────────────────────────────────────────
+  // ── STEP 8 — Next dose ──────────────────────────────────────────
   {
     id: "s_dose",
     type: "single",
-    step: 7,
+    step: 8,
     title: "What would you like to do next?",
     field: "reorder_dose_choice",
     options: [
@@ -193,7 +232,7 @@ export const REORDER_SLIDES: SlideDef[] = [
   {
     id: "s_four_weeks",
     type: "single",
-    step: 7,
+    step: 8,
     title: "Have you completed at least 4 weeks on your current dose?",
     field: "reorder_four_weeks_complete",
     options: ["Yes", "No", "Not sure"],
@@ -201,11 +240,11 @@ export const REORDER_SLIDES: SlideDef[] = [
     next: () => "s_pharmacist_q",
   },
 
-  // ── STEP 8 — Message to pharmacist ──────────────────────────────
+  // ── STEP 9 — Message to pharmacist ──────────────────────────────
   {
     id: "s_pharmacist_q",
     type: "textarea",
-    step: 8,
+    step: 9,
     title: "Anything you'd like your clinician to know?",
     field: "reorder_pharmacist_question",
     placeholder: "Your message… (optional)",
@@ -213,11 +252,11 @@ export const REORDER_SLIDES: SlideDef[] = [
     next: () => "s_callback",
   },
 
-  // ── STEP 9 — Clinician call ─────────────────────────────────────
+  // ── STEP 10 — Clinician call ────────────────────────────────────
   {
     id: "s_callback",
     type: "single",
-    step: 9,
+    step: 10,
     title: "Would you like a call from one of our clinicians?",
     subtitle:
       "We're always happy to help if you'd like to discuss your treatment or have any questions.",
