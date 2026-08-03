@@ -81,8 +81,8 @@ export async function GET(req: Request) {
                  CASE
                    WHEN (answers->>'_review_decision') = 'approved' AND (answers->>'_dispatched_at') IS NOT NULL THEN 'Dispatched'
                    WHEN (answers->>'_review_decision') = 'approved' THEN 'To Dispatch'
-                   WHEN status IN ('submitted','reviewed') THEN 'Clinical Check / Abandoned'
-                   ELSE status
+                   WHEN status::text IN ('submitted','reviewed') THEN 'Clinical Check / Abandoned'
+                   ELSE status::text
                  END AS queue,
                  EXISTS (SELECT 1 FROM orders o WHERE LOWER(o.customer_email) = LOWER("consultations".email)) AS has_order
             FROM consultations ORDER BY id DESC LIMIT 10`),
