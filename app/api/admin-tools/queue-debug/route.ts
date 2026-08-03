@@ -55,19 +55,35 @@ export async function GET(req: Request) {
     }
   }
 
+  const DISP =
+    "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
+
   try {
+    const { isHubSpotEnabled } = await import("@/lib/hubspot");
     const [now, orders, consults, totals] = await Promise.all([
       drizzle.execute(sql.raw(`SELECT now() AS server_time, ${cutExpr} AS cutoff`)),
       drizzle.execute(
         sql.raw(`
-          SELECT id, order_number, customer_email, status, created_at,
-                 (created_at >= ${cutExpr}) AS after_cutoff
+          SELECT id, order_number, customer_email, status, total_amount, created_at,
+                 (created_at >= ${cutExpr}) AS after_cutoff,
+                 ${DISP} AS is_dispatched,
+                 CASE WHEN ${DISP} THEN 'Dispatched'
+                      WHEN LOWER(COALESCE(status::text,'')) = 'cancelled' THEN 'Cancelled'
+                      ELSE 'Orders (to-do)' END AS orders_tab
             FROM orders ORDER BY id DESC LIMIT 10`),
       ),
       drizzle.execute(
         sql.raw(`
           SELECT id, email, status, product_slug, created_at,
                  (created_at >= ${cutExpr}) AS after_cutoff,
+                 (answers->>'_review_decision') AS review_decision,
+                 (answers->>'_dispatched_at') AS dispatched_at,
+                 CASE
+                   WHEN (answers->>'_review_decision') = 'approved' AND (answers->>'_dispatched_at') IS NOT NULL THEN 'Dispatched'
+                   WHEN (answers->>'_review_decision') = 'approved' THEN 'To Dispatch'
+                   WHEN status IN ('submitted','reviewed') THEN 'Clinical Check / Abandoned'
+                   ELSE status
+                 END AS queue,
                  EXISTS (SELECT 1 FROM orders o WHERE LOWER(o.customer_email) = LOWER("consultations".email)) AS has_order
             FROM consultations ORDER BY id DESC LIMIT 10`),
       ),
@@ -90,6 +106,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       ok: true,
+      hubspotEnabled: isHubSpotEnabled(),
       cutoff: cut,
       now: rowsOf(now)[0],
       totals: rowsOf(totals)[0],
