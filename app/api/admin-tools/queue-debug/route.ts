@@ -65,6 +65,8 @@ export async function GET(req: Request) {
       drizzle.execute(
         sql.raw(`
           SELECT id, order_number, customer_email, status, total_amount, created_at,
+                 hubspot_deal_id,
+                 (hubspot_deal_id IS NULL OR hubspot_deal_id = '') AS needs_hubspot_push,
                  (created_at >= ${cutExpr}) AS after_cutoff,
                  ${DISP} AS is_dispatched,
                  CASE WHEN ${DISP} THEN 'Dispatched'
@@ -92,6 +94,9 @@ export async function GET(req: Request) {
           SELECT
             (SELECT COUNT(*)::int FROM orders) AS orders_total,
             (SELECT COUNT(*)::int FROM orders WHERE created_at >= ${cutExpr}) AS orders_after_cutoff,
+            (SELECT COUNT(*)::int FROM orders WHERE customer_email IS NOT NULL AND customer_email <> '' AND (hubspot_deal_id IS NULL OR hubspot_deal_id = '')) AS orders_needing_hubspot_push,
+            (SELECT COUNT(*)::int FROM orders WHERE hubspot_deal_id IS NOT NULL AND hubspot_deal_id <> '') AS orders_with_deal_id,
+            (SELECT COUNT(*)::int FROM orders WHERE order_number ILIKE 'JL3%') AS orders_jl3000_range,
             (SELECT COUNT(*)::int FROM consultations) AS consults_total,
             (SELECT COUNT(*)::int FROM consultations WHERE created_at >= ${cutExpr}) AS consults_after_cutoff,
             (SELECT COUNT(*)::int FROM consultations c
