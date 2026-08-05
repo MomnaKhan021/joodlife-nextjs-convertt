@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import localFont from "next/font/local";
 
 import MetaPixel from "@/components/analytics/MetaPixel";
+import GtmDataLayer from "@/components/analytics/GtmDataLayer";
 import { CartProvider } from "@/components/cart/CartContext";
 import SitePreloader from "@/components/SitePreloader";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
@@ -81,6 +82,7 @@ export default function SiteLayout({
         style={{ background: "#ffffff" }}
         suppressHydrationWarning
       >
+        <GtmDataLayer />
         <MetaPixel />
         <SitePreloader />
         <CartProvider>{children}</CartProvider>

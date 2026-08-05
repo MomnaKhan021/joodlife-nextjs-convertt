@@ -21,6 +21,7 @@ import type {
 
 import { useCart } from "@/components/cart/CartContext";
 import { fbPurchaseOnce } from "@/lib/metaPixel";
+import { dlBeginCheckout, toDlItem } from "@/lib/dataLayer";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 import UkAddressField from "@/components/checkout/UkAddressField";
@@ -145,6 +146,25 @@ function CheckoutForm() {
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
+
+  // GA4 begin_checkout — fire once when the checkout loads with items.
+  const beganCheckout = useRef(false);
+  useEffect(() => {
+    if (beganCheckout.current || items.length === 0) return;
+    beganCheckout.current = true;
+    dlBeginCheckout(
+      items.map((i) =>
+        toDlItem({
+          slug: i.slug,
+          productId: i.productId,
+          title: i.title,
+          dose: i.dose,
+          price: i.price,
+          quantity: i.quantity,
+        }),
+      ),
+    );
+  }, [items]);
 
   // Abandoned-cart capture: once we know the shopper's email and they still
   // have items, snapshot the cart server-side (debounced). If they complete

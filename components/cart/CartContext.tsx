@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { dlAddToCart, dlRemoveFromCart, toDlItem } from "@/lib/dataLayer";
+
 /**
  * Storefront cart state. Lives in React context + mirrored to
  * localStorage so the cart survives page reloads. Server doesn't
@@ -97,6 +99,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
         return [...prev, { ...input, quantity }];
       });
+      // GA4 ecommerce — fire add_to_cart from the single central place every
+      // "add" button funnels through, so no page can forget to track it.
+      dlAddToCart(toDlItem({ ...input, quantity }));
     },
     []
   );
@@ -118,7 +123,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeItem = useCallback<CartActions["removeItem"]>(
     (productId, dose) => {
-      setItems((prev) => prev.filter((p) => !sameRow(p, productId, dose)));
+      setItems((prev) => {
+        const gone = prev.find((p) => sameRow(p, productId, dose));
+        if (gone) dlRemoveFromCart(toDlItem(gone));
+        return prev.filter((p) => !sameRow(p, productId, dose));
+      });
     },
     []
   );

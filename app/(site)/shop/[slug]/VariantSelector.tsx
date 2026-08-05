@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
+import { dlViewItem, toDlItem } from "@/lib/dataLayer";
 
 export type Variant = {
   label?: string;
@@ -44,6 +45,20 @@ export default function VariantSelector({
   const consultationHref = `/consultation?product=${encodeURIComponent(
     productSlug
   )}${active?.label ? `&dose=${encodeURIComponent(active.label)}` : ""}`;
+
+  // GA4 view_item on load and whenever the selected variant changes.
+  useEffect(() => {
+    dlViewItem(
+      toDlItem({
+        slug: productSlug,
+        productId,
+        title: productTitle,
+        dose: active?.label ?? null,
+        price: typeof price === "number" ? price : null,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, productSlug]);
 
   function handleAddToCart() {
     if (typeof price !== "number") return;

@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
+import { dlViewItem, toDlItem } from "@/lib/dataLayer";
 import WhatIsSection from "@/components/pdp/WhatIsSection";
 import ComparisonTable from "@/components/pdp/ComparisonTable";
 import type { PDPProduct } from "@/lib/pdp-products";
@@ -104,6 +105,22 @@ export default function FinalProductClient({
     () => products.find((p) => p.slug === activeSlug) ?? products[0],
     [products, activeSlug],
   );
+
+  // GA4 view_item whenever the shown product / dose changes.
+  useEffect(() => {
+    if (!active) return;
+    const d = active.doses[doseIdx] ?? active.doses[0];
+    dlViewItem(
+      toDlItem({
+        slug: active.slug,
+        productId: active.productId,
+        title: active.title,
+        dose: d?.label,
+        price: d?.price,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlug, doseIdx]);
 
   if (!active) return null;
   const dose = active.doses[doseIdx] ?? active.doses[0];

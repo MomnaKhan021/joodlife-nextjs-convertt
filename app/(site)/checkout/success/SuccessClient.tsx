@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { fbPurchaseOnce } from "@/lib/metaPixel";
+import { dlPurchase, toDlItem } from "@/lib/dataLayer";
 
 type OrderItem = {
   productId: number;
@@ -61,6 +62,21 @@ export default function SuccessClient({ orderNumber }: { orderNumber: string }) 
             trackedPurchase.current = true;
             fbPurchaseOnce(o.orderNumber, Number(o.totalAmount) || 0, "GBP", {
               content_type: "product",
+            });
+            // GA4 purchase — the conversion event for GTM/GA4 ecommerce.
+            dlPurchase({
+              transactionId: o.orderNumber,
+              value: Number(o.totalAmount) || 0,
+              items: (o.items ?? []).map((it) =>
+                toDlItem({
+                  slug: it.slug,
+                  productId: it.productId,
+                  title: it.title,
+                  dose: it.dose,
+                  price: it.price,
+                  quantity: it.quantity,
+                }),
+              ),
             });
           }
         }
