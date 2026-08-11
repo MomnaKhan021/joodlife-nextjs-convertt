@@ -31,9 +31,9 @@ const TREATMENTS: FooterLink[] = [
   { label: "Wegovy Pills", href: "/wegovy-pills" },
 ];
 const POLICY: FooterLink[] = [
-  { label: "Terms & conditions", href: "https://joodlife.com/policies/terms-of-service", external: true },
-  { label: "Refund & Complaints Procedure", href: "https://joodlife.com/policies/refund-policy", external: true },
-  { label: "Cookies policy", href: "https://joodlife.com/policies/privacy-policy", external: true },
+  { label: "Terms & conditions", href: "/policies/terms" },
+  { label: "Refund & Complaints Procedure", href: "/policies/refund-complaints" },
+  { label: "Privacy & Cookies", href: "/policies/privacy" },
 ];
 
 const STORAGE_KEY = "jood:newsletter-subscribers";
