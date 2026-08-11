@@ -69,12 +69,14 @@ export default function SupportPage() {
                 Can&rsquo;t find what you&rsquo;re looking for? Get in touch and a
                 member of our team will be happy to assist you.
               </p>
-              <Link
-                href="/consultation"
+              <a
+                href="https://wa.me/447756099075"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="mt-6 inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
               >
                 Get In Touch
-              </Link>
+              </a>
             </div>
 
             {/* Quick-help card + photo */}
