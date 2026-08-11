@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { journalSeedPosts, seedToStorefront } from "./journalSeed";
 
 /**
  * Server-side blog data layer. Mirrors the raw-SQL pattern used by
@@ -123,6 +124,47 @@ export type PaginatedPosts = {
 };
 
 /**
+ * True when there are no published posts in the database yet.
+ * When that's the case, the storefront serves the curated Jood Journal
+ * starter content (lib/journalSeed) so the Library is never empty.
+ * Any error (e.g. the table not existing on a fresh deploy) also
+ * counts as "empty" so the fallback kicks in.
+ */
+async function isDbEmptyOfPosts(): Promise<boolean> {
+  try {
+    const rows = await rawQuery<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM posts WHERE status = 'published'`
+    );
+    return !(rows[0]?.count && Number(rows[0].count) > 0);
+  } catch {
+    return true;
+  }
+}
+
+/** Build a PaginatedPosts response from the seed content. */
+function seedPaginated(opts: ListOptions): PaginatedPosts {
+  const pageSize = Math.min(Math.max(opts.limit ?? 12, 1), 100);
+  const offset = Math.max(opts.offset ?? 0, 0);
+  const category = opts.category?.trim() || null;
+  const exclude = new Set((opts.excludeIds ?? []).filter((n) => Number.isInteger(n)));
+
+  let list = journalSeedPosts.filter((p) => !exclude.has(p.id));
+  if (category) list = list.filter((p) => p.category === category);
+  const total = list.length;
+  const posts = list
+    .slice(offset, offset + pageSize)
+    .map((p) => seedToStorefront(p));
+
+  return {
+    posts,
+    total,
+    page: Math.floor(offset / pageSize) + 1,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
+/**
  * List published posts in reverse chronological order.
  * Convenience wrapper for callers that don't need pagination metadata.
  */
@@ -145,6 +187,11 @@ export async function listPublishedPostsPaginated(
   const offset = Math.max(opts.offset ?? 0, 0);
   const category = opts.category?.trim() || null;
   const excludeIds = (opts.excludeIds ?? []).filter((n) => Number.isInteger(n));
+
+  // No published posts in the DB yet → serve curated starter content.
+  if (await isDbEmptyOfPosts()) {
+    return seedPaginated(opts);
+  }
 
   const whereClauses: string[] = [`p.status = 'published'`];
   if (category) {
@@ -191,6 +238,18 @@ export async function listPublishedPostsPaginated(
 export async function getCategoryCounts(): Promise<
   Array<{ slug: string; label: string; count: number }>
 > {
+  // Mirror the list fallback: derive counts from the starter content.
+  if (await isDbEmptyOfPosts()) {
+    const counts = new Map<string, number>();
+    for (const p of journalSeedPosts) {
+      if (!p.category) continue;
+      counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([slug, count]) => ({ slug, label: categoryLabel(slug), count }));
+  }
+
   let rows: Array<{ category: string | null; count: string }>;
   try {
     rows = await rawQuery<{ category: string | null; count: string }>(
@@ -240,7 +299,7 @@ export async function getRelatedPosts(
 export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   if (!slug) return null;
   const safe = slug.replace(/'/g, "''");
-  let rows: FullRow[];
+  let rows: FullRow[] = [];
   try {
     rows = await rawQuery<FullRow>(
       `SELECT ${LIST_SELECT}, p.content, p.body_html, p.meta_title, p.meta_description
@@ -249,10 +308,15 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
        LIMIT 1`
     );
   } catch {
-    return null;
+    // Table may not exist yet (fresh deploy) — fall through to the
+    // starter-content lookup below rather than 404ing.
+    rows = [];
   }
   const row = rows[0];
-  if (!row) return null;
+  if (!row) {
+    // Fall back to the curated starter article, if one matches.
+    return journalSeedPosts.find((p) => p.slug === slug) ?? null;
+  }
   const tags = await fetchTagsByPost([row.id]);
   const list = rowToList(row, tags.get(row.id) ?? []);
   return {
