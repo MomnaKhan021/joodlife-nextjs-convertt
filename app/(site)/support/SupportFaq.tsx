@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
 /**
@@ -278,12 +277,14 @@ export default function SupportFaq() {
                     {section.headAccent}
                   </em>
                 </h3>
-                <Link
-                  href="/consultation"
+                <a
+                  href="https://wa.me/447756099075"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="mt-6 inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
                 >
                   Get In Touch
-                </Link>
+                </a>
               </div>
 
               <ul className="flex w-full flex-col border-t border-[#142e2a]/12">
