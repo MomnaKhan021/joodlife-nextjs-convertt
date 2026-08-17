@@ -10,8 +10,6 @@
  * Once dispatched, the order leaves this queue and appears under Dispatched.
  */
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -195,12 +193,6 @@ function OrderCard({
   const [savingAddr, setSavingAddr] = useState(false);
   const [localAddr, setLocalAddr] = useState<string | null>(o.shippingAddress);
   const [localCanDispatch, setLocalCanDispatch] = useState(o.canDispatch);
-  const router = useRouter();
-  // Clicking the patient/info area opens the full order page (same as the
-  // Orders tab). Only when there's a linked order to open.
-  const openOrder = o.orderId
-    ? () => router.push(`/admin-tools/orders/${o.orderId}`)
-    : undefined;
 
   async function saveAddress() {
     const addr = addrInput.trim();
@@ -338,18 +330,9 @@ function OrderCard({
     <div className="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
       {/* Header row — matches the clinical queue layout */}
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div
-          className={`min-w-0 ${openOrder ? "cursor-pointer" : ""}`}
-          onClick={openOrder}
-          role={openOrder ? "link" : undefined}
-          title={openOrder ? "Open full order page" : undefined}
-        >
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`text-[16px] font-bold text-[#111827] ${
-                openOrder ? "hover:underline" : ""
-              }`}
-            >
+            <span className="text-[16px] font-bold text-[#111827]">
               {o.customerName || `Patient #${o.id}`}
             </span>
             <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
@@ -370,29 +353,9 @@ function OrderCard({
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
             Approved: {fmtDateTime(o.createdAt)}
-            {o.hasOrder ? (
-              <>
-                {o.orderNumber ? (
-                  <>
-                    {" · "}
-                    {o.orderId ? (
-                      // Click the order number → full order detail / history.
-                      <Link
-                        href={`/admin-tools/orders/${o.orderId}`}
-                        className="font-semibold text-[#142e2a] underline underline-offset-2 hover:text-[#0c2421]"
-                      >
-                        {o.orderNumber}
-                      </Link>
-                    ) : (
-                      o.orderNumber
-                    )}
-                  </>
-                ) : null}
-                {` · ${gbp(o.total)}`}
-              </>
-            ) : (
-              " · No order on file"
-            )}
+            {o.hasOrder
+              ? `${o.orderNumber ? ` · ${o.orderNumber}` : ""} · ${gbp(o.total)}`
+              : " · No order on file"}
           </p>
         </div>
 
