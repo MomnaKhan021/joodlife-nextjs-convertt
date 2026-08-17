@@ -7,6 +7,7 @@
  */
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Pagination from "./../Pagination";
@@ -49,6 +50,7 @@ export default function DispatchedPage() {
   const [q, setQ] = useState("");
   const [dateFilter, setDateFilter] = useState(""); // yyyy-mm-dd, "" = any date
   const [page, setPage] = useState(1);
+  const router = useRouter();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,8 +102,8 @@ export default function DispatchedPage() {
       <header className="mb-5">
         <h1 className="text-[22px] font-bold tracking-tight text-[#1a1a1a]">Dispatched</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Orders with a tracking number allotted. Click a customer to open live
-          DPD tracking for their parcel.
+          Dispatched orders. Click a row to open the full order page; click
+          <span className="font-medium"> Track</span> to open live DPD tracking.
         </p>
       </header>
 
@@ -164,17 +166,16 @@ export default function DispatchedPage() {
             </thead>
             <tbody>
               {dispatched.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((o) => {
-                const clickable = Boolean(o.trackingNumber);
+                const openOrder = o.orderId
+                  ? () => router.push(`/admin-tools/orders/${o.orderId}`)
+                  : undefined;
                 return (
                   <tr
                     key={o.id}
-                    onClick={
-                      clickable
-                        ? () => window.open(trackingUrl(o.trackingNumber as string), "_blank", "noopener,noreferrer")
-                        : undefined
-                    }
+                    onClick={openOrder}
+                    title={openOrder ? "Open full order page" : undefined}
                     className={`border-b border-[#f1f1f1] text-[13px] last:border-b-0 ${
-                      clickable ? "cursor-pointer transition-colors hover:bg-[#f7f9f2]" : ""
+                      openOrder ? "cursor-pointer transition-colors hover:bg-[#f7f9f2]" : ""
                     }`}
                   >
                     <td className="px-4 py-3 font-semibold text-[#111827]">
@@ -205,17 +206,27 @@ export default function DispatchedPage() {
                     </td>
                     <td className="px-4 py-3">
                       {o.trackingNumber ? (
-                        <span className="inline-flex items-center gap-2">
+                        // Track opens DPD in a new tab. stopPropagation so it
+                        // doesn't also trigger the row's "open order" click.
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(trackingUrl(o.trackingNumber as string), "_blank", "noopener,noreferrer");
+                          }}
+                          className="inline-flex items-center gap-2"
+                          title="Track this parcel on DPD"
+                        >
                           <span className="rounded-md bg-[#eef3e6] px-2.5 py-1 font-mono text-[12px] font-semibold text-[#142e2a]">
                             {o.trackingNumber}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#142e2a]">
+                          <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#142e2a] hover:underline">
                             Track
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
                               <path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           </span>
-                        </span>
+                        </button>
                       ) : (
                         <span className="rounded-md bg-[#f1f1f1] px-2.5 py-1 text-[12px] font-medium text-[#6b7280]">
                           No tracking

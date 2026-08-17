@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { printLabels, printHtmlDocument, dispensingDate, composeMedicine, type LabelData } from "./dispensingLabel";
 
@@ -177,6 +178,14 @@ function HeaderBtn({
 /* Main                                                                */
 /* ------------------------------------------------------------------ */
 export default function OrderDetailClient({ id }: { id: string }) {
+  const router = useRouter();
+  // Back returns to wherever you came from (Orders, To Dispatch or
+  // Dispatched) — not always the Orders tab. Falls back to Orders if this
+  // page was opened directly with no in-app history.
+  const goBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) router.back();
+    else router.push("/admin-tools/data-browser?type=orders");
+  };
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -533,13 +542,14 @@ export default function OrderDetailClient({ id }: { id: string }) {
         {/* ── Header ── */}
         <div className="flex flex-col gap-3 pb-5 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start gap-2">
-            <Link
-              href="/admin-tools/data-browser?type=orders"
-              aria-label="Back to orders"
+            <button
+              type="button"
+              onClick={goBack}
+              aria-label="Back"
               className="mt-1 grid h-7 w-7 place-items-center rounded-[8px] border border-[#babfc3] bg-white text-[#616161] transition-colors hover:bg-[#f7f7f7]"
             >
               ‹
-            </Link>
+            </button>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-[23px] font-bold leading-none tracking-[-0.01em] text-[#0c2421]">

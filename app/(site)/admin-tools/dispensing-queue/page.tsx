@@ -252,7 +252,7 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ consultationId: o.id }),
+        body: JSON.stringify({ consultationId: o.id, orderId: o.orderId }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -321,7 +321,7 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ consultationId: o.id, trackingNumber: j.trackingNumber }),
+        body: JSON.stringify({ consultationId: o.id, orderId: o.orderId, trackingNumber: j.trackingNumber }),
       }).catch(() => {});
       setNote(`Dispatched · Tracking ${j.trackingNumber}`);
       onDispatched(o.id, j.trackingNumber);

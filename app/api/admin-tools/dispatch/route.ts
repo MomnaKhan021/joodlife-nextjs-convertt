@@ -413,7 +413,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Admin or staff role required" }, { status: 403 });
   }
 
-  let body: { consultationId?: number; trackingNumber?: string };
+  let body: { consultationId?: number; orderId?: number; trackingNumber?: string };
   try {
     body = await req.json();
   } catch {
@@ -441,6 +441,23 @@ export async function POST(req: NextRequest) {
         WHERE id = ${id}
       `),
     );
+
+    // Also mark the linked ORDER dispatched (status -> shipped) so it leaves
+    // the Orders "To do" tab and the active count drops to zero — dispatched
+    // orders live under Dispatched, not in the order job queue. The DPD path
+    // already removes it via its tracking note; this covers the dispensing-
+    // only path (no DPD) which otherwise left the order stuck in "To do".
+    const orderId = Number(body.orderId);
+    if (orderId && Number.isFinite(orderId)) {
+      await drizzle.execute(
+        sql.raw(`
+          UPDATE orders
+          SET status = 'shipped', updated_at = now()
+          WHERE id = ${orderId}
+            AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded', 'shipped', 'delivered')
+        `),
+      );
+    }
 
     // Mirror to HubSpot so the patient lifecycle board matches the dashboard:
     // contact status -> dispatched, newest deal -> the "Dispatched" pipeline
