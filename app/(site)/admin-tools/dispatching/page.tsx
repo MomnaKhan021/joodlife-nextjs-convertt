@@ -47,6 +47,7 @@ export default function DispatchedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [dateFilter, setDateFilter] = useState(""); // yyyy-mm-dd, "" = any date
   const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
@@ -72,16 +73,27 @@ export default function DispatchedPage() {
   const dispatched = useMemo(() => {
     // Every dispatched patient — including those dispatched via the dispensing
     // label (which has no DPD tracking number).
-    const list = orders.filter((o) => o.dispatched);
+    let list = orders.filter((o) => o.dispatched);
     const term = q.trim().toLowerCase();
-    if (!term) return list;
-    return list.filter(
-      (o) =>
-        (o.customerName ?? "").toLowerCase().includes(term) ||
-        (o.orderNumber ?? "").toLowerCase().includes(term) ||
-        (o.trackingNumber ?? "").toLowerCase().includes(term),
-    );
-  }, [orders, q]);
+    if (term) {
+      list = list.filter(
+        (o) =>
+          (o.customerName ?? "").toLowerCase().includes(term) ||
+          (o.orderNumber ?? "").toLowerCase().includes(term) ||
+          (o.trackingNumber ?? "").toLowerCase().includes(term),
+      );
+    }
+    if (dateFilter) {
+      list = list.filter((o) => {
+        if (!o.createdAt) return false;
+        const d = new Date(o.createdAt);
+        if (Number.isNaN(+d)) return false;
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        return iso === dateFilter;
+      });
+    }
+    return list;
+  }, [orders, q, dateFilter]);
 
   return (
     <div className="mx-auto w-full max-w-[1000px] px-5 py-6 md:px-8 md:py-8">
@@ -100,6 +112,22 @@ export default function DispatchedPage() {
           placeholder="Search by name, order number or tracking…"
           className="h-9 w-full max-w-[360px] rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] outline-none focus:border-[#142e2a]"
         />
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
+          title="Filter by date"
+          className="h-9 rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] outline-none focus:border-[#142e2a]"
+        />
+        {dateFilter && (
+          <button
+            type="button"
+            onClick={() => { setDateFilter(""); setPage(1); }}
+            className="h-9 rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] font-medium hover:bg-[#f7f7f7]"
+          >
+            Clear date
+          </button>
+        )}
         <button
           type="button"
           onClick={() => load()}

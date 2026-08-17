@@ -102,7 +102,7 @@ const StatusPill = ({ value }: { value: unknown }) => {
     ["paid", "delivered", "approved", "active", "published", "submitted", "dispatched", "fulfilled"].includes(v)
   )
     tone = "ok";
-  else if (["shipped", "reviewed", "draft", "pending", "unfulfilled", "in clinical queue", "unpaid", "awaiting"].includes(v)) tone = "warn";
+  else if (["shipped", "reviewed", "draft", "pending", "unfulfilled", "clinical check", "in clinical queue", "unpaid", "awaiting"].includes(v)) tone = "warn";
   else if (["cancelled", "rejected", "inactive", "false", "refunded", "failed"].includes(v)) tone = "off";
   return <span className={`db-pill db-pill--${tone}`}>{String(value ?? "—")}</span>;
 };
@@ -214,14 +214,15 @@ function orderItemCount(raw: unknown): number {
 
 /** Fulfillment status derived from an order row. Orders that haven't been
  *  dispatched are still awaiting clinical approval, so they read as
- *  "In clinical queue" rather than the retail term "Unfulfilled". */
-function fulfillmentOf(row: Row): "Dispatched" | "In clinical queue" {
+ *  "Clinical Check" (matching the sidebar tab) rather than the retail term
+ *  "Unfulfilled". */
+function fulfillmentOf(row: Row): "Dispatched" | "Clinical Check" {
   const status = String(row.status ?? "").toLowerCase();
   const notes = String(row.notes ?? "");
   const dispatched =
     ["shipped", "delivered", "dispatched"].includes(status) ||
     /DPD tracking:/i.test(notes);
-  return dispatched ? "Dispatched" : "In clinical queue";
+  return dispatched ? "Dispatched" : "Clinical Check";
 }
 
 /** Tiny inline sparkline for a KPI card (Shopify-style). */
