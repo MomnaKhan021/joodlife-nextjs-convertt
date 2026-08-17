@@ -71,6 +71,14 @@ const NAV: NavItem[] = [
     icon: I("M16 3h5v5M21 3l-9 9M3 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"),
   },
   {
+    label: "Rejected",
+    href: "/admin-tools/rejected",
+    match: (p) => p.startsWith("/admin-tools/rejected"),
+    section: "clinical",
+    badgeType: "rejected",
+    icon: I("M10 11v6M14 11v6M4 7h16M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"),
+  },
+  {
     label: "Abandoned Checkout",
     href: "/admin-tools/marketing-queue",
     match: (p) => p.startsWith("/admin-tools/marketing-queue"),
@@ -158,6 +166,12 @@ function NavBadge({ type }: { type: string }) {
         fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
           .then((j) => { if (j?.ok) apply(j.pending); })
+          .catch(() => {});
+      } else if (type === "rejected") {
+        // Rejected-for-supply patients (reference count, not a work queue).
+        fetch(`/api/admin-tools/clinical-review?status=rejected`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.total); })
           .catch(() => {});
       } else if (type === "marketing") {
         // Abandoned Checkout = shoppers with an unfinished cart.

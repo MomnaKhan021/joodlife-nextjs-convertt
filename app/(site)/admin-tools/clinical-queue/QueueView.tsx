@@ -24,7 +24,7 @@ import {
 import { refreshAdminBadges } from "../AdminShell";
 import Pagination from "../Pagination";
 
-type Consultation = {
+export type Consultation = {
   id: number;
   fullName: string | null;
   email: string | null;
@@ -648,7 +648,7 @@ function SendReminderButton({
 /* Patient card                                                        */
 /* ------------------------------------------------------------------ */
 
-function ConsultationCard({
+export function ConsultationCard({
   c,
   onDecision,
   selectable,

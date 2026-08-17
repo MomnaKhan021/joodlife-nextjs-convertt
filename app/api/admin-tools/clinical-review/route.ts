@@ -261,7 +261,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
   }
 
-  const showAll = req.nextUrl.searchParams.get("status") === "all";
+  const statusParam = req.nextUrl.searchParams.get("status");
+  const showAll = statusParam === "all";
+  // "rejected" = a dedicated view of patients rejected for supply (own page).
+  const showRejected = statusParam === "rejected";
   // Pagination window — the client loads the queue in pages of 200 and can
   // "Load more" to walk the entire pending set (2,000+) rather than being
   // capped at the first 200.
@@ -301,9 +304,11 @@ export async function GET(req: NextRequest) {
     const hideCond = hideBeforeSql("created_at");
     const hideAnd = hideCond ? ` AND ${hideCond}` : "";
 
-    const whereClause = showAll
-      ? `WHERE status NOT IN ('draft') AND ${queueCond}${hideAnd}`
-      : `WHERE status IN ('submitted', 'reviewed') AND ${queueCond}${hideAnd}`;
+    const whereClause = showRejected
+      ? `WHERE (answers->>'_review_decision') = 'rejected' AND ${queueCond}${hideAnd}`
+      : showAll
+        ? `WHERE status NOT IN ('draft') AND ${queueCond}${hideAnd}`
+        : `WHERE status IN ('submitted', 'reviewed') AND ${queueCond}${hideAnd}`;
 
     // The pending COUNT is computed directly in SQL (NOT derived from the
     // LIMIT-200 list) — otherwise, with 200+ awaiting consultations the list
@@ -531,7 +536,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      total: pending,
+      // In the rejected view the pending-tab counts don't apply; report the
+      // number of rejected patients loaded instead.
+      total: showRejected ? consultations.length : pending,
       loaded: consultations.length,
       pending,
       counts,
