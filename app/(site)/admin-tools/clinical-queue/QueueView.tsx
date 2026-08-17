@@ -21,7 +21,11 @@ import {
   fmtNum,
   labelFor,
 } from "@/lib/consultationDisplay";
-import { refreshAdminBadges, publishClinicalCount } from "../AdminShell";
+import {
+  refreshAdminBadges,
+  publishClinicalCount,
+  clearClinicalCount,
+} from "../AdminShell";
 import Pagination from "../Pagination";
 
 export type Consultation = {
@@ -1108,6 +1112,8 @@ export default function QueueView({
     if (mode !== "clinical" || showAll || loading) return;
     publishClinicalCount(tabTotal);
   }, [mode, showAll, loading, tabTotal]);
+  // Stop overriding the badge once this page is gone.
+  useEffect(() => () => clearClinicalCount(), []);
 
   // Rows for the active tab, filtered by the search query.
   const rows = useMemo(() => {

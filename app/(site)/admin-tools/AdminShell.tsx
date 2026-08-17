@@ -155,11 +155,30 @@ export const BADGE_REFRESH_EVENT = "jood:refresh-badges";
  */
 export const CLINICAL_COUNT_EVENT = "jood:clinical-count";
 
+/**
+ * While the Clinical Check page is mounted this holds the total it is
+ * rendering. The badge PREFERS this over its own SQL fetch, otherwise a
+ * refresh (approve/reject) or a window-focus re-fetch would overwrite the
+ * tab-matching number with the server figure and they'd disagree again.
+ */
+let clinicalTabTotal: number | null = null;
+
 export function publishClinicalCount(total: number) {
+  clinicalTabTotal = total;
   if (typeof window === "undefined") return;
   window.dispatchEvent(
     new CustomEvent(CLINICAL_COUNT_EVENT, { detail: total }),
   );
+}
+
+/** Called when the Clinical Check page unmounts — the badge falls back to its
+ *  own count once the page (the source of truth for the tabs) is gone. */
+export function clearClinicalCount() {
+  clinicalTabTotal = null;
+}
+
+export function getClinicalCountOverride(): number | null {
+  return clinicalTabTotal;
 }
 export function refreshAdminBadges() {
   if (typeof window !== "undefined") {
@@ -178,9 +197,18 @@ function NavBadge({ type }: { type: string }) {
     };
     const load = () => {
       if (type === "clinical") {
+        // The Clinical Check page, when open, is the source of truth — use the
+        // total it published so the badge always equals the sum of its tabs.
+        const override = getClinicalCountOverride();
+        if (override != null) {
+          apply(override);
+          return;
+        }
         fetch(`/api/admin-tools/clinical-review?status=pending`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
-          .then((j) => { if (j?.ok) apply(j.pending); })
+          // Re-check the override: the page may have published its total while
+          // this request was in flight, and that must win.
+          .then((j) => { if (j?.ok && getClinicalCountOverride() == null) apply(j.pending); })
           .catch(() => {});
       } else if (type === "rejected") {
         // Rejected-for-supply patients (reference count, not a work queue).
