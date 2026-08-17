@@ -659,7 +659,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const orderNumber = req.nextUrl.searchParams.get("orderNumber");
-  if (!orderNumber || !/^JL-[A-Z0-9-]+$/i.test(orderNumber)) {
+  if (!orderNumber || !/^JL[A-Z0-9-]+$/i.test(orderNumber)) {
     return NextResponse.json(
       { ok: false, error: "Bad orderNumber" },
       { status: 400 }

@@ -31,7 +31,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const BodySchema = z.object({
-  orderNumber: z.string().regex(/^JL-[A-Z0-9-]+$/i).max(40),
+  orderNumber: z.string().regex(/^JL[A-Z0-9-]+$/i).max(40),
 });
 
 /* ---- Same-origin guard (matches /api/checkout) ---- */
