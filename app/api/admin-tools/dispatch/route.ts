@@ -287,7 +287,11 @@ export async function GET(req: NextRequest) {
           FROM orders
           WHERE LOWER(customer_email) IN (${inList})
             AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
-            AND COALESCE(total_amount, 0) > 0
+          -- NB: do NOT require total_amount > 0. Fully-discounted/free orders
+          -- and the order auto-created on clinical approval are stored at £0;
+          -- excluding them made real orders invisible here, so the patient
+          -- showed "No order — dispensing only" and had no delivery address
+          -- (and therefore no DPD label). The address lives on the order.
           ORDER BY LOWER(customer_email), created_at DESC NULLS LAST, id DESC
         `),
       );
