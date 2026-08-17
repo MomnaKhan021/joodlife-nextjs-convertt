@@ -360,6 +360,10 @@ export async function GET(req: NextRequest) {
         status: dispatchedAt ? "dispatched" : "approved",
         total: Number(o?.total_amount ?? 0) || 0,
         createdAt: c.created_at,
+        // When the matched ORDER was placed — used to sort the queues so the
+        // most recent order (highest JL number) is always at the top.
+        orderCreatedAt: o?.created_at ?? null,
+        dispatchedAt,
         trackingNumber: tracking,
         dispatched: Boolean(dispatchedAt),
         items: o ? normItems(o.items_json) : [],
@@ -407,6 +411,8 @@ export async function GET(req: NextRequest) {
           status: "dispatched",
           total: Number(o.total_amount ?? 0) || 0,
           createdAt: o.created_at,
+          orderCreatedAt: o.created_at,
+          dispatchedAt: null,
           trackingNumber: parseTracking(o.notes ?? null),
           dispatched: true,
           items: normItems(o.items_json),
@@ -421,6 +427,30 @@ export async function GET(req: NextRequest) {
     } catch {
       /* non-fatal — standalone dispatched orders are a bonus view */
     }
+
+    // Newest order first. Sorting here (rather than relying on the query
+    // order) fixes two problems: entries were ordered by CONSULTATION date so
+    // order numbers looked shuffled, and standalone dispatched orders were
+    // appended at the end regardless of date. Falls back to the numeric part
+    // of the order number (JL numbers are sequential), then the record date.
+    const numOf = (s: string | null): number => {
+      const m = /(\d+)/.exec(s ?? "");
+      return m ? Number(m[1]) : Number.NEGATIVE_INFINITY;
+    };
+    const timeOf = (v: string | null): number => {
+      if (!v) return Number.NEGATIVE_INFINITY;
+      const t = +new Date(v);
+      return Number.isNaN(t) ? Number.NEGATIVE_INFINITY : t;
+    };
+    orders.sort((a, b) => {
+      const at = timeOf(a.orderCreatedAt ?? a.createdAt);
+      const bt = timeOf(b.orderCreatedAt ?? b.createdAt);
+      if (at !== bt) return bt - at;
+      const an = numOf(a.orderNumber);
+      const bn = numOf(b.orderNumber);
+      if (an !== bn) return bn - an;
+      return timeOf(b.createdAt) - timeOf(a.createdAt);
+    });
 
     return NextResponse.json({ ok: true, orders });
   } catch (err) {
