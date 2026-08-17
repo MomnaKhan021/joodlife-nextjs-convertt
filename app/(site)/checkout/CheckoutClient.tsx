@@ -36,26 +36,73 @@ const formatPrice = (n: number) =>
     maximumFractionDigits: 2,
   });
 
-/** Turn the /api/checkout error JSON into an actionable message. The API
- *  returns {error:"Validation failed", issues:[…]} on a bad body; map the
- *  failing field paths to friendly names rather than show "Validation failed". */
+/** A string that looks like a raw JSON blob, object dump, or an internal
+ *  server error — we never want to show any of these to a customer at the
+ *  bottom of the checkout. */
+function looksTechnical(s: string): boolean {
+  const t = s.trim();
+  if (t === "" || t === "[object Object]" || /^[[{]/.test(t) || t.length > 160) {
+    return true;
+  }
+  // Internal/server phrases that shouldn't reach a customer.
+  return /insert failed|init failed|unavailable|drizzle|payload|\bsql\b|stack|undefined|null|http \d|exception/i.test(
+    t,
+  );
+}
+
+/** Map a failing field path (e.g. "customer.address") to a friendly label. */
+function fieldLabel(path: string): string {
+  if (/postcode|postal|zip/i.test(path)) return "postcode";
+  if (/address|line1|street/i.test(path)) return "delivery address";
+  if (/city|town/i.test(path)) return "town or city";
+  if (/email/i.test(path)) return "email address";
+  if (/phone|mobile|tel/i.test(path)) return "phone number";
+  if (/name/i.test(path)) return "full name";
+  if (/items/i.test(path)) return "cart items";
+  if (/discount/i.test(path)) return "discount code";
+  if (/notes/i.test(path)) return "order notes";
+  return "your details";
+}
+
+/** Turn the /api/checkout error JSON into a friendly, field-specific message.
+ *  The API returns {error:"Validation failed", issues:[…]} on a bad body — we
+ *  name the exact field(s) rather than show "Validation failed" or a raw JSON
+ *  blob at the bottom of the page. */
 function describeCheckoutError(
-  json: { error?: string; issues?: Array<{ path?: Array<string | number> }> },
+  json: { error?: unknown; issues?: Array<{ path?: Array<string | number> }> },
   status: number,
 ): string {
+  // 1) Field-level validation issues → name the exact field(s).
   if (Array.isArray(json?.issues) && json.issues.length) {
-    const labels = json.issues.map((i) => {
-      const p = Array.isArray(i?.path) ? i.path.join(".") : "";
-      if (/address/.test(p)) return "delivery address";
-      if (/email/.test(p)) return "email address";
-      if (/name/.test(p)) return "name";
-      if (/phone/.test(p)) return "phone number";
-      if (/items/.test(p)) return "one of your cart items";
-      return p || "a field";
-    });
-    return `Please check: ${[...new Set(labels)].join(", ")}.`;
+    const labels = [
+      ...new Set(
+        json.issues.map((i) =>
+          fieldLabel(Array.isArray(i?.path) ? i.path.join(".") : ""),
+        ),
+      ),
+    ];
+    return labels.length === 1
+      ? `Please check your ${labels[0]} and try again.`
+      : `Please check these details: ${labels.join(", ")}.`;
   }
-  return json?.error ?? `Order failed (HTTP ${status})`;
+  // 2) A plain, human-readable error string from the API (never a JSON dump).
+  const raw = typeof json?.error === "string" ? json.error : "";
+  if (raw && !looksTechnical(raw)) return raw;
+  // 3) Sensible fallbacks by status.
+  if (status === 429)
+    return "Too many attempts — please wait a moment and try again.";
+  if (status >= 500)
+    return "Something went wrong on our end. Please try again in a moment.";
+  return "We couldn’t process your order. Please check your details and try again.";
+}
+
+/** Normalise any thrown value into a friendly message — never "[object
+ *  Object]" or a JSON string. */
+function friendlyError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  return looksTechnical(msg)
+    ? "Something went wrong. Please try again."
+    : msg;
 }
 
 /* Shared styling for the Stripe card <input> iframes so they read as the
@@ -507,7 +554,7 @@ function CheckoutForm() {
         `Payment status: ${paymentIntent?.status ?? "unknown"}. Please try again.`,
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyError(err));
       setBusy(false);
     }
   }
@@ -648,7 +695,11 @@ function CheckoutForm() {
       const piJson = await piRes.json();
       if (!piRes.ok || !piJson.ok || !piJson.clientSecret) {
         ev.complete("fail");
-        setError(piJson?.error ?? `Payment setup failed (HTTP ${piRes.status})`);
+        setError(
+          typeof piJson?.error === "string" && !looksTechnical(piJson.error)
+            ? piJson.error
+            : "We couldn’t start the payment. Please try again.",
+        );
         setBusy(false);
         return;
       }
@@ -690,7 +741,7 @@ function CheckoutForm() {
       } catch {
         /* event may already be completed */
       }
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyError(err));
       setBusy(false);
     }
   };
