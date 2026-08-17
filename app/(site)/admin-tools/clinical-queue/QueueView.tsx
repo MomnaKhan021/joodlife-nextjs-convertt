@@ -21,7 +21,7 @@ import {
   fmtNum,
   labelFor,
 } from "@/lib/consultationDisplay";
-import { refreshAdminBadges } from "../AdminShell";
+import { refreshAdminBadges, publishClinicalCount } from "../AdminShell";
 import Pagination from "../Pagination";
 
 export type Consultation = {
@@ -1099,6 +1099,15 @@ export default function QueueView({
     notbooked: localCounts.notbooked,
     reorder: !showAll && serverCounts ? serverCounts.reorder : localCounts.reorder,
   };
+
+  // Keep the sidebar "Clinical Check" badge identical to the sum of the tab
+  // pills, updating at the same moment (e.g. booked 4 + not booked 0 +
+  // reorder 1 → badge 5).
+  const tabTotal = counts.booked + counts.notbooked + counts.reorder;
+  useEffect(() => {
+    if (mode !== "clinical" || showAll || loading) return;
+    publishClinicalCount(tabTotal);
+  }, [mode, showAll, loading, tabTotal]);
 
   // Rows for the active tab, filtered by the search query.
   const rows = useMemo(() => {

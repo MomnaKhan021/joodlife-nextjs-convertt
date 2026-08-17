@@ -146,6 +146,21 @@ const NAV: NavItem[] = [
 /** Fired by action pages (approve / dispatch) so the sidebar counts refresh
  *  immediately, with no page reload. */
 export const BADGE_REFRESH_EVENT = "jood:refresh-badges";
+
+/**
+ * The Clinical Check page publishes the exact total it is showing (the sum of
+ * its three tab pills) so the sidebar badge always matches the tabs and moves
+ * at the same moment. Without this the badge came from a separate SQL count
+ * and could disagree with the meeting-aware tab numbers.
+ */
+export const CLINICAL_COUNT_EVENT = "jood:clinical-count";
+
+export function publishClinicalCount(total: number) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(CLINICAL_COUNT_EVENT, { detail: total }),
+  );
+}
 export function refreshAdminBadges() {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event(BADGE_REFRESH_EVENT));
@@ -213,10 +228,22 @@ function NavBadge({ type }: { type: string }) {
     // regains focus — so numbers move without a manual refresh.
     window.addEventListener(BADGE_REFRESH_EVENT, load);
     window.addEventListener("focus", load);
+    // While the Clinical Check page is open it publishes the exact total it
+    // renders (sum of its tab pills), so the badge mirrors the tabs.
+    const onClinicalCount = (e: Event) => {
+      const n = (e as CustomEvent<number>).detail;
+      if (typeof n === "number") apply(n);
+    };
+    if (type === "clinical") {
+      window.addEventListener(CLINICAL_COUNT_EVENT, onClinicalCount);
+    }
     return () => {
       cancelled = true;
       window.removeEventListener(BADGE_REFRESH_EVENT, load);
       window.removeEventListener("focus", load);
+      if (type === "clinical") {
+        window.removeEventListener(CLINICAL_COUNT_EVENT, onClinicalCount);
+      }
     };
   }, [type]);
   if (count === null || count === 0) return null;
