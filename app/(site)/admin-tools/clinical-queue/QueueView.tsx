@@ -151,13 +151,33 @@ function treatmentStage(a: Record<string, unknown>): string {
  *   as booked so rows don't flash), a string = has a real meeting, `null` =
  *   looked up and no meeting exists → they drop to "Consultation not booked".
  */
+/**
+ * A HubSpot meeting only counts as THIS consultation's video-consult booking
+ * when it starts on/after the patient submitted (a 1-day grace covers
+ * timezone/clock skew). A call dated before submission is a stale booking from
+ * a PRIOR episode and must not mark the patient "booked".
+ *
+ * NB: `video_consultation_preference` is set to "Book now" for *everyone* who
+ * clicks Buy — it's a purchase marker, NOT a booking — so it is deliberately
+ * not used here.
+ */
+function meetingBelongsToConsult(
+  c: Consultation,
+  meetingTime?: string | null,
+): boolean {
+  if (!meetingTime) return false;
+  const start = +new Date(meetingTime);
+  if (Number.isNaN(start)) return false;
+  const submitted = +new Date(c.createdAt);
+  if (Number.isNaN(submitted)) return true; // no submission date — trust it
+  return start >= submitted - 24 * 3600e3;
+}
+
 function categorize(c: Consultation, meetingTime?: string | null): TabKey {
   if (c.isReorder || c.hasRedFlags) return "reorder";
-  // Booked = the patient actually has a scheduled meeting time, OR they opted
-  // for a video consultation. Either way they belong in the "booked" tab — a
-  // real booking must never fall into "not booked".
-  if (meetingTime) return "booked";
-  return c.answers.video_consultation_preference ? "booked" : "notbooked";
+  // Booked = an actual scheduled meeting that belongs to this consultation.
+  // Placing an order alone does NOT make someone "booked".
+  return meetingBelongsToConsult(c, meetingTime) ? "booked" : "notbooked";
 }
 
 /* ------------------------------------------------------------------ */
@@ -650,6 +670,10 @@ function ConsultationCard({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ignore stale/pre-submission meetings — treat them as "no booking" so a
+  // patient who only ordered doesn't show a bogus call badge or land in the
+  // "booked" tab.
+  const meeting = meetingBelongsToConsult(c, meetingTime) ? meetingTime : null;
 
   const runDecision = useCallback(
     async (dec: "approved" | "rejected") => {
@@ -756,7 +780,7 @@ function ConsultationCard({
           {/* Top-right actions: call time + Join call / reminder + Approve + Reject */}
           <div className="flex flex-col items-end gap-1.5">
             <MeetingBadge
-              meetingTime={meetingTime}
+              meetingTime={meeting}
               videoPref={!!c.answers.video_consultation_preference}
               isReorder={c.isReorder}
             />
@@ -776,12 +800,12 @@ function ConsultationCard({
                 />
               ) : (
                 <>
-                  {joinUrl ? (
+                  {joinUrl && meeting ? (
                     <JoinCallButton
                       joinUrl={joinUrl}
-                      disabled={!!(meetingTime && describeCall(meetingTime)?.when === "past")}
+                      disabled={describeCall(meeting)?.when === "past"}
                     />
-                  ) : !meetingTime && !c.isReorder ? (
+                  ) : !meeting && !c.isReorder ? (
                     <SendReminderButton
                   id={c.id}
                   email={c.email}
