@@ -193,6 +193,13 @@ function OrderCard({
   const [savingAddr, setSavingAddr] = useState(false);
   const [localAddr, setLocalAddr] = useState<string | null>(o.shippingAddress);
   const [localCanDispatch, setLocalCanDispatch] = useState(o.canDispatch);
+  // When the dispensing (medicine) label was last printed — persisted on the
+  // consultation, so the "printed" state survives a reload.
+  const [dispensedAt, setDispensedAt] = useState<string | null>(
+    typeof o.consultation?.answers?._dispensing_printed_at === "string"
+      ? (o.consultation.answers._dispensing_printed_at as string)
+      : null,
+  );
 
   async function saveAddress() {
     const addr = addrInput.trim();
@@ -224,7 +231,6 @@ function OrderCard({
 
   const printDispensing = useCallback(async () => {
     if (busy) return;
-    if (!window.confirm(`Print the dispensing label and mark order ${o.orderNumber ?? `#${o.id}`} dispatched?`)) return;
     // Print first — synchronous, inside the click gesture.
     const patient = o.customerName?.trim() || "—";
     const date = dispensingDate();
@@ -235,8 +241,8 @@ function OrderCard({
       },
     );
     printLabels(labels);
-    // Then mark this patient (consultation) dispatched — no DPD tracking is
-    // created this way. This moves them out of the queue into Dispatched.
+    // Record the print only — this does NOT dispatch. The patient stays here
+    // until the DPD dispatch label is created (tracking is compulsory).
     setBusy(true);
     setError(null);
     try {
@@ -244,22 +250,20 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ consultationId: o.id, orderId: o.orderId }),
+        body: JSON.stringify({ consultationId: o.id, stage: "dispensing" }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j?.error ?? `Failed to mark dispatched (HTTP ${res.status})`);
+        throw new Error(j?.error ?? `Failed to record the print (HTTP ${res.status})`);
       }
-      setNote("Dispensing label printed · marked dispatched");
-      onDispatched(o.id, o.trackingNumber ?? "");
-      // Dispatch queue −1, Dispatched +1 in the sidebar, instantly.
-      refreshAdminBadges();
+      setDispensedAt(new Date().toISOString());
+      setNote("Dispensing label printed — now print the dispatch label to send it.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setBusy(false);
     }
-  }, [busy, batch, o.id, o.orderNumber, o.customerName, o.items, o.trackingNumber, onDispatched]);
+  }, [busy, batch, o.id, o.customerName, o.items]);
 
   const dispatch = useCallback(async () => {
     if (busy) return;
@@ -382,9 +386,18 @@ function OrderCard({
               type="button"
               onClick={printDispensing}
               disabled={busy}
-              className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+              className={`rounded-lg border px-4 py-1.5 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+                dispensedAt
+                  ? "border-[#cfe0b8] bg-[#eef3e6] text-[#2f5d2f] hover:border-[#b9d19a]"
+                  : "border-[#142e2a]/30 bg-white text-[#142e2a] hover:border-[#142e2a] hover:bg-[#f7f9f2]"
+              }`}
+              title={
+                dispensedAt
+                  ? "Dispensing label already printed — click to reprint"
+                  : "Print the medicine (dispensing) label"
+              }
             >
-              Print dispensing label
+              {dispensedAt ? "Dispensing label printed ✓" : "1. Print dispensing label"}
             </button>
             {o.hasOrder && !localCanDispatch ? (
               <button
@@ -411,7 +424,7 @@ function OrderCard({
               }
               className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
             >
-              {busy ? "Dispatching…" : "Dispatch"}
+              {busy ? "Dispatching…" : "2. Print dispatch label"}
             </button>
           </div>
           {addrOpen ? (
@@ -597,10 +610,13 @@ export default function DispatchQueuePage() {
       <header className="mb-5">
         <h1 className="text-[22px] font-bold tracking-tight text-[#1a1a1a]">To Dispatch</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Patients approved for supply in the clinical queue. Print the dispensing
-          label for the pack, then Dispatch to create the DPD parcel label and
-          tracking number. Approved patients without an order can&apos;t print a
-          DPD label until one exists.
+          Patients approved for supply in the clinical queue. Two steps, both
+          required: <strong>1. Print dispensing label</strong> for the pack, then{" "}
+          <strong>2. Print dispatch label</strong> to create the DPD parcel label
+          and tracking number. A patient only moves to Dispatched once the
+          dispatch label exists — so every parcel is trackable. Patients without
+          an order or a complete delivery address stay here until that&apos;s
+          fixed.
         </p>
       </header>
 

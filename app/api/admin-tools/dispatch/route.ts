@@ -273,13 +273,16 @@ export async function GET(req: NextRequest) {
     const emails = Array.from(
       new Set(consults.map((c) => (c.email ?? "").trim().toLowerCase()).filter(Boolean)),
     );
-    const orderByEmail = new Map<string, OrderRow>();
+    // ALL candidate orders per email (not just the newest) so each
+    // consultation can be paired with its OWN order. Taking only the newest
+    // order per email made every consultation for the same patient display the
+    // same order number.
+    const ordersByEmail = new Map<string, OrderRow[]>();
     if (emails.length > 0) {
       const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
       const oRes = await drizzle.execute(
         sql.raw(`
-          SELECT DISTINCT ON (LOWER(customer_email))
-                 id, order_number, customer_name, customer_email, customer_phone,
+          SELECT id, order_number, customer_name, customer_email, customer_phone,
                  shipping_address, notes, status, total_amount, items_json, created_at
           FROM orders
           WHERE LOWER(customer_email) IN (${inList})
@@ -290,8 +293,37 @@ export async function GET(req: NextRequest) {
       );
       for (const o of rowsOf<OrderRow>(oRes)) {
         const key = (o.customer_email ?? "").trim().toLowerCase();
-        if (key) orderByEmail.set(key, o);
+        if (!key) continue;
+        const list = ordersByEmail.get(key);
+        if (list) list.push(o);
+        else ordersByEmail.set(key, [o]);
       }
+    }
+
+    // Pair each consultation with the closest-in-time order that no other
+    // consultation has already claimed, so two rows never show the same order
+    // number. Consultations are processed newest-first (query order).
+    const claimed = new Set<number>();
+    const orderForConsult = new Map<number, OrderRow | null>();
+    for (const c of consults) {
+      const list = ordersByEmail.get((c.email ?? "").trim().toLowerCase()) ?? [];
+      const consultAt = c.created_at ? +new Date(c.created_at) : NaN;
+      let best: OrderRow | null = null;
+      let bestGap = Number.POSITIVE_INFINITY;
+      for (const o of list) {
+        if (claimed.has(Number(o.id))) continue;
+        const orderAt = o.created_at ? +new Date(o.created_at) : NaN;
+        const gap =
+          Number.isNaN(consultAt) || Number.isNaN(orderAt)
+            ? Number.MAX_SAFE_INTEGER
+            : Math.abs(orderAt - consultAt);
+        if (gap < bestGap) {
+          bestGap = gap;
+          best = o;
+        }
+      }
+      if (best) claimed.add(Number(best.id));
+      orderForConsult.set(c.id, best);
     }
 
     const orders = consults.map((c) => {
@@ -304,7 +336,7 @@ export async function GET(req: NextRequest) {
       } catch {
         answers = {};
       }
-      const o = orderByEmail.get((c.email ?? "").trim().toLowerCase()) ?? null;
+      const o = orderForConsult.get(c.id) ?? null;
       const dispatchedAt =
         typeof answers._dispatched_at === "string" ? answers._dispatched_at : null;
       const tracking =
@@ -413,13 +445,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Admin or staff role required" }, { status: 403 });
   }
 
-  let body: { consultationId?: number; orderId?: number; trackingNumber?: string };
+  let body: {
+    consultationId?: number;
+    orderId?: number;
+    trackingNumber?: string;
+    stage?: string;
+  };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
 
+  // stage="dispensing" records that the dispensing (medicine) label was
+  // printed WITHOUT dispatching. Dispatch itself requires the DPD label, so
+  // every dispatched parcel carries a real tracking number.
+  const isDispensingOnly = body.stage === "dispensing";
   const id = Number(body.consultationId);
   if (!id || !Number.isFinite(id)) {
     return NextResponse.json({ ok: false, error: "consultationId required" }, { status: 400 });
@@ -430,6 +471,23 @@ export async function POST(req: NextRequest) {
   try {
     const { drizzle, sql } = await getDrizzle();
     const nowIso = new Date().toISOString();
+
+    // Dispensing-label print only: record it and stop. The patient stays in
+    // To Dispatch until the DPD dispatch label is created, so nothing reaches
+    // Dispatched (or leaves the Orders queue) without a tracking number.
+    if (isDispensingOnly) {
+      const patch = JSON.stringify({ _dispensing_printed_at: nowIso }).replace(/'/g, "''");
+      await drizzle.execute(
+        sql.raw(`
+          UPDATE consultations
+          SET answers = COALESCE(answers, '{}'::jsonb) || '${patch}'::jsonb,
+              updated_at = now()
+          WHERE id = ${id}
+        `),
+      );
+      return NextResponse.json({ ok: true, id, dispensingPrintedAt: nowIso });
+    }
+
     const merge: Record<string, string> = { _dispatched_at: nowIso };
     if (tracking) merge._tracking_number = tracking;
     const mergeJson = JSON.stringify(merge).replace(/'/g, "''");

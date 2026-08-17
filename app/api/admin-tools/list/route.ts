@@ -198,21 +198,14 @@ export async function GET(req: NextRequest) {
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
-    // Once a pharmacist APPROVES supply in Clinical Check, the order has moved
-    // on to the To Dispatch queue — so it must leave the Orders "To do" list
-    // (and its count) too. Approval is stamped on the patient's consultation.
-    const clinicallyApprovedExpr = `NOT EXISTS (
-        SELECT 1 FROM "consultations" c
-         WHERE c.email IS NOT NULL AND TRIM(c.email) <> ''
-           AND LOWER(c.email) = LOWER("orders".customer_email)
-           AND c.answers->>'_review_decision' = 'approved'
-      )`;
     conditions.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
-        : // unfulfilled job queue: not yet dispatched, not cancelled, and not
-          // already approved into the dispatch pipeline
-          `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled' AND ${clinicallyApprovedExpr}`,
+        : // Unfulfilled job queue: not yet dispatched AND not cancelled.
+          // NOTE: clinically-approved orders deliberately STAY here — an order
+          // only leaves the Orders "To do" list once it is actually dispatched
+          // (which stamps status=shipped), not when supply is approved.
+          `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`,
     );
   }
   // Legacy-data hide: keep only rows created at/after the cutoff for the
