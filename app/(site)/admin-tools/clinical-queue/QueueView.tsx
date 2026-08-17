@@ -972,15 +972,25 @@ export default function QueueView({
             const checked = c.answers?._meeting_checked_at;
             if (typeof checked !== "string") continue;
             const age = Date.now() - +new Date(checked);
-            const start =
+            const rawStart =
               typeof c.answers._meeting_start === "string" ? c.answers._meeting_start : null;
-            // Trust a POSITIVE result (a real meeting) for 12h. Re-check a
-            // NEGATIVE (no meeting) after 1h so a patient who books later is
-            // detected promptly instead of being stuck "not booked" for 12h.
-            const fresh = start ? age < 12 * 3600e3 : age < 1 * 3600e3;
+            // A cached meeting only counts as a POSITIVE hit when it actually
+            // belongs to THIS consultation (starts on/after submission). A
+            // stale pre-submission meeting is effectively "no booking" — and
+            // must NOT be trusted for 12h, or a booking made afterwards stays
+            // invisible until the long TTL expires.
+            const start = meetingBelongsToConsult(c, rawStart) ? rawStart : null;
+            // Trust a real, current booking for 12h. Re-check anything else
+            // (no meeting, or a stale one) after 5 minutes so a patient who
+            // books right after ordering shows up on the next load.
+            const fresh = start ? age < 12 * 3600e3 : age < 5 * 60e3;
             if (!fresh) continue;
             times[e] = start;
-            links[e] = typeof c.answers._meeting_join === "string" ? c.answers._meeting_join : null;
+            // Only carry the join link alongside a real, current booking.
+            links[e] =
+              start && typeof c.answers._meeting_join === "string"
+                ? c.answers._meeting_join
+                : null;
           }
           if (Object.keys(times).length > 0) {
             setMeetingTimes((prev) => ({ ...times, ...prev }));
@@ -1352,6 +1362,21 @@ export default function QueueView({
               <span className="text-[11px] text-[#9ca3af]">loading times…</span>
             ) : null}
           </label>
+          {/* Force a fresh HubSpot check for every loaded patient — use this
+              right after someone books so they move to "booked" immediately
+              instead of waiting for the cache to expire. */}
+          <button
+            type="button"
+            onClick={() => {
+              setMeetingTimes({});
+              setMeetLinks({});
+            }}
+            disabled={loadingTimes}
+            title="Re-check HubSpot for newly booked video consultations"
+            className="h-9 rounded-lg border border-[#d1d5db] bg-white px-3 text-[13px] font-medium text-[#374151] transition-colors hover:bg-[#f3f4f6] disabled:opacity-50"
+          >
+            {loadingTimes ? "Checking…" : "Re-check bookings"}
+          </button>
         </div>
 
         {/* Batch approval bar */}
