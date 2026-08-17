@@ -10,6 +10,7 @@
  * Once dispatched, the order leaves this queue and appears under Dispatched.
  */
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -353,9 +354,29 @@ function OrderCard({
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
             Approved: {fmtDateTime(o.createdAt)}
-            {o.hasOrder
-              ? `${o.orderNumber ? ` · ${o.orderNumber}` : ""} · ${gbp(o.total)}`
-              : " · No order on file"}
+            {o.hasOrder ? (
+              <>
+                {o.orderNumber ? (
+                  <>
+                    {" · "}
+                    {o.orderId ? (
+                      // Click the order number → full order detail / history.
+                      <Link
+                        href={`/admin-tools/orders/${o.orderId}`}
+                        className="font-semibold text-[#142e2a] underline underline-offset-2 hover:text-[#0c2421]"
+                      >
+                        {o.orderNumber}
+                      </Link>
+                    ) : (
+                      o.orderNumber
+                    )}
+                  </>
+                ) : null}
+                {` · ${gbp(o.total)}`}
+              </>
+            ) : (
+              " · No order on file"
+            )}
           </p>
         </div>
 

@@ -179,6 +179,14 @@ function NavBadge({ type }: { type: string }) {
           .then((r) => r.json())
           .then((j) => { if (j?.ok) apply(j.total); })
           .catch(() => {});
+      } else if (type === "orders") {
+        // Orders badge = ACTIVE orders only (not yet dispatched, not cancelled)
+        // — the "job queue" awaiting action. Dispatched orders move to the
+        // Dispatched tab, so this count drops to zero once everything's out.
+        fetch(`/api/admin-tools/list?type=orders&fulfillment=unfulfilled&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.total); })
+          .catch(() => {});
       } else {
         fetch(`/api/admin-tools/list?type=${type}&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
