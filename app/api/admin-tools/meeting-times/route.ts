@@ -123,8 +123,11 @@ export async function POST(req: NextRequest) {
     };
     if (drizzle?.execute) {
       const checkedAt = new Date().toISOString();
-      for (const email of emails) {
-        const key = email.trim().toLowerCase();
+      // Only persist emails with a DEFINITIVE lookup result (present in
+      // `info`). Inconclusive lookups (rate-limited / errored) are omitted so
+      // we never cache a false "not booked" — they simply get retried next
+      // load instead of being parked in the wrong tab for up to 12h.
+      for (const key of Object.keys(info)) {
         if (!key) continue;
         const patch = JSON.stringify({
           _meeting_start: times[key] ?? null,

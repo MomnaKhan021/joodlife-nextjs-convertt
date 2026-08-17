@@ -108,10 +108,25 @@ export async function getHubSpotTokenInfo(): Promise<
   }
 }
 
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * A HubSpot response status is worth retrying when it's transient: 429 (rate
+ * limit — very common when the Clinical Queue looks up meetings for many
+ * patients at once) or any 5xx. `status: 0` means a network/DNS error, also
+ * transient. A retryable failure that isn't retried silently degrades into a
+ * false negative — e.g. a booked patient showing as "not booked".
+ */
+function isRetryableStatus(status: number): boolean {
+  return status === 429 || status === 0 || (status >= 500 && status <= 599);
+}
+
 async function hsFetch<T>(
   path: string,
-  init: RequestInit = {}
+  init: RequestInit = {},
+  attempt = 0
 ): Promise<HubSpotResult<T>> {
+  const MAX_ATTEMPTS = 4; // 1 initial + 3 retries
   const t = token();
   if (!t) {
     return { ok: false, status: 0, error: "HUBSPOT_ACCESS_TOKEN missing" };
@@ -135,6 +150,17 @@ async function hsFetch<T>(
       data = text;
     }
     if (!res.ok) {
+      // Retry transient failures (rate limits / server errors) with backoff,
+      // honouring Retry-After when HubSpot sends it.
+      if (isRetryableStatus(res.status) && attempt < MAX_ATTEMPTS - 1) {
+        const retryAfter = Number(res.headers.get("retry-after"));
+        const waitMs =
+          Number.isFinite(retryAfter) && retryAfter > 0
+            ? Math.min(retryAfter * 1000, 10_000)
+            : Math.min(300 * 2 ** attempt, 4_000);
+        await sleep(waitMs);
+        return hsFetch<T>(path, init, attempt + 1);
+      }
       const message =
         (data as { message?: string })?.message ??
         text.slice(0, 300) ??
@@ -143,6 +169,11 @@ async function hsFetch<T>(
     }
     return { ok: true, data: data as T };
   } catch (err) {
+    // Network error — retry a couple of times before giving up.
+    if (attempt < MAX_ATTEMPTS - 1) {
+      await sleep(Math.min(300 * 2 ** attempt, 4_000));
+      return hsFetch<T>(path, init, attempt + 1);
+    }
     return {
       ok: false,
       status: 0,
@@ -1053,12 +1084,24 @@ export async function getMeetingLinkForContact(
   const contactId = contact.data.id;
   const propsToRead = [...MEETING_URL_PROPS, ...MEETING_TIME_PROPS];
 
+  // Track whether a lookup step failed for a *transient* reason. If we finish
+  // without finding a meeting but a transient error got in the way, we must
+  // report "unknown" (ok:false) rather than a definitive "no meeting" — a
+  // false negative here is exactly what parks a booked patient in "not booked".
+  let transientError: { status: number; error: string } | null = null;
+
   for (const objType of ["meetings", "appointments"] as const) {
     const assoc = await hsFetch<{ results: { toObjectId?: string; id?: string }[] }>(
       `/crm/v4/objects/contacts/${contactId}/associations/${objType}?limit=100`,
       { method: "GET" },
     );
-    if (!assoc.ok || !assoc.data?.results?.length) continue;
+    if (!assoc.ok) {
+      if (isRetryableStatus(assoc.status)) {
+        transientError = { status: assoc.status, error: assoc.error };
+      }
+      continue;
+    }
+    if (!assoc.data?.results?.length) continue;
     const ids = assoc.data.results
       .map((r) => String(r.toObjectId ?? r.id ?? ""))
       .filter(Boolean);
@@ -1070,7 +1113,13 @@ export async function getMeetingLinkForContact(
       method: "POST",
       body: JSON.stringify({ properties: propsToRead, inputs: ids.map((id) => ({ id })) }),
     });
-    if (!batch.ok || !batch.data?.results?.length) continue;
+    if (!batch.ok) {
+      if (isRetryableStatus(batch.status)) {
+        transientError = { status: batch.status, error: batch.error };
+      }
+      continue;
+    }
+    if (!batch.data?.results?.length) continue;
 
     let best: MeetingLink | null = null;
     for (const rec of batch.data.results) {
@@ -1092,6 +1141,12 @@ export async function getMeetingLinkForContact(
     }
     if (best) return { ok: true, data: best };
   }
+  // No meeting found. If a transient error blocked one of the lookups, say so
+  // (ok:false) so callers treat it as "not yet known" and retry, instead of
+  // caching a false "not booked".
+  if (transientError) {
+    return { ok: false, status: transientError.status, error: transientError.error };
+  }
   return { ok: true, data: { joinUrl: null, startsAt: null } };
 }
 
@@ -1106,16 +1161,21 @@ export async function getMeetingInfoForEmails(
 ): Promise<Record<string, MeetingLink>> {
   const unique = [...new Set(emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
   const out: Record<string, MeetingLink> = {};
-  const CONCURRENCY = 5;
+  // Keep the burst small so we stay under HubSpot's rate limit — each contact
+  // costs several API calls, and a whole queue page can be 60 patients.
+  const CONCURRENCY = 3;
   let i = 0;
   async function worker() {
     while (i < unique.length) {
       const email = unique[i++];
       try {
         const res = await getMeetingLinkForContact(email);
-        out[email] = res.ok ? res.data : { joinUrl: null, startsAt: null };
+        // Only record a DEFINITIVE result. An ok:false here means the lookup
+        // was inconclusive (rate-limited / errored) — omit it so the caller
+        // doesn't cache a false "not booked" and simply retries next time.
+        if (res.ok) out[email] = res.data;
       } catch {
-        out[email] = { joinUrl: null, startsAt: null };
+        /* inconclusive — omit so it's retried, not cached as "no meeting" */
       }
     }
   }
