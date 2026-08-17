@@ -344,7 +344,8 @@ export async function GET(req: NextRequest) {
                     AND (answers->>'_meeting_start')::timestamptz < now()
                THEN (answers->>'_meeting_start')::timestamptz
              END DESC,
-             created_at ASC
+             -- Default within a bucket: most recent submission first.
+             created_at DESC NULLS LAST, id DESC
            LIMIT ${PAGE} OFFSET ${offset}`,
         ),
       ),

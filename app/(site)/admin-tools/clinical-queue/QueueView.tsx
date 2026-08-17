@@ -544,13 +544,27 @@ function MeetingBadge({
 /* Send reminder — nudges an unbooked patient to book their consult     */
 /* ------------------------------------------------------------------ */
 
-function SendReminderButton({ id, email }: { id: number; email: string | null }) {
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+function SendReminderButton({
+  id,
+  email,
+  sentAt,
+}: {
+  id: number;
+  email: string | null;
+  /** ISO timestamp of the last reminder (from answers._reminder_sent_at), so
+   *  the "Reminder sent" tag persists across reloads — not just this session. */
+  sentAt?: string | null;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  // `when` re-hydrates from the persisted record; updates immediately on send.
+  const [when, setWhen] = useState<string | null>(sentAt ?? null);
   const onClick = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!email || state === "sending" || state === "sent") return;
-      setState("sending");
+      if (!email || busy) return;
+      setBusy(true);
+      setError(false);
       try {
         const res = await fetch("/api/admin-tools/send-reminder", {
           method: "POST",
@@ -559,33 +573,53 @@ function SendReminderButton({ id, email }: { id: number; email: string | null })
           body: JSON.stringify({ id, email }),
         });
         const j = await res.json();
-        setState(res.ok && j.ok ? "sent" : "error");
+        if (res.ok && j.ok) setWhen(new Date().toISOString());
+        else setError(true);
       } catch {
-        setState("error");
+        setError(true);
+      } finally {
+        setBusy(false);
       }
     },
-    [id, email, state],
+    [id, email, busy],
   );
   if (!email) return null;
+  // Once a reminder has been sent, show a persistent dated tag but keep the
+  // button clickable so staff can send a follow-up nudge.
+  const label = busy
+    ? "Sending…"
+    : error
+      ? "Try again"
+      : when
+        ? `Reminder sent · ${fmtDate(when)}`
+        : "Send reminder";
   return (
     <button
       type="button"
       onClick={onClick}
-      title="Email this patient a reminder to book their video consultation"
-      disabled={state === "sending" || state === "sent"}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-[#142e2a]/30 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
+      title={
+        when
+          ? "Reminder already sent — click to send another"
+          : "Email this patient a reminder to book their video consultation"
+      }
+      disabled={busy}
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+        when && !error
+          ? "border-[#cfe0b8] bg-[#eef3e6] text-[#2f5d2f] hover:border-[#b9d19a]"
+          : "border-[#142e2a]/30 bg-white text-[#142e2a] hover:border-[#142e2a] hover:bg-[#f7f9f2]"
+      }`}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M4 5h16v14H4z" />
-        <path d="m4 6 8 6 8-6" />
+        {when && !error ? (
+          <path d="M20 6 9 17l-5-5" />
+        ) : (
+          <>
+            <path d="M4 5h16v14H4z" />
+            <path d="m4 6 8 6 8-6" />
+          </>
+        )}
       </svg>
-      {state === "sending"
-        ? "Sending…"
-        : state === "sent"
-          ? "Reminder sent ✓"
-          : state === "error"
-            ? "Try again"
-            : "Send reminder"}
+      {label}
     </button>
   );
 }
@@ -731,7 +765,15 @@ function ConsultationCard({
                 // Abandoned checkout = a lead with no order. The only action is
                 // to nudge them to come back and complete checkout — no supply
                 // to approve/dispatch here.
-                <SendReminderButton id={c.id} email={c.email} />
+                <SendReminderButton
+                  id={c.id}
+                  email={c.email}
+                  sentAt={
+                    typeof c.answers._reminder_sent_at === "string"
+                      ? c.answers._reminder_sent_at
+                      : null
+                  }
+                />
               ) : (
                 <>
                   {joinUrl ? (
@@ -740,7 +782,15 @@ function ConsultationCard({
                       disabled={!!(meetingTime && describeCall(meetingTime)?.when === "past")}
                     />
                   ) : !meetingTime && !c.isReorder ? (
-                    <SendReminderButton id={c.id} email={c.email} />
+                    <SendReminderButton
+                  id={c.id}
+                  email={c.email}
+                  sentAt={
+                    typeof c.answers._reminder_sent_at === "string"
+                      ? c.answers._reminder_sent_at
+                      : null
+                  }
+                />
                   ) : null}
                   {!c.reviewed && (
                     <>
@@ -856,7 +906,7 @@ export default function QueueView({
   // Worklist ordering. "consult" = by booked video-consultation time (fetched
   // from HubSpot); "oldest"/"newest" = submission order; "name" = A–Z.
   // Red-flagged unreviewed patients always float to the top regardless.
-  const [sortMode, setSortMode] = useState<"consult" | "oldest" | "newest" | "name">("oldest");
+  const [sortMode, setSortMode] = useState<"consult" | "oldest" | "newest" | "name">("newest");
   // email -> booked consultation start (ISO) | null, lazily fetched for the
   // consultation-time sort.
   const [meetingTimes, setMeetingTimes] = useState<Record<string, string | null>>({});

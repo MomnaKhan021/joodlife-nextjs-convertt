@@ -95,6 +95,39 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Stamp the consultation so the Clinical Queue can show a persistent
+  // "Reminder sent · <date>" tag (survives reloads) — best-effort.
+  try {
+    const drizzle = (
+      payload.db as unknown as { drizzle?: DrizzleLike }
+    ).drizzle as DrizzleLike;
+    const { sql } = (await import("drizzle-orm")) as { sql: SqlRaw };
+    const sentAt = new Date().toISOString();
+    const by = (
+      (user as unknown as { name?: string; email?: string }).name ??
+      (user as unknown as { email?: string }).email ??
+      "admin"
+    ).replace(/'/g, "''");
+    const patch = JSON.stringify({
+      _reminder_sent_at: sentAt,
+      _reminder_sent_by: by,
+    }).replace(/'/g, "''");
+    const target =
+      body.id != null
+        ? `id = ${Number(body.id)}`
+        : `LOWER(email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
+    await drizzle.execute(
+      sql.raw(
+        `UPDATE "consultations"
+           SET answers = COALESCE(answers, '{}'::jsonb) || '${patch}'::jsonb,
+               updated_at = now()
+         WHERE ${target} AND status <> 'draft'`,
+      ),
+    );
+  } catch {
+    /* stamp is best-effort — the email already went out */
+  }
+
   // Best-effort audit note in HubSpot — never blocks the reminder.
   if (isHubSpotEnabled()) {
     try {

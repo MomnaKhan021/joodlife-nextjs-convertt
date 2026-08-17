@@ -6,12 +6,14 @@
  * parcel in a new tab.
  */
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Pagination from "./../Pagination";
 
 type DispatchOrder = {
   id: number;
+  orderId: number | null;
   orderNumber: string | null;
   customerName: string | null;
   customerEmail: string | null;
@@ -153,7 +155,22 @@ export default function DispatchedPage() {
                         <span className="block text-[12px] font-normal text-[#8a8f94]">{o.customerEmail}</span>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-[#374151]">{o.orderNumber ?? `#${o.id}`}</td>
+                    <td className="px-4 py-3 text-[#374151]">
+                      {o.orderId ? (
+                        // Click the order number → full order detail / history.
+                        // stopPropagation so it doesn't also trigger the row's
+                        // DPD-tracking click.
+                        <Link
+                          href={`/admin-tools/orders/${o.orderId}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-semibold text-[#142e2a] underline underline-offset-2 hover:text-[#0c2421]"
+                        >
+                          {o.orderNumber ?? `#${o.id}`}
+                        </Link>
+                      ) : (
+                        o.orderNumber ?? `#${o.id}`
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-[#374151]">{fmtDate(o.createdAt)}</td>
                     <td className="px-4 py-3 text-right font-semibold text-[#111827]">
                       {o.total > 0 ? gbp(o.total) : "—"}
