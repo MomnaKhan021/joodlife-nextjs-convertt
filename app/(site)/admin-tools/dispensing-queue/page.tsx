@@ -46,6 +46,8 @@ type DispatchOrder = {
   orderId: number | null; // matched paid order — needed for the DPD label
   hasOrder: boolean;
   canDispatch: boolean; // order has a usable delivery address for DPD
+  addressOnOrder: boolean; // usable address already saved on the order itself
+  labelPrintedAt: string | null; // dispensing label printed — unlocks Dispatch
   orderNumber: string | null;
   customerName: string | null;
   customerEmail: string | null;
@@ -193,6 +195,12 @@ function OrderCard({
   const [savingAddr, setSavingAddr] = useState(false);
   const [localAddr, setLocalAddr] = useState<string | null>(o.shippingAddress);
   const [localCanDispatch, setLocalCanDispatch] = useState(o.canDispatch);
+  // Whether the usable address is already saved on the order. When false, the
+  // shown address came from the consultation and must be persisted to the order
+  // before DPD can read it.
+  const [addressOnOrder, setAddressOnOrder] = useState(o.addressOnOrder);
+  // Two-step gate: the dispensing label must be printed before Dispatch unlocks.
+  const [labelPrinted, setLabelPrinted] = useState<boolean>(Boolean(o.labelPrintedAt));
 
   async function saveAddress() {
     const addr = addrInput.trim();
@@ -213,8 +221,13 @@ function OrderCard({
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Could not save address");
       setLocalAddr(addr);
       setLocalCanDispatch(true); // DPD re-validates the saved address on dispatch
+      setAddressOnOrder(true); // it's now persisted on the order
       setAddrOpen(false);
-      setNote("Delivery address saved — you can dispatch now.");
+      setNote(
+        labelPrinted
+          ? "Delivery address saved — you can dispatch now."
+          : "Delivery address saved. Print the dispensing label, then dispatch.",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -222,9 +235,10 @@ function OrderCard({
     }
   }
 
+  // Step 1 (compulsory): print the dispensing label and record that it was
+  // printed. This does NOT dispatch — it unlocks the Dispatch button.
   const printDispensing = useCallback(async () => {
     if (busy) return;
-    if (!window.confirm(`Print the dispensing label and mark order ${o.orderNumber ?? `#${o.id}`} dispatched?`)) return;
     // Print first — synchronous, inside the click gesture.
     const patient = o.customerName?.trim() || "—";
     const date = dispensingDate();
@@ -235,8 +249,8 @@ function OrderCard({
       },
     );
     printLabels(labels);
-    // Then mark this patient (consultation) dispatched — no DPD tracking is
-    // created this way. This moves them out of the queue into Dispatched.
+    // Persist the printed state so the Dispatch gate survives a refresh and is
+    // shared across staff (audit trail on the consultation).
     setBusy(true);
     setError(null);
     try {
@@ -244,34 +258,79 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ consultationId: o.id, orderId: o.orderId }),
+        body: JSON.stringify({ consultationId: o.id, action: "label-printed" }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j?.error ?? `Failed to mark dispatched (HTTP ${res.status})`);
+        throw new Error(j?.error ?? `Failed to record label printed (HTTP ${res.status})`);
       }
-      setNote("Dispensing label printed · marked dispatched");
-      onDispatched(o.id, o.trackingNumber ?? "");
-      // Dispatch queue −1, Dispatched +1 in the sidebar, instantly.
-      refreshAdminBadges();
+      setLabelPrinted(true);
+      setNote("Dispensing label printed — now Dispatch to complete.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setBusy(false);
     }
-  }, [busy, batch, o.id, o.orderNumber, o.customerName, o.items, o.trackingNumber, onDispatched]);
+  }, [busy, batch, o.id, o.customerName, o.items]);
 
+  // Step 2 (compulsory after printing): dispatch. For patients with an order +
+  // address this creates the DPD label; for dispensing-only patients (no order)
+  // it simply marks them dispatched. Either way it moves them to Dispatched.
   const dispatch = useCallback(async () => {
     if (busy) return;
-    if (!o.orderId) {
-      setError("No order/address on file — can't create a DPD label for this patient yet.");
+    if (!labelPrinted) {
+      setError("Print the dispensing label first — then you can dispatch.");
       return;
     }
+
+    // Dispensing-only (no order): no DPD parcel is possible, so just mark the
+    // patient dispatched.
+    if (!o.orderId) {
+      if (!window.confirm(`Mark ${o.customerName ?? `patient #${o.id}`} dispatched? (No order on file — no DPD label.)`)) return;
+      setBusy(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/admin-tools/dispatch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ consultationId: o.id }),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j?.error ?? `Failed to mark dispatched (HTTP ${res.status})`);
+        }
+        setNote("Marked dispatched");
+        onDispatched(o.id, "");
+        refreshAdminBadges();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
     if (!localCanDispatch) {
       setError("Delivery address is incomplete (missing street/town) — add it below, then dispatch.");
       return;
     }
     if (!window.confirm(`Dispatch order ${o.orderNumber ?? `#${o.id}`} and print the DPD label?`)) return;
+    // If the address we're showing came from the consultation (not yet saved on
+    // the order), persist it to the order first so the DPD route can read it.
+    if (!addressOnOrder && localAddr?.trim()) {
+      try {
+        await fetch(`/api/admin-tools/record?type=orders&id=${o.orderId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ fields: { shipping_address: localAddr.trim() } }),
+        });
+        setAddressOnOrder(true);
+      } catch {
+        /* non-fatal — DPD will still validate against whatever the order has */
+      }
+    }
     // Open the label window NOW, inside the click gesture, so the browser
     // doesn't block it as a popup (creating the DPD shipment is slow, and
     // opening after the await would be treated as non-user-initiated).
@@ -324,7 +383,7 @@ function OrderCard({
     } finally {
       setBusy(false);
     }
-  }, [busy, o.id, o.orderId, localCanDispatch, o.orderNumber, onDispatched]);
+  }, [busy, labelPrinted, o.id, o.orderId, o.customerName, localCanDispatch, addressOnOrder, localAddr, o.orderNumber, onDispatched]);
 
   return (
     <div className="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
@@ -338,6 +397,17 @@ function OrderCard({
             <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
               Awaiting dispatch
             </span>
+            {labelPrinted && (
+              <span
+                title="The dispensing label has been printed — Dispatch is unlocked."
+                className="inline-flex items-center gap-1 rounded-full bg-[#e0edff] px-2.5 py-0.5 text-[12px] font-semibold text-[#1450b0]"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Label printed
+              </span>
+            )}
             {!o.hasOrder && (
               <span
                 title="Approved, but no paid order yet — dispensing label only; DPD needs an order with a delivery address."
@@ -357,6 +427,26 @@ function OrderCard({
               ? `${o.orderNumber ? ` · ${o.orderNumber}` : ""} · ${gbp(o.total)}`
               : " · No order on file"}
           </p>
+
+          {/* Delivery address — pulled from the order, or the patient's
+              consultation when the order has none. Always shown so staff can
+              verify where the pack is going. */}
+          <div className="mt-2 rounded-lg border border-[#e5e7eb] bg-[#fbfcfa] px-3 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#6b7280]">Deliver to</p>
+            {localAddr?.trim() ? (
+              <>
+                <p className="mt-0.5 text-[13px] font-semibold text-[#142e2a]">
+                  {o.customerName || `Patient #${o.id}`}
+                </p>
+                <p className="whitespace-pre-line text-[13px] text-[#303030]">{localAddr.trim()}</p>
+                {o.customerPhone && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerPhone}</p>}
+              </>
+            ) : (
+              <p className="mt-0.5 text-[13px] text-[#9ca3af]">
+                No delivery address on file — add one below to enable DPD.
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Top-right actions */}
@@ -382,9 +472,10 @@ function OrderCard({
               type="button"
               onClick={printDispensing}
               disabled={busy}
+              title={labelPrinted ? "Label already printed — click to reprint" : undefined}
               className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#f7f9f2] disabled:opacity-60"
             >
-              Print dispensing label
+              {labelPrinted ? "Reprint dispensing label" : "Print dispensing label"}
             </button>
             {o.hasOrder && !localCanDispatch ? (
               <button
@@ -401,17 +492,17 @@ function OrderCard({
             <button
               type="button"
               onClick={dispatch}
-              disabled={busy || !localCanDispatch}
+              disabled={busy || !labelPrinted || (o.hasOrder && !localCanDispatch)}
               title={
-                localCanDispatch
-                  ? undefined
-                  : o.hasOrder
+                !labelPrinted
+                  ? "Print the dispensing label first to enable dispatch"
+                  : o.hasOrder && !localCanDispatch
                     ? "Delivery address is incomplete — add it to enable DPD"
-                    : "No order/address on file for this patient"
+                    : undefined
               }
               className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
             >
-              {busy ? "Dispatching…" : "Dispatch"}
+              {busy ? "Dispatching…" : o.hasOrder ? "Dispatch" : "Mark dispatched"}
             </button>
           </div>
           {addrOpen ? (
@@ -441,11 +532,13 @@ function OrderCard({
                 </button>
               </div>
             </div>
-          ) : !localCanDispatch ? (
+          ) : !labelPrinted ? (
             <span className="max-w-[280px] text-right text-[11px] text-[#9ca3af]">
-              {o.hasOrder
-                ? "Incomplete delivery address — add it to enable DPD."
-                : "No order/address on file — DPD label unavailable."}
+              Print the dispensing label first — then Dispatch unlocks.
+            </span>
+          ) : o.hasOrder && !localCanDispatch ? (
+            <span className="max-w-[280px] text-right text-[11px] text-[#9ca3af]">
+              Incomplete delivery address — add it to enable DPD.
             </span>
           ) : null}
           {note && <span className="text-[12px] text-[#2f5d2a]">{note}</span>}
@@ -597,10 +690,10 @@ export default function DispatchQueuePage() {
       <header className="mb-5">
         <h1 className="text-[22px] font-bold tracking-tight text-[#1a1a1a]">To Dispatch</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Patients approved for supply in the clinical queue. Print the dispensing
-          label for the pack, then Dispatch to create the DPD parcel label and
-          tracking number. Approved patients without an order can&apos;t print a
-          DPD label until one exists.
+          Patients approved for supply in the clinical queue. First print the
+          dispensing label for the pack — this unlocks Dispatch, which creates
+          the DPD parcel label and tracking number and moves the patient to
+          Dispatched. Dispatch stays disabled until the label is printed.
         </p>
       </header>
 

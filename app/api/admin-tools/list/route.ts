@@ -52,6 +52,33 @@ function escLike(s: string) {
   return s.replace(/'/g, "''").replace(/[%_]/g, "\\$&");
 }
 
+// An order counts as dispatched once it's shipped/delivered OR carries a DPD
+// tracking note. Mirrors the client's fulfillmentOf().
+const DISPATCHED_EXPR =
+  "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
+
+// An order whose patient has been approved in Clinical Check has moved into the
+// To Dispatch pipeline — it's handled there, not in the Orders job queue, so we
+// drop it from the active Orders tab (and its badge count).
+const APPROVED_FOR_DISPATCH_EXPR =
+  "LOWER(COALESCE(customer_email,'')) IN " +
+  "(SELECT LOWER(email) FROM consultations " +
+  " WHERE answers->>'_review_decision' = 'approved' AND COALESCE(email,'') <> '')";
+
+// The active Orders "job queue": not yet dispatched, not cancelled, and not
+// already approved-and-awaiting-dispatch.
+const UNFULFILLED_EXPR =
+  `NOT ${DISPATCHED_EXPR} ` +
+  `AND LOWER(COALESCE(status::text,'')) <> 'cancelled' ` +
+  `AND NOT ${APPROVED_FOR_DISPATCH_EXPR}`;
+
+/** The orders WHERE fragment for a given fulfillment filter, or null. */
+function ordersFulfillmentCond(fulfillment: string): string | null {
+  if (fulfillment === "dispatched") return DISPATCHED_EXPR;
+  if (fulfillment === "unfulfilled") return UNFULFILLED_EXPR;
+  return null;
+}
+
 type SpecRow = {
   table: string;
   columns: string;
@@ -195,15 +222,9 @@ export async function GET(req: NextRequest) {
   if (validDate) {
     conditions.push(`created_at::date = '${validDate}'`);
   }
-  if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
-    const dispatchedExpr =
-      "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
-    conditions.push(
-      fulfillment === "dispatched"
-        ? dispatchedExpr
-        : // unfulfilled job queue: not yet dispatched AND not cancelled
-          `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`,
-    );
+  if (type === "orders") {
+    const cond = ordersFulfillmentCond(fulfillment);
+    if (cond) conditions.push(cond);
   }
   // Legacy-data hide: keep only rows created at/after the cutoff for the
   // hidden collections (orders / consultations / customers). Rows stay in the
@@ -246,14 +267,9 @@ export async function GET(req: NextRequest) {
   // the safe, always-present filters.
   const safeConds: string[] = [];
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
-  if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
-    const dispatchedExpr =
-      "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
-    safeConds.push(
-      fulfillment === "dispatched"
-        ? dispatchedExpr
-        : `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`
-    );
+  if (type === "orders") {
+    const cond = ordersFulfillmentCond(fulfillment);
+    if (cond) safeConds.push(cond);
   }
   if (hideCond) safeConds.push(hideCond);
   const safeWhere = safeConds.length ? `WHERE ${safeConds.join(" AND ")}` : "";

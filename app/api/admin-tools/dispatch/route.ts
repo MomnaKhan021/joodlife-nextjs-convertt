@@ -146,6 +146,31 @@ function firstStr(...vals: unknown[]): string {
   return "";
 }
 
+/**
+ * Resolve the patient's delivery address from their consultation answers.
+ * The address is captured during the consultation flow (new-patient
+ * `pd_delivery_address`, reorder `ed_delivery_address`, plus generic keys) and
+ * lives in the answers JSON. We use it to (a) always show a delivery address in
+ * the To Dispatch card and (b) fall back to it for DPD when the matched order
+ * has no usable shipping address of its own. A separately-stored postcode is
+ * appended when it isn't already part of the address text.
+ */
+function addressFromAnswers(a: Record<string, unknown>): string {
+  const direct = firstStr(
+    a.pd_delivery_address,
+    a.ed_delivery_address,
+    a.delivery_address,
+    a.shipping_address,
+    a.address,
+  );
+  if (!direct) return "";
+  const postcode = firstStr(a.delivery_postcode, a.postcode);
+  if (postcode && !direct.toLowerCase().includes(postcode.toLowerCase())) {
+    return `${direct}\n${postcode}`.trim();
+  }
+  return direct;
+}
+
 /** Parse a "Title (dose) × 2" summary fragment into a structured item. */
 function parseSummaryLine(s: string): Item | null {
   const t = s.trim();
@@ -307,24 +332,48 @@ export async function GET(req: NextRequest) {
       const o = orderByEmail.get((c.email ?? "").trim().toLowerCase()) ?? null;
       const dispatchedAt =
         typeof answers._dispatched_at === "string" ? answers._dispatched_at : null;
+      const labelPrintedAt =
+        typeof answers._dispensing_label_printed_at === "string"
+          ? answers._dispensing_label_printed_at
+          : null;
       const tracking =
         typeof answers._tracking_number === "string" && answers._tracking_number
           ? (answers._tracking_number as string)
           : parseTracking(o?.notes ?? null);
+      // Delivery address: prefer the order's own saved address; otherwise fall
+      // back to what the patient entered in their consultation, so the card
+      // always shows an address and DPD can dispatch without manual re-entry.
+      const orderAddrUsable = Boolean(o) && addressUsable(o?.shipping_address ?? null, o?.notes ?? null);
+      const orderAddr = o ? resolveAddress(o.shipping_address ?? null, o.notes ?? null) : "";
+      const consultAddr = addressFromAnswers(answers);
+      const consultAddrUsable = addressUsable(consultAddr, null);
+      const resolvedAddr =
+        (orderAddrUsable && orderAddr) ||
+        (consultAddrUsable && consultAddr) ||
+        orderAddr ||
+        consultAddr ||
+        "";
       return {
         // id = consultation id: dispatch state (POST below) keys off this.
         id: c.id,
         // orderId = the matched order, needed for the DPD label (may be null).
         orderId: o?.id ?? null,
         hasOrder: Boolean(o),
-        // Can we actually create a DPD label? Needs an order with a usable
-        // delivery address — otherwise DPD rejects "missing street/town".
-        canDispatch: Boolean(o) && addressUsable(o?.shipping_address ?? null, o?.notes ?? null),
+        // Can we actually create a DPD label? Needs an order plus a usable
+        // delivery address from EITHER the order or the consultation — otherwise
+        // DPD rejects "missing street/town".
+        canDispatch: Boolean(o) && (orderAddrUsable || consultAddrUsable),
+        // Whether the usable address already lives on the order. When false but
+        // canDispatch is true, the address came from the consultation and the
+        // client persists it to the order before creating the DPD label.
+        addressOnOrder: orderAddrUsable,
+        // Has the dispensing label been printed? Dispatch is gated on this.
+        labelPrintedAt,
         orderNumber: o?.order_number ?? null,
         customerName: c.full_name ?? o?.customer_name ?? null,
         customerEmail: c.email ?? o?.customer_email ?? null,
         customerPhone: c.phone ?? o?.customer_phone ?? null,
-        shippingAddress: o?.shipping_address ?? null,
+        shippingAddress: resolvedAddr || null,
         status: dispatchedAt ? "dispatched" : "approved",
         total: Number(o?.total_amount ?? 0) || 0,
         createdAt: c.created_at,
@@ -367,6 +416,8 @@ export async function GET(req: NextRequest) {
           orderId: o.id,
           hasOrder: true,
           canDispatch: false,
+          addressOnOrder: addressUsable(o.shipping_address ?? null, o.notes ?? null),
+          labelPrintedAt: null,
           orderNumber: o.order_number ?? null,
           customerName: o.customer_name ?? null,
           customerEmail: o.customer_email ?? null,
@@ -401,11 +452,16 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/admin-tools/dispatch
- * Body: { consultationId: number, trackingNumber?: string }
+ * Body: { consultationId: number, orderId?: number, trackingNumber?: string,
+ *         action?: "dispatch" | "label-printed" }
  *
- * Marks an approved consultation as dispatched by stamping _dispatched_at
- * (and _tracking_number when a DPD label was created) into its answers JSON.
- * This moves it out of the Dispatch queue and into Dispatched.
+ * action "label-printed" (compulsory first step): stamps
+ *   _dispensing_label_printed_at so the Dispatch button unlocks. It does NOT
+ *   dispatch — the patient stays in the To Dispatch queue.
+ * action "dispatch" (default): marks the consultation dispatched by stamping
+ *   _dispatched_at (and _tracking_number when a DPD label was created), marks
+ *   the linked order shipped, and mirrors to HubSpot. This moves the patient
+ *   out of the To Dispatch queue and into Dispatched.
  */
 export async function POST(req: NextRequest) {
   const user = await authorize();
@@ -413,7 +469,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Admin or staff role required" }, { status: 403 });
   }
 
-  let body: { consultationId?: number; orderId?: number; trackingNumber?: string };
+  let body: {
+    consultationId?: number;
+    orderId?: number;
+    trackingNumber?: string;
+    action?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -426,6 +487,30 @@ export async function POST(req: NextRequest) {
   }
   const tracking =
     typeof body.trackingNumber === "string" ? body.trackingNumber.trim() : "";
+
+  // First step of the two-step flow: record that the dispensing label was
+  // printed and return. Nothing is dispatched yet.
+  if (body.action === "label-printed") {
+    try {
+      const { drizzle, sql } = await getDrizzle();
+      const printedAt = new Date().toISOString();
+      const mergeJson = JSON.stringify({ _dispensing_label_printed_at: printedAt }).replace(/'/g, "''");
+      await drizzle.execute(
+        sql.raw(`
+          UPDATE consultations
+          SET answers = COALESCE(answers, '{}'::jsonb) || '${mergeJson}'::jsonb,
+              updated_at = now()
+          WHERE id = ${id}
+        `),
+      );
+      return NextResponse.json({ ok: true, id, labelPrintedAt: printedAt });
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: "Label-printed update failed", detail: err instanceof Error ? err.message : String(err) },
+        { status: 500 },
+      );
+    }
+  }
 
   try {
     const { drizzle, sql } = await getDrizzle();
