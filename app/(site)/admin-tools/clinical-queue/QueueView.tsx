@@ -924,9 +924,6 @@ export default function QueueView({
   const [showAll, setShowAll] = useState(false);
   const [tab, setTab] = useState<TabKey>("booked");
   const [query, setQuery] = useState("");
-  // True full-DB counts from the server (pending set) + how many are actually
-  // loaded, so the tab pills/badge reflect the whole queue, not just the page.
-  const [serverCounts, setServerCounts] = useState<Record<TabKey, number> | null>(null);
   const [totalPending, setTotalPending] = useState<number | null>(null);
   // True full-DB red-flag count (pending set), so the badge isn't limited to
   // the loaded page.
@@ -1003,15 +1000,6 @@ export default function QueueView({
         }
         setServerRedFlags(typeof json.redFlags === "number" ? json.redFlags : null);
         setTotalPending(typeof json.total === "number" ? json.total : null);
-        setServerCounts(
-          json.counts
-            ? {
-                booked: Number(json.counts.booked ?? 0),
-                notbooked: Number(json.counts.notbooked ?? 0),
-                reorder: Number(json.counts.reorder ?? 0),
-              }
-            : null,
-        );
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unknown error");
       } finally {
@@ -1033,29 +1021,6 @@ export default function QueueView({
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Re-read just the per-tab counts from the server (a huge offset returns an
-  // empty list, but the counts are computed over the whole pending set). Used
-  // after a decision so the pills and the sidebar badge drop together without
-  // disturbing the cards on screen.
-  const refreshCounts = useCallback(async () => {
-    try {
-      const res = await fetch(
-        `/api/admin-tools/clinical-review?status=pending&queue=${mode}&offset=100000000`,
-        { credentials: "include", cache: "no-store" },
-      );
-      const json = await res.json();
-      if (json?.ok && json.counts) {
-        setServerCounts({
-          booked: Number(json.counts.booked ?? 0),
-          notbooked: Number(json.counts.notbooked ?? 0),
-          reorder: Number(json.counts.reorder ?? 0),
-        });
-      }
-    } catch {
-      /* non-fatal — counts refresh on the next load */
-    }
-  }, [mode]);
-
   const handleDecision = useCallback((id: number, decision: string, reason: string) => {
     setConsultations((prev) =>
       prev.map((c) =>
@@ -1072,9 +1037,7 @@ export default function QueueView({
           : c,
       ),
     );
-    // Counts live server-side now, so pull the fresh numbers.
-    void refreshCounts();
-  }, [refreshCounts]);
+  }, []);
 
   // Collapse duplicate consultations for the same customer. HubSpot syncs can
   // create several rows per patient (same email + treatment), which showed up
@@ -1115,24 +1078,21 @@ export default function QueueView({
   const localCounts = useMemo(() => {
     const base: Record<TabKey, number> = { booked: 0, notbooked: 0, reorder: 0 };
     for (const c of dedupedConsultations) {
+      // A decided row has left the pending queue and can't be ticked, so it
+      // must not be counted in the "Pending only" view.
+      if (!showAll && c.reviewed) continue;
       const mt = meetingTimes[(c.email ?? "").toLowerCase()];
       base[categorize(c, mt)] += 1;
     }
     return base;
-  }, [dedupedConsultations, meetingTimes]);
-  // ONE source of truth for all three pills. Previously booked/not-booked came
-  // from the loaded page (shifting as HubSpot meeting lookups resolved) while
-  // reorder came from the full DB — mixing the two made the total incoherent
-  // and the sidebar badge drifted (7 → 6 → 5). Using the server counts for
-  // every pill keeps the numbers stable and makes badge == sum of tabs.
-  const counts: Record<TabKey, number> =
-    !showAll && serverCounts
-      ? {
-          booked: serverCounts.booked,
-          notbooked: serverCounts.notbooked,
-          reorder: serverCounts.reorder,
-        }
-      : localCounts;
+  }, [dedupedConsultations, meetingTimes, showAll]);
+  // ONE source of truth for all three pills: the de-duplicated, undecided set
+  // that is actually rendered. The raw server counts can't be used here — they
+  // count duplicate consultations that the page collapses into a single card
+  // (tab said 6 while only 5 rows existed and could be ticked). Counting the
+  // rendered set makes pill == rows == "N selected", and the sidebar badge is
+  // the sum of these, so every number agrees.
+  const counts: Record<TabKey, number> = localCounts;
 
   // Keep the sidebar "Clinical Check" badge identical to the sum of the tab
   // pills, updating at the same moment (e.g. booked 4 + not booked 0 +
