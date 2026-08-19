@@ -71,7 +71,14 @@ const SPECS: Record<string, SpecRow> = {
     columns:
       "id, order_number, customer_name, customer_email, customer_phone, " +
       "total_amount, discount_amount, payment_method, payment_status, status, " +
-      "items_json, notes, created_at, updated_at",
+      "items_json, notes, created_at, updated_at, " +
+      // Has a pharmacist approved supply for this patient? If so the order has
+      // moved on to the To Dispatch queue, and the Orders list should say so
+      // instead of still reading "Clinical Check".
+      "EXISTS (SELECT 1 FROM \"consultations\" c " +
+      "  WHERE c.email IS NOT NULL AND TRIM(c.email) <> '' " +
+      "    AND LOWER(c.email) = LOWER(\"orders\".customer_email) " +
+      "    AND c.answers->>'_review_decision' = 'approved') AS clinically_approved",
     searchableColumns: ["order_number", "customer_name", "customer_email", "status"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
     sortableColumns: {

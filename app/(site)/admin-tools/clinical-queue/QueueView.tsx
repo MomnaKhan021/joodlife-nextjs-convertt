@@ -1033,6 +1033,29 @@ export default function QueueView({
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  // Re-read just the per-tab counts from the server (a huge offset returns an
+  // empty list, but the counts are computed over the whole pending set). Used
+  // after a decision so the pills and the sidebar badge drop together without
+  // disturbing the cards on screen.
+  const refreshCounts = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/admin-tools/clinical-review?status=pending&queue=${mode}&offset=100000000`,
+        { credentials: "include", cache: "no-store" },
+      );
+      const json = await res.json();
+      if (json?.ok && json.counts) {
+        setServerCounts({
+          booked: Number(json.counts.booked ?? 0),
+          notbooked: Number(json.counts.notbooked ?? 0),
+          reorder: Number(json.counts.reorder ?? 0),
+        });
+      }
+    } catch {
+      /* non-fatal — counts refresh on the next load */
+    }
+  }, [mode]);
+
   const handleDecision = useCallback((id: number, decision: string, reason: string) => {
     setConsultations((prev) =>
       prev.map((c) =>
@@ -1049,7 +1072,9 @@ export default function QueueView({
           : c,
       ),
     );
-  }, []);
+    // Counts live server-side now, so pull the fresh numbers.
+    void refreshCounts();
+  }, [refreshCounts]);
 
   // Collapse duplicate consultations for the same customer. HubSpot syncs can
   // create several rows per patient (same email + treatment), which showed up
@@ -1095,14 +1120,19 @@ export default function QueueView({
     }
     return base;
   }, [dedupedConsultations, meetingTimes]);
-  // Booked / not-booked are meeting-aware (depend on HubSpot times fetched
-  // client-side), so their pills come from the loaded set. Reorder is fully
-  // known server-side, so keep the true full-DB count for that pill.
-  const counts: Record<TabKey, number> = {
-    booked: localCounts.booked,
-    notbooked: localCounts.notbooked,
-    reorder: !showAll && serverCounts ? serverCounts.reorder : localCounts.reorder,
-  };
+  // ONE source of truth for all three pills. Previously booked/not-booked came
+  // from the loaded page (shifting as HubSpot meeting lookups resolved) while
+  // reorder came from the full DB — mixing the two made the total incoherent
+  // and the sidebar badge drifted (7 → 6 → 5). Using the server counts for
+  // every pill keeps the numbers stable and makes badge == sum of tabs.
+  const counts: Record<TabKey, number> =
+    !showAll && serverCounts
+      ? {
+          booked: serverCounts.booked,
+          notbooked: serverCounts.notbooked,
+          reorder: serverCounts.reorder,
+        }
+      : localCounts;
 
   // Keep the sidebar "Clinical Check" badge identical to the sum of the tab
   // pills, updating at the same moment (e.g. booked 4 + not booked 0 +
