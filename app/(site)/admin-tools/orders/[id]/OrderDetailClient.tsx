@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { refreshAdminBadges } from "../../AdminShell";
+
 import { printLabels, printHtmlDocument, dispensingDate, composeMedicine, type LabelData } from "./dispensingLabel";
 
 /* ------------------------------------------------------------------ */
@@ -275,6 +277,9 @@ export default function OrderDetailClient({ id }: { id: string }) {
       await patch({ status: next });
       setFulfilled(!fulfilled);
       void logEvent(fulfilled ? "Order marked as not dispatched." : "Order marked as dispatched.");
+      // This moves the order between the Orders queue and Dispatched, so the
+      // sidebar counts (and the Orders KPI strip) must move with it.
+      refreshAdminBadges();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

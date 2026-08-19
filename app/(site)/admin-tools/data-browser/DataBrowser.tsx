@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { BADGE_REFRESH_EVENT } from "../AdminShell";
 import {
   printLabels,
   composeMedicine,
@@ -260,14 +261,24 @@ function OrdersKpiStrip() {
   const [s, setS] = useState<OrdersSummary | null>(null);
   useEffect(() => {
     let off = false;
-    fetch("/api/admin-tools/orders-summary", { credentials: "include" })
-      .then((r) => r.json())
-      .then((j) => {
-        if (!off && j?.ok) setS(j as OrdersSummary);
-      })
-      .catch(() => {});
+    const load = () => {
+      fetch("/api/admin-tools/orders-summary", { credentials: "include", cache: "no-store" })
+        .then((r) => r.json())
+        .then((j) => {
+          if (!off && j?.ok) setS(j as OrdersSummary);
+        })
+        .catch(() => {});
+    };
+    load();
+    // Re-read the summary whenever an action changes the data (approve,
+    // dispatch, fulfil) or the window regains focus, so these totals move at
+    // the same moment as the sidebar counts instead of going stale.
+    window.addEventListener(BADGE_REFRESH_EVENT, load);
+    window.addEventListener("focus", load);
     return () => {
       off = true;
+      window.removeEventListener(BADGE_REFRESH_EVENT, load);
+      window.removeEventListener("focus", load);
     };
   }, []);
 

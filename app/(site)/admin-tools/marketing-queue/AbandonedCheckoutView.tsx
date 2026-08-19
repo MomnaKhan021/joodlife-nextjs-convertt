@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { refreshAdminBadges } from "../AdminShell";
+
 /**
  * Abandoned Checkout — true cart abandonment. Lists shoppers who left items in
  * their basket without completing checkout (captured by /api/cart/track). Each
@@ -94,6 +96,9 @@ export default function AbandonedCheckoutView() {
       if (!res.ok || !j.ok) throw new Error(j?.error ?? "Failed");
       if (action === "dismiss") {
         setCarts((prev) => prev.filter((c) => keyOf(c) !== key));
+        // The lead has left this queue — move the sidebar count at the same
+        // moment rather than waiting for a reload.
+        refreshAdminBadges();
       } else {
         setCarts((prev) =>
           prev.map((c) =>
