@@ -522,7 +522,9 @@ export const SLIDES: SlideDef[] = [
     id: "s_block_third_party",
     type: "block",
     step: 0,
-    title: "Not suitable at this time",
+    title: "Not suitable for this service",
+    body:
+      "This weight loss service is only available for your own personal use, so we can’t continue with a consultation on someone else’s behalf. If the treatment is for you, change your answer below.",
     reviewSlideId: "s1",
   },
   {
@@ -530,6 +532,8 @@ export const SLIDES: SlideDef[] = [
     type: "block",
     step: 0,
     title: "Not suitable at this time",
+    body:
+      "Weight loss treatment is only available to adults aged 18 or over through this service. Please speak to your GP for advice.",
     reviewSlideId: "s_dob",
   },
   {
@@ -537,6 +541,8 @@ export const SLIDES: SlideDef[] = [
     type: "block",
     step: 0,
     title: "Not suitable at this time",
+    body:
+      "Based on the height and weight you gave us, your BMI is outside the range we can safely treat. Please speak to your GP, who can advise on the right options for you.",
     reviewSlideId: "s7",
   },
   {
@@ -544,6 +550,8 @@ export const SLIDES: SlideDef[] = [
     type: "block",
     step: 0,
     title: "Not suitable at this time",
+    body:
+      "Because of the eating pattern or eating disorder history you told us about, we can’t supply weight loss treatment online. Please speak to your GP so you get the right support.",
     reviewSlideId: "s13a",
   },
   {
@@ -551,6 +559,8 @@ export const SLIDES: SlideDef[] = [
     type: "block",
     step: 0,
     title: "Not suitable at this time",
+    body:
+      "One or more of the medical conditions or medicines you told us about means weight loss treatment isn’t safe to supply through this service. Please speak to your GP.",
     reviewSlideId: "s15",
   },
   // ── Success ──────────────────────────────────────────────────

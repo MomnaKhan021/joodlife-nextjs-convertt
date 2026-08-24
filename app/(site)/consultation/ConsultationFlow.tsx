@@ -42,6 +42,19 @@ export default function ConsultationFlow({
   const [currentSlideId, setCurrentSlideId] = useState<string>("s0");
   const [history, setHistory] = useState<string[]>([]);
   const [answers, setAnswers] = useState<Answers>({});
+  // Live mirror of `answers`. Auto-advancing slides call advance() from a
+  // setTimeout, which closes over the answers from the render the user clicked
+  // in — so a conditional next() couldn't see the option just chosen (e.g.
+  // answering "No" to "Is this for you?" still routed to the name slide
+  // instead of the "Not suitable" screen). Routing and saving read this ref.
+  const answersRef = useRef<Answers>({});
+  const commitAnswers = (fn: (prev: Answers) => Answers) => {
+    setAnswers((prev) => {
+      const next = fn(prev);
+      answersRef.current = next;
+      return next;
+    });
+  };
   const [consultationId, setConsultationId] = useState<number | null>(null);
   // Fire the Meta "Lead" event once, when the consultation record is first
   // created (a new lead entering the funnel).
@@ -77,7 +90,7 @@ export default function ConsultationFlow({
   // pre-selection.
   useEffect(() => {
     if (!productSlug && !dose) return;
-    setAnswers((prev) => {
+    commitAnswers((prev) => {
       const next = { ...prev };
       if (productSlug) next["__productSlug"] = productSlug;
       if (dose) next["__dose"] = dose;
@@ -112,11 +125,11 @@ export default function ConsultationFlow({
 
   // ---- helpers ----
   function setAnswer<T>(key: string, value: T) {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
+    commitAnswers((prev) => ({ ...prev, [key]: value }));
   }
 
   function toggleMulti(key: string, option: string, noneOption?: string) {
-    setAnswers((prev) => {
+    commitAnswers((prev) => {
       const arr = Array.isArray(prev[key]) ? [...(prev[key] as string[])] : [];
       const idx = arr.indexOf(option);
       let next: string[];
@@ -138,23 +151,27 @@ export default function ConsultationFlow({
     // the slide the user has already advanced to.
     if (status === "submitted") setSaving(true);
     setError(null);
+    // Save the freshest answers, so a draft written straight after a click
+    // (e.g. the answer that routed the patient to a "Not suitable" screen)
+    // includes that answer rather than the previous render's copy.
+    const snapshot = answersRef.current;
     try {
       const fullName = (() => {
-        const single = (answers["fullName"] as string | undefined)?.trim();
+        const single = (snapshot["fullName"] as string | undefined)?.trim();
         if (single) return single;
         // Legacy fallback for drafts saved before the single-field change.
-        const fn = (answers["firstName"] as string | undefined)?.trim();
-        const ln = (answers["lastName"] as string | undefined)?.trim();
+        const fn = (snapshot["firstName"] as string | undefined)?.trim();
+        const ln = (snapshot["lastName"] as string | undefined)?.trim();
         return [fn, ln].filter(Boolean).join(" ") || undefined;
       })();
       const payload = {
         fullName,
-        email: answers.email as string | undefined,
-        phone: answers.consultation_mobile_number_v2 as string | undefined,
-        dateOfBirth: answers.date_of_birth_consultation as string | undefined,
+        email: snapshot.email as string | undefined,
+        phone: snapshot.consultation_mobile_number_v2 as string | undefined,
+        dateOfBirth: snapshot.date_of_birth_consultation as string | undefined,
         productSlug,
         dose,
-        answers,
+        answers: snapshot,
         status,
       };
       if (consultationId === null) {
@@ -206,7 +223,9 @@ export default function ConsultationFlow({
 
   async function advance(toSlideId?: string) {
     if (!slide) return;
-    const targetId = toSlideId ?? slide.next?.(answers);
+    // Read the freshest answers (see answersRef above) so a conditional
+    // next() always sees the option the user just selected.
+    const targetId = toSlideId ?? slide.next?.(answersRef.current);
     if (!targetId) return;
     const targetSlide = getSlide(targetId);
     if (!targetSlide) return;
