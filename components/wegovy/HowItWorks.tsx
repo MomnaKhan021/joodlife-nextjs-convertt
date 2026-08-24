@@ -209,8 +209,11 @@ export default function HowItWorks() {
             >
               Check Your Eligibility
             </a>
+            {/* Keep the reader on the Wegovy tablet page — scroll down to the
+                tablet's own FAQs rather than sending them to the weight-loss
+                injection page. */}
             <a
-              href="/weight-loss"
+              href="#faq"
               className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/40 bg-white/[0.08] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/15"
             >
               Learn More
