@@ -38,7 +38,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
             type="button"
             onClick={() => swiperRef.current?.slidePrev()}
             aria-label="Previous slide"
-            className="group grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-[#142e2a]/15 bg-white transition-colors duration-200 hover:border-[#142e2a] hover:bg-[#142e2a]"
+            className="group grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-[#142e2a]/15 bg-white transition-colors duration-200 hover:border-[#142e2a] hover:bg-[#142e2a] active:border-[#142e2a] active:bg-[#142e2a] focus-visible:border-[#142e2a] focus-visible:bg-[#142e2a] focus-visible:outline-none"
           >
             <svg
               width="20"
@@ -46,7 +46,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
               viewBox="0 0 20 20"
               fill="none"
               aria-hidden
-              className="text-[#142e2a] transition-colors duration-200 group-hover:text-white"
+              className="text-[#142e2a] transition-colors duration-200 group-hover:text-white group-active:text-white group-focus-visible:text-white"
             >
               <path
                 d="M12.5 15L7.5 10L12.5 5"
@@ -61,7 +61,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
             type="button"
             onClick={() => swiperRef.current?.slideNext()}
             aria-label="Next slide"
-            className="group grid h-12 w-12 cursor-pointer place-items-center rounded-full bg-[#142e2a] transition-colors duration-200 hover:bg-[#0c2421]"
+            className="group grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-[#142e2a]/15 bg-white transition-colors duration-200 hover:border-[#142e2a] hover:bg-[#142e2a] active:border-[#142e2a] active:bg-[#142e2a] focus-visible:border-[#142e2a] focus-visible:bg-[#142e2a] focus-visible:outline-none"
           >
             <svg
               width="20"
@@ -69,7 +69,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
               viewBox="0 0 20 20"
               fill="none"
               aria-hidden
-              className="text-white"
+              className="text-[#142e2a] transition-colors duration-200 group-hover:text-white group-active:text-white group-focus-visible:text-white"
             >
               <path
                 d="M7.5 5L12.5 10L7.5 15"
