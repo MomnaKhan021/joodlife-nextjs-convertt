@@ -249,6 +249,7 @@ export async function GET(req: NextRequest) {
             SELECT COUNT(*)::int AS n
             FROM orders
             WHERE LOWER(COALESCE(status::text,'')) NOT IN ('cancelled', 'refunded', 'shipped', 'delivered')
+              ${hideCond ? `AND ${hideCond}` : ""}
               AND LOWER(COALESCE(payment_status::text,'')) = 'paid'
               AND COALESCE(CAST(notes AS TEXT), '') NOT ILIKE '%DPD tracking:%'
               AND NOT EXISTS (

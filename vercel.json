@@ -11,7 +11,7 @@
     }
   ],
   "functions": {
-    "app/api/hubspot/sync-all/route.ts": { "maxDuration": 300 },
+    "app/api/hubspot/sync-all/route.ts": { "maxDuration": 60 },
     "app/api/cron/abandoned-reminders/route.ts": { "maxDuration": 60 }
   }
 }
