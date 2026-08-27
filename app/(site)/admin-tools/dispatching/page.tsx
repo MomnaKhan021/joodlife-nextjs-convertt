@@ -29,11 +29,31 @@ type DispatchOrder = {
 const gbp = (n: number) =>
   n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 
-function fmtDate(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("en-GB", {
-    day: "2-digit", month: "short", year: "numeric",
+/** Human-readable absolute timestamp, matching the Orders page: "Today at
+ *  12:06 PM", "Yesterday at 9:30 AM", else "8 Jul at 12:06 PM" (year shown
+ *  only when it differs). Uses the viewer's local timezone, so a UK-based
+ *  admin sees UK time. */
+function fmtSmartDateTime(iso: string | null) {
+  if (typeof iso !== "string" || !iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const time = d.toLocaleString("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
   });
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const now = new Date();
+  const dayDiff = Math.round((startOf(now) - startOf(d)) / 86400000);
+  if (dayDiff === 0) return `Today at ${time}`;
+  if (dayDiff === 1) return `Yesterday at ${time}`;
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const date = d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+  return `${date} at ${time}`;
 }
 
 /** DPD Local public tracking page for a parcel/consignment number. */
@@ -200,7 +220,7 @@ export default function DispatchedPage() {
                         o.orderNumber ?? `#${o.id}`
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[#374151]">{fmtDate(o.createdAt)}</td>
+                    <td className="px-4 py-3 text-[#374151]">{fmtSmartDateTime(o.createdAt)}</td>
                     <td className="px-4 py-3 text-right font-semibold text-[#111827]">
                       {o.total > 0 ? gbp(o.total) : "—"}
                     </td>
