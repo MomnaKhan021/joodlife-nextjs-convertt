@@ -27,6 +27,7 @@ import {
   clearClinicalCount,
 } from "../AdminShell";
 import Pagination from "../Pagination";
+import { orderNumberDisplay } from "@/lib/orderTag";
 
 export type Consultation = {
   id: number;
@@ -48,6 +49,9 @@ export type Consultation = {
   /** Total of the patient's most recent paid order (£), for at-a-glance
    *  "what they bought + price". Null when there's no paid order. */
   orderTotal?: number | null;
+  /** The patient's actual order number (e.g. JL3044), so the card shows the
+   *  order — not just the consultation ticket ref. Null when there's no order. */
+  orderNumber?: string | null;
   answers: Record<string, unknown>;
 };
 
@@ -874,7 +878,16 @@ export function ConsultationCard({
             </div>
             {loading && <span className="text-[11px] text-[#4a5c46]">Saving…</span>}
             {error && <span className="text-[11px] text-[#dc2626]">{error}</span>}
-            <span className="text-[12px] font-mono text-[#9ca3af]">#{c.id}</span>
+            <span className="text-[12px] font-mono text-[#9ca3af]">
+              {c.orderNumber ? (
+                <>
+                  {orderNumberDisplay(c.orderNumber)}
+                  <span className="ml-1 text-[10px] text-[#c2c7cc]">· ref #{c.id}</span>
+                </>
+              ) : (
+                `#${c.id}`
+              )}
+            </span>
           </div>
         </div>
 

@@ -463,6 +463,7 @@ export async function GET(req: NextRequest) {
         reviewedBy: answers._reviewed_by ?? null,
         reviewedAt: answers._reviewed_at ?? null,
         orderTotal: null as number | null,
+        orderNumber: null as string | null,
         answers,
       };
     });
@@ -496,7 +497,7 @@ export async function GET(req: NextRequest) {
           db.execute(
             sql.raw(
               `SELECT DISTINCT ON (LOWER(customer_email)) LOWER(customer_email) AS email,
-                      customer_name, total_amount
+                      customer_name, total_amount, order_number
                FROM orders
                WHERE LOWER(customer_email) IN (${inList})
                  AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
@@ -506,6 +507,7 @@ export async function GET(req: NextRequest) {
         ]);
         const nameByEmail: Record<string, string> = {};
         const totalByEmail: Record<string, number> = {};
+        const orderNumByEmail: Record<string, string> = {};
         for (const r of asRows(orderRes)) {
           const e = String(r.email ?? "");
           if (!e) continue;
@@ -513,6 +515,8 @@ export async function GET(req: NextRequest) {
           if (nm) nameByEmail[e] = nm;
           const total = Number(r.total_amount ?? 0);
           if (Number.isFinite(total)) totalByEmail[e] = total;
+          const on = String(r.order_number ?? "").trim();
+          if (on) orderNumByEmail[e] = on;
         }
         // Account name wins over the order name.
         for (const r of asRows(userRes)) {
@@ -527,6 +531,8 @@ export async function GET(req: NextRequest) {
           }
           const total = totalByEmail[key];
           if (typeof total === "number") c.orderTotal = total;
+          const on = orderNumByEmail[key];
+          if (on) c.orderNumber = on;
         }
       } catch {
         /* name / total lookup is best-effort — fall back to "Patient #id" */
