@@ -589,9 +589,6 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
   const [fulfillment, setFulfillment] = useState<"unfulfilled" | "all" | "dispatched">(
     "unfulfilled",
   );
-  // Supply-type filter: show every order, only reorders, or only first-time
-  // supplies. Composes with the fulfillment tabs (e.g. "To do" + "Reorder").
-  const [supply, setSupply] = useState<"all" | "reorder" | "new">("all");
   // Batch multi-select — set of selected row ids on the current page.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
@@ -622,7 +619,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }, [activeTab, debouncedSearch, dateFilter, sort, fulfillment, supply]);
+  }, [activeTab, debouncedSearch, dateFilter, sort, fulfillment]);
 
   // Reset per-tab controls when switching collections.
   useEffect(() => {
@@ -659,9 +656,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
       if (dateFilter && activeTab === "orders") params.set("date", dateFilter);
       if (activeTab === "orders" && fulfillment !== "all") {
         params.set("fulfillment", fulfillment);
-      }
-      if (activeTab === "orders" && supply !== "all") {
-        params.set("supply", supply);
+
       }
       if (sort) {
         params.set("sort", sort.key);
@@ -689,7 +684,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
     } finally {
       setLoading(false);
     }
-  }, [activeTab, debouncedSearch, dateFilter, fulfillment, supply, sort, page]);
+  }, [activeTab, debouncedSearch, dateFilter, fulfillment, sort, page]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -849,32 +844,6 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           {fulfillment === "unfulfilled" ? (
             <span className="db-segment__note">
               Work queue — clear this to zero each day.
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* Supply-type filter: separate reorders from first-time supplies */}
-      {activeTab === "orders" ? (
-        <div className="db-segment" role="group" aria-label="Supply type filter">
-          {([
-            ["all", "All supplies"],
-            ["reorder", "Reorder"],
-            ["new", "New Supply"],
-          ] as const).map(([val, label]) => (
-            <button
-              key={val}
-              type="button"
-              onClick={() => setSupply(val)}
-              className={`db-segment__btn ${supply === val ? "db-segment__btn--active" : ""}`}
-            >
-              {label}
-            </button>
-          ))}
-          {supply !== "all" ? (
-            <span className="db-segment__note">
-              Showing {supply === "reorder" ? "reorders" : "first-time supplies"} only
-              {total > 0 ? ` (${total.toLocaleString("en-GB")})` : ""}.
             </span>
           ) : null}
         </div>
