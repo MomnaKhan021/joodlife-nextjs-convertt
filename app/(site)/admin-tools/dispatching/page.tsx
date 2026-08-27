@@ -22,6 +22,7 @@ type DispatchOrder = {
   status: string;
   total: number;
   createdAt: string | null;
+  dispatchedAt: string | null;
   trackingNumber: string | null;
   dispatched: boolean;
 };
@@ -109,8 +110,9 @@ export default function DispatchedPage() {
     }
     if (dateFilter) {
       list = list.filter((o) => {
-        if (!o.createdAt) return false;
-        const d = new Date(o.createdAt);
+        const stamp = o.dispatchedAt ?? o.createdAt;
+        if (!stamp) return false;
+        const d = new Date(stamp);
         if (Number.isNaN(+d)) return false;
         const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
         return iso === dateFilter;
@@ -181,7 +183,7 @@ export default function DispatchedPage() {
               <tr className="border-b border-[#e5e7eb] text-[11px] font-semibold uppercase tracking-wide text-[#6b7280]">
                 <th className="px-4 py-2.5">Customer</th>
                 <th className="px-4 py-2.5">Order #</th>
-                <th className="px-4 py-2.5">Date</th>
+                <th className="px-4 py-2.5">Dispatched</th>
                 <th className="px-4 py-2.5 text-right">Total</th>
                 <th className="px-4 py-2.5">Tracking</th>
               </tr>
@@ -222,7 +224,9 @@ export default function DispatchedPage() {
                         o.orderNumber ?? `#${o.id}`
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[#374151]">{fmtSmartDateTime(o.createdAt)}</td>
+                    <td className="px-4 py-3 text-[#374151]">
+                      {fmtSmartDateTime(o.dispatchedAt ?? o.createdAt)}
+                    </td>
                     <td className="px-4 py-3 text-right font-semibold text-[#111827]">
                       {o.total > 0 ? gbp(o.total) : "—"}
                     </td>

@@ -126,6 +126,7 @@ type OrderRow = {
   total_amount: string | number | null;
   items_json: unknown;
   created_at: string | null;
+  updated_at: string | null;
   dispatch_note: string | null;
 };
 
@@ -307,7 +308,7 @@ export async function GET(req: NextRequest) {
       const oRes = await drizzle.execute(
         sql.raw(`
           SELECT id, order_number, customer_name, customer_email, customer_phone,
-                 shipping_address, notes, status, total_amount, items_json, created_at,
+                 shipping_address, notes, status, total_amount, items_json, created_at, updated_at,
                  -- via to_jsonb so this still works before the column is added
                  to_jsonb(orders) ->> 'dispatch_note' AS dispatch_note
           FROM orders
@@ -465,10 +466,10 @@ export async function GET(req: NextRequest) {
           customerPhone: o.customer_phone ?? null,
           shippingAddress: o.shipping_address ?? null,
           status: isDispatched ? "dispatched" : "approved",
+          dispatchedAt: isDispatched ? (o.updated_at ?? null) : null,
           total: Number(o.total_amount ?? 0) || 0,
           createdAt: o.created_at,
           orderCreatedAt: o.created_at,
-          dispatchedAt: null,
           trackingNumber: tracking,
           dispatched: isDispatched,
           items: normItems(o.items_json),

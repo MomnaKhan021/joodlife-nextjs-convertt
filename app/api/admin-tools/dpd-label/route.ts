@@ -567,7 +567,7 @@ export async function POST(req: NextRequest) {
   try {
     await drizzle.execute(
       sql.raw(
-        `UPDATE orders SET notes = ${esc(updatedNotes)}, status = 'shipped' WHERE id = ${orderId}`,
+        `UPDATE orders SET notes = ${esc(updatedNotes)}, status = 'shipped', updated_at = now() WHERE id = ${orderId}`,
       ),
     );
   } catch (err) {
