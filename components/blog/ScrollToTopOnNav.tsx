@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+
+// useLayoutEffect on the client, useEffect on the server (avoids the SSR warning).
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /**
  * Force the window to the top when navigating between blog posts.
@@ -27,13 +31,25 @@ export default function ScrollToTopOnNav() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (isPop.current) {
       // Back/forward — let the router restore the previous position.
       isPop.current = false;
       return;
     }
-    window.scrollTo(0, 0);
+    // Coming from a long page (e.g. the homepage blog carousel) the browser
+    // keeps the old, larger scroll offset and clamps it to the shorter post —
+    // landing you near its bottom. One scrollTo can lose the race with that
+    // clamp / streamed layout, so we force the top before paint, on the next
+    // frame, and once more shortly after.
+    const toTop = () => window.scrollTo(0, 0);
+    toTop();
+    const raf = requestAnimationFrame(toTop);
+    const t = setTimeout(toTop, 80);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
   }, [pathname]);
 
   return null;
