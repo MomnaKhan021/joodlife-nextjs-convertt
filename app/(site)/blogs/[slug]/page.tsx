@@ -163,7 +163,9 @@ export default async function BlogPostPage({
                 fill
                 priority
                 sizes="(min-width: 1200px) 1140px, 100vw"
-                className="object-cover"
+                // Show the whole image framed on the cream backdrop rather than
+                // cropping it to fill 16:9 (which cut off the subject's head).
+                className="object-contain"
               />
             </div>
           </div>

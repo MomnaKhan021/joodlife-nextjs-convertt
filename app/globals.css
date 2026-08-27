@@ -52,7 +52,11 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* NB: no `scroll-behavior: smooth` here. Setting it on <html> globally
+     breaks Next.js App Router scroll restoration — navigating from a
+     scrolled-down position (e.g. the blog carousel low on the homepage)
+     animated the scroll-to-top against the new page and landed mid-page near
+     the footer. In-app smooth scrolls pass `behavior: 'smooth'` in JS. */
   /* Clip stray horizontal overflow (e.g. the off-canvas mobile menu sitting
      translated off the right edge) so the page never scrolls sideways on
      mobile. `clip` (not `hidden`) avoids creating a scroll container, so
