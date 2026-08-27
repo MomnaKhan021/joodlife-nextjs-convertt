@@ -246,6 +246,7 @@ export async function GET(req: NextRequest) {
             SELECT COUNT(*)::int AS n
             FROM orders
             WHERE LOWER(COALESCE(status::text,'')) NOT IN ('cancelled', 'refunded', 'shipped', 'delivered')
+              AND LOWER(COALESCE(payment_status::text,'')) = 'paid'
               AND COALESCE(CAST(notes AS TEXT), '') NOT ILIKE '%DPD tracking:%'
               AND NOT EXISTS (
                 SELECT 1 FROM "consultations" c
@@ -427,7 +428,13 @@ export async function GET(req: NextRequest) {
                  shipping_address, notes, status, total_amount, items_json, created_at
           FROM orders
           WHERE LOWER(COALESCE(status::text,'')) NOT IN ('cancelled', 'refunded')
-            AND (${alreadyDispatchedExpr} OR ${noConsultExpr})
+            AND (
+              ${alreadyDispatchedExpr}
+              -- An order-only customer joins the queue only once they have
+              -- actually PAID. Without this, abandoned checkouts (payment
+              -- never completed) were queued up as work to dispatch.
+              OR (${noConsultExpr} AND LOWER(COALESCE(payment_status::text,'')) = 'paid')
+            )
           ORDER BY created_at DESC NULLS LAST, id DESC
           LIMIT 500
         `),
