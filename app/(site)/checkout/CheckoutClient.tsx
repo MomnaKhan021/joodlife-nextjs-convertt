@@ -383,6 +383,55 @@ function CheckoutForm() {
     (isDeliverableStreet(dAddress) &&
       isValidTown(dCity) &&
       (dPostcodeValid || UK_POSTCODE_RE.test(dPostcode.trim())));
+  // Live "is this a real UK address?" check. The postcode field already proves
+  // the postcode exists; this also confirms the STREET exists at it, so junk
+  // like "Ut recusandae Repud / Mostyn CH8 9HE" is caught before payment.
+  // Only a definitive "not_found" blocks checkout — an upstream outage returns
+  // "unknown" and must never stop a genuine customer.
+  const shipStreet = deliverElsewhere ? dAddress : address;
+  const shipCity = deliverElsewhere ? dCity : city;
+  const shipPostcode = deliverElsewhere ? dPostcode : postcode;
+  const [addrCheck, setAddrCheck] = useState<{
+    status: "idle" | "checking" | "verified" | "invalid";
+    message?: string;
+  }>({ status: "idle" });
+
+  useEffect(() => {
+    const street = shipStreet.trim();
+    const pc = shipPostcode.trim();
+    if (!street || !pc || !UK_POSTCODE_RE.test(pc)) {
+      setAddrCheck({ status: "idle" });
+      return;
+    }
+    let cancelled = false;
+    setAddrCheck({ status: "checking" });
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/address-verify?street=${encodeURIComponent(street)}` +
+            `&city=${encodeURIComponent(shipCity)}` +
+            `&postcode=${encodeURIComponent(pc)}`,
+        );
+        const j = (await res.json()) as { verdict?: string; message?: string };
+        if (cancelled) return;
+        if (j?.verdict === "not_found") {
+          setAddrCheck({ status: "invalid", message: j.message });
+        } else if (j?.verdict === "verified") {
+          setAddrCheck({ status: "verified" });
+        } else {
+          setAddrCheck({ status: "idle" });
+        }
+      } catch {
+        if (!cancelled) setAddrCheck({ status: "idle" });
+      }
+    }, 700);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shipStreet, shipCity, shipPostcode]);
+
   const firstNameValid = isValidNamePart(firstName);
   const lastNameValid = isValidNamePart(lastName);
   const canPay =
@@ -392,6 +441,8 @@ function CheckoutForm() {
     emailValid &&
     addressValid &&
     cityValid &&
+    // a verified-as-nonexistent address blocks payment
+    addrCheck.status !== "invalid" &&
     postcodeOk &&
     deliveryOk &&
     phoneValid &&
@@ -1025,6 +1076,22 @@ function CheckoutForm() {
                   {streetError(address)}
                 </p>
               ) : null}
+              {!deliverElsewhere && !streetError(address) ? (
+                addrCheck.status === "checking" ? (
+                  <p className="mt-1.5 font-ui text-[13px] text-[#142e2a]/55">
+                    Checking address…
+                  </p>
+                ) : addrCheck.status === "verified" ? (
+                  <p className="mt-1.5 font-ui text-[13px] text-[#1a8c5a]">
+                    ✓ Address verified
+                  </p>
+                ) : addrCheck.status === "invalid" ? (
+                  <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
+                    {addrCheck.message ??
+                      "We couldn’t find that address. Please pick it from the suggestions."}
+                  </p>
+                ) : null
+              ) : null}
             </Field>
 
             <Field label="Apartment, suit, etc. (optional)">
@@ -1127,6 +1194,22 @@ function CheckoutForm() {
                     }}
                     inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
                   />
+                  {deliverElsewhere && !streetError(dAddress) ? (
+                    addrCheck.status === "checking" ? (
+                      <p className="mt-1.5 font-ui text-[13px] text-[#142e2a]/55">
+                        Checking address…
+                      </p>
+                    ) : addrCheck.status === "verified" ? (
+                      <p className="mt-1.5 font-ui text-[13px] text-[#1a8c5a]">
+                        ✓ Address verified
+                      </p>
+                    ) : addrCheck.status === "invalid" ? (
+                      <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
+                        {addrCheck.message ??
+                          "We couldn’t find that address. Please pick it from the suggestions."}
+                      </p>
+                    ) : null
+                  ) : null}
                 </Field>
                 <Field label="Apartment, suite, etc. (optional)">
                   <TextInput

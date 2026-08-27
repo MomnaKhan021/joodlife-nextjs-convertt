@@ -19,6 +19,8 @@ import { NextResponse, after, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 import { z } from "zod";
 
+import { verifyUkAddress } from "@/lib/addressVerify";
+
 import { getPayloadInstance } from "@/lib/payload";
 import { addNoteToContact, createDeal, fireHubSpot, mapOrderStageId, upsertContact } from "@/lib/hubspot";
 import { sendOrderConfirmationEmail } from "@/lib/account-email";
@@ -380,6 +382,51 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+  // 3c. The delivery address must be a REAL UK address, not merely well
+  //      formatted. A junk street with a valid postcode ("Ut recusandae
+  //      Repud" / "Mostyn CH8 9HE") previously passed and produced an
+  //      undeliverable order. verifyUkAddress only returns "not_found" when
+  //      the upstream lookups answered and found nothing, so an outage can
+  //      never block a genuine customer.
+  {
+    const lines = customer.address
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const pcMatches = customer.address
+      .toUpperCase()
+      .match(/[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}/g);
+    const postcode = pcMatches ? pcMatches[pcMatches.length - 1] : "";
+    const street = lines[0] ?? "";
+    const lastLine = lines.length > 1 ? lines[lines.length - 1] : "";
+    const city = postcode
+      ? lastLine.toUpperCase().replace(postcode, "").trim()
+      : lastLine;
+
+    if (street && postcode) {
+      const check = await verifyUkAddress({ street, city, postcode });
+      if (check.verdict === "not_found") {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              check.message ??
+              "We couldn't verify that delivery address. Please check it and try again.",
+            issues: [
+              {
+                path: [
+                  "customer",
+                  check.reason === "postcode" ? "postcode" : "address",
+                ],
+              },
+            ],
+          },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
   const items = parsed.data.items;
 
   // 4. Idempotency-Key replay protection
