@@ -205,6 +205,10 @@ export async function GET(req: NextRequest) {
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
+    // Paid, or raised by staff on clinical approval (those are £0/unpaid by
+    // design and still need dispatching).
+    const paidOrStaffExpr =
+      "(LOWER(COALESCE(payment_status::text,'')) = 'paid' OR COALESCE(CAST(notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%')";
     conditions.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
@@ -212,7 +216,13 @@ export async function GET(req: NextRequest) {
           // NOTE: clinically-approved orders deliberately STAY here — an order
           // only leaves the Orders "To do" list once it is actually dispatched
           // (which stamps status=shipped), not when supply is approved.
-          `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`,
+          // A never-paid CHECKOUT order is an abandoned checkout, not work to
+          // do: the customer reached the payment step and the card was
+          // declined (or they walked away). Those belong in Abandoned
+          // Checkout. Orders raised by staff on clinical approval are always
+          // £0/unpaid by design, so they must stay. Everything remains
+          // visible under "All" for the record.
+          `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled' AND ${paidOrStaffExpr}`,
     );
   }
   // Legacy-data hide: keep only rows created at/after the cutoff for the
@@ -259,10 +269,14 @@ export async function GET(req: NextRequest) {
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
+    // Paid, or raised by staff on clinical approval (those are £0/unpaid by
+    // design and still need dispatching).
+    const paidOrStaffExpr =
+      "(LOWER(COALESCE(payment_status::text,'')) = 'paid' OR COALESCE(CAST(notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%')";
     safeConds.push(
       fulfillment === "dispatched"
         ? dispatchedExpr
-        : `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled'`
+        : `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled' AND ${paidOrStaffExpr}`
     );
   }
   if (hideCond) safeConds.push(hideCond);

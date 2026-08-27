@@ -125,6 +125,22 @@ export async function POST(req: NextRequest) {
             AND LOWER(COALESCE(payment_status::text, '')) <> 'paid'`,
       ),
     );
+    // Paid at last — now the shopper leaves the Abandoned Checkout queue.
+    try {
+      await drizzle.execute(
+        sql.raw(
+          `UPDATE "abandoned_carts" a
+              SET recovered_at = now(), updated_at = now()
+            FROM "orders" o
+            WHERE LOWER(a.email) = LOWER(o.customer_email)
+              AND a.recovered_at IS NULL
+              AND o.order_number = '${safe}'`,
+        ),
+      );
+    } catch {
+      /* non-fatal — never let cart cleanup break the confirmation */
+    }
+
     return NextResponse.json({ ok: true, orderNumber });
   } catch (err) {
     return NextResponse.json(

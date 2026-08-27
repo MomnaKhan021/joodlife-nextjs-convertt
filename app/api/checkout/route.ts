@@ -522,17 +522,11 @@ export async function POST(req: NextRequest) {
     const id = rows[0]?.id;
     if (!id) throw new Error("Insert did not return an id");
 
-    // Cart recovered — drop this shopper out of the Abandoned Checkout queue.
-    try {
-      await drizzle.execute(
-        sql.raw(
-          `UPDATE "abandoned_carts" SET recovered_at = now(), updated_at = now()
-           WHERE LOWER(email) = ${esc(customer.email.toLowerCase())} AND recovered_at IS NULL`,
-        ),
-      );
-    } catch {
-      /* non-fatal — never let cart cleanup break an order */
-    }
+    // NB: the cart is deliberately NOT marked recovered here. Creating the
+    // order only means the customer reached the payment step — if the card is
+    // then declined, or they walk away, they are still an abandoned checkout
+    // and must stay in that queue. Recovery is recorded when the payment
+    // actually succeeds (the Stripe webhook, or confirm-free for £0 orders).
 
     if (idempotencyKey) {
       idempotencyStore(idempotencyKey, {

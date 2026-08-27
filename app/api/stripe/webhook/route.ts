@@ -226,6 +226,26 @@ export async function POST(req: NextRequest) {
              }`
           )
         );
+        // Payment succeeded — only now does the shopper leave the Abandoned
+        // Checkout queue.
+        try {
+          await drizzle.execute(
+            sql.raw(
+              `UPDATE "abandoned_carts" a
+                  SET recovered_at = now(), updated_at = now()
+                FROM "orders" o
+                WHERE LOWER(a.email) = LOWER(o.customer_email)
+                  AND a.recovered_at IS NULL
+                  AND ${
+                    orderNumber
+                      ? `o.order_number = ${esc(orderNumber)}`
+                      : `o.stripe_payment_intent_id = ${esc(pi.id)}`
+                  }`
+            )
+          );
+        } catch {
+          /* non-fatal — never let cart cleanup break the webhook */
+        }
         break;
       }
       case "payment_intent.payment_failed": {
