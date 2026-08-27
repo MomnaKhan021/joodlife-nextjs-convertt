@@ -9,14 +9,14 @@ import { usePathname } from "next/navigation";
  * - Centers the JoodLife logo mark inside a circular dotted ring.
  * - Ring rotates and uses a sage→dark gradient so the dots appear to fade
  *   into a trail, matching the brand reference.
- * - Always displays for ~3 seconds (deliberate brand moment), then fades
+ * - Always displays for ~2 seconds (deliberate brand moment), then fades
  *   out over 300ms and unmounts so it never blocks interaction.
  * - Server-renders into the initial HTML so users see it during FOUC too;
  *   the client effect then dismisses it after hydration.
  * - Skipped on app/account/admin/checkout routes — a marketing splash there
  *   reads as a glitch (e.g. on /profile/weight-logs).
  */
-const PRELOADER_VISIBLE_MS = 3_000;
+const PRELOADER_VISIBLE_MS = 2_000;
 const PRELOADER_FADE_MS = 300;
 
 /** Utility/app routes that must NOT show the marketing splash. */
