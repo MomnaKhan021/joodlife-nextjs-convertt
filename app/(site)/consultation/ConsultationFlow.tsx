@@ -275,10 +275,18 @@ export default function ConsultationFlow({
     setCurrentSlideId(prev);
   }
 
+  // "Review your answers" from a block/error screen. Rewind to the review
+  // slide: drop it and everything after it (including the block screen we're
+  // leaving) from history. This is the key fix for the safety-check bug —
+  // pushing the block onto history left a phantom entry, so a later Back
+  // re-showed the "Not suitable" error even after the answer was corrected.
+  // Works for every block, incl. s_block_bmi whose reviewSlideId (s7) is
+  // several steps back from where the block was triggered.
   function jumpTo(slideId: string) {
-    if (currentSlideId !== slideId) {
-      setHistory((prev) => [...prev, currentSlideId]);
-    }
+    setHistory((prev) => {
+      const i = prev.lastIndexOf(slideId);
+      return i >= 0 ? prev.slice(0, i) : prev;
+    });
     setCurrentSlideId(slideId);
   }
 
