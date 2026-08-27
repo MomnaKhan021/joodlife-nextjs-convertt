@@ -434,6 +434,7 @@ export async function GET(req: NextRequest) {
                  shipping_address, notes, status, total_amount, items_json, created_at
           FROM orders
           WHERE LOWER(COALESCE(status::text,'')) NOT IN ('cancelled', 'refunded')
+            ${hideCond ? `AND ${hideCond}` : ""}
             AND (
               ${alreadyDispatchedExpr}
               -- An order-only customer joins the queue only once they have
