@@ -13,6 +13,7 @@ import {
   TEXTAREA_MAX,
   fullNameError,
   isValidFullName,
+  isValidEmail,
 } from "@/lib/formValidation";
 
 import {
@@ -843,6 +844,11 @@ function ChoiceGrid({
 /* ---- Email ---- */
 
 function EmailSlide({ slide, answers, setAnswer }: SlideProps) {
+  const value = (answers[slide.field!] as string) ?? "";
+  const [touched, setTouched] = useState(false);
+  // Show the error once the user has typed something and either left the field
+  // or entered enough to be clearly malformed — never on an empty field.
+  const showError = value.trim().length > 0 && touched && !isValidEmail(value);
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
@@ -850,10 +856,21 @@ function EmailSlide({ slide, answers, setAnswer }: SlideProps) {
         type="email"
         autoComplete="email"
         placeholder="you@example.com"
-        value={(answers[slide.field!] as string) ?? ""}
+        value={value}
         onChange={(e) => setAnswer(slide.field!, e.target.value)}
-        className="h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 ring-[#142e2a]/15 transition-shadow focus:ring-2 focus:ring-[#142e2a]/40"
+        onBlur={() => setTouched(true)}
+        aria-invalid={showError}
+        className={`h-12 w-full rounded-lg bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none ring-1 transition-shadow focus:ring-2 ${
+          showError
+            ? "ring-red-400 focus:ring-red-400/50"
+            : "ring-[#142e2a]/15 focus:ring-[#142e2a]/40"
+        }`}
       />
+      {showError ? (
+        <p className="mt-2 font-ui text-[13px] text-red-700">
+          Please enter a valid email address (e.g. you@example.com).
+        </p>
+      ) : null}
     </SlideShell>
   );
 }
@@ -940,35 +957,124 @@ const DATE_INPUT_CLASS =
 
 /* ---- DOB (with age computation + age-gate validation) ---- */
 
+/** DD/MM/YYYY input mask: digits only, capped at 8, slashes auto-inserted. */
+function maskUkDate(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 8);
+  return [d.slice(0, 2), d.slice(2, 4), d.slice(4, 8)].filter(Boolean).join("/");
+}
+
+/** "DD/MM/YYYY" → "YYYY-MM-DD" if it's a real, non-future date; else "". */
+function ukDateToIso(masked: string): string {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(masked);
+  if (!m) return "";
+  const [, dd, mm, yyyy] = m;
+  const iso = `${yyyy}-${mm}-${dd}`;
+  const dt = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(dt.getTime())) return "";
+  // Reject rollovers (e.g. 31/02 → 03 March) and out-of-range years/futures.
+  if (
+    dt.getFullYear() !== Number(yyyy) ||
+    dt.getMonth() + 1 !== Number(mm) ||
+    dt.getDate() !== Number(dd)
+  ) return "";
+  if (Number(yyyy) < 1900 || dt > new Date()) return "";
+  return iso;
+}
+
+/** "YYYY-MM-DD" → "DD/MM/YYYY" (to pre-fill the text field from a saved value). */
+function isoToUkDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+}
+
 function DobSlide({ slide, answers, setAnswer }: SlideProps) {
-  const value = (answers[slide.field!] as string) ?? "";
-  const age = calcAge(value);
+  const iso = (answers[slide.field!] as string) ?? "";
+  // Local text so the user can freely TYPE the date (DD/MM/YYYY); the calendar
+  // button still opens the native picker for those who prefer it.
+  const [text, setText] = useState(() => isoToUkDate(iso));
+  const pickerRef = useRef<HTMLInputElement>(null);
+
+  const age = iso ? calcAge(iso) : null;
   let warning: string | null = null;
-  if (value && age !== null) {
+  if (iso && age !== null) {
     if (age < 18) warning = "You must be 18 or older to use this service.";
     else if (age >= 75)
       warning = "This service is available for people aged 18 to 74.";
   }
+  // A fully-typed 10-char value that doesn't parse → prompt the format.
+  const formatError = !warning && text.length === 10 && !ukDateToIso(text);
+
+  function commit(nextIso: string) {
+    setAnswer(slide.field!, nextIso);
+    setAnswer("_age", nextIso ? calcAge(nextIso) : null);
+  }
+
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
       <div className="relative w-full max-w-[320px]">
         <input
-          type="date"
+          type="text"
+          inputMode="numeric"
           autoComplete="bday"
-          max={new Date().toISOString().split("T")[0]}
-          value={value}
+          placeholder="DD/MM/YYYY"
+          maxLength={10}
+          value={text}
           onChange={(e) => {
-            const v = e.target.value;
-            setAnswer(slide.field!, v);
-            setAnswer("_age", calcAge(v));
+            const masked = maskUkDate(e.target.value);
+            setText(masked);
+            commit(ukDateToIso(masked));
           }}
           className={DATE_INPUT_CLASS}
         />
-        <DateFieldIcon />
+        {/* Visually-hidden native picker, opened by the calendar button — keeps
+            click-to-pick alongside free typing. Two-way with the text field. */}
+        <input
+          ref={pickerRef}
+          type="date"
+          max={new Date().toISOString().split("T")[0]}
+          value={iso}
+          onChange={(e) => {
+            const v = e.target.value;
+            setText(isoToUkDate(v));
+            commit(v);
+          }}
+          tabIndex={-1}
+          aria-hidden
+          className="sr-only"
+        />
+        <button
+          type="button"
+          aria-label="Open calendar"
+          onClick={() => {
+            const el = pickerRef.current;
+            try {
+              el?.showPicker?.();
+            } catch {
+              el?.focus();
+            }
+          }}
+          className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-[#142e2a]/45 transition-colors hover:bg-[#142e2a]/5 hover:text-[#142e2a]"
+        >
+          <svg
+            aria-hidden
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-5 w-5"
+          >
+            <rect x="3" y="4.5" width="18" height="16" rx="2" />
+            <path d="M3 9.5h18M8 3v3M16 3v3" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
       {warning ? (
         <p className="mt-3 font-ui text-[13px] text-red-700">{warning}</p>
+      ) : formatError ? (
+        <p className="mt-3 font-ui text-[13px] text-red-700">
+          Please enter a valid date as DD/MM/YYYY.
+        </p>
       ) : null}
     </SlideShell>
   );
@@ -1659,7 +1765,9 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
   }
   if (slide.type === "email") {
     const v = (answers[slide.field!] as string | undefined) ?? "";
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    // Strict check (rejects consecutive/leading/trailing dots and invalid
+    // characters) so an undeliverable address can't unlock Continue.
+    return isValidEmail(v);
   }
   if (slide.type === "phone") {
     return isUkMobile(answers[slide.field!] as string | undefined);
