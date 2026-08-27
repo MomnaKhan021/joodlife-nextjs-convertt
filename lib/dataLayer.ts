@@ -23,6 +23,66 @@ export type DlItem = {
   quantity?: number;
 };
 
+/**
+ * Customer details sent with `purchase` as `user_data`, so the GTM container
+ * can feed Meta Advanced Matching (raising Event Match Quality) and Google
+ * Enhanced Conversions. Shape follows Google's enhanced-conversions spec.
+ *
+ * Values are normalised (trimmed, lower-cased, phone in E.164) because both
+ * platforms hash them and only match on an exact, canonical form. Hashing
+ * itself is done in the tag manager, which is the documented approach.
+ */
+export type DlUserData = {
+  email_address?: string;
+  phone_number?: string;
+  address?: {
+    first_name?: string;
+    last_name?: string;
+    city?: string;
+    postal_code?: string;
+    country?: string;
+  };
+};
+
+/** Normalise the parts Meta/Google match on. Empty values are dropped. */
+export function toDlUserData(input: {
+  email?: string | null;
+  phone?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  country?: string | null;
+}): DlUserData {
+  const clean = (v: string | null | undefined) => (v ?? "").trim().toLowerCase();
+  // UK numbers to E.164: 07700900000 -> +447700900000
+  const phoneE164 = (() => {
+    let n = (input.phone ?? "").replace(/[^\d+]/g, "");
+    if (!n) return "";
+    if (n.startsWith("+")) return n;
+    if (n.startsWith("0044")) n = n.slice(4);
+    else if (n.startsWith("44")) n = n.slice(2);
+    else if (n.startsWith("0")) n = n.slice(1);
+    else return "";
+    return n ? `+44${n}` : "";
+  })();
+
+  const address: NonNullable<DlUserData["address"]> = {};
+  if (clean(input.firstName)) address.first_name = clean(input.firstName);
+  if (clean(input.lastName)) address.last_name = clean(input.lastName);
+  if (clean(input.city)) address.city = clean(input.city);
+  if (clean(input.postcode)) {
+    address.postal_code = clean(input.postcode).replace(/\s+/g, "");
+  }
+  address.country = clean(input.country) || "gb";
+
+  const out: DlUserData = {};
+  if (clean(input.email)) out.email_address = clean(input.email);
+  if (phoneE164) out.phone_number = phoneE164;
+  if (Object.keys(address).length > 0) out.address = address;
+  return out;
+}
+
 declare global {
   interface Window {
     dataLayer?: Record<string, unknown>[];
@@ -65,11 +125,16 @@ function sumValue(items: DlItem[]): number {
 
 /** Push a GA4 ecommerce event. Clears the previous `ecommerce` object first
  *  (Google's recommended pattern) so values don't bleed between events. */
-function pushEcommerce(event: string, ecommerce: Record<string, unknown>): void {
+function pushEcommerce(
+  event: string,
+  ecommerce: Record<string, unknown>,
+  /** Extra top-level keys (e.g. user_data on purchase). */
+  extra?: Record<string, unknown>,
+): void {
   const dl = layer();
   if (!dl) return;
   dl.push({ ecommerce: null });
-  dl.push({ event, ecommerce });
+  dl.push({ event, ecommerce, ...(extra ?? {}) });
 }
 
 export function dlViewItem(item: DlItem): void {
@@ -88,11 +153,23 @@ export function dlBeginCheckout(items: DlItem[]): void {
   pushEcommerce("begin_checkout", { currency: CURRENCY, value: sumValue(items), items });
 }
 
-export function dlPurchase(opts: { transactionId: string; items: DlItem[]; value?: number }): void {
-  pushEcommerce("purchase", {
-    transaction_id: opts.transactionId,
-    currency: CURRENCY,
-    value: opts.value ?? sumValue(opts.items),
-    items: opts.items,
-  });
+export function dlPurchase(opts: {
+  transactionId: string;
+  items: DlItem[];
+  value?: number;
+  /** Customer details for Meta Advanced Matching / Google Enhanced Conversions. */
+  userData?: DlUserData;
+}): void {
+  pushEcommerce(
+    "purchase",
+    {
+      transaction_id: opts.transactionId,
+      currency: CURRENCY,
+      value: opts.value ?? sumValue(opts.items),
+      items: opts.items,
+    },
+    opts.userData && Object.keys(opts.userData).length > 0
+      ? { user_data: opts.userData }
+      : undefined,
+  );
 }

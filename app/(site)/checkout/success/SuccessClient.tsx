@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { fbPurchaseOnce } from "@/lib/metaPixel";
-import { dlPurchase, toDlItem } from "@/lib/dataLayer";
+import { dlPurchase, toDlItem, type DlUserData } from "@/lib/dataLayer";
 
 type OrderItem = {
   productId: number;
@@ -63,10 +63,25 @@ export default function SuccessClient({ orderNumber }: { orderNumber: string }) 
             fbPurchaseOnce(o.orderNumber, Number(o.totalAmount) || 0, "GBP", {
               content_type: "product",
             });
+            // Customer details stashed by the checkout for Meta Advanced
+            // Matching / Google Enhanced Conversions. Read once, then cleared
+            // so the details don't linger in the browser.
+            let userData: DlUserData | undefined;
+            try {
+              const key = `jood:purchase-user:${o.orderNumber}`;
+              const raw = window.sessionStorage.getItem(key);
+              if (raw) {
+                userData = JSON.parse(raw) as DlUserData;
+                window.sessionStorage.removeItem(key);
+              }
+            } catch {
+              /* no user_data — the purchase event still fires */
+            }
             // GA4 purchase — the conversion event for GTM/GA4 ecommerce.
             dlPurchase({
               transactionId: o.orderNumber,
               value: Number(o.totalAmount) || 0,
+              userData,
               items: (o.items ?? []).map((it) =>
                 toDlItem({
                   slug: it.slug,

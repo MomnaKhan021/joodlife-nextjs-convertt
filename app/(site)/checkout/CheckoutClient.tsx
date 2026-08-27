@@ -34,7 +34,7 @@ import {
   isValidEmail,
 } from "@/lib/formValidation";
 import { fbPurchaseOnce } from "@/lib/metaPixel";
-import { dlBeginCheckout, toDlItem } from "@/lib/dataLayer";
+import { dlBeginCheckout, toDlItem, toDlUserData } from "@/lib/dataLayer";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 import UkAddressField from "@/components/checkout/UkAddressField";
@@ -408,6 +408,28 @@ function CheckoutForm() {
   // pixel is already loaded — is more reliable than only firing on the
   // success page (which depends on an async order fetch).
   function finalizeAndRedirect(orderNumber: string, amount: number) {
+    // Hand the customer details to the thank-you page for the `purchase`
+    // event's user_data (Meta Advanced Matching / Google Enhanced
+    // Conversions). Passed via sessionStorage rather than widening the public
+    // order-summary API, which is keyed only by order number — phone and
+    // address must not be readable by guessing an order number.
+    try {
+      const ud = toDlUserData({
+        email,
+        phone,
+        firstName,
+        lastName,
+        city: deliverElsewhere ? dCity : city,
+        postcode: deliverElsewhere ? dPostcode : postcode,
+        country,
+      });
+      window.sessionStorage.setItem(
+        `jood:purchase-user:${orderNumber}`,
+        JSON.stringify(ud),
+      );
+    } catch {
+      /* non-fatal — the purchase event still fires without user_data */
+    }
     fbPurchaseOnce(orderNumber, amount, "GBP", { content_type: "product" });
     setRedirecting(true);
     clear();

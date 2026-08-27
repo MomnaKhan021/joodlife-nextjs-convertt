@@ -9,10 +9,13 @@ import Script from "next/script";
  * - The dataLayer is ALWAYS initialised, so the ecommerce events fired from
  *   lib/dataLayer.ts (view_item, add_to_cart, begin_checkout, purchase) queue
  *   up and are inspectable in the console even before a container exists.
- * - Set NEXT_PUBLIC_GTM_ID (e.g. "GTM-XXXXXXX") to load the marketing team's
- *   GTM container — it then reads those events live with zero further changes.
+ * - The marketing team's GTM container is loaded on every page. The ID is a
+ *   public, client-side identifier (it appears in the page source either way),
+ *   so it ships as the default; NEXT_PUBLIC_GTM_ID overrides it if the
+ *   container is ever swapped.
  */
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ?? "";
+const DEFAULT_GTM_ID = "GTM-5PDWS6QH";
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || DEFAULT_GTM_ID;
 
 export default function GtmDataLayer() {
   return (
