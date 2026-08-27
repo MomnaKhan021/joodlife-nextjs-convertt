@@ -69,12 +69,21 @@ export function namePartError(value: string): string | null {
 export const DPD_FIELD_MAX = 35;
 
 /**
+ * Max length for the street/address line. Wider than DPD_FIELD_MAX because
+ * real UK street lines (flat + long street names) regularly run past 35
+ * characters and customers were being blocked at checkout.
+ * NOTE: DPD's own address fields are ~35 chars, so a line longer than that may
+ * need trimming/splitting when the dispatch label is generated.
+ */
+export const ADDRESS_LINE_MAX = 50;
+
+/**
  * A street line the courier can actually deliver to. Rejects junk like "cds"
  * while still allowing named properties without a number ("Rose Cottage").
  */
 export function isDeliverableStreet(value: string): boolean {
   const t = value.trim();
-  if (t.length < 5 || t.length > DPD_FIELD_MAX) return false;
+  if (t.length < 5 || t.length > ADDRESS_LINE_MAX) return false;
   if (!/\p{L}{3,}/u.test(t)) return false; // needs at least one real word
   const words = t.split(/\s+/).filter(Boolean);
   if (/\d/.test(t)) return words.length >= 2; // "12 High Street"
@@ -85,8 +94,8 @@ export function isDeliverableStreet(value: string): boolean {
 export function streetError(value: string): string | null {
   const t = value.trim();
   if (!t) return null;
-  if (t.length > DPD_FIELD_MAX)
-    return `Address must be ${DPD_FIELD_MAX} characters or fewer.`;
+  if (t.length > ADDRESS_LINE_MAX)
+    return `Address must be ${ADDRESS_LINE_MAX} characters or fewer.`;
   if (!isDeliverableStreet(t))
     return "Enter your full street address, including the house number or name (e.g. 12 High Street).";
   return null;

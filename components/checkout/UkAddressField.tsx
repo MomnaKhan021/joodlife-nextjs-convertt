@@ -16,12 +16,14 @@ export default function UkAddressField({
   setValue,
   onPick,
   inputClassName,
+  maxLength,
 }: {
   value: string;
   setValue: (v: string) => void;
   /** Called with the resolved city + postcode when a suggestion is chosen. */
   onPick: (parts: { city: string; postcode: string }) => void;
   inputClassName?: string;
+  maxLength?: number;
 }) {
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -91,6 +93,7 @@ export default function UkAddressField({
           if (suggestions.length > 0) setOpen(true);
         }}
         autoComplete="off"
+        maxLength={maxLength}
         placeholder="Start typing your address…"
         className={inputClassName}
       />

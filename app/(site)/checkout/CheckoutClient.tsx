@@ -25,6 +25,7 @@ import {
   TEXT_MAX,
   ADDRESS_MAX,
   DPD_FIELD_MAX,
+  ADDRESS_LINE_MAX,
   isValidNamePart,
   namePartError,
   isDeliverableStreet,
@@ -1068,6 +1069,7 @@ function CheckoutForm() {
                     setPostcodeValid(true); // OSM only returns real UK addresses
                   }
                 }}
+                maxLength={ADDRESS_LINE_MAX}
                 inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
               />
               </div>
@@ -1128,7 +1130,7 @@ function CheckoutForm() {
                     if (c) setCity(c);
                   }}
                   onValidityChange={setPostcodeValid}
-                  inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+                inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
                 />
               </Field>
             </div>
@@ -1192,7 +1194,8 @@ function CheckoutForm() {
                         setDPostcodeValid(true);
                       }
                     }}
-                    inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+                    maxLength={ADDRESS_LINE_MAX}
+                inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
                   />
                   {deliverElsewhere && !streetError(dAddress) ? (
                     addrCheck.status === "checking" ? (
@@ -1236,7 +1239,7 @@ function CheckoutForm() {
                         if (c) setDCity(c);
                       }}
                       onValidityChange={setDPostcodeValid}
-                      inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
+                inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
                     />
                   </Field>
                 </div>
