@@ -572,8 +572,6 @@ export default function DispatchQueuePage() {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [dateFilter, setDateFilter] = useState(""); // yyyy-mm-dd, "" = any date
-  // Supply-type filter: all, reorders only, or first-time supplies only.
-  const [supply, setSupply] = useState<"all" | "reorder" | "new">("all");
   const [page, setPage] = useState(1);
   const [batches, setBatches] = useState<InventoryBatch[]>([]);
 
@@ -632,13 +630,6 @@ export default function DispatchQueuePage() {
           (o.customerEmail ?? "").toLowerCase().includes(term),
       );
     }
-    if (supply !== "all") {
-      list = list.filter((o) =>
-        supply === "reorder"
-          ? supplyTypeOf(o.orderNumber) === "Reorder"
-          : supplyTypeOf(o.orderNumber) !== "Reorder",
-      );
-    }
     if (dateFilter) {
       // Match the approval/created calendar date (local time).
       list = list.filter((o) => {
@@ -650,7 +641,7 @@ export default function DispatchQueuePage() {
       });
     }
     return list;
-  }, [orders, q, dateFilter, supply]);
+  }, [orders, q, dateFilter]);
 
   return (
     <div className="mx-auto w-full max-w-[1000px] px-5 py-6 md:px-8 md:py-8">
@@ -690,26 +681,6 @@ export default function DispatchQueuePage() {
             Clear date
           </button>
         )}
-        <div className="flex items-center gap-1 rounded-[8px] border border-[#d0d3d6] bg-white p-0.5">
-          {([
-            ["all", "All"],
-            ["reorder", "Reorder"],
-            ["new", "New Supply"],
-          ] as const).map(([val, label]) => (
-            <button
-              key={val}
-              type="button"
-              onClick={() => { setSupply(val); setPage(1); }}
-              className={`h-8 rounded-[6px] px-2.5 text-[13px] font-medium ${
-                supply === val
-                  ? "bg-[#142e2a] text-white"
-                  : "text-[#374151] hover:bg-[#f2f4f3]"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
         <button
           type="button"
           onClick={() => load()}
