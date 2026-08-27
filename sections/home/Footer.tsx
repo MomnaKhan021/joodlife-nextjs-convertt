@@ -107,7 +107,7 @@ function AccordionColumn({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between py-4 lg:cursor-default lg:py-0"
+        className="flex w-full cursor-pointer items-center justify-between py-4 lg:!cursor-default lg:py-0"
       >
         <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
           {title}
@@ -166,7 +166,7 @@ function SocialColumn() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between py-4 lg:cursor-default lg:py-0"
+        className="flex w-full cursor-pointer items-center justify-between py-4 lg:!cursor-default lg:py-0"
       >
         <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
           Follow
