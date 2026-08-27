@@ -159,19 +159,12 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
         .blog-swiper {
           padding-bottom: 2px;
         }
+        /* Every card renders at full opacity and full scale — no dimmed /
+           faded look on slides that aren't the active one (previously the
+           last visible card looked washed-out / shadowed). */
         .blog-swiper .swiper-slide {
-          opacity: 0.55;
-          transform: scale(0.97);
-          transition:
-            opacity 500ms ease,
-            transform 500ms ease;
-        }
-        .blog-swiper .swiper-slide-active,
-        .blog-swiper .swiper-slide-next,
-        .blog-swiper .swiper-slide-prev,
-        .blog-swiper .swiper-slide-visible {
           opacity: 1;
-          transform: scale(1);
+          transform: none;
         }
       `}</style>
     </div>
