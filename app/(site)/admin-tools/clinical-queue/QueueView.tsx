@@ -45,6 +45,9 @@ export type Consultation = {
   reviewReason: string | null;
   reviewedBy: string | null;
   reviewedAt: string | null;
+  /** Total of the patient's most recent paid order (£), for at-a-glance
+   *  "what they bought + price". Null when there's no paid order. */
+  orderTotal?: number | null;
   answers: Record<string, unknown>;
 };
 
@@ -759,9 +762,13 @@ export function ConsultationCard({
                 </span>
               )}
               <StatusBadge status={c.status} decision={c.reviewDecision} />
-              {c.isReorder && (
-                <span className="rounded-full bg-[#e7efe0] px-2.5 py-0.5 text-[11px] font-semibold text-[#142e2a]">
+              {c.isReorder ? (
+                <span className="rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[11px] font-semibold text-[#5c4813]">
                   Reorder
+                </span>
+              ) : (
+                <span className="rounded-full bg-[#e3e3e3] px-2.5 py-0.5 text-[11px] font-semibold text-[#303030]">
+                  New Supply
                 </span>
               )}
               {c.hasRedFlags && (
@@ -786,6 +793,17 @@ export function ConsultationCard({
               Submitted: {fmt(c.createdAt)}
               {c.productSlug ? ` · ${c.productSlug}` : ""}
             </p>
+            {/* Medicine ordered + price paid — visible at a glance for review. */}
+            {(medicationAndDose(c) !== "—" || typeof c.orderTotal === "number") && (
+              <p className="mt-1 text-[13px] font-semibold text-[#142e2a]">
+                {medicationAndDose(c)}
+                {typeof c.orderTotal === "number" && c.orderTotal > 0 ? (
+                  <span className="ml-2 text-[#4a5c46]">
+                    {c.orderTotal.toLocaleString("en-GB", { style: "currency", currency: "GBP" })}
+                  </span>
+                ) : null}
+              </p>
+            )}
           </div>
           {/* Top-right actions: call time + Join call / reminder + Approve + Reject */}
           <div className="flex flex-col items-end gap-1.5">

@@ -461,6 +461,7 @@ export async function GET(req: NextRequest) {
         reviewReason: answers._review_reason ?? null,
         reviewedBy: answers._reviewed_by ?? null,
         reviewedAt: answers._reviewed_at ?? null,
+        orderTotal: null as number | null,
         answers,
       };
     });
@@ -493,18 +494,24 @@ export async function GET(req: NextRequest) {
           ),
           db.execute(
             sql.raw(
-              `SELECT DISTINCT ON (LOWER(customer_email)) LOWER(customer_email) AS email, customer_name
+              `SELECT DISTINCT ON (LOWER(customer_email)) LOWER(customer_email) AS email,
+                      customer_name, total_amount
                FROM orders
                WHERE LOWER(customer_email) IN (${inList})
-                 AND customer_name IS NOT NULL AND TRIM(customer_name) <> ''
-               ORDER BY LOWER(customer_email), created_at DESC`,
+                 AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
+               ORDER BY LOWER(customer_email), created_at DESC NULLS LAST, id DESC`,
             ),
           ),
         ]);
         const nameByEmail: Record<string, string> = {};
+        const totalByEmail: Record<string, number> = {};
         for (const r of asRows(orderRes)) {
           const e = String(r.email ?? "");
-          if (e) nameByEmail[e] = String(r.customer_name ?? "");
+          if (!e) continue;
+          const nm = String(r.customer_name ?? "").trim();
+          if (nm) nameByEmail[e] = nm;
+          const total = Number(r.total_amount ?? 0);
+          if (Number.isFinite(total)) totalByEmail[e] = total;
         }
         // Account name wins over the order name.
         for (const r of asRows(userRes)) {
@@ -512,13 +519,16 @@ export async function GET(req: NextRequest) {
           if (e) nameByEmail[e] = String(r.name ?? "");
         }
         for (const c of consultations) {
+          const key = String(c.email ?? "").toLowerCase();
           if (!c.fullName) {
-            const nm = nameByEmail[String(c.email ?? "").toLowerCase()];
+            const nm = nameByEmail[key];
             if (nm) c.fullName = nm;
           }
+          const total = totalByEmail[key];
+          if (typeof total === "number") c.orderTotal = total;
         }
       } catch {
-        /* name lookup is best-effort — fall back to "Patient #id" */
+        /* name / total lookup is best-effort — fall back to "Patient #id" */
       }
     }
 

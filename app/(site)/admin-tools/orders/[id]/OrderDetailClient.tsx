@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { refreshAdminBadges } from "../../AdminShell";
 
 import { printLabels, printHtmlDocument, dispensingDate, composeMedicine, type LabelData } from "./dispensingLabel";
+import { orderNumberDisplay, supplyTypeOf, isRedFlagOrder } from "@/lib/orderTag";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -558,8 +559,22 @@ export default function OrderDetailClient({ id }: { id: string }) {
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-[23px] font-bold leading-none tracking-[-0.01em] text-[#0c2421]">
-                  {order.order_number}
+                  {orderNumberDisplay(order.order_number, order.id)}
                 </h1>
+                {supplyTypeOf(order.order_number) === "Reorder" ? (
+                  <span className="inline-flex items-center rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[12px] font-semibold text-[#5c4813]">
+                    Reorder
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full bg-[#e3e3e3] px-2.5 py-0.5 text-[12px] font-semibold text-[#303030]">
+                    New Supply
+                  </span>
+                )}
+                {isRedFlagOrder(order.order_number) ? (
+                  <span className="inline-flex items-center rounded-full bg-[#fcd7d5] px-2.5 py-0.5 text-[12px] font-semibold text-[#8e1f0b]">
+                    Red flag
+                  </span>
+                ) : null}
                 <PaidBadge status={order.payment_status} />
                 <FulfillBadge fulfilled={fulfilled} />
               </div>

@@ -11,6 +11,7 @@ import {
   dispensingDate,
   type LabelData,
 } from "../orders/[id]/dispensingLabel";
+import { orderNumberDisplay, supplyTypeOf, isRedFlagOrder } from "@/lib/orderTag";
 
 /**
  * Multi-collection data browser. Tabs across the top, mobile-first
@@ -228,37 +229,6 @@ function fulfillmentOf(row: Row): "Dispatched" | "To Dispatch" | "Clinical Check
   return row.clinically_approved ? "To Dispatch" : "Clinical Check";
 }
 
-/** Some order numbers arrive from the HubSpot sync as deal names with the
- *  supply type (and a red-flag marker) baked in, e.g.
- *  "Reorder 🚩 RED FLAG — #2948". Strip that clutter down to just the
- *  identifier (JLxxxx or #NNNN); the supply type is shown as a tag instead. */
-function orderNumberDisplay(raw: unknown, id: unknown): string {
-  const s = String(raw ?? "").trim();
-  if (!s) return `#${id ?? ""}`;
-  const jl = s.match(/JL[-\s]?\d+/i);
-  if (jl) return jl[0].replace(/\s+/g, "").toUpperCase();
-  const hash = s.match(/#\s*([A-Za-z0-9-]+)/);
-  if (hash) return `#${hash[1]}`;
-  const cleaned = s
-    .replace(/red\s*flag/gi, "")
-    .replace(/reorder/gi, "")
-    .replace(/🚩/g, "")
-    .replace(/[—–-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return cleaned || s;
-}
-
-/** Supply type inferred from the order-number text (HubSpot prefixes reorders). */
-function supplyTypeOf(raw: unknown): "Reorder" | "New Supply" {
-  return /reorder/i.test(String(raw ?? "")) ? "Reorder" : "New Supply";
-}
-
-/** A reorder the HubSpot sync flagged for clinical attention. */
-function isRedFlagOrder(raw: unknown): boolean {
-  const s = String(raw ?? "");
-  return /red\s*flag/i.test(s) || s.includes("🚩");
-}
 
 /** Tiny inline sparkline for a KPI card (Shopify-style). */
 function Sparkline({ data }: { data: number[] }) {

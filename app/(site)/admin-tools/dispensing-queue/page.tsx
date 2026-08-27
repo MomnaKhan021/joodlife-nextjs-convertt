@@ -28,6 +28,7 @@ import {
 } from "../orders/[id]/dispensingLabel";
 import { refreshAdminBadges } from "../AdminShell";
 import Pagination from "../Pagination";
+import { orderNumberDisplay, supplyTypeOf, isRedFlagOrder } from "@/lib/orderTag";
 
 type DispatchItem = { title: string | null; dose: string | null; quantity: number };
 type InventoryBatch = {
@@ -342,6 +343,21 @@ function OrderCard({
             <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
               Awaiting dispatch
             </span>
+            {/* Supply-type tag — Reorder vs New Supply, as a pill (not inline text). */}
+            {supplyTypeOf(o.orderNumber) === "Reorder" ? (
+              <span className="rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[12px] font-semibold text-[#5c4813]">
+                Reorder
+              </span>
+            ) : (
+              <span className="rounded-full bg-[#e3e3e3] px-2.5 py-0.5 text-[12px] font-semibold text-[#303030]">
+                New Supply
+              </span>
+            )}
+            {isRedFlagOrder(o.orderNumber) && (
+              <span className="rounded-full bg-[#fcd7d5] px-2.5 py-0.5 text-[12px] font-semibold text-[#8e1f0b]">
+                Red flag
+              </span>
+            )}
             {!o.hasOrder && (
               <span
                 title="Approved, but no paid order yet — dispensing label only; DPD needs an order with a delivery address."
@@ -358,9 +374,28 @@ function OrderCard({
           <p className="text-[11px] text-[#9ca3af]">
             Approved: {fmtDateTime(o.createdAt)}
             {o.hasOrder
-              ? `${o.orderNumber ? ` · ${o.orderNumber}` : ""} · ${gbp(o.total)}`
+              ? `${o.orderNumber ? ` · ${orderNumberDisplay(o.orderNumber)}` : ""} · ${gbp(o.total)}`
               : " · No order on file"}
           </p>
+          {/* Medicine + price at a glance — what the patient bought. */}
+          {(() => {
+            const list = itemsForCard(o);
+            const med = list.length
+              ? list
+                  .map(
+                    (it) =>
+                      `${it.title ?? "Medication"}${it.dose ? ` ${it.dose}` : ""}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`,
+                  )
+                  .join(", ")
+              : null;
+            if (!med) return null;
+            return (
+              <p className="mt-1.5 text-[13px] font-semibold text-[#142e2a]">
+                {med}
+                {o.hasOrder ? <span className="ml-2 text-[#4a5c46]">{gbp(o.total)}</span> : null}
+              </p>
+            );
+          })()}
         </div>
 
         {/* Top-right actions */}
