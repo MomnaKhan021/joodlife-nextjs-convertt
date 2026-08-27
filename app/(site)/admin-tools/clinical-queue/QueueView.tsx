@@ -793,20 +793,25 @@ export function ConsultationCard({
               Submitted: {fmt(c.createdAt)}
               {c.productSlug ? ` · ${c.productSlug}` : ""}
             </p>
-            {/* Medicine ordered + price paid — visible at a glance for review. */}
-            {(medicationAndDose(c) !== "—" || typeof c.orderTotal === "number") && (
-              <p className="mt-1 text-[13px] font-semibold text-[#142e2a]">
-                {medicationAndDose(c)}
-                {typeof c.orderTotal === "number" && c.orderTotal > 0 ? (
-                  <span className="ml-2 text-[#4a5c46]">
-                    {c.orderTotal.toLocaleString("en-GB", { style: "currency", currency: "GBP" })}
-                  </span>
-                ) : null}
-              </p>
-            )}
           </div>
           {/* Top-right actions: call time + Join call / reminder + Approve + Reject */}
           <div className="flex flex-col items-end gap-1.5">
+            {/* Product + price — prominent, top-right, above the action buttons:
+                what the patient bought and what they paid. */}
+            {(medicationAndDose(c) !== "—" || typeof c.orderTotal === "number") && (
+              <div className="mb-0.5 text-right">
+                {medicationAndDose(c) !== "—" ? (
+                  <div className="text-[15px] font-bold leading-tight text-[#111827] md:text-[16px]">
+                    {medicationAndDose(c)}
+                  </div>
+                ) : null}
+                {typeof c.orderTotal === "number" && c.orderTotal > 0 ? (
+                  <div className="text-[20px] font-extrabold leading-tight text-[#142e2a]">
+                    {c.orderTotal.toLocaleString("en-GB", { style: "currency", currency: "GBP" })}
+                  </div>
+                ) : null}
+              </div>
+            )}
             <MeetingBadge
               meetingTime={meeting}
               videoPref={!!c.answers.video_consultation_preference}

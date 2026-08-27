@@ -374,10 +374,15 @@ function OrderCard({
           <p className="text-[11px] text-[#9ca3af]">
             Approved: {fmtDateTime(o.createdAt)}
             {o.hasOrder
-              ? `${o.orderNumber ? ` · ${orderNumberDisplay(o.orderNumber)}` : ""} · ${gbp(o.total)}`
+              ? `${o.orderNumber ? ` · ${orderNumberDisplay(o.orderNumber)}` : ""}`
               : " · No order on file"}
           </p>
-          {/* Medicine + price at a glance — what the patient bought. */}
+        </div>
+
+        {/* Top-right actions */}
+        <div className="flex flex-col items-end gap-1.5">
+          {/* Product + price — prominent, top-right, so it's the first thing
+              you see: what the patient bought and what they paid. */}
           {(() => {
             const list = itemsForCard(o);
             const med = list.length
@@ -390,16 +395,14 @@ function OrderCard({
               : null;
             if (!med) return null;
             return (
-              <p className="mt-1.5 text-[13px] font-semibold text-[#142e2a]">
-                {med}
-                {o.hasOrder ? <span className="ml-2 text-[#4a5c46]">{gbp(o.total)}</span> : null}
-              </p>
+              <div className="mb-1 text-right">
+                <div className="text-[15px] font-bold leading-tight text-[#111827] md:text-[16px]">{med}</div>
+                {o.hasOrder ? (
+                  <div className="text-[20px] font-extrabold leading-tight text-[#142e2a]">{gbp(o.total)}</div>
+                ) : null}
+              </div>
             );
           })()}
-        </div>
-
-        {/* Top-right actions */}
-        <div className="flex flex-col items-end gap-1.5">
           <div className="flex flex-wrap items-center justify-end gap-2">
             {/* Which stock batch is being dispensed — prints on the label. */}
             <select
