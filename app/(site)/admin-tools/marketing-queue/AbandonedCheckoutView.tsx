@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { refreshAdminBadges } from "../AdminShell";
 
@@ -56,6 +56,7 @@ export default function AbandonedCheckoutView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [q, setQ] = useState("");
 
   const keyOf = (c: Cart) => `${c.kind}-${c.id}`;
 
@@ -119,6 +120,26 @@ export default function AbandonedCheckoutView() {
     }
   };
 
+  // Search by name, email or phone (digits-only match too, so "07700900000"
+  // finds "07700 900 000").
+  const visible = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return carts;
+    const digits = term.replace(/\D/g, "");
+    return carts.filter((c) => {
+      const name = (c.customer_name ?? "").toLowerCase();
+      const email = (c.email ?? "").toLowerCase();
+      const phone = (c.phone ?? "").toLowerCase();
+      const phoneDigits = phone.replace(/\D/g, "");
+      return (
+        name.includes(term) ||
+        email.includes(term) ||
+        phone.includes(term) ||
+        (digits.length >= 4 && phoneDigits.includes(digits))
+      );
+    });
+  }, [carts, q]);
+
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 md:px-6">
       <div className="mb-5">
@@ -131,6 +152,31 @@ export default function AbandonedCheckoutView() {
         </p>
       </div>
 
+      {!loading && !error && carts.length > 0 ? (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by name, email or phone…"
+            className="h-9 w-full max-w-[360px] rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] outline-none focus:border-[#142e2a]"
+          />
+          {q.trim() ? (
+            <button
+              type="button"
+              onClick={() => setQ("")}
+              className="h-9 rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] font-medium hover:bg-[#f7f7f7]"
+            >
+              Clear
+            </button>
+          ) : null}
+          <span className="text-[13px] text-[#6b7280]">
+            {q.trim()
+              ? `${visible.length} of ${carts.length}`
+              : `${carts.length} abandoned checkout${carts.length === 1 ? "" : "s"}`}
+          </span>
+        </div>
+      ) : null}
+
       {loading ? (
         <p className="text-[13px] text-[#6b7280]">Loading…</p>
       ) : error ? (
@@ -142,9 +188,18 @@ export default function AbandonedCheckoutView() {
             Carts left unfinished will appear here for follow-up.
           </p>
         </div>
+      ) : visible.length === 0 ? (
+        <div className="rounded-xl border border-[#e5e7eb] bg-white p-8 text-center">
+          <p className="text-[14px] font-semibold text-[#1a1a1a]">
+            No matches for &ldquo;{q.trim()}&rdquo;.
+          </p>
+          <p className="mt-1 text-[13px] text-[#6b7280]">
+            Try a different name, email or phone number.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {carts.map((c) => {
+          {visible.map((c) => {
             const k = keyOf(c);
             const isConsult = c.kind === "consultation";
             const desc = isConsult
