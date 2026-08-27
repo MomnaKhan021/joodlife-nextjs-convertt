@@ -522,6 +522,71 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // GPHC compliance: reorder submissions don't re-collect the patient's
+    // stable identity data (date of birth, height), so the clinical summary
+    // would show "—" for age / height / DOB. Backfill those — and only those —
+    // from the patient's most recent NEW-supply consultation. Weight is
+    // deliberately NOT pulled (it changes); existing values are never
+    // overwritten. A `_identity_from_prior` flag marks records we enriched.
+    const isEmpty = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
+    const reorderEmails = Array.from(
+      new Set(
+        consultations
+          .filter(
+            (c) =>
+              c.isReorder &&
+              (isEmpty(c.answers.date_of_birth_consultation) || isEmpty(c.answers.height_cm)),
+          )
+          .map((c) => String(c.email ?? "").trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    );
+    if (reorderEmails.length > 0) {
+      const inList = reorderEmails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
+      try {
+        const priorRes = await db.execute(
+          sql.raw(
+            `SELECT DISTINCT ON (LOWER(email)) LOWER(email) AS email, answers
+             FROM "consultations"
+             WHERE LOWER(email) IN (${inList})
+               AND COALESCE(product_slug, '') <> 'reorder'
+               AND TRIM(COALESCE(answers ->> 'date_of_birth_consultation', '')) <> ''
+             ORDER BY LOWER(email), created_at DESC NULLS LAST, id DESC`,
+          ),
+        );
+        const priorByEmail: Record<string, Record<string, unknown>> = {};
+        for (const r of asRows(priorRes)) {
+          const e = String(r.email ?? "");
+          if (!e) continue;
+          let prior: Record<string, unknown> = {};
+          try {
+            prior =
+              typeof r.answers === "object" && r.answers !== null
+                ? (r.answers as Record<string, unknown>)
+                : JSON.parse(String(r.answers ?? "{}"));
+          } catch {
+            prior = {};
+          }
+          priorByEmail[e] = prior;
+        }
+        for (const c of consultations) {
+          if (!c.isReorder) continue;
+          const prior = priorByEmail[String(c.email ?? "").toLowerCase()];
+          if (!prior) continue;
+          let filled = false;
+          for (const key of ["date_of_birth_consultation", "height_cm", "_age"] as const) {
+            if (isEmpty(c.answers[key]) && !isEmpty(prior[key])) {
+              c.answers[key] = prior[key];
+              filled = true;
+            }
+          }
+          if (filled) c.answers._identity_from_prior = true;
+        }
+      } catch {
+        /* backfill is best-effort — never block the clinical queue */
+      }
+    }
+
     // Real DB counts (not capped by the LIMIT-200 list), so the badge and the
     // queue tabs match and move the moment a patient is approved/rejected.
     const cc = (countRows[0] as { reorder?: number; booked?: number; notbooked?: number; red_flags?: number } | undefined) ?? {};

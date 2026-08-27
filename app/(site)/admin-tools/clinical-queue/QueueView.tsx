@@ -354,6 +354,11 @@ function PatientDetails({ c }: { c: Consultation }) {
     { label: "Date of birth", value: a.date_of_birth_consultation ? fmtDate(a.date_of_birth_consultation) : undefined },
     { label: "Age", value: ageOf(a) !== "—" ? ageOf(a) : undefined },
     { label: "Height", value: a.height_cm ? `${fmtNum(a.height_cm)} cm` : undefined },
+    // Reorders don't re-collect DOB/height — the server carries them from the
+    // patient's earlier new-supply submission; flag that for the reviewer.
+    ...(a._identity_from_prior
+      ? [{ label: "DOB / height source", value: "Carried from an earlier submission" }]
+      : []),
     { label: "Weight", value: a.current_weight_kg ? `${fmtNum(a.current_weight_kg)} kg` : undefined },
     { label: "BMI", value: bmi != null ? `${bmi}` : undefined },
     { label: "Mobile", value: a.consultation_mobile_number_v2 ?? c.phone },
