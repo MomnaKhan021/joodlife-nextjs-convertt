@@ -156,15 +156,15 @@ export default async function BlogPostPage({
         {/* Hero image */}
         {post.heroImageUrl ? (
           <div className="mx-auto w-full max-w-[1200px] px-6 md:px-[60px]">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-[#f7f9f2]">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl">
               <Image
                 src={post.heroImageUrl}
                 alt={post.heroImageAlt ?? post.title}
                 fill
                 priority
                 sizes="(min-width: 1200px) 1140px, 100vw"
-                // Show the whole image framed on the cream backdrop rather than
-                // cropping it to fill 16:9 (which cut off the subject's head).
+                // Show the whole image rather than cropping it to fill 16:9
+                // (which cut off the subject's head).
                 className="object-contain"
               />
             </div>
