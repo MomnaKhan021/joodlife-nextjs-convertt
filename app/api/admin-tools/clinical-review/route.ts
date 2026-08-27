@@ -289,14 +289,16 @@ export async function GET(req: NextRequest) {
     const sql = drizzleSql;
 
     // Queue split (read-only EXISTS check — no schema impact):
-    //   clinical  = the patient's email also appears on an order
-    //   marketing = consultation only, no order yet (follow-up leads)
+    //   clinical  = the patient has a PAID order (payment actually went through)
+    //   marketing = consultation with no paid order — an abandoned checkout /
+    //               follow-up lead. A dummy/declined card never reaches Clinical
+    //               Check: an order row alone isn't enough, it must be paid.
     const queue = req.nextUrl.searchParams.get("queue") === "marketing" ? "marketing" : "clinical";
-    const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email))`;
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid')`;
     const queueCond =
       queue === "marketing"
-        ? `(email IS NULL OR NOT ${orderExists})`
-        : `(email IS NOT NULL AND ${orderExists})`;
+        ? `(email IS NULL OR NOT ${paidOrderExists})`
+        : `(email IS NOT NULL AND ${paidOrderExists})`;
 
     // Pending = submitted consultations (new patients) + reorder submissions
     // waiting review. Exclude drafts and already-decided ones unless showAll.
