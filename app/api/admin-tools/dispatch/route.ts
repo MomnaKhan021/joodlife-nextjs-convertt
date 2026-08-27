@@ -632,7 +632,7 @@ export async function POST(req: NextRequest) {
             `<p>Patient: ${fullName} · Consultation reference: #${id}</p>` +
             (tracking
               ? `<p>DPD tracking: <b>${tracking}</b> — ` +
-                `<a href="https://www.dpdlocal.co.uk/apps/tracking/?reference=${encodeURIComponent(tracking)}">track parcel</a></p>`
+                `<a href="https://track.dpd.co.uk/parcels/${encodeURIComponent(tracking)}">track parcel</a></p>`
               : "") +
             `<p>Dispatched at ${nowIso}</p>`;
           // Fire-and-forget — never block or fail the dispatch response.

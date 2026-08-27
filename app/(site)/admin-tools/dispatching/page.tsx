@@ -56,9 +56,11 @@ function fmtSmartDateTime(iso: string | null) {
   return `${date} at ${time}`;
 }
 
-/** DPD Local public tracking page for a parcel/consignment number. */
+/** DPD's public parcel-tracking deep link. The stored value is the DPD parcel
+ *  number, so it must go in the /parcels/ path — the old ?reference= form
+ *  searched by shipping reference and never found the parcel. */
 function trackingUrl(tracking: string) {
-  return `https://www.dpdlocal.co.uk/apps/tracking/?reference=${encodeURIComponent(tracking)}`;
+  return `https://track.dpd.co.uk/parcels/${encodeURIComponent(tracking)}`;
 }
 
 const PAGE_SIZE = 20;
