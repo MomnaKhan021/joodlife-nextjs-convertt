@@ -87,7 +87,13 @@ const nextConfig: NextConfig = {
     // connect.facebook.net and beacons events to www.facebook.com. It is
     // write-only (sends conversions to Meta); reading spend/ROAS uses the
     // Marketing API server-side, which needs no browser origins.
-    const metaPixelOrigins = ["https://connect.facebook.net"];
+    // capi-automation… is Meta's Conversions API parameter builder, pulled in
+    // by the Pixel to enrich event matching (Event Match Quality). Without it
+    // the browser blocks the script and match quality suffers.
+    const metaPixelOrigins = [
+      "https://connect.facebook.net",
+      "https://capi-automation.s3.us-east-2.amazonaws.com",
+    ];
     // Google Tag Manager + GA4. The container script loads from
     // googletagmanager.com; GA4 then beacons hits to google-analytics.com
     // (and the regional endpoints), and tags may drop tracking pixels from
