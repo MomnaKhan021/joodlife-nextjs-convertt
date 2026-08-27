@@ -228,6 +228,38 @@ function fulfillmentOf(row: Row): "Dispatched" | "To Dispatch" | "Clinical Check
   return row.clinically_approved ? "To Dispatch" : "Clinical Check";
 }
 
+/** Some order numbers arrive from the HubSpot sync as deal names with the
+ *  supply type (and a red-flag marker) baked in, e.g.
+ *  "Reorder 🚩 RED FLAG — #2948". Strip that clutter down to just the
+ *  identifier (JLxxxx or #NNNN); the supply type is shown as a tag instead. */
+function orderNumberDisplay(raw: unknown, id: unknown): string {
+  const s = String(raw ?? "").trim();
+  if (!s) return `#${id ?? ""}`;
+  const jl = s.match(/JL[-\s]?\d+/i);
+  if (jl) return jl[0].replace(/\s+/g, "").toUpperCase();
+  const hash = s.match(/#\s*([A-Za-z0-9-]+)/);
+  if (hash) return `#${hash[1]}`;
+  const cleaned = s
+    .replace(/red\s*flag/gi, "")
+    .replace(/reorder/gi, "")
+    .replace(/🚩/g, "")
+    .replace(/[—–-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || s;
+}
+
+/** Supply type inferred from the order-number text (HubSpot prefixes reorders). */
+function supplyTypeOf(raw: unknown): "Reorder" | "New Supply" {
+  return /reorder/i.test(String(raw ?? "")) ? "Reorder" : "New Supply";
+}
+
+/** A reorder the HubSpot sync flagged for clinical attention. */
+function isRedFlagOrder(raw: unknown): boolean {
+  const s = String(raw ?? "");
+  return /red\s*flag/i.test(s) || s.includes("🚩");
+}
+
 /** Tiny inline sparkline for a KPI card (Shopify-style). */
 function Sparkline({ data }: { data: number[] }) {
   if (!data || data.length < 2) {
@@ -322,9 +354,21 @@ const TABS: TabSpec[] = [
       "Customer purchases. Synced from HubSpot Deals + created at checkout.",
     payloadCollectionSlug: "orders",
     columns: [
-      { key: "order_number", label: "Order #", sortKey: "order_number", render: (r) => (
-        <span className="db-cell-strong">{String(r.order_number ?? `#${r.id}`)}</span>
-      ) },
+      { key: "order_number", label: "Order #", sortKey: "order_number", render: (r) => {
+        const supply = supplyTypeOf(r.order_number);
+        const redFlag = isRedFlagOrder(r.order_number);
+        return (
+          <div>
+            <span className="db-cell-strong">{orderNumberDisplay(r.order_number, r.id)}</span>
+            <div className="db-order-tags">
+              <span className={`db-pill db-pill--${supply === "Reorder" ? "warn" : "neutral"}`}>
+                {supply}
+              </span>
+              {redFlag ? <span className="db-pill db-pill--off">Red flag</span> : null}
+            </div>
+          </div>
+        );
+      } },
       { key: "created_at", label: "Date", sortKey: "created_at", render: (r) => <span className="db-nowrap">{fmtSmartDateTime(r.created_at)}</span> },
       {
         key: "customer_name",

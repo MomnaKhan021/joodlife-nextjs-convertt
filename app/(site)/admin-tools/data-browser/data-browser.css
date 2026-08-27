@@ -317,6 +317,10 @@
 .db-pill--off { background: #fcd7d5; color: #8e1f0b; }
 .db-pill--neutral { background: #e3e3e3; color: #303030; }
 
+/* Supply-type + red-flag tags under an order number. */
+.db-order-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.db-order-tags .db-pill { font-size: 11px; padding: 1px 8px; }
+
 /* ---------- Cards (mobile) ---------- */
 .db-cards { display: flex; flex-direction: column; gap: 12px; list-style: none; margin: 0; padding: 0; }
 @media (min-width: 760px) { .db-cards { display: none; } }
