@@ -578,7 +578,7 @@ function CheckoutForm() {
               : "We couldn't verify your card. Please try again.",
           );
         }
-        const { error: setupError } = await stripe.confirmCardSetup(
+        const { error: setupError, setupIntent } = await stripe.confirmCardSetup(
           siJson.clientSecret,
           {
             payment_method: {
@@ -601,6 +601,27 @@ function CheckoutForm() {
         if (setupError) {
           throw new Error(
             setupError.message ?? "Your card could not be verified.",
+          );
+        }
+        // The order was created unpaid. Only now that the card is verified do
+        // we mark it paid — and the server re-checks the SetupIntent with
+        // Stripe, so an abandoned or declined attempt never becomes a "Paid"
+        // order in the dashboard.
+        const confirmRes = await fetch("/api/checkout/confirm-free", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            orderNumber: orderJson.orderNumber,
+            setupIntentId: setupIntent?.id,
+          }),
+        });
+        const confirmJson = await confirmRes.json().catch(() => ({}));
+        if (!confirmRes.ok || !confirmJson.ok) {
+          throw new Error(
+            typeof confirmJson?.error === "string" && !looksTechnical(confirmJson.error)
+              ? confirmJson.error
+              : "We couldn't confirm your order. Please try again.",
           );
         }
         finalizeAndRedirect(

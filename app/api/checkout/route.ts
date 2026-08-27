@@ -476,13 +476,18 @@ export async function POST(req: NextRequest) {
   // PaymentIntent, so a free order skips Stripe entirely: it's recorded as
   // already paid here and the client redirects straight to the success page.
   // Values must match the Orders collection options so the admin dashboard
-  // renders them. A £0 order has nothing left to collect, so it's a completed
-  // PAID order (status=paid) — not stuck in "pending"/payment-pending limbo.
-  // Card orders still start pending until Stripe confirms the charge.
+  // renders them.
+  //
+  // EVERY order starts pending/unpaid — including a £0 (fully discounted)
+  // one. A £0 order used to be written as paid right here, before the card
+  // was checked, so a customer whose card was declined (or who simply walked
+  // away) still left a "Paid" order sitting in the queue. A £0 order is only
+  // marked paid once its card has been verified with Stripe, by
+  // /api/checkout/confirm-free.
   const isFree = finalTotal <= 0;
-  const orderStatus = isFree ? "paid" : "pending";
+  const orderStatus = "pending";
   const payMethod = isFree ? "test" : "card";
-  const payStatus = isFree ? "paid" : "unpaid";
+  const payStatus = "unpaid";
 
   // 8. Insert — sequential order number (JL3000, JL3001, …)
   const orderNumber = await nextOrderNumber(drizzle, sql);
