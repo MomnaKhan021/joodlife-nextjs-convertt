@@ -8,6 +8,7 @@ import Footer from "@/sections/home/Footer";
 import RichText from "@/components/blog/RichText";
 import PostCard from "@/components/blog/PostCard";
 import EnquiryForm from "@/components/blog/EnquiryForm";
+import ScrollToTopOnNav from "@/components/blog/ScrollToTopOnNav";
 import {
   categoryLabel,
   formatPublishedDate,
@@ -86,6 +87,7 @@ export default async function BlogPostPage({
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
+      <ScrollToTopOnNav />
       <AnnouncementBar />
       <Header />
 
