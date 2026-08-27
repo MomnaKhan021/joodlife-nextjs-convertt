@@ -325,7 +325,15 @@ const TABS: TabSpec[] = [
     payloadCollectionSlug: "orders",
     columns: [
       { key: "order_number", label: "Order #", sortKey: "order_number", render: (r) => {
-        const supply = supplyTypeOf(r.order_number);
+        // Prefer the server's history-aware flag (a repeat customer is a
+        // reorder even when the order number is a clean JLxxxx); fall back to
+        // the name-prefix check if the column isn't present.
+        const supply =
+          r.is_reorder === true || r.is_reorder === "true"
+            ? "Reorder"
+            : r.is_reorder === false || r.is_reorder === "false"
+              ? "New Supply"
+              : supplyTypeOf(r.order_number);
         const redFlag = isRedFlagOrder(r.order_number);
         return (
           <div>

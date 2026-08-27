@@ -65,6 +65,39 @@ type SpecRow = {
   sortableColumns?: Record<string, string>;
 };
 
+/**
+ * Is this order a REPEAT supply for the customer?
+ *
+ * Two signals, either is enough:
+ *  1. HubSpot prefixes synced reorder deals in the name ("Reorder — #2948").
+ *  2. The same customer email already has an earlier REAL order — which is the
+ *     only signal for orders created at checkout (clean JLxxxx numbers had
+ *     always shown "New Supply", even for repeat patients).
+ *
+ * "Real" excludes cancelled orders and never-paid checkouts (a declined card
+ * is an abandoned checkout, not a previous supply), but keeps the £0
+ * staff-raised orders created on clinical approval.
+ */
+const IS_REORDER_SQL = `(
+  COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'
+  OR (
+    "orders".customer_email IS NOT NULL AND TRIM("orders".customer_email) <> ''
+    AND EXISTS (
+      SELECT 1 FROM "orders" o2
+      WHERE LOWER(o2.customer_email) = LOWER("orders".customer_email)
+        AND LOWER(COALESCE(o2.status::text,'')) <> 'cancelled'
+        AND (
+          LOWER(COALESCE(o2.payment_status::text,'')) = 'paid'
+          OR COALESCE(CAST(o2.notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'
+        )
+        AND (
+          o2.created_at < "orders".created_at
+          OR (o2.created_at = "orders".created_at AND o2.id < "orders".id)
+        )
+    )
+  )
+)`;
+
 const SPECS: Record<string, SpecRow> = {
   orders: {
     table: "orders",
@@ -78,7 +111,8 @@ const SPECS: Record<string, SpecRow> = {
       "EXISTS (SELECT 1 FROM \"consultations\" c " +
       "  WHERE c.email IS NOT NULL AND TRIM(c.email) <> '' " +
       "    AND LOWER(c.email) = LOWER(\"orders\".customer_email) " +
-      "    AND c.answers->>'_review_decision' = 'approved') AS clinically_approved",
+      "    AND c.answers->>'_review_decision' = 'approved') AS clinically_approved" +
+      `, ${IS_REORDER_SQL} AS is_reorder`,
     searchableColumns: ["order_number", "customer_name", "customer_email", "status"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
     sortableColumns: {
@@ -230,8 +264,9 @@ export async function GET(req: NextRequest) {
     );
   }
   if (type === "orders" && (supply === "reorder" || supply === "new")) {
-    const reorderExpr = "COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'";
-    conditions.push(supply === "reorder" ? reorderExpr : `NOT (${reorderExpr})`);
+    conditions.push(
+      supply === "reorder" ? IS_REORDER_SQL : `NOT ${IS_REORDER_SQL}`,
+    );
   }
   // Legacy-data hide: keep only rows created at/after the cutoff for the
   // hidden collections (orders / consultations / customers). Rows stay in the
@@ -289,8 +324,9 @@ export async function GET(req: NextRequest) {
   }
   if (hideCond) safeConds.push(hideCond);
   if (type === "orders" && (supply === "reorder" || supply === "new")) {
-    const reorderExpr = "COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'";
-    safeConds.push(supply === "reorder" ? reorderExpr : `NOT (${reorderExpr})`);
+    safeConds.push(
+      supply === "reorder" ? IS_REORDER_SQL : `NOT ${IS_REORDER_SQL}`,
+    );
   }
   const safeWhere = safeConds.length ? `WHERE ${safeConds.join(" AND ")}` : "";
 
