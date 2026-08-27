@@ -7,6 +7,13 @@ import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 
 import { fbLead } from "@/lib/metaPixel";
+import {
+  NAME_MAX,
+  TEXT_MAX,
+  TEXTAREA_MAX,
+  fullNameError,
+  isValidFullName,
+} from "@/lib/formValidation";
 
 import {
   type Answers,
@@ -415,6 +422,7 @@ function TextSlide({ slide, answers, setAnswer }: SlideProps) {
         type="text"
         value={value}
         placeholder={slide.placeholder}
+        maxLength={TEXT_MAX}
         onChange={(e) => setAnswer(slide.field!, e.target.value)}
         className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
       />
@@ -431,9 +439,13 @@ function TextareaSlide({ slide, answers, setAnswer }: SlideProps) {
         rows={4}
         value={value}
         placeholder={slide.placeholder}
+        maxLength={TEXTAREA_MAX}
         onChange={(e) => setAnswer(slide.field!, e.target.value)}
         className="w-full resize-y rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] leading-[22px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
       />
+      <p className="mt-2 text-right font-ui text-[12px] text-[#142e2a]/45">
+        {value.length}/{TEXTAREA_MAX}
+      </p>
     </SlideShell>
   );
 }
@@ -470,6 +482,7 @@ function NameSlide({ slide, answers, setAnswer }: SlideProps) {
     .filter(Boolean)
     .join(" ");
   const value = (answers.fullName as string | undefined) ?? legacy;
+  const err = fullNameError(value);
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
@@ -478,9 +491,22 @@ function NameSlide({ slide, answers, setAnswer }: SlideProps) {
         value={value}
         placeholder="Full name"
         autoComplete="name"
+        maxLength={NAME_MAX}
+        aria-invalid={Boolean(err)}
         onChange={(e) => setAnswer("fullName", e.target.value)}
-        className="w-full rounded-xl border border-[#142e2a]/15 bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors focus:border-[#142e2a]"
+        className={`w-full rounded-xl border bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors ${
+          err
+            ? "border-red-400 focus:border-red-500"
+            : "border-[#142e2a]/15 focus:border-[#142e2a]"
+        }`}
       />
+      {err ? (
+        <p className="mt-2 font-ui text-[13px] text-red-600">{err}</p>
+      ) : (
+        <p className="mt-2 font-ui text-[12px] text-[#142e2a]/45">
+          {value.trim().length}/{NAME_MAX}
+        </p>
+      )}
     </SlideShell>
   );
 }
@@ -1665,11 +1691,11 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
   }
   if (slide.type === "name") {
     const full = (answers.fullName as string | undefined)?.trim();
-    if (full) return true;
+    if (full) return isValidFullName(full);
     // Legacy drafts may still hold first/last only.
     const f = (answers.firstName as string | undefined)?.trim();
     const l = (answers.lastName as string | undefined)?.trim();
-    return Boolean(f && l);
+    return Boolean(f && l) && isValidFullName(`${f} ${l}`);
   }
   if (slide.type === "choiceCards") {
     return Boolean(answers[slide.field!]);

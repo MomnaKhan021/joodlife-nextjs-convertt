@@ -20,6 +20,13 @@ import type {
 } from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
+import {
+  NAME_PART_MAX,
+  TEXT_MAX,
+  ADDRESS_MAX,
+  isValidNamePart,
+  namePartError,
+} from "@/lib/formValidation";
 import { fbPurchaseOnce } from "@/lib/metaPixel";
 import { dlBeginCheckout, toDlItem } from "@/lib/dataLayer";
 import { getStripeClient } from "@/lib/stripeClient";
@@ -357,10 +364,12 @@ function CheckoutForm() {
     (dAddress.trim() &&
       dCity.trim() &&
       (dPostcodeValid || UK_POSTCODE_RE.test(dPostcode.trim())));
+  const firstNameValid = isValidNamePart(firstName);
+  const lastNameValid = isValidNamePart(lastName);
   const canPay =
     items.length > 0 &&
-    firstName.trim() &&
-    lastName.trim() &&
+    firstNameValid &&
+    lastNameValid &&
     emailValid &&
     address.trim() &&
     city.trim() &&
@@ -900,6 +909,8 @@ function CheckoutForm() {
                   value={firstName}
                   onChange={setFirstName}
                   autoComplete="given-name"
+                  maxLength={NAME_PART_MAX}
+                  error={namePartError(firstName)}
                 />
               </Field>
               <Field label="Last Name" required>
@@ -907,6 +918,8 @@ function CheckoutForm() {
                   value={lastName}
                   onChange={setLastName}
                   autoComplete="family-name"
+                  maxLength={NAME_PART_MAX}
+                  error={namePartError(lastName)}
                 />
               </Field>
             </div>
@@ -918,6 +931,7 @@ function CheckoutForm() {
                 type="email"
                 autoComplete="email"
                 placeholder="info@gmail.com"
+                maxLength={TEXT_MAX}
               />
             </Field>
 
@@ -941,6 +955,7 @@ function CheckoutForm() {
                 value={apartment}
                 onChange={setApartment}
                 autoComplete="address-line2"
+                maxLength={ADDRESS_MAX}
               />
             </Field>
 
@@ -951,6 +966,7 @@ function CheckoutForm() {
                   onChange={setCity}
                   autoComplete="address-level2"
                   placeholder="London"
+                  maxLength={TEXT_MAX}
                 />
               </Field>
               <Field label="Postcode" required>
@@ -1031,6 +1047,7 @@ function CheckoutForm() {
                     value={dApartment}
                     onChange={setDApartment}
                     autoComplete="off"
+                    maxLength={ADDRESS_MAX}
                   />
                 </Field>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1039,6 +1056,7 @@ function CheckoutForm() {
                       value={dCity}
                       onChange={setDCity}
                       placeholder="London"
+                      maxLength={TEXT_MAX}
                     />
                   </Field>
                   <Field label="Postcode" required>
@@ -1366,6 +1384,7 @@ function CheckoutForm() {
                         }
                       }}
                       placeholder="Enter code"
+                      maxLength={40}
                       className="h-11 flex-1 rounded-[8px] border border-[#e7e8e3] bg-white px-3 font-ui text-[14px] uppercase text-[#142e2a] outline-none placeholder:normal-case focus:border-[#142e2a]"
                     />
                     <button
@@ -1446,22 +1465,38 @@ function TextInput({
   type = "text",
   placeholder,
   autoComplete,
+  maxLength,
+  error,
 }: {
   value: string;
   onChange: (v: string) => void;
   type?: string;
   placeholder?: string;
   autoComplete?: string;
+  maxLength?: number;
+  /** Inline validation message; also flips the border to red. */
+  error?: string | null;
 }) {
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      autoComplete={autoComplete}
-      className="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
-    />
+    <>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        maxLength={maxLength}
+        aria-invalid={Boolean(error)}
+        className={`h-[52px] w-full rounded-[8px] border bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:ring-2 ${
+          error
+            ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
+            : "border-[#e7e8e3] focus:border-[#142e2a] focus:ring-[#142e2a]/20"
+        }`}
+      />
+      {error ? (
+        <p className="mt-1.5 font-ui text-[13px] text-red-600">{error}</p>
+      ) : null}
+    </>
   );
 }
 
