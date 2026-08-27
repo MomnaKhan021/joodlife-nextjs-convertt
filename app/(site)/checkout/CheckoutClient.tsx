@@ -219,6 +219,14 @@ function CheckoutForm() {
   // Only surface the "what's still needed" checklist AFTER the customer
   // tries to pay — not on an untouched form.
   const [attempted, setAttempted] = useState(false);
+  // Which fields the customer has finished with (blurred). Inline errors wait
+  // for this — nagging "enter a UK phone number" while someone is still
+  // halfway through typing 07700… is just noise. Pressing Pay reveals every
+  // outstanding problem at once via `attempted`.
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (field: string) =>
+    setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
+  const showErrorFor = (field: string) => Boolean(touched[field] || attempted);
   // True while navigating to the success page. Prevents the empty-cart
   // screen flashing after we clear the cart (the "glitch" before thank-you).
   const [redirecting, setRedirecting] = useState(false);
@@ -916,22 +924,30 @@ function CheckoutForm() {
           <div className="mt-6 flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="First Name" required>
-                <TextInput
-                  value={firstName}
-                  onChange={setFirstName}
-                  autoComplete="given-name"
-                  maxLength={NAME_PART_MAX}
-                  error={namePartError(firstName)}
-                />
+                <div onBlur={() => markTouched("firstName")}>
+                  <TextInput
+                    value={firstName}
+                    onChange={setFirstName}
+                    autoComplete="given-name"
+                    maxLength={NAME_PART_MAX}
+                    error={
+                      showErrorFor("firstName") ? namePartError(firstName) : null
+                    }
+                  />
+                </div>
               </Field>
               <Field label="Last Name" required>
-                <TextInput
-                  value={lastName}
-                  onChange={setLastName}
-                  autoComplete="family-name"
-                  maxLength={NAME_PART_MAX}
-                  error={namePartError(lastName)}
-                />
+                <div onBlur={() => markTouched("lastName")}>
+                  <TextInput
+                    value={lastName}
+                    onChange={setLastName}
+                    autoComplete="family-name"
+                    maxLength={NAME_PART_MAX}
+                    error={
+                      showErrorFor("lastName") ? namePartError(lastName) : null
+                    }
+                  />
+                </div>
               </Field>
             </div>
 
@@ -947,6 +963,7 @@ function CheckoutForm() {
             </Field>
 
             <Field label="Address" required>
+              <div onBlur={() => markTouched("address")}>
               <UkAddressField
                 value={address}
                 setValue={setAddress}
@@ -959,7 +976,8 @@ function CheckoutForm() {
                 }}
                 inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
               />
-              {streetError(address) ? (
+              </div>
+              {showErrorFor("address") && streetError(address) ? (
                 <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
                   {streetError(address)}
                 </p>
@@ -977,14 +995,16 @@ function CheckoutForm() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="City" required>
-                <TextInput
-                  value={city}
-                  onChange={setCity}
-                  autoComplete="address-level2"
-                  placeholder="London"
-                  maxLength={DPD_FIELD_MAX}
-                />
-                {townError(city) ? (
+                <div onBlur={() => markTouched("city")}>
+                  <TextInput
+                    value={city}
+                    onChange={setCity}
+                    autoComplete="address-level2"
+                    placeholder="London"
+                    maxLength={DPD_FIELD_MAX}
+                  />
+                </div>
+                {showErrorFor("city") && townError(city) ? (
                   <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
                     {townError(city)}
                   </p>
@@ -1004,14 +1024,16 @@ function CheckoutForm() {
             </div>
 
             <Field label="Phone" required>
-              <TextInput
-                value={phone}
-                onChange={setPhone}
-                type="tel"
-                autoComplete="tel"
-                placeholder="+44 7700 900000"
-              />
-              {phone.trim() && !phoneValid ? (
+              <div onBlur={() => markTouched("phone")}>
+                <TextInput
+                  value={phone}
+                  onChange={setPhone}
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+44 7700 900000"
+                />
+              </div>
+              {showErrorFor("phone") && phone.trim() && !phoneValid ? (
                 <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
                   Please enter a UK phone number — we only deliver within the UK
                   (for example 07700 900000 or +44 7700 900000).
