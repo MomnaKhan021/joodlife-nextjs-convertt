@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { dlViewItem, toDlItem } from "@/lib/dataLayer";
 import DosagePicker from "./DosagePicker";
 import { PlusIcon } from "./PdpIcons";
 import type { Dosage, PDPProduct } from "@/lib/pdp-products";
@@ -38,6 +40,26 @@ interface ProductInfoProps {
 export default function ProductInfo({ product }: ProductInfoProps) {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const router = useRouter();
+
+  // GA4 `view_item` for this product page. This is the component the live
+  // product pages render, so without it the event never fired here (it was
+  // only wired into the older variant/landing components).
+  useEffect(() => {
+    const first = product.dosages?.[0];
+    const price = first?.perPack
+      ? Number(first.perPack.replace(/[^0-9.]/g, "")) || undefined
+      : undefined;
+    dlViewItem(
+      toDlItem({
+        slug: product.slug,
+        title: product.title,
+        dose: first?.label ?? null,
+        price,
+        quantity: 1,
+      }),
+    );
+    // Fire once per product page view.
+  }, [product.slug, product.title, product.dosages]);
 
 
 
