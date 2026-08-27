@@ -61,7 +61,15 @@ const CartItemSchema = z.object({
 const CheckoutSchema = z.object({
   items: z.array(CartItemSchema).min(1).max(50),
   customer: z.object({
-    name: z.string().min(1).max(120),
+    // A real name — letters/spaces/hyphens/apostrophes only. Blocks junk like
+    // "asdf123" reaching the courier's contactName field.
+    name: z
+      .string()
+      .min(2)
+      .max(120)
+      .refine((v) => !/\d/.test(v) && /^[\p{L} .'\-]+$/u.test(v.trim()), {
+        message: "Enter your real name",
+      }),
     email: z.string().email().max(200),
     // UK-only: this is a UK pharmacy and delivery is UK-only, so reject
     // non-UK numbers server-side too (the client validates as you type).
@@ -73,7 +81,16 @@ const CheckoutSchema = z.object({
       .refine((v) => v.trim() === "" || isUkPhoneNumber(v), {
         message: "Enter a UK phone number",
       }),
-    address: z.string().min(5).max(2000),
+    // Must be a real UK address block — long enough for a street + town and
+    // containing a UK postcode, so "cds" can't be accepted here and then
+    // rejected later by DPD.
+    address: z
+      .string()
+      .min(10)
+      .max(2000)
+      .refine((v) => /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i.test(v), {
+        message: "Enter a full UK address including postcode",
+      }),
     notes: z.string().max(2000).optional().default(""),
   }),
   // Optional discount code — validated + applied server-side below.

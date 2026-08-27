@@ -57,3 +57,63 @@ export function namePartError(value: string): string | null {
   if (t.length > NAME_PART_MAX) return `Must be ${NAME_PART_MAX} characters or fewer.`;
   return null;
 }
+
+/* ------------------------------------------------------------------ */
+/* Delivery address — must survive the courier                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * DPD rejects over-long values outright ("Maximum length exceeded"), so every
+ * address part collected at checkout is kept inside the courier's limit.
+ */
+export const DPD_FIELD_MAX = 35;
+
+/**
+ * A street line the courier can actually deliver to. Rejects junk like "cds"
+ * while still allowing named properties without a number ("Rose Cottage").
+ */
+export function isDeliverableStreet(value: string): boolean {
+  const t = value.trim();
+  if (t.length < 5 || t.length > DPD_FIELD_MAX) return false;
+  if (!/\p{L}{3,}/u.test(t)) return false; // needs at least one real word
+  const words = t.split(/\s+/).filter(Boolean);
+  if (/\d/.test(t)) return words.length >= 2; // "12 High Street"
+  return words.length >= 2 && t.length >= 8; // "Rose Cottage"
+}
+
+/** Human-readable reason a street line is unusable, or null when valid/empty. */
+export function streetError(value: string): string | null {
+  const t = value.trim();
+  if (!t) return null;
+  if (t.length > DPD_FIELD_MAX)
+    return `Address must be ${DPD_FIELD_MAX} characters or fewer.`;
+  if (!isDeliverableStreet(t))
+    return "Enter your full street address, including the house number or name (e.g. 12 High Street).";
+  return null;
+}
+
+/** A town/city the courier will accept: letters and separators only. */
+export function isValidTown(value: string): boolean {
+  const t = value.trim();
+  if (t.length < 2 || t.length > DPD_FIELD_MAX) return false;
+  return /^[\p{L} .'\-]+$/u.test(t);
+}
+
+/** Reason a town is invalid, or null when valid/empty. */
+export function townError(value: string): string | null {
+  const t = value.trim();
+  if (!t) return null;
+  if (!isValidTown(t)) return "Enter a valid town or city.";
+  return null;
+}
+
+/**
+ * Stricter than "contains an @": needs a real domain and a 2+ letter TLD, and
+ * rejects doubled or edge dots — so "a@b" and "x@y.c" no longer pass.
+ */
+export function isValidEmail(value: string): boolean {
+  const t = value.trim();
+  if (t.length < 6 || t.length > 254) return false;
+  if (/\.\./.test(t) || /^[.]|[.]@|@[.]|[.]$/.test(t)) return false;
+  return /^[A-Za-z0-9._%+-]{2,}@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/.test(t);
+}

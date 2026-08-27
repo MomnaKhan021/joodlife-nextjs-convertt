@@ -202,6 +202,20 @@ type DpdShipmentResponse = {
   error?: DpdError | DpdError[];
 };
 
+/** DPD rejects over-long fields; keep every value inside its limit. */
+function clampDpd(v: string | null | undefined, max: number): string {
+  return (v ?? "").trim().slice(0, max);
+}
+
+/** DPD wants a plain national number (no +44, spaces or punctuation). */
+function dpdPhone(raw: string): string {
+  let n = (raw || "").replace(/[^\d+]/g, "");
+  if (n.startsWith("+44")) n = "0" + n.slice(3);
+  else if (n.startsWith("0044")) n = "0" + n.slice(4);
+  else if (n.startsWith("44") && n.length >= 12) n = "0" + n.slice(2);
+  return n.replace(/\D/g, "").slice(0, 15);
+}
+
 function collectDpdErrors(json: DpdShipmentResponse): string[] {
   const out: string[] = [];
   const push = (e?: DpdError | DpdError[]) => {
@@ -299,18 +313,22 @@ async function dpdCreateShipment(opts: {
         },
         deliveryDetails: {
           contactDetails: {
-            contactName: opts.customerName || "Customer",
-            telephone: opts.customerPhone || "",
+            // DPD hard-fails with "Maximum length exceeded" on over-long
+            // values and "Invalid telephone number" on anything that isn't a
+            // plain national number — clamp/normalise so one bad record can't
+            // block the dispatch.
+            contactName: clampDpd(opts.customerName || "Customer", 35),
+            telephone: dpdPhone(opts.customerPhone || ""),
           },
           address: {
             organisation: "",
             countryCode: opts.address.countryCode,
-            postcode: opts.address.postcode,
-            property: opts.address.property,
-            street: opts.address.street,
+            postcode: clampDpd(opts.address.postcode, 8),
+            property: clampDpd(opts.address.property, 35),
+            street: clampDpd(opts.address.street, 35),
             localityName: "",
-            town: opts.address.town,
-            county: opts.address.county,
+            town: clampDpd(opts.address.town, 35),
+            county: clampDpd(opts.address.county, 35),
           },
           notificationDetails: {},
         },

@@ -24,8 +24,14 @@ import {
   NAME_PART_MAX,
   TEXT_MAX,
   ADDRESS_MAX,
+  DPD_FIELD_MAX,
   isValidNamePart,
   namePartError,
+  isDeliverableStreet,
+  streetError,
+  isValidTown,
+  townError,
+  isValidEmail,
 } from "@/lib/formValidation";
 import { fbPurchaseOnce } from "@/lib/metaPixel";
 import { dlBeginCheckout, toDlItem } from "@/lib/dataLayer";
@@ -347,7 +353,7 @@ function CheckoutForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [discountCode, subtotal]);
 
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailValid = isValidEmail(email);
   // Gate payment on a valid UK postcode FORMAT (offline regex) — not on the
   // postcodes.io API call succeeding. The API is only used to autofill/verify;
   // if it's slow or down, a correctly-formatted UK postcode must still let the
@@ -359,10 +365,15 @@ function CheckoutForm() {
   const phoneValid = isUkPhone(phone);
   const postcodeOk = postcodeValid || UK_POSTCODE_RE.test(postcode.trim());
   // When delivering elsewhere, that block must also be a complete UK address.
+  // The street line and town must be deliverable (and within DPD's field
+  // limit) — free text like "cds" was being accepted and then rejected by
+  // the courier at dispatch time.
+  const addressValid = isDeliverableStreet(address);
+  const cityValid = isValidTown(city);
   const deliveryOk =
     !deliverElsewhere ||
-    (dAddress.trim() &&
-      dCity.trim() &&
+    (isDeliverableStreet(dAddress) &&
+      isValidTown(dCity) &&
       (dPostcodeValid || UK_POSTCODE_RE.test(dPostcode.trim())));
   const firstNameValid = isValidNamePart(firstName);
   const lastNameValid = isValidNamePart(lastName);
@@ -371,8 +382,8 @@ function CheckoutForm() {
     firstNameValid &&
     lastNameValid &&
     emailValid &&
-    address.trim() &&
-    city.trim() &&
+    addressValid &&
+    cityValid &&
     postcodeOk &&
     deliveryOk &&
     phoneValid &&
@@ -948,6 +959,11 @@ function CheckoutForm() {
                 }}
                 inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
               />
+              {streetError(address) ? (
+                <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
+                  {streetError(address)}
+                </p>
+              ) : null}
             </Field>
 
             <Field label="Apartment, suit, etc. (optional)">
@@ -966,8 +982,13 @@ function CheckoutForm() {
                   onChange={setCity}
                   autoComplete="address-level2"
                   placeholder="London"
-                  maxLength={TEXT_MAX}
+                  maxLength={DPD_FIELD_MAX}
                 />
+                {townError(city) ? (
+                  <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
+                    {townError(city)}
+                  </p>
+                ) : null}
               </Field>
               <Field label="Postcode" required>
                 <UkPostcodeField
@@ -1227,8 +1248,13 @@ function CheckoutForm() {
                 <li>• Enter your first and last name.</li>
               ) : null}
               {!emailValid ? <li>• Enter a valid email address.</li> : null}
-              {!address.trim() ? <li>• Enter your address.</li> : null}
-              {!city.trim() ? <li>• Enter your city.</li> : null}
+              {!addressValid ? (
+                <li>
+                  • Enter your full street address, including the house number
+                  or name (e.g. 12 High Street).
+                </li>
+              ) : null}
+              {!cityValid ? <li>• Enter a valid town or city.</li> : null}
               {!postcodeOk ? (
                 <li>
                   • Enter a valid <strong>UK postcode</strong> (e.g. SW1A 1AA).
