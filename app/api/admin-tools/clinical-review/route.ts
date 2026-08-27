@@ -14,6 +14,7 @@ import { headers as nextHeaders } from "next/headers";
 import { getPayloadInstance } from "@/lib/payload";
 import { hideBeforeSql } from "@/lib/adminHide";
 import { nextOrderNumber } from "@/lib/orderNumber";
+import { backfillReorderBaseline } from "@/lib/reorderBackfill";
 import {
   fireHubSpot,
   upsertContact,
@@ -532,77 +533,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // GPHC compliance: reorder submissions don't re-collect the patient's
-    // clinical baseline (date of birth, height, and often weight), so the
-    // clinical summary would show "—" for age / DOB / height / weight / BMI.
-    // Backfill those from the patient's most recent NEW-supply consultation.
-    // Fill ONLY when missing — a reorder's own current weight always wins over
-    // the older one, so BMI reflects the latest weight when the patient gave
-    // it. A `_identity_from_prior` flag marks records we enriched.
-    const isEmpty = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
-    const reorderEmails = Array.from(
-      new Set(
-        consultations
-          .filter(
-            (c) =>
-              c.isReorder &&
-              (isEmpty(c.answers.date_of_birth_consultation) ||
-                isEmpty(c.answers.height_cm) ||
-                isEmpty(c.answers.current_weight_kg)),
-          )
-          .map((c) => String(c.email ?? "").trim().toLowerCase())
-          .filter(Boolean),
-      ),
-    );
-    if (reorderEmails.length > 0) {
-      const inList = reorderEmails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
-      try {
-        const priorRes = await db.execute(
-          sql.raw(
-            `SELECT DISTINCT ON (LOWER(email)) LOWER(email) AS email, answers
-             FROM "consultations"
-             WHERE LOWER(email) IN (${inList})
-               AND COALESCE(product_slug, '') <> 'reorder'
-               AND TRIM(COALESCE(answers ->> 'date_of_birth_consultation', '')) <> ''
-             ORDER BY LOWER(email), created_at DESC NULLS LAST, id DESC`,
-          ),
-        );
-        const priorByEmail: Record<string, Record<string, unknown>> = {};
-        for (const r of asRows(priorRes)) {
-          const e = String(r.email ?? "");
-          if (!e) continue;
-          let prior: Record<string, unknown> = {};
-          try {
-            prior =
-              typeof r.answers === "object" && r.answers !== null
-                ? (r.answers as Record<string, unknown>)
-                : JSON.parse(String(r.answers ?? "{}"));
-          } catch {
-            prior = {};
-          }
-          priorByEmail[e] = prior;
-        }
-        for (const c of consultations) {
-          if (!c.isReorder) continue;
-          const prior = priorByEmail[String(c.email ?? "").toLowerCase()];
-          if (!prior) continue;
-          let filled = false;
-          for (const key of [
-            "date_of_birth_consultation",
-            "height_cm",
-            "current_weight_kg",
-            "_age",
-          ] as const) {
-            if (isEmpty(c.answers[key]) && !isEmpty(prior[key])) {
-              c.answers[key] = prior[key];
-              filled = true;
-            }
-          }
-          if (filled) c.answers._identity_from_prior = true;
-        }
-      } catch {
-        /* backfill is best-effort — never block the clinical queue */
-      }
+    // GPHC compliance: carry the clinical baseline (DOB / height / weight / age)
+    // into reorders from the patient's most recent new-supply consultation.
+    // Shared with the To Dispatch route so both screens show the same baseline.
+    try {
+      await backfillReorderBaseline(consultations, db, sql);
+    } catch {
+      /* backfill is best-effort — never block the clinical queue */
     }
 
     // Real DB counts (not capped by the LIMIT-200 list), so the badge and the

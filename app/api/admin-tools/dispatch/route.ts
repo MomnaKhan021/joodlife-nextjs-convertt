@@ -22,6 +22,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { backfillReorderBaseline } from "@/lib/reorderBackfill";
 import { hideBeforeSql } from "@/lib/adminHide";
 import {
   fireHubSpot,
@@ -501,6 +502,23 @@ export async function GET(req: NextRequest) {
       if (an !== bn) return bn - an;
       return timeOf(b.createdAt) - timeOf(a.createdAt);
     });
+
+    // GPHC compliance: carry DOB / height / weight / age into reorders from the
+    // patient's most recent new-supply consultation, so the To Dispatch clinical
+    // summary shows the baseline (same as Clinical Check) instead of "—".
+    try {
+      await backfillReorderBaseline(
+        orders.map((o) => ({
+          email: o.customerEmail,
+          isReorder: (o.consultation?.productSlug ?? "") === "reorder",
+          answers: o.consultation?.answers ?? {},
+        })),
+        drizzle,
+        sql,
+      );
+    } catch {
+      /* backfill is best-effort — never block the dispatch queue */
+    }
 
     return NextResponse.json({ ok: true, orders });
   } catch (err) {
