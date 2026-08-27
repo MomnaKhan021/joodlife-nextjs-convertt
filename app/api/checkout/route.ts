@@ -37,6 +37,15 @@ export const runtime = "nodejs";
 /* Validation                                                          */
 /* ------------------------------------------------------------------ */
 
+/** UK phone numbers only (07…, 01/02/03 landlines, and +44 / 0044 forms). */
+function isUkPhoneNumber(raw: string): boolean {
+  let n = (raw || "").replace(/[\s().-]/g, "");
+  if (n.startsWith("+44")) n = "0" + n.slice(3);
+  else if (n.startsWith("0044")) n = "0" + n.slice(4);
+  else if (n.startsWith("44") && n.length >= 12) n = "0" + n.slice(2);
+  return /^0(?:1\d{8,9}|2\d{9}|3\d{9}|7\d{9})$/.test(n);
+}
+
 const CartItemSchema = z.object({
   productId: z.number().int().positive(),
   slug: z.string().min(1).max(120),
@@ -54,7 +63,16 @@ const CheckoutSchema = z.object({
   customer: z.object({
     name: z.string().min(1).max(120),
     email: z.string().email().max(200),
-    phone: z.string().max(40).optional().default(""),
+    // UK-only: this is a UK pharmacy and delivery is UK-only, so reject
+    // non-UK numbers server-side too (the client validates as you type).
+    phone: z
+      .string()
+      .max(40)
+      .optional()
+      .default("")
+      .refine((v) => v.trim() === "" || isUkPhoneNumber(v), {
+        message: "Enter a UK phone number",
+      }),
     address: z.string().min(5).max(2000),
     notes: z.string().max(2000).optional().default(""),
   }),

@@ -36,6 +36,24 @@ const formatPrice = (n: number) =>
     maximumFractionDigits: 2,
   });
 
+/** Normalise a UK phone number to its national 0… form, or null if it isn't
+ *  a valid UK number. Accepts 07…, 01/02/03 landlines and the +44 / 0044
+ *  international forms, with spaces, dashes or brackets anywhere. */
+export function normaliseUkPhone(raw: string): string | null {
+  const digits = (raw || "").replace(/[\s().-]/g, "");
+  let n = digits;
+  if (n.startsWith("+44")) n = "0" + n.slice(3);
+  else if (n.startsWith("0044")) n = "0" + n.slice(4);
+  else if (n.startsWith("44") && n.length >= 12) n = "0" + n.slice(2);
+  if (!/^0(?:1\d{8,9}|2\d{9}|3\d{9}|7\d{9})$/.test(n)) return null;
+  return n;
+}
+
+/** True when the value is a usable UK phone number. */
+function isUkPhone(raw: string): boolean {
+  return normaliseUkPhone(raw) !== null;
+}
+
 /** A string that looks like a raw JSON blob, object dump, or an internal
  *  server error — we never want to show any of these to a customer at the
  *  bottom of the checkout. */
@@ -328,6 +346,10 @@ function CheckoutForm() {
   // if it's slow or down, a correctly-formatted UK postcode must still let the
   // customer pay. `postcodeValid` (the API tick) is treated as a bonus.
   const UK_POSTCODE_RE = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;
+  // UK-only phone numbers — this is a UK pharmacy and the courier only
+  // delivers in the UK. Accepts 07…, 01/02/03 landlines, and the +44 / 0044
+  // international forms of the same.
+  const phoneValid = isUkPhone(phone);
   const postcodeOk = postcodeValid || UK_POSTCODE_RE.test(postcode.trim());
   // When delivering elsewhere, that block must also be a complete UK address.
   const deliveryOk =
@@ -335,9 +357,6 @@ function CheckoutForm() {
     (dAddress.trim() &&
       dCity.trim() &&
       (dPostcodeValid || UK_POSTCODE_RE.test(dPostcode.trim())));
-  // A fully-discounted (£0) order is placed without a card — Stripe rejects
-  // a £0 charge, so we skip the card requirement and the payment step.
-  const isFreeOrder = total <= 0;
   const canPay =
     items.length > 0 &&
     firstName.trim() &&
@@ -347,12 +366,13 @@ function CheckoutForm() {
     city.trim() &&
     postcodeOk &&
     deliveryOk &&
-    phone.trim() &&
-    (isFreeOrder ||
-      (cardComplete &&
-        expiryComplete &&
-        cvcComplete &&
-        Boolean(stripe && elements))) &&
+    phoneValid &&
+    // A payment card is ALWAYS required — including a £0 (fully discounted)
+    // order, which is verified with Stripe rather than charged.
+    cardComplete &&
+    expiryComplete &&
+    cvcComplete &&
+    Boolean(stripe && elements) &&
     !busy;
 
   // Fire the Purchase pixel event (deduped per order) then navigate to the
@@ -482,9 +502,57 @@ function CheckoutForm() {
         throw new Error(describeCheckoutError(orderJson, orderRes.status));
       }
 
-      // Free order (£0 after a full discount): Stripe is skipped — the order
-      // is already recorded as paid server-side. Go straight to success.
+      // Free order (£0 after a full discount): Stripe can't charge £0, but a
+      // card is still required — so VERIFY it with a zero-amount SetupIntent.
+      // If the card is missing or declined the order is not completed.
       if (orderJson.free || orderJson.totalAmount <= 0) {
+        if (!stripe || !elements) {
+          throw new Error("Payment form is still loading. Please retry.");
+        }
+        const cardEl = elements.getElement(
+          CardNumberElement,
+        ) as StripeCardNumberElement | null;
+        if (!cardEl) throw new Error("Card field not ready. Please retry.");
+
+        const siRes = await fetch("/api/stripe/setup-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ orderNumber: orderJson.orderNumber }),
+        });
+        const siJson = await siRes.json();
+        if (!siRes.ok || !siJson.ok || !siJson.clientSecret) {
+          throw new Error(
+            typeof siJson?.error === "string" && !looksTechnical(siJson.error)
+              ? siJson.error
+              : "We couldn't verify your card. Please try again.",
+          );
+        }
+        const { error: setupError } = await stripe.confirmCardSetup(
+          siJson.clientSecret,
+          {
+            payment_method: {
+              card: cardEl,
+              billing_details: {
+                name: fullName,
+                email: email.trim(),
+                phone: phone.trim(),
+                address: {
+                  line1: address.trim(),
+                  line2: apartment.trim() || undefined,
+                  city: city.trim(),
+                  postal_code: postcode.trim(),
+                  country,
+                },
+              },
+            },
+          },
+        );
+        if (setupError) {
+          throw new Error(
+            setupError.message ?? "Your card could not be verified.",
+          );
+        }
         finalizeAndRedirect(
           orderJson.orderNumber,
           Number(orderJson.totalAmount) || total,
@@ -906,6 +974,12 @@ function CheckoutForm() {
                 autoComplete="tel"
                 placeholder="+44 7700 900000"
               />
+              {phone.trim() && !phoneValid ? (
+                <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
+                  Please enter a UK phone number — we only deliver within the UK
+                  (for example 07700 900000 or +44 7700 900000).
+                </p>
+              ) : null}
             </Field>
 
             <label className="mt-1 flex cursor-pointer items-center gap-2.5 select-none">
@@ -1146,8 +1220,12 @@ function CheckoutForm() {
               {!deliveryOk ? (
                 <li>• Complete the delivery address (UK postcode required).</li>
               ) : null}
-              {!phone.trim() ? <li>• Enter your phone number.</li> : null}
-              {!isFreeOrder && (!cardComplete || !expiryComplete || !cvcComplete)
+              {!phone.trim() ? (
+                <li>• Enter your phone number.</li>
+              ) : !phoneValid ? (
+                <li>• Enter a valid UK phone number.</li>
+              ) : null}
+              {(!cardComplete || !expiryComplete || !cvcComplete)
                 ? <li>• Complete the card number, expiry and CVC.</li>
                 : null}
             </ul>
