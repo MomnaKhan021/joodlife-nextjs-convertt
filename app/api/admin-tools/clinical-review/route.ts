@@ -523,11 +523,12 @@ export async function GET(req: NextRequest) {
     }
 
     // GPHC compliance: reorder submissions don't re-collect the patient's
-    // stable identity data (date of birth, height), so the clinical summary
-    // would show "—" for age / height / DOB. Backfill those — and only those —
-    // from the patient's most recent NEW-supply consultation. Weight is
-    // deliberately NOT pulled (it changes); existing values are never
-    // overwritten. A `_identity_from_prior` flag marks records we enriched.
+    // clinical baseline (date of birth, height, and often weight), so the
+    // clinical summary would show "—" for age / DOB / height / weight / BMI.
+    // Backfill those from the patient's most recent NEW-supply consultation.
+    // Fill ONLY when missing — a reorder's own current weight always wins over
+    // the older one, so BMI reflects the latest weight when the patient gave
+    // it. A `_identity_from_prior` flag marks records we enriched.
     const isEmpty = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
     const reorderEmails = Array.from(
       new Set(
@@ -535,7 +536,9 @@ export async function GET(req: NextRequest) {
           .filter(
             (c) =>
               c.isReorder &&
-              (isEmpty(c.answers.date_of_birth_consultation) || isEmpty(c.answers.height_cm)),
+              (isEmpty(c.answers.date_of_birth_consultation) ||
+                isEmpty(c.answers.height_cm) ||
+                isEmpty(c.answers.current_weight_kg)),
           )
           .map((c) => String(c.email ?? "").trim().toLowerCase())
           .filter(Boolean),
@@ -574,7 +577,12 @@ export async function GET(req: NextRequest) {
           const prior = priorByEmail[String(c.email ?? "").toLowerCase()];
           if (!prior) continue;
           let filled = false;
-          for (const key of ["date_of_birth_consultation", "height_cm", "_age"] as const) {
+          for (const key of [
+            "date_of_birth_consultation",
+            "height_cm",
+            "current_weight_kg",
+            "_age",
+          ] as const) {
             if (isEmpty(c.answers[key]) && !isEmpty(prior[key])) {
               c.answers[key] = prior[key];
               filled = true;
