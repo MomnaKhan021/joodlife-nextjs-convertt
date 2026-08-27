@@ -437,6 +437,7 @@ export async function POST(req: NextRequest) {
     customer_email: string | null;
     customer_phone: string | null;
     shipping_address: string | null;
+    dispatch_note?: string | null;
     notes: string | null;
     status: string | null;
     total_amount: string | number | null;
@@ -445,7 +446,7 @@ export async function POST(req: NextRequest) {
   };
 
   const orderResult = await drizzle.execute(
-    sql.raw(`SELECT id, order_number, customer_name, customer_email, customer_phone, shipping_address, notes, status, total_amount, items_json, hubspot_deal_id FROM orders WHERE id = ${orderId} LIMIT 1`),
+    sql.raw(`SELECT id, order_number, customer_name, customer_email, customer_phone, shipping_address, notes, status, total_amount, items_json, hubspot_deal_id, to_jsonb(orders) ->> 'dispatch_note' AS dispatch_note FROM orders WHERE id = ${orderId} LIMIT 1`),
   );
   const orderRows = rows<OrderRow>(orderResult);
   if (!orderRows.length) {
@@ -500,6 +501,20 @@ export async function POST(req: NextRequest) {
    *    didn't add a separate one) in shipping_address. For older/edge orders
    *    where that column is empty, fall back to the "Billing/contact address"
    *    block kept in notes, so we still dispatch to the address on record. */
+  // A dispatch note is compulsory: staff must record what is being sent
+  // before a parcel label can be created. The To Dispatch card disables the
+  // button, this is the server-side backstop.
+  if (!String(order.dispatch_note ?? "").trim()) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Add a dispatch note for this order before printing the dispatch label.",
+      },
+      { status: 400 },
+    );
+  }
+
   const shipTo = resolveDeliveryAddress(order.shipping_address, order.notes);
   if (!shipTo) {
     return NextResponse.json(

@@ -126,6 +126,7 @@ type OrderRow = {
   total_amount: string | number | null;
   items_json: unknown;
   created_at: string | null;
+  dispatch_note: string | null;
 };
 
 type ConsultRow = {
@@ -306,7 +307,9 @@ export async function GET(req: NextRequest) {
       const oRes = await drizzle.execute(
         sql.raw(`
           SELECT id, order_number, customer_name, customer_email, customer_phone,
-                 shipping_address, notes, status, total_amount, items_json, created_at
+                 shipping_address, notes, status, total_amount, items_json, created_at,
+                 -- via to_jsonb so this still works before the column is added
+                 to_jsonb(orders) ->> 'dispatch_note' AS dispatch_note
           FROM orders
           WHERE LOWER(customer_email) IN (${inList})
             AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
@@ -380,6 +383,7 @@ export async function GET(req: NextRequest) {
         // delivery address — otherwise DPD rejects "missing street/town".
         canDispatch: Boolean(o) && addressUsable(o?.shipping_address ?? null, o?.notes ?? null),
         orderNumber: o?.order_number ?? null,
+        dispatchNote: o?.dispatch_note ?? null,
         customerName: c.full_name ?? o?.customer_name ?? null,
         customerEmail: c.email ?? o?.customer_email ?? null,
         customerPhone: c.phone ?? o?.customer_phone ?? null,
@@ -455,6 +459,7 @@ export async function GET(req: NextRequest) {
           // is usable by DPD.
           canDispatch: !isDispatched && addressUsable(o.shipping_address ?? null, o.notes ?? null),
           orderNumber: o.order_number ?? null,
+          dispatchNote: o.dispatch_note ?? null,
           customerName: o.customer_name ?? null,
           customerEmail: o.customer_email ?? null,
           customerPhone: o.customer_phone ?? null,

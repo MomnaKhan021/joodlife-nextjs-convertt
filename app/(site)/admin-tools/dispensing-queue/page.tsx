@@ -57,6 +57,7 @@ type DispatchOrder = {
   createdAt: string | null;
   trackingNumber: string | null;
   dispatched: boolean;
+  dispatchNote: string | null;
   items: DispatchItem[];
   consultation: Consultation | null;
 };
@@ -196,11 +197,39 @@ function OrderCard({
   const [localCanDispatch, setLocalCanDispatch] = useState(o.canDispatch);
   // When the dispensing (medicine) label was last printed — persisted on the
   // consultation, so the "printed" state survives a reload.
+  // Dispatch note — COMPULSORY before the parcel can go. Autosaves as staff
+  // type (what's being sent: packs/tabs, batch remarks) and gates the
+  // "Print dispatch label" button below.
+  const [dispatchNote, setDispatchNote] = useState(o.dispatchNote ?? "");
+  const [noteState, setNoteState] = useState<"idle" | "saving" | "saved">("idle");
+  const noteReady = dispatchNote.trim().length > 0;
+
   const [dispensedAt, setDispensedAt] = useState<string | null>(
     typeof o.consultation?.answers?._dispensing_printed_at === "string"
       ? (o.consultation.answers._dispensing_printed_at as string)
       : null,
   );
+
+  // Debounced autosave of the dispatch note.
+  useEffect(() => {
+    if (!o.orderId) return;
+    if ((o.dispatchNote ?? "") === dispatchNote) return; // nothing changed yet
+    const t = setTimeout(async () => {
+      try {
+        await fetch("/api/admin-tools/dispatch-note", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ orderId: o.orderId, note: dispatchNote }),
+        });
+        setNoteState("saved");
+      } catch {
+        setNoteState("idle");
+      }
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatchNote, o.orderId]);
 
   async function saveAddress() {
     const addr = addrInput.trim();
@@ -379,8 +408,9 @@ function OrderCard({
           </p>
         </div>
 
-        {/* Top-right actions */}
-        <div className="flex flex-col items-end gap-1.5">
+        {/* Top-right actions — full width on small screens so nothing is
+            stranded beside a half-empty column. */}
+        <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
           {/* Product + price — prominent, top-right, so it's the first thing
               you see: what the patient bought and what they paid. */}
           {(() => {
@@ -395,7 +425,7 @@ function OrderCard({
               : null;
             if (!med) return null;
             return (
-              <div className="mb-1 text-right">
+              <div className="mb-1 text-left sm:text-right">
                 <div className="text-[15px] font-bold leading-tight text-[#111827] md:text-[16px]">{med}</div>
                 {o.hasOrder ? (
                   <div className="text-[20px] font-extrabold leading-tight text-[#142e2a]">{gbp(o.total)}</div>
@@ -403,7 +433,7 @@ function OrderCard({
               </div>
             );
           })()}
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
             {/* Which stock batch is being dispensed — prints on the label. */}
             <select
               value={batch}
@@ -452,13 +482,15 @@ function OrderCard({
             <button
               type="button"
               onClick={dispatch}
-              disabled={busy || !localCanDispatch}
+              disabled={busy || !localCanDispatch || !noteReady}
               title={
-                localCanDispatch
-                  ? undefined
-                  : o.hasOrder
+                !localCanDispatch
+                  ? o.hasOrder
                     ? "Delivery address is incomplete — add it to enable DPD"
                     : "No order/address on file for this patient"
+                  : !noteReady
+                    ? "Add a dispatch note first — it's required before dispatching"
+                    : undefined
               }
               className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
             >
@@ -504,6 +536,52 @@ function OrderCard({
           <span className="text-[12px] font-mono text-[#9ca3af]">#{o.id}</span>
         </div>
       </div>
+
+      {/* Dispatch note — REQUIRED before the parcel can be dispatched. Full
+          width so it reads clearly on every screen size, and autosaved. */}
+      {o.hasOrder ? (
+        <div className="mt-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafafa] p-3">
+          <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+            <label
+              htmlFor={`dispatch-note-${o.id}`}
+              className="text-[12px] font-semibold text-[#374151]"
+            >
+              Dispatch note <span className="text-[#dc2626]">*</span>
+              <span className="ml-1 font-normal text-[#6b7280]">
+                required before dispatching
+              </span>
+            </label>
+            <span className="text-[11px] text-[#9ca3af]">
+              {noteState === "saving"
+                ? "Saving…"
+                : noteState === "saved"
+                  ? "Saved ✓"
+                  : ""}
+            </span>
+          </div>
+          <textarea
+            id={`dispatch-note-${o.id}`}
+            rows={2}
+            value={dispatchNote}
+            onChange={(e) => {
+              setDispatchNote(e.target.value);
+              setNoteState("saving");
+            }}
+            maxLength={1000}
+            placeholder="What's being sent — e.g. 2 packs, 28 tabs, batch checked, any remarks for this parcel…"
+            className={`w-full rounded-[8px] border bg-white px-3 py-2 text-[13px] text-[#142e2a] outline-none ${
+              noteReady
+                ? "border-[#d0d3d6] focus:border-[#142e2a]"
+                : "border-[#f0b4b4] focus:border-[#dc2626]"
+            }`}
+          />
+          {!noteReady ? (
+            <p className="mt-1 text-[11px] text-[#dc2626]">
+              Add a note to enable &ldquo;2. Print dispatch label&rdquo;.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Expandable clinical summary + order detail (collapsed by default,
           same as the clinical queue) */}
