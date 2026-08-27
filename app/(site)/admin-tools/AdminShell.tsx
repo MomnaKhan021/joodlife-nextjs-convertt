@@ -181,9 +181,16 @@ export function getClinicalCountOverride(): number | null {
   return clinicalTabTotal;
 }
 export function refreshAdminBadges() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(BADGE_REFRESH_EVENT));
-  }
+  if (typeof window === "undefined") return;
+  // Fire now, then two short follow-ups. The count read straight after an
+  // action can hit a pooled DB connection that hasn't seen the just-committed
+  // write yet (Neon), so a single refetch sometimes shows the OLD number until
+  // you reload two or three times. The staggered retries pick up the committed
+  // value on their own, so the sidebar count moves the moment you click.
+  const fire = () => window.dispatchEvent(new Event(BADGE_REFRESH_EVENT));
+  fire();
+  window.setTimeout(fire, 500);
+  window.setTimeout(fire, 1500);
 }
 
 function NavBadge({ type }: { type: string }) {
