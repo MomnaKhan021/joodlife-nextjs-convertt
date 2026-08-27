@@ -179,6 +179,10 @@ export async function GET(req: NextRequest) {
   // Mirrors the client's fulfillmentOf(): an order counts as dispatched once
   // its status is shipped/delivered OR it has a DPD tracking note.
   const fulfillment = (url.searchParams.get("fulfillment") ?? "").trim();
+  // Supply-type filter for orders: "reorder" | "new" (empty = both).
+  // HubSpot prefixes repeat supplies in the deal name ("Reorder — #2948"),
+  // which is the same signal lib/orderTag.ts uses for the row tag.
+  const supply = (url.searchParams.get("supply") ?? "").trim().toLowerCase();
 
   // Sort — only honoured against the per-spec whitelist; anything else is
   // ignored and defaultOrderBy applies.
@@ -224,6 +228,10 @@ export async function GET(req: NextRequest) {
           // visible under "All" for the record.
           `NOT ${dispatchedExpr} AND LOWER(COALESCE(status::text,'')) <> 'cancelled' AND ${paidOrStaffExpr}`,
     );
+  }
+  if (type === "orders" && (supply === "reorder" || supply === "new")) {
+    const reorderExpr = "COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'";
+    conditions.push(supply === "reorder" ? reorderExpr : `NOT (${reorderExpr})`);
   }
   // Legacy-data hide: keep only rows created at/after the cutoff for the
   // hidden collections (orders / consultations / customers). Rows stay in the
@@ -280,6 +288,10 @@ export async function GET(req: NextRequest) {
     );
   }
   if (hideCond) safeConds.push(hideCond);
+  if (type === "orders" && (supply === "reorder" || supply === "new")) {
+    const reorderExpr = "COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'";
+    safeConds.push(supply === "reorder" ? reorderExpr : `NOT (${reorderExpr})`);
+  }
   const safeWhere = safeConds.length ? `WHERE ${safeConds.join(" AND ")}` : "";
 
   let rowsResult: unknown;
