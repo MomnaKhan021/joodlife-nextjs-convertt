@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { dlViewItem, toDlItem } from "@/lib/dataLayer";
 import WhatIsSection from "@/components/pdp/WhatIsSection";
-import ComparisonTable from "@/components/pdp/ComparisonTable";
 import type { PDPProduct } from "@/lib/pdp-products";
 
 /** A single selectable dose (label + numeric pack price + optional
@@ -320,33 +319,14 @@ export default function FinalProductClient({
 
       {/* Detail for the SELECTED product — updates when you switch product */}
       {activeEditorial ? (
-        <>
-          <section
-            aria-label={`What is ${activeEditorial.title}?`}
-            className="w-full bg-white py-[30px] md:py-10"
-          >
-            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-              <WhatIsSection product={activeEditorial} />
-            </div>
-          </section>
-
-          <section aria-label="Evidence-based comparison" className="w-full bg-white py-[30px] md:py-10">
-            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-              <div className="mb-8 text-center md:mb-12">
-                <h2 className="font-display text-[26px] font-bold leading-[1.1] tracking-[-0.01em] text-[#142e2a] md:text-[36px]">
-                  Evidence-based{" "}
-                  <em className="font-serif font-normal italic">comparison</em>
-                </h2>
-                <p className="mx-auto mt-2 max-w-[520px] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
-                  Review clinical insights on each treatment&rsquo;s effectiveness,
-                  typical weight-loss outcomes and safety profile, all to help you
-                  make an informed choice.
-                </p>
-              </div>
-              <ComparisonTable active={activeEditorial.comparisonActive} />
-            </div>
-          </section>
-        </>
+        <section
+          aria-label={`What is ${activeEditorial.title}?`}
+          className="w-full bg-white py-[30px] md:py-10"
+        >
+          <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+            <WhatIsSection product={activeEditorial} hideCta />
+          </div>
+        </section>
       ) : null}
 
       {/* Sticky bottom bar */}

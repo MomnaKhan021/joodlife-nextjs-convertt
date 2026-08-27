@@ -4,6 +4,9 @@ import type { PDPProduct } from "@/lib/pdp-products";
 
 interface WhatIsSectionProps {
   product: PDPProduct;
+  /** Hide the "Get started" CTA (used on the final product page, which has its
+   *  own sticky checkout bar). Defaults to showing it (e.g. on /shop/[slug]). */
+  hideCta?: boolean;
 }
 
 /**
@@ -12,7 +15,7 @@ interface WhatIsSectionProps {
  * Two-column layout: copy block on the left, animated graph on the
  * right. On mobile the graph drops below the copy block.
  */
-export default function WhatIsSection({ product }: WhatIsSectionProps) {
+export default function WhatIsSection({ product, hideCta = false }: WhatIsSectionProps) {
   return (
     <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-16">
       {/* LEFT — copy block */}
@@ -59,12 +62,14 @@ export default function WhatIsSection({ product }: WhatIsSectionProps) {
           ))}
         </ul>
 
-        <a
-          href="/consultation"
-          className="inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
-        >
-          Get started
-        </a>
+        {hideCta ? null : (
+          <a
+            href="/consultation"
+            className="inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
+          >
+            Get started
+          </a>
+        )}
       </div>
 
       {/* RIGHT — animated graph */}
