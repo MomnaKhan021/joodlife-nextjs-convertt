@@ -525,7 +525,9 @@ function NameSlide({ slide, answers, setAnswer }: SlideProps) {
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <div className="flex flex-col gap-3">
+      {/* Side by side on anything wider than a phone; stacked on mobile so
+          the fields stay comfortably tappable. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <div>
           <label className="mb-1.5 block font-ui text-[13px] font-semibold text-[#142e2a]">
             First name
