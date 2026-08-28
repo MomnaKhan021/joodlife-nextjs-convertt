@@ -15,7 +15,7 @@
  *   GET /api/checkout?orderNumber=JL-XXXXX
  *     Public summary used by the success page.
  */
-import { NextResponse, after, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 import { z } from "zod";
 
@@ -23,7 +23,6 @@ import { verifyUkAddress } from "@/lib/addressVerify";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { addNoteToContact, createDeal, fireHubSpot, mapOrderStageId, upsertContact } from "@/lib/hubspot";
-import { sendOrderConfirmationEmail } from "@/lib/account-email";
 import { nextOrderNumber } from "@/lib/orderNumber";
 import {
   sanitizeText,
@@ -678,40 +677,12 @@ export async function POST(req: NextRequest) {
         payload?.logger?.error?.({ msg: "HubSpot order push failed (non-fatal)", err });
       }
 
-      // Confirmation email can stay in the background — it's not time-critical.
-      after(async () => {
-        try {
-          // A reorder is any order beyond the first — check if the customer had
-          // prior orders (the current one is already inserted, so count > 1).
-          let isReorder = false;
-          try {
-            const countRes = (await drizzle.execute(
-              sql.raw(
-                `SELECT COUNT(*) AS n FROM "orders" WHERE lower(customer_email) = lower(${esc(customer.email)}) AND status != 'cancelled'`
-              )
-            )) as { rows?: Array<{ n: string | number }> } | Array<{ n: string | number }>;
-            const countRows = Array.isArray(countRes) ? countRes : (countRes.rows ?? []);
-            isReorder = Number(countRows[0]?.n ?? 0) > 1;
-          } catch { /* non-fatal */ }
-
-          await sendOrderConfirmationEmail(payload, {
-            email: customer.email,
-            name: customer.name,
-            orderNumber,
-            total: finalTotal,
-            isReorder,
-            items: repriced.items.map((i) => ({
-              title: i.title,
-              dose: i.dose ?? null,
-              quantity: i.quantity,
-              price: i.price,
-              imageUrl: i.imageUrl ?? null,
-            })),
-          });
-        } catch (err) {
-          payload?.logger?.error?.({ msg: "Order email failed (non-fatal)", err });
-        }
-      });
+      // NOTE: the order-confirmation email is deliberately NOT sent here —
+      // at this point the order exists but the card has not been charged, so
+      // a declined/abandoned payment would still have emailed "order
+      // confirmed". It is sent from the payment-success paths instead
+      // (stripe/confirm, the Stripe webhook, checkout/confirm-free) via
+      // sendOrderConfirmationOnce, which guarantees exactly one email.
     }
 
     return NextResponse.json({

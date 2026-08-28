@@ -15,11 +15,12 @@
  * Security: the amount/status are read from Stripe, not the request body, so a
  * caller cannot mark an unpaid order as paid.
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, after } from "next/server";
 import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { isStripeConfigured, stripeRest } from "@/lib/stripe";
+import { sendOrderConfirmationOnce } from "@/lib/orderConfirmationOnce";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -147,6 +148,15 @@ export async function POST(req: NextRequest) {
          WHERE id = ${Number(order.id)}`,
       ),
     );
+
+    // Payment is confirmed — send the order-confirmation email (exactly once
+    // across this route, the webhook, and confirm-free).
+    after(async () => {
+      const payload = await getPayloadInstance();
+      await sendOrderConfirmationOnce(payload, drizzle, sql, {
+        orderId: Number(order.id),
+      });
+    });
 
     return NextResponse.json({ ok: true, paid: true, status: pi.status });
   } catch (err) {

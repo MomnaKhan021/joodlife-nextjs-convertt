@@ -21,10 +21,11 @@
  *   - checkout.session.async_payment_failed    → mark failed
  *   - charge.refunded                    → mark refunded
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, after } from "next/server";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { sendOrderConfirmationOnce } from "@/lib/orderConfirmationOnce";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -178,6 +179,11 @@ export async function POST(req: NextRequest) {
              WHERE order_number = ${esc(orderNumber)}`
           )
         );
+        // Paid — send the confirmation email (once across all success paths).
+        after(async () => {
+          const payload = await getPayloadInstance();
+          await sendOrderConfirmationOnce(payload, drizzle, sql, { orderNumber });
+        });
         break;
       }
       case "checkout.session.async_payment_failed":
@@ -246,6 +252,16 @@ export async function POST(req: NextRequest) {
         } catch {
           /* non-fatal — never let cart cleanup break the webhook */
         }
+        // Paid — send the confirmation email (once across all success paths).
+        after(async () => {
+          const payload = await getPayloadInstance();
+          await sendOrderConfirmationOnce(
+            payload,
+            drizzle,
+            sql,
+            orderNumber ? { orderNumber } : { paymentIntentId: pi.id },
+          );
+        });
         break;
       }
       case "payment_intent.payment_failed": {

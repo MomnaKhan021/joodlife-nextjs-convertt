@@ -13,11 +13,12 @@
  *
  * Body: { orderNumber, setupIntentId } -> { ok: true }
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, after } from "next/server";
 import { z } from "zod";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { isStripeConfigured } from "@/lib/stripe";
+import { sendOrderConfirmationOnce } from "@/lib/orderConfirmationOnce";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -150,6 +151,12 @@ export async function POST(req: NextRequest) {
     } catch {
       /* non-fatal — never let cart cleanup break the confirmation */
     }
+
+    // Card verified & order marked paid — send the confirmation email
+    // (once across all payment-success paths).
+    after(async () => {
+      await sendOrderConfirmationOnce(payload, drizzle, sql, { orderNumber });
+    });
 
     return NextResponse.json({ ok: true, orderNumber });
   } catch (err) {
