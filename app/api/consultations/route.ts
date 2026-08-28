@@ -136,6 +136,8 @@ export const runtime = "nodejs";
 
 type Body = {
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
   dateOfBirth?: string;
@@ -269,7 +271,13 @@ export async function POST(req: NextRequest) {
     // Fire-and-forget HubSpot mirror: only push when the customer hits
     // Submit (status === 'submitted'). Drafts churn too much.
     if (status === "submitted" && body.email) {
-      const [first, ...rest] = (body.fullName ?? "").split(" ");
+      // Prefer the names collected as separate fields; only fall back to
+      // splitting fullName for drafts saved before the split.
+      const [splitFirst, ...splitRest] = (body.fullName ?? "").split(" ");
+      const first = (body.firstName ?? "").trim() || splitFirst;
+      const rest = (body.lastName ?? "").trim()
+        ? [(body.lastName ?? "").trim()]
+        : splitRest;
       // isReorder / redFlags / hasRedFlags are computed above (drive auto-approval).
       const reorderStatus = hasRedFlags
         ? "needs_clinical_approval"
@@ -407,7 +415,13 @@ export async function PATCH(req: NextRequest) {
     // Mirror to HubSpot when this PATCH is the final submit.
     if (status === "submitted" && body.email) {
       const isReorder = body.productSlug === "reorder";
-      const [first, ...rest] = (body.fullName ?? "").split(" ");
+      // Prefer the names collected as separate fields; only fall back to
+      // splitting fullName for drafts saved before the split.
+      const [splitFirst, ...splitRest] = (body.fullName ?? "").split(" ");
+      const first = (body.firstName ?? "").trim() || splitFirst;
+      const rest = (body.lastName ?? "").trim()
+        ? [(body.lastName ?? "").trim()]
+        : splitRest;
       const redFlags = isReorder ? getReorderRedFlags(body.answers ?? {}) : [];
       const hasRedFlags = redFlags.length > 0;
       const reorderStatus = hasRedFlags ? "needs_clinical_approval" : "reorder_submitted";

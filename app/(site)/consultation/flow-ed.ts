@@ -32,7 +32,7 @@ export const ED_SLIDES: SlideDef[] = [
   },
 
   // ── About you ────────────────────────────────────────────────
-  { id: "s_name", type: "name", step: 1, title: "What is your full name?", next: () => "s_dob" },
+  { id: "s_name", type: "name", step: 1, title: "What is your name?", next: () => "s_dob" },
   {
     id: "s_dob",
     type: "dob",

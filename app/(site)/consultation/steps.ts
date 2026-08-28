@@ -122,7 +122,7 @@ export const STEPS: StepWithCondition[] = [
   // ----------------------------------------------------------------
   // 2. Identity
   // ----------------------------------------------------------------
-  { id: "name", type: "name", title: "What is your full name?" },
+  { id: "name", type: "name", title: "What is your name?" },
 
   {
     id: "dob",

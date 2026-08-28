@@ -231,7 +231,7 @@ export const SLIDES: SlideDef[] = [
     id: "s_name",
     type: "name",
     step: 2,
-    title: "What is your full name?",
+    title: "What is your name?",
     subtitle:
       "Please double-check your name — we check it to confirm you're over 18, so even small spelling mistakes can delay your order.",
     next: () => "s3",

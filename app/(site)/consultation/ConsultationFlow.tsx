@@ -14,6 +14,9 @@ import {
   fullNameError,
   isValidFullName,
   isValidEmail,
+  NAME_PART_MAX,
+  isValidNamePart,
+  namePartError,
 } from "@/lib/formValidation";
 
 import {
@@ -174,6 +177,10 @@ export default function ConsultationFlow({
       })();
       const payload = {
         fullName,
+        // Sent explicitly so HubSpot gets the real first/last name instead of
+        // guessing by splitting fullName on the first space.
+        firstName: (snapshot.firstName as string | undefined)?.trim() || undefined,
+        lastName: (snapshot.lastName as string | undefined)?.trim() || undefined,
         email: snapshot.email as string | undefined,
         phone: snapshot.consultation_mobile_number_v2 as string | undefined,
         dateOfBirth: snapshot.date_of_birth_consultation as string | undefined,
@@ -484,38 +491,78 @@ function NumberSlide({ slide, answers, setAnswer }: SlideProps) {
 }
 
 function NameSlide({ slide, answers, setAnswer }: SlideProps) {
-  // Single full-name field. Fall back to any legacy first/last stored by an
-  // in-progress draft so nothing is lost mid-questionnaire.
-  const legacy = [answers.firstName, answers.lastName]
-    .map((v) => (typeof v === "string" ? v.trim() : ""))
-    .filter(Boolean)
-    .join(" ");
-  const value = (answers.fullName as string | undefined) ?? legacy;
-  const err = fullNameError(value);
+  // Separate first/last name. HubSpot stores them as distinct properties, and
+  // splitting a single "full name" on the first space got it wrong for anyone
+  // with a middle or double-barrelled name.
+  const stored = (k: string) =>
+    typeof answers[k] === "string" ? (answers[k] as string) : "";
+  // A draft saved before the split holds only fullName — seed the fields from
+  // it so an in-progress questionnaire isn't emptied.
+  const legacyFull = stored("fullName").trim();
+  const [legacyFirst, ...legacyRest] = legacyFull.split(/\s+/).filter(Boolean);
+  const first = answers.firstName !== undefined ? stored("firstName") : (legacyFirst ?? "");
+  const last =
+    answers.lastName !== undefined ? stored("lastName") : legacyRest.join(" ");
+
+  // Keep fullName in step — the rest of the flow, the order and the emails
+  // all read it.
+  const setPart = (key: "firstName" | "lastName", value: string) => {
+    setAnswer(key, value);
+    const f = key === "firstName" ? value : first;
+    const l = key === "lastName" ? value : last;
+    setAnswer("fullName", `${f.trim()} ${l.trim()}`.trim());
+  };
+
+  const firstErr = namePartError(first);
+  const lastErr = namePartError(last);
+  const field = (err: string | null) =>
+    `w-full rounded-xl border bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors ${
+      err
+        ? "border-red-400 focus:border-red-500"
+        : "border-[#142e2a]/15 focus:border-[#142e2a]"
+    }`;
+
   return (
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
-      <input
-        type="text"
-        value={value}
-        placeholder="Full name"
-        autoComplete="name"
-        maxLength={NAME_MAX}
-        aria-invalid={Boolean(err)}
-        onChange={(e) => setAnswer("fullName", e.target.value)}
-        className={`w-full rounded-xl border bg-white px-4 py-3 font-ui text-[15px] text-[#142e2a] outline-none transition-colors ${
-          err
-            ? "border-red-400 focus:border-red-500"
-            : "border-[#142e2a]/15 focus:border-[#142e2a]"
-        }`}
-      />
-      {err ? (
-        <p className="mt-2 font-ui text-[13px] text-red-600">{err}</p>
-      ) : (
-        <p className="mt-2 font-ui text-[12px] text-[#142e2a]/45">
-          {value.trim().length}/{NAME_MAX}
-        </p>
-      )}
+      <div className="flex flex-col gap-3">
+        <div>
+          <label className="mb-1.5 block font-ui text-[13px] font-semibold text-[#142e2a]">
+            First name
+          </label>
+          <input
+            type="text"
+            value={first}
+            placeholder="First name"
+            autoComplete="given-name"
+            maxLength={NAME_PART_MAX}
+            aria-invalid={Boolean(firstErr)}
+            onChange={(e) => setPart("firstName", e.target.value)}
+            className={field(firstErr)}
+          />
+          {firstErr ? (
+            <p className="mt-1.5 font-ui text-[13px] text-red-600">{firstErr}</p>
+          ) : null}
+        </div>
+        <div>
+          <label className="mb-1.5 block font-ui text-[13px] font-semibold text-[#142e2a]">
+            Last name
+          </label>
+          <input
+            type="text"
+            value={last}
+            placeholder="Last name"
+            autoComplete="family-name"
+            maxLength={NAME_PART_MAX}
+            aria-invalid={Boolean(lastErr)}
+            onChange={(e) => setPart("lastName", e.target.value)}
+            className={field(lastErr)}
+          />
+          {lastErr ? (
+            <p className="mt-1.5 font-ui text-[13px] text-red-600">{lastErr}</p>
+          ) : null}
+        </div>
+      </div>
     </SlideShell>
   );
 }
@@ -1810,12 +1857,14 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return v != null && String(v).trim() !== "" && !Number.isNaN(Number(v));
   }
   if (slide.type === "name") {
-    const full = (answers.fullName as string | undefined)?.trim();
-    if (full) return isValidFullName(full);
-    // Legacy drafts may still hold first/last only.
     const f = (answers.firstName as string | undefined)?.trim();
     const l = (answers.lastName as string | undefined)?.trim();
-    return Boolean(f && l) && isValidFullName(`${f} ${l}`);
+    if (f !== undefined || l !== undefined) {
+      return Boolean(f && l) && isValidNamePart(f!) && isValidNamePart(l!);
+    }
+    // Draft saved before the split — accept the single full name.
+    const full = (answers.fullName as string | undefined)?.trim();
+    return Boolean(full) && isValidFullName(full!);
   }
   if (slide.type === "choiceCards") {
     return Boolean(answers[slide.field!]);
