@@ -40,6 +40,7 @@ type OrderRow = {
   total_amount: number | string | null;
   discount_amount: number | string | null;
   notes: string | null;
+  dispatch_note: string | null;
   stripe_payment_intent_id: string | null;
   admin_comments: unknown;
   created_at: string | null;
@@ -867,6 +868,19 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 ) : null}
               </div>
             </Card>
+
+            {/* Dispatch note — the pharmacy note + the inventory batch the
+                order was dispensed from (recorded in To Dispatch). */}
+            {order.dispatch_note?.trim() ? (
+              <Card>
+                <div className="px-5 py-4">
+                  <h2 className="text-[14px] font-semibold">Dispatch note</h2>
+                  <p className="mt-2 whitespace-pre-line text-[13px] text-[#142e2a]">
+                    {order.dispatch_note.trim()}
+                  </p>
+                </div>
+              </Card>
+            ) : null}
 
             {/* Channel */}
             <Card>

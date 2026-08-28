@@ -174,6 +174,16 @@ function fmtDateTime(iso: string | null) {
   });
 }
 
+/** Keep a single "Batch: <n>" line at the top of the dispatch note, so the
+ *  chosen inventory batch is recorded on the order (it autosaves into the
+ *  order's dispatch_note and shows on the order page). Idempotent: re-picking a
+ *  batch replaces the line instead of stacking. */
+function withBatchLine(note: string, batchNumber: string): string {
+  const rest = note.replace(/^\s*Batch:.*(?:\r?\n|$)/i, "").replace(/^\s+/, "");
+  if (!batchNumber) return rest;
+  return rest ? `Batch: ${batchNumber}\n${rest}` : `Batch: ${batchNumber}`;
+}
+
 function OrderCard({
   o,
   onDispatched,
@@ -437,7 +447,12 @@ function OrderCard({
             {/* Which stock batch is being dispensed — prints on the label. */}
             <select
               value={batch}
-              onChange={(e) => setBatch(e.target.value)}
+              onChange={(e) => {
+                const b = e.target.value;
+                setBatch(b);
+                // Record the chosen batch on the order (via the note autosave).
+                setDispatchNote((prev) => withBatchLine(prev, b));
+              }}
               title="Select the stock batch being dispensed"
               className="rounded-lg border border-[#142e2a]/30 bg-white px-2.5 py-1.5 text-[13px] font-medium text-[#142e2a]"
             >
