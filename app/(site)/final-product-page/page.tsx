@@ -147,13 +147,17 @@ export default async function FinalProductPage({ searchParams }: Props) {
           doses,
         };
       });
-      // Wegovy Pills (the oral tablet) goes on top and is the recommended pick.
-      // Detect it by slug/title so spelling ("wegovy-pill" vs "wegovy-pills")
-      // doesn't matter; the rest keep their dashboard display order.
-      const isPill = (p: FlowProduct) =>
-        /pill/i.test(p.slug) || /pill/i.test(p.title);
-      products.sort((a, b) => (isPill(b) ? 1 : 0) - (isPill(a) ? 1 : 0));
-      // Exactly one expanded/recommended card — the top one (the pill).
+      // Display order: Foundayo first, then Wegovy Pill (the oral tablet), then
+      // the rest in their dashboard display order. Detect by slug/title so
+      // spelling variants don't matter. (Stable sort keeps the "rest" ordered.)
+      const rank = (p: FlowProduct) => {
+        const s = `${p.slug} ${p.title}`.toLowerCase();
+        if (/foundayo/.test(s)) return 0;
+        if (/pill/.test(s)) return 1;
+        return 2;
+      };
+      products.sort((a, b) => rank(a) - rank(b));
+      // Exactly one expanded/recommended card — the top one.
       products.forEach((p, i) => {
         p.recommended = i === 0;
       });
