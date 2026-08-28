@@ -15,8 +15,8 @@ export default function AnnouncementBar() {
             className="h-[18px] w-[18px] flex-shrink-0"
             aria-hidden
           />
-          <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
-            The New Wegovy Tablet Is Here – Learn More
+          <Link href="/weight-loss" className="font-outfit text-sm leading-snug text-white hover:underline">
+            Foundayo&reg; (oral tirzepatide) &ndash; a new tablet option for weight management is now available
           </Link>
         </div>
       </div>
@@ -32,8 +32,8 @@ export default function AnnouncementBar() {
             className="h-[18px] w-[18px] flex-shrink-0"
             aria-hidden
           />
-          <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
-            The New Wegovy Tablet Is Here – Learn More
+          <Link href="/weight-loss" className="font-outfit text-sm leading-snug text-white hover:underline">
+            Foundayo&reg; (oral tirzepatide) &ndash; a new tablet option for weight management is now available
           </Link>
         </div>
       </div>

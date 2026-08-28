@@ -15,7 +15,7 @@ import Link from "next/link";
 const FEATURES = [
   { icon: TabletIcon, label: "Oral tablet treatment" },
   { icon: SyringeIcon, label: "No injections" },
-  { icon: HeartIcon, label: "No injections" },
+  { icon: HeartIcon, label: "Clinician support" },
 ] as const;
 
 export default function FoundayoHero({
