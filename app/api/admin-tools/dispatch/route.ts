@@ -24,6 +24,7 @@ import { headers as nextHeaders } from "next/headers";
 import { getPayloadInstance } from "@/lib/payload";
 import { backfillReorderBaseline } from "@/lib/reorderBackfill";
 import { hideBeforeSql } from "@/lib/adminHide";
+import { isHiddenOrderNumber } from "@/lib/adminHiddenOrders";
 import {
   fireHubSpot,
   upsertContact,
@@ -539,7 +540,11 @@ export async function GET(req: NextRequest) {
       /* backfill is best-effort — never block the dispatch queue */
     }
 
-    return NextResponse.json({ ok: true, orders });
+    // Drop individually removed test rows (lib/adminHiddenOrders) from both
+    // To Dispatch and Dispatched.
+    const visible = orders.filter((e) => !isHiddenOrderNumber(e.orderNumber));
+
+    return NextResponse.json({ ok: true, orders: visible });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: "Read failed", detail: err instanceof Error ? err.message : String(err) },

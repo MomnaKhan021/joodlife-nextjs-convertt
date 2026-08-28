@@ -20,6 +20,7 @@ import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { hideBeforeSql, HIDE_TYPES } from "@/lib/adminHide";
+import { hiddenOrdersSql } from "@/lib/adminHiddenOrders";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -254,6 +255,8 @@ export async function GET(req: NextRequest) {
   }
   // Applies to every orders view, including "All".
   if (type === "orders") conditions.push(REAL_ORDER_SQL);
+  // Individually removed test rows (lib/adminHiddenOrders).
+  if (type === "orders" && hiddenOrdersSql()) conditions.push(hiddenOrdersSql());
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
@@ -322,6 +325,7 @@ export async function GET(req: NextRequest) {
   const safeConds: string[] = [];
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
   if (type === "orders") safeConds.push(REAL_ORDER_SQL);
+  if (type === "orders" && hiddenOrdersSql()) safeConds.push(hiddenOrdersSql());
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
