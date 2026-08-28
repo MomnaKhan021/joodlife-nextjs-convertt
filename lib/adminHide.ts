@@ -16,7 +16,7 @@
  * so a returning customer keeps their details) — they're just hidden from the
  * admin queues, which now read zero. New orders from this point show normally.
  */
-export const HIDE_BEFORE: string | null = "2026-08-27 14:30:00+00";
+export const HIDE_BEFORE: string | null = "2026-08-28 11:00:00+00";
 
 /**
  * Raw SQL condition that keeps only rows created at/after the cutoff.

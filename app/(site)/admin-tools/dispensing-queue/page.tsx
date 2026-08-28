@@ -540,27 +540,7 @@ function OrderCard({
         {open && (
           <>
             {o.consultation && <ClinicalSummary c={o.consultation} />}
-            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
-                <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Items</p>
-                {(() => {
-                  const list = itemsForCard(o);
-                  return list.length ? (
-                    <ul className="space-y-0.5">
-                      {list.map((it, i) => (
-                        <li key={i} className="text-[13px] text-[#303030]">
-                          {it.title ?? "Item"}{it.dose ? ` · ${it.dose}` : ""} × {it.quantity}
-                          {!o.items.length ? (
-                            <span className="ml-1 text-[11px] text-[#9ca3af]">(from consultation)</span>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-[13px] text-[#9ca3af]">No items on record.</p>
-                  );
-                })()}
-              </div>
+            <div className="mt-3">
               <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Delivery address</p>
                 {localAddr?.trim() ? (
