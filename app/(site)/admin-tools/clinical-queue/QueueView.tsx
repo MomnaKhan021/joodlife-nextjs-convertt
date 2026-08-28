@@ -692,6 +692,30 @@ export function ConsultationCard({
   // "booked" tab.
   const meeting = meetingBelongsToConsult(c, meetingTime) ? meetingTime : null;
 
+  // Clinical note — free-text recorded at the review step (e.g. video-call /
+  // meeting notes, remarks). Autosaves onto the consultation as staff type.
+  const [clinicalNote, setClinicalNote] = useState(
+    typeof c.answers?._clinical_note === "string" ? (c.answers._clinical_note as string) : "",
+  );
+  const [noteSaved, setNoteSaved] = useState(false);
+  useEffect(() => {
+    const initial =
+      typeof c.answers?._clinical_note === "string" ? c.answers._clinical_note : "";
+    if (clinicalNote === initial) return;
+    const t = setTimeout(() => {
+      void fetch("/api/admin-tools/clinical-note", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ consultationId: c.id, note: clinicalNote }),
+      })
+        .then(() => setNoteSaved(true))
+        .catch(() => {});
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clinicalNote, c.id]);
+
   const runDecision = useCallback(
     async (dec: "approved" | "rejected") => {
       if (loading) return;
@@ -889,6 +913,28 @@ export function ConsultationCard({
               )}
             </span>
           </div>
+        </div>
+
+        {/* Clinical note — video-call / meeting notes and any remarks, recorded
+            before approving supply. Autosaves onto the consultation. */}
+        <div className="mt-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafafa] p-3">
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <span className="text-[12px] font-semibold text-[#374151]">Clinical note</span>
+            {noteSaved && clinicalNote.trim() ? (
+              <span className="text-[11px] text-[#9ca3af]">Saved ✓</span>
+            ) : null}
+          </div>
+          <textarea
+            rows={2}
+            value={clinicalNote}
+            onChange={(e) => {
+              setClinicalNote(e.target.value);
+              setNoteSaved(false);
+            }}
+            maxLength={1000}
+            placeholder="Video call / meeting notes, or any remarks before approving supply…"
+            className="w-full rounded-[8px] border border-[#d0d3d6] bg-white px-3 py-2 text-[13px] text-[#142e2a] outline-none focus:border-[#142e2a]"
+          />
         </div>
 
         {/* Show / hide the clinical detail */}
