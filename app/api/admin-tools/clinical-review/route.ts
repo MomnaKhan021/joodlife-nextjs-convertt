@@ -297,7 +297,11 @@ export async function GET(req: NextRequest) {
     //               marks it paid even when the card was declined; that belongs
     //               in Abandoned Checkout, not Clinical Check.
     const queue = req.nextUrl.searchParams.get("queue") === "marketing" ? "marketing" : "clinical";
-    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%'))`;
+    // Scoped past the legacy-data cutoff: a hidden pre-reset paid test order
+    // must not qualify a brand-new consultation for Clinical Check — only a
+    // payment taken in the live era counts.
+    const orderHide = hideBeforeSql("o.created_at");
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
     const queueCond =
       queue === "marketing"
         ? `(email IS NULL OR NOT ${paidOrderExists})`

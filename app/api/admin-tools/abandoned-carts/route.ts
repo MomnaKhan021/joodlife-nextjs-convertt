@@ -53,7 +53,10 @@ function consultWhere(): string {
   // order row meant a customer whose card was declined had an (unpaid) order,
   // so they were excluded here AND excluded from Clinical Check — falling
   // through both queues. A declined or abandoned payment belongs here.
-  const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%'))`;
+  // Scoped past the legacy-data cutoff — must stay the exact mirror of
+  // Clinical Check's paidOrderExists, or patients fall through both queues.
+  const orderHide = hideBeforeSql("o.created_at");
+  const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
   return `status IN ('submitted','reviewed')
      AND email IS NOT NULL AND email <> ''
      AND NOT ${orderExists}
