@@ -1110,19 +1110,10 @@ export default function QueueView({
 
   const handleDecision = useCallback((id: number, decision: string, reason: string) => {
     setConsultations((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              reviewed: true,
-              reviewDecision: decision,
-              reviewReason: reason,
-              reviewedBy: "You",
-              reviewedAt: new Date().toISOString(),
-              answers: { ...c.answers, _review_decision: decision, _review_reason: reason },
-            }
-          : c,
-      ),
+      // A decided patient has left this queue: approved ones go to To
+      // Dispatch, rejected ones to the Rejected page. Drop the card so the
+      // list and the count agree instead of leaving a decided row behind.
+      prev.filter((c) => c.id !== id),
     );
   }, []);
 

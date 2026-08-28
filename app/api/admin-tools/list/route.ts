@@ -255,6 +255,22 @@ export async function GET(req: NextRequest) {
   }
   // Applies to every orders view, including "All".
   if (type === "orders") conditions.push(REAL_ORDER_SQL);
+  // Supply rejected in Clinical Check → the order is not going to be
+  // fulfilled, so it leaves the Orders queue (the patient is on the Rejected
+  // page). Only when there is no approved consultation for the same patient,
+  // so a later approved order isn't hidden by an old rejection.
+  if (type === "orders") {
+    conditions.push(`NOT (
+      EXISTS (SELECT 1 FROM "consultations" rc
+               WHERE rc.email IS NOT NULL AND TRIM(rc.email) <> ''
+                 AND LOWER(rc.email) = LOWER("orders".customer_email)
+                 AND rc.answers->>'_review_decision' = 'rejected')
+      AND NOT EXISTS (SELECT 1 FROM "consultations" ac
+               WHERE ac.email IS NOT NULL AND TRIM(ac.email) <> ''
+                 AND LOWER(ac.email) = LOWER("orders".customer_email)
+                 AND ac.answers->>'_review_decision' = 'approved')
+    )`);
+  }
   // Individually removed test rows (lib/adminHiddenOrders).
   if (type === "orders" && hiddenOrdersSql()) conditions.push(hiddenOrdersSql());
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {

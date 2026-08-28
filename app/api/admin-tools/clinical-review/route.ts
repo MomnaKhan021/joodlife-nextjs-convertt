@@ -314,7 +314,12 @@ export async function GET(req: NextRequest) {
       ? `WHERE (answers->>'_review_decision') = 'rejected' AND ${queueCond}${hideAnd}`
       : showAll
         ? `WHERE status NOT IN ('draft') AND ${queueCond}${hideAnd}`
-        : `WHERE status IN ('submitted', 'reviewed') AND ${queueCond}${hideAnd}`;
+        : // "Pending only" means still awaiting a decision. Once a patient is
+          // approved or rejected they leave this queue — approved ones move to
+          // To Dispatch, rejected ones to the Rejected page.
+          `WHERE status IN ('submitted', 'reviewed')
+             AND (answers->>'_review_decision') IS NULL
+             AND ${queueCond}${hideAnd}`;
 
     // The pending COUNT is computed directly in SQL (NOT derived from the
     // LIMIT-200 list) — otherwise, with 200+ awaiting consultations the list
