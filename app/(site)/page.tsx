@@ -1,6 +1,6 @@
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
-import HeroGateway from "@/components/home/HeroGateway";
+import FoundayoHero from "@/components/home/FoundayoHero";
 import CategoryPreview from "@/components/home/CategoryPreview";
 import WeightLossDetail from "@/components/category/WeightLossDetail";
 import EdDetail from "@/components/category/EdDetail";
@@ -47,7 +47,9 @@ export default async function HomePage() {
       <AnnouncementBar />
       <Header />
 
-      <HeroGateway isReturningPatient={isReturningPatient} />
+      {/* New Foundayo hero — replaces the old HeroGateway (kept in the repo
+          at components/home/HeroGateway.tsx for easy revert). */}
+      <FoundayoHero isReturningPatient={isReturningPatient} />
 
       <CategoryPreview category={CATEGORIES["weight-loss"]} priority isReturningPatient={isReturningPatient}>
         <WeightLossDetail />
