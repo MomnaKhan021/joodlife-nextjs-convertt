@@ -270,7 +270,12 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ consultationId: o.id, stage: "dispensing" }),
+        body: JSON.stringify({
+          consultationId: o.id,
+          orderId: o.orderId,
+          stage: "dispensing",
+          batchNumber: batch || undefined,
+        }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));

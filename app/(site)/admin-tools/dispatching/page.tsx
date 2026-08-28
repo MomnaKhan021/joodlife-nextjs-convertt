@@ -24,6 +24,8 @@ type DispatchOrder = {
   createdAt: string | null;
   dispatchedAt: string | null;
   trackingNumber: string | null;
+  /** Stock batch dispensed, recorded when the dispensing label was printed. */
+  batchNumber: string | null;
   dispatched: boolean;
 };
 
@@ -104,8 +106,11 @@ export default function DispatchedPage() {
       list = list.filter(
         (o) =>
           (o.customerName ?? "").toLowerCase().includes(term) ||
+          (o.customerEmail ?? "").toLowerCase().includes(term) ||
           (o.orderNumber ?? "").toLowerCase().includes(term) ||
-          (o.trackingNumber ?? "").toLowerCase().includes(term),
+          (o.trackingNumber ?? "").toLowerCase().includes(term) ||
+          // Batch — lets staff trace every parcel a stock batch went out on.
+          (o.batchNumber ?? "").toLowerCase().includes(term),
       );
     }
     if (dateFilter) {
@@ -135,7 +140,7 @@ export default function DispatchedPage() {
         <input
           value={q}
           onChange={(e) => { setQ(e.target.value); setPage(1); }}
-          placeholder="Search by name, order number or tracking…"
+          placeholder="Search by name, email, order number, tracking or batch…"
           className="h-9 w-full max-w-[360px] rounded-[8px] border border-[#d0d3d6] bg-white px-3 text-[13px] outline-none focus:border-[#142e2a]"
         />
         <input
@@ -185,6 +190,7 @@ export default function DispatchedPage() {
                 <th className="px-4 py-2.5">Order #</th>
                 <th className="px-4 py-2.5">Dispatched</th>
                 <th className="px-4 py-2.5 text-right">Total</th>
+                <th className="px-4 py-2.5">Batch</th>
                 <th className="px-4 py-2.5">Tracking</th>
               </tr>
             </thead>
@@ -232,6 +238,15 @@ export default function DispatchedPage() {
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-[#111827]">
                       {o.total > 0 ? gbp(o.total) : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {o.batchNumber ? (
+                        <span className="rounded-md bg-[#f1f1f1] px-2.5 py-1 font-mono text-[12px] font-semibold text-[#374151]">
+                          {o.batchNumber}
+                        </span>
+                      ) : (
+                        <span className="text-[12px] text-[#9ca3af]">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {o.trackingNumber ? (

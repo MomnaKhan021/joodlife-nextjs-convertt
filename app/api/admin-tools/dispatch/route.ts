@@ -72,6 +72,13 @@ async function authorize() {
   }
 }
 
+/** Pull the dispensing batch out of the free-text notes column. */
+function parseBatch(notes: string | null): string | null {
+  if (!notes) return null;
+  const m = notes.match(/Dispensing batch:\s*([^\n]+)/i);
+  return m ? m[1].trim() : null;
+}
+
 /** Pull the DPD tracking number out of the free-text notes column. */
 function parseTracking(notes: string | null): string | null {
   if (!notes) return null;
@@ -362,6 +369,11 @@ export async function GET(req: NextRequest) {
         // When the matched ORDER was placed — used to sort the queues so the
         // most recent order (highest JL number) is always at the top.
         orderCreatedAt: o?.created_at ?? null,
+        // Stock batch dispensed — recorded when the dispensing label printed.
+        batchNumber:
+          (typeof answers._dispensing_batch === "string"
+            ? answers._dispensing_batch
+            : null) ?? parseBatch(o?.notes ?? null),
         dispatchedAt,
         trackingNumber: tracking,
         dispatched: Boolean(dispatchedAt),
@@ -440,6 +452,7 @@ export async function GET(req: NextRequest) {
           total: Number(o.total_amount ?? 0) || 0,
           createdAt: o.created_at,
           orderCreatedAt: o.created_at,
+          batchNumber: parseBatch(o.notes ?? null),
           trackingNumber: tracking,
           dispatched: isDispatched,
           items: normItems(o.items_json),
@@ -538,6 +551,8 @@ export async function POST(req: NextRequest) {
     orderId?: number;
     trackingNumber?: string;
     stage?: string;
+    /** Stock batch chosen when printing the dispensing label. */
+    batchNumber?: string;
   };
   try {
     body = await req.json();
@@ -580,7 +595,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (isDispensingOnly) {
-      const patch = JSON.stringify({ _dispensing_printed_at: nowIso }).replace(/'/g, "''");
+      // Record WHICH stock batch was dispensed. Previously the batch was only
+      // printed on the label and then discarded, so there was no way to trace
+      // a batch back to the parcels it went out on.
+      const batch = String(body.batchNumber ?? "").trim().slice(0, 60);
+      const patch = JSON.stringify({
+        _dispensing_printed_at: nowIso,
+        ...(batch ? { _dispensing_batch: batch } : {}),
+      }).replace(/'/g, "''");
       await drizzle.execute(
         sql.raw(`
           UPDATE consultations
@@ -589,7 +611,24 @@ export async function POST(req: NextRequest) {
           WHERE id = ${id}
         `),
       );
-      return NextResponse.json({ ok: true, id, dispensingPrintedAt: nowIso });
+      // Order-only patients have no consultation row, so keep the batch on the
+      // order itself — that also makes it searchable for them.
+      const oid = Number(body.orderId);
+      if (batch && oid && Number.isFinite(oid)) {
+        const safeBatch = batch.replace(/'/g, "''");
+        await drizzle.execute(
+          sql.raw(`
+            UPDATE orders
+               SET notes = COALESCE(NULLIF(CAST(notes AS TEXT), ''), '') ||
+                           CASE WHEN COALESCE(CAST(notes AS TEXT),'') = '' THEN '' ELSE E'\n' END ||
+                           'Dispensing batch: ${safeBatch}',
+                   updated_at = now()
+             WHERE id = ${oid}
+               AND COALESCE(CAST(notes AS TEXT),'') NOT ILIKE '%Dispensing batch: ${safeBatch}%'
+          `),
+        );
+      }
+      return NextResponse.json({ ok: true, id, dispensingPrintedAt: nowIso, batchNumber: batch || null });
     }
 
     const merge: Record<string, string> = { _dispatched_at: nowIso };
