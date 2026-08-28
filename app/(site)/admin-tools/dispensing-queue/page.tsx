@@ -357,6 +357,13 @@ function OrderCard({
             <span className="text-[16px] font-bold text-[#111827]">
               {o.customerName || `Patient #${o.id}`}
             </span>
+            {/* Order number — the thing staff match against the pack, so it
+                reads as a bold uppercase tag rather than small grey text. */}
+            {o.orderNumber ? (
+              <span className="rounded-full bg-[#142e2a] px-2.5 py-0.5 font-mono text-[12px] font-bold uppercase tracking-wide text-white">
+                {orderNumberDisplay(o.orderNumber)}
+              </span>
+            ) : null}
             <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
               Awaiting dispatch
             </span>
@@ -390,9 +397,7 @@ function OrderCard({
           {o.customerEmail && <p className="mt-0.5 text-[12px] text-[#6b7280]">{o.customerEmail}</p>}
           <p className="text-[11px] text-[#9ca3af]">
             Approved: {fmtDateTime(o.createdAt)}
-            {o.hasOrder
-              ? `${o.orderNumber ? ` · ${orderNumberDisplay(o.orderNumber)}` : ""}`
-              : " · No order on file"}
+            {o.hasOrder ? "" : " · No order on file"}
           </p>
         </div>
 

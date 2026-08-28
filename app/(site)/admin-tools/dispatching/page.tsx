@@ -216,12 +216,15 @@ export default function DispatchedPage() {
                         <Link
                           href={`/admin-tools/orders/${o.orderId}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="font-semibold text-[#142e2a] underline underline-offset-2 hover:text-[#0c2421]"
+                          title="Open full order page"
+                          className="inline-flex rounded-full bg-[#142e2a] px-2.5 py-0.5 font-mono text-[12px] font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#0c2421]"
                         >
                           {o.orderNumber ?? `#${o.id}`}
                         </Link>
                       ) : (
-                        o.orderNumber ?? `#${o.id}`
+                        <span className="inline-flex rounded-full bg-[#e3e3e3] px-2.5 py-0.5 font-mono text-[12px] font-bold uppercase tracking-wide text-[#303030]">
+                          {o.orderNumber ?? `#${o.id}`}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-[#374151]">
