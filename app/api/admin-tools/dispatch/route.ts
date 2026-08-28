@@ -633,6 +633,10 @@ export async function POST(req: NextRequest) {
 
     const merge: Record<string, string> = { _dispatched_at: nowIso };
     if (tracking) merge._tracking_number = tracking;
+    // Also capture the batch here — staff can pick one and go straight to the
+    // dispatch label without printing the dispensing label first.
+    const dispatchBatch = String(body.batchNumber ?? "").trim().slice(0, 60);
+    if (dispatchBatch) merge._dispensing_batch = dispatchBatch;
     const mergeJson = JSON.stringify(merge).replace(/'/g, "''");
     await drizzle.execute(
       sql.raw(`
@@ -649,6 +653,20 @@ export async function POST(req: NextRequest) {
     // already removes it via its tracking note; this covers the dispensing-
     // only path (no DPD) which otherwise left the order stuck in "To do".
     const orderId = Number(body.orderId);
+    if (dispatchBatch && orderId && Number.isFinite(orderId)) {
+      const safeBatch = dispatchBatch.replace(/'/g, "''");
+      await drizzle.execute(
+        sql.raw(`
+          UPDATE orders
+             SET notes = COALESCE(NULLIF(CAST(notes AS TEXT), ''), '') ||
+                         CASE WHEN COALESCE(CAST(notes AS TEXT),'') = '' THEN '' ELSE E'\n' END ||
+                         'Dispensing batch: ${safeBatch}',
+                 updated_at = now()
+           WHERE id = ${orderId}
+             AND COALESCE(CAST(notes AS TEXT),'') NOT ILIKE '%Dispensing batch: ${safeBatch}%'
+        `),
+      );
+    }
     if (orderId && Number.isFinite(orderId)) {
       await drizzle.execute(
         sql.raw(`

@@ -377,7 +377,15 @@ function OrderCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ consultationId: o.id, orderId: o.orderId, trackingNumber: j.trackingNumber }),
+        // Send the selected batch here too: staff may pick a batch and go
+        // straight to the dispatch label, in which case the dispensing step
+        // never ran and the batch would otherwise be lost.
+        body: JSON.stringify({
+          consultationId: o.id,
+          orderId: o.orderId,
+          trackingNumber: j.trackingNumber,
+          batchNumber: batch || undefined,
+        }),
       }).catch(() => {});
       setNote(`Dispatched · Tracking ${j.trackingNumber}`);
       onDispatched(o.id, j.trackingNumber);
