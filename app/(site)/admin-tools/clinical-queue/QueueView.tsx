@@ -788,6 +788,13 @@ export function ConsultationCard({
                   {c.fullName || `Patient #${c.id}`}
                 </span>
               )}
+              {/* Order number — the value staff match against, so it reads as
+                  a tag at the top rather than small grey text below. */}
+              {c.orderNumber ? (
+                <span className="rounded-full bg-[#142e2a] px-2.5 py-0.5 font-mono text-[12px] font-bold uppercase tracking-wide text-white">
+                  {orderNumberDisplay(c.orderNumber)}
+                </span>
+              ) : null}
               <StatusBadge status={c.status} decision={c.reviewDecision} />
               {c.isReorder ? (
                 <span className="rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[11px] font-semibold text-[#5c4813]">
@@ -901,15 +908,8 @@ export function ConsultationCard({
             </div>
             {loading && <span className="text-[11px] text-[#4a5c46]">Saving…</span>}
             {error && <span className="text-[11px] text-[#dc2626]">{error}</span>}
-            <span className="text-[12px] font-mono text-[#9ca3af]">
-              {c.orderNumber ? (
-                <>
-                  {orderNumberDisplay(c.orderNumber)}
-                  <span className="ml-1 text-[10px] text-[#c2c7cc]">· ref #{c.id}</span>
-                </>
-              ) : (
-                `#${c.id}`
-              )}
+            <span className="text-[11px] font-mono text-[#c2c7cc]">
+              ref #{c.id}
             </span>
           </div>
         </div>
