@@ -86,7 +86,11 @@ export async function GET(req: Request) {
                    WHEN status::text IN ('submitted','reviewed') THEN 'Clinical Check / Abandoned'
                    ELSE status::text
                  END AS queue,
-                 EXISTS (SELECT 1 FROM orders o WHERE LOWER(o.customer_email) = LOWER("consultations".email)) AS has_order
+                 EXISTS (SELECT 1 FROM orders o WHERE LOWER(o.customer_email) = LOWER("consultations".email)) AS has_order,
+                 EXISTS (SELECT 1 FROM orders o WHERE LOWER(o.customer_email) = LOWER("consultations".email)
+                           AND LOWER(COALESCE(o.payment_status::text,'')) = 'paid'
+                           AND (COALESCE(o.total_amount,0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')
+                           AND o.created_at >= ${cutExpr}) AS qualifies_for_clinical_check
             FROM consultations ORDER BY id DESC LIMIT 10`),
       ),
       drizzle.execute(
@@ -117,7 +121,7 @@ export async function GET(req: Request) {
       totals: rowsOf(totals)[0],
       latestOrders: rowsOf(orders),
       latestConsultations: rowsOf(consults),
-      note: "A consultation shows in Clinical Check only when after_cutoff=true, status is submitted/reviewed, AND has_order=true (same email). Otherwise it's in Abandoned Checkout.",
+      note: "A consultation shows in Clinical Check only when after_cutoff=true, status is submitted/reviewed, review_decision is null, AND qualifies_for_clinical_check=true (a PAID >£0 order after the cutoff, same email). Otherwise it's in Abandoned Checkout. If an order and consultation don't pair up, compare the consultation's email with the order's customer_email — a checkout that restored an older saved email is the usual cause.",
     });
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
