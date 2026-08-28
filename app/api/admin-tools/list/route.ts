@@ -98,6 +98,18 @@ const IS_REORDER_SQL = `(
   )
 )`;
 
+  // An order only belongs in this collection once it is REAL: the customer
+  // paid, or staff raised it on clinical approval (those are £0/unpaid by
+  // design), or it has already been dispatched. A checkout where the payment
+  // never completed is an abandoned checkout, not an order, and lives in the
+  // Abandoned Checkout queue instead. The rows stay in the database — this is
+  // a display filter, like the legacy-data hide.
+  const REAL_ORDER_SQL =
+    "(LOWER(COALESCE(payment_status::text,'')) = 'paid'" +
+    " OR COALESCE(CAST(notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'" +
+    " OR LOWER(COALESCE(status::text,'')) IN ('shipped','delivered')" +
+    " OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
+
 const SPECS: Record<string, SpecRow> = {
   orders: {
     table: "orders",
@@ -240,6 +252,8 @@ export async function GET(req: NextRequest) {
   if (validDate) {
     conditions.push(`created_at::date = '${validDate}'`);
   }
+  // Applies to every orders view, including "All".
+  if (type === "orders") conditions.push(REAL_ORDER_SQL);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
@@ -307,6 +321,7 @@ export async function GET(req: NextRequest) {
   // the safe, always-present filters.
   const safeConds: string[] = [];
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
+  if (type === "orders") safeConds.push(REAL_ORDER_SQL);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";

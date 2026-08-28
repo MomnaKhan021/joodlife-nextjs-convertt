@@ -105,6 +105,13 @@ export async function GET() {
         SELECT status, payment_status, notes, total_amount, items_json, created_at
         FROM orders
         WHERE LOWER(COALESCE(status::text, '')) <> 'cancelled'
+          -- Count real orders only, matching the Orders collection: paid,
+          -- raised by staff on clinical approval, or already dispatched.
+          -- Abandoned checkouts must not inflate these totals.
+          AND (LOWER(COALESCE(payment_status::text,'')) = 'paid'
+               OR COALESCE(CAST(notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'
+               OR LOWER(COALESCE(status::text,'')) IN ('shipped','delivered')
+               OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')
           ${hideBeforeSql("created_at") ? `AND ${hideBeforeSql("created_at")}` : ""}
         ORDER BY created_at DESC NULLS LAST, id DESC
         LIMIT 5000
