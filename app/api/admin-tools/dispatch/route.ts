@@ -228,57 +228,11 @@ export async function GET(req: NextRequest) {
   // Lightweight counts for the sidebar badges. awaiting = approved but not yet
   // dispatched; dispatched = approved with a _dispatched_at stamp. As soon as
   // a patient is dispatched they flip from awaiting → dispatched.
-  if (req.nextUrl.searchParams.get("counts") === "1") {
-    try {
-      const { drizzle, sql } = await getDrizzle();
-      const res = await drizzle.execute(
-        sql.raw(`
-          SELECT
-            COUNT(*) FILTER (WHERE disp)::int      AS dispatched,
-            COUNT(*) FILTER (WHERE NOT disp)::int  AS awaiting
-          FROM (
-            SELECT (answers->>'_dispatched_at') IS NOT NULL AS disp
-            FROM consultations
-            WHERE ${APPROVED_WHERE}
-          ) t
-        `),
-      );
-      const row = rowsOf<{ dispatched: number; awaiting: number }>(res)[0];
-      // Order-only patients (an order with no consultation at all) are also in
-      // the To Dispatch queue — count them so the badge matches the list.
-      let orderOnlyAwaiting = 0;
-      try {
-        const ooRes = await drizzle.execute(
-          sql.raw(`
-            SELECT COUNT(*)::int AS n
-            FROM orders
-            WHERE LOWER(COALESCE(status::text,'')) NOT IN ('cancelled', 'refunded', 'shipped', 'delivered')
-              ${hideCond ? `AND ${hideCond}` : ""}
-              AND LOWER(COALESCE(payment_status::text,'')) = 'paid'
-              AND COALESCE(CAST(notes AS TEXT), '') NOT ILIKE '%DPD tracking:%'
-              AND NOT EXISTS (
-                SELECT 1 FROM "consultations" c
-                 WHERE c.email IS NOT NULL AND TRIM(c.email) <> ''
-                   AND LOWER(c.email) = LOWER("orders".customer_email)
-              )
-          `),
-        );
-        orderOnlyAwaiting = Number(rowsOf<{ n: number }>(ooRes)[0]?.n ?? 0);
-      } catch {
-        /* non-fatal — fall back to the consultation-only count */
-      }
-      return NextResponse.json({
-        ok: true,
-        awaiting: Number(row?.awaiting ?? 0) + orderOnlyAwaiting,
-        dispatched: Number(row?.dispatched ?? 0),
-      });
-    } catch (err) {
-      return NextResponse.json(
-        { ok: false, error: "Count failed", detail: err instanceof Error ? err.message : String(err) },
-        { status: 500 },
-      );
-    }
-  }
+  // Sidebar badge counts. These are derived from the SAME assembled list the
+  // To Dispatch page renders (see the end of this handler) rather than from a
+  // separate COUNT query — two queries had drifted apart, so the badge could
+  // read "1" while the page showed "No orders awaiting dispatch".
+  const wantCounts = req.nextUrl.searchParams.get("counts") === "1";
 
   try {
     const { drizzle, sql } = await getDrizzle();
@@ -444,7 +398,9 @@ export async function GET(req: NextRequest) {
       const dispRes = await drizzle.execute(
         sql.raw(`
           SELECT id, order_number, customer_name, customer_email, customer_phone,
-                 shipping_address, notes, status, total_amount, items_json, created_at
+                 shipping_address, notes, status, total_amount, items_json, created_at,
+                 updated_at,
+                 to_jsonb(orders) ->> 'dispatch_note' AS dispatch_note
           FROM orders
           WHERE LOWER(COALESCE(status::text,'')) NOT IN ('cancelled', 'refunded')
             ${hideCond ? `AND ${hideCond}` : ""}
@@ -543,6 +499,16 @@ export async function GET(req: NextRequest) {
     // Drop individually removed test rows (lib/adminHiddenOrders) from both
     // To Dispatch and Dispatched.
     const visible = orders.filter((e) => !isHiddenOrderNumber(e.orderNumber));
+
+    // Badge counts come from the SAME rows the page renders (hidden test rows
+    // already removed), so the badge can never disagree with the list.
+    if (wantCounts) {
+      return NextResponse.json({
+        ok: true,
+        awaiting: visible.filter((o) => !o.dispatched).length,
+        dispatched: visible.filter((o) => o.dispatched).length,
+      });
+    }
 
     return NextResponse.json({ ok: true, orders: visible });
   } catch (err) {
