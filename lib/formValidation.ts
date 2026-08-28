@@ -75,7 +75,7 @@ export const DPD_FIELD_MAX = 35;
  * NOTE: DPD's own address fields are ~35 chars, so a line longer than that may
  * need trimming/splitting when the dispatch label is generated.
  */
-export const ADDRESS_LINE_MAX = 50;
+export const ADDRESS_LINE_MAX = 255;
 
 /**
  * A street line the courier can actually deliver to. Rejects junk like "cds"

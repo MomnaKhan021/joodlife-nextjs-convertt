@@ -78,7 +78,10 @@ export default function UkAddressField({
 
   function choose(s: AddressSuggestion) {
     justPicked.current = true;
-    setValue(s.line1 || s.label);
+    // Show the FULL selected address (not just the house+road line), so the
+    // field reflects exactly what was picked. City/postcode still fill their
+    // own fields via onPick.
+    setValue(s.label || s.line1);
     onPick({ city: s.city, postcode: s.postcode });
     setOpen(false);
     setSuggestions([]);
