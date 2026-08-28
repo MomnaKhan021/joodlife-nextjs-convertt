@@ -46,10 +46,44 @@ const clearface = localFont({
   ],
 });
 
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://www.joodlife.com")
+).replace(/\/$/, "");
+
+const SITE_TITLE = "JoodLife — Innovative weight loss, made just for you";
+const SITE_DESCRIPTION =
+  "Innovative weight loss, made just for you. Lose up to 27% body weight with plans tailored to you and guidance for lasting results.";
+
 export const metadata: Metadata = {
-  title: "JoodLife — Innovative weight loss, made just for you",
-  description:
-    "Innovative weight loss, made just for you. Lose up to 27% body weight with plans tailored to you and guidance for lasting results.",
+  // metadataBase lets Next turn the relative /og.jpg into an ABSOLUTE URL,
+  // which WhatsApp/Facebook/Twitter/iMessage require for a link preview image.
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: "JoodLife",
+    url: SITE_URL,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 629,
+        alt: "JoodLife — medical weight loss, tailored to you",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/og.jpg"],
+  },
 };
 
 /**
