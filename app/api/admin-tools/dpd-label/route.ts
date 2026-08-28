@@ -501,19 +501,10 @@ export async function POST(req: NextRequest) {
    *    didn't add a separate one) in shipping_address. For older/edge orders
    *    where that column is empty, fall back to the "Billing/contact address"
    *    block kept in notes, so we still dispatch to the address on record. */
-  // A dispatch note is compulsory: staff must record what is being sent
-  // before a parcel label can be created. The To Dispatch card disables the
-  // button, this is the server-side backstop.
-  if (!String(order.dispatch_note ?? "").trim()) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          "Add a dispatch note for this order before printing the dispatch label.",
-      },
-      { status: 400 },
-    );
-  }
+  // NOTE: no dispatch-note gate here. The note now lives as the CLINICAL note
+  // captured in Clinical Check, and the per-order dispatch-note field was
+  // removed from the To Dispatch card — so requiring orders.dispatch_note here
+  // left staff unable to print the label with no field to satisfy it.
 
   const shipTo = resolveDeliveryAddress(order.shipping_address, order.notes);
   if (!shipTo) {
