@@ -147,7 +147,12 @@ export default function RejectedPage() {
           </p>
           <div className="flex flex-col gap-4">
             {shown.map((c) => (
-              <ConsultationCard key={c.id} c={c} onDecision={() => {}} />
+              <ConsultationCard
+                key={c.id}
+                c={c}
+                onDecision={() => {}}
+                hideClinicalNote
+              />
             ))}
           </div>
           {totalPages > 1 && (

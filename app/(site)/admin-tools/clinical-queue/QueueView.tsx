@@ -673,6 +673,7 @@ export function ConsultationCard({
   joinUrl,
   meetingTime,
   mode = "clinical",
+  hideClinicalNote = false,
 }: {
   c: Consultation;
   onDecision: (id: number, decision: string, reason: string) => void;
@@ -682,6 +683,9 @@ export function ConsultationCard({
   joinUrl?: string | null;
   meetingTime?: string | null;
   mode?: "clinical" | "marketing";
+  /** Hide the clinical-note editor — used on the Rejected page, where the
+   *  decision is already made and there is nothing left to record. */
+  hideClinicalNote?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -915,7 +919,9 @@ export function ConsultationCard({
         </div>
 
         {/* Clinical note — video-call / meeting notes and any remarks, recorded
-            before approving supply. Autosaves onto the consultation. */}
+            before approving supply. Autosaves onto the consultation. Hidden
+            once the decision is made (e.g. the Rejected page). */}
+        {hideClinicalNote ? null : (
         <div className="mt-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafafa] p-3">
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <span className="text-[12px] font-semibold text-[#374151]">Clinical note</span>
@@ -935,6 +941,7 @@ export function ConsultationCard({
             className="w-full rounded-[8px] border border-[#d0d3d6] bg-white px-3 py-2 text-[13px] text-[#142e2a] outline-none focus:border-[#142e2a]"
           />
         </div>
+        )}
 
         {/* Show / hide the clinical detail */}
         <div className="mt-2 pb-2">
