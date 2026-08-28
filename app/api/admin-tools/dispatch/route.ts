@@ -280,6 +280,10 @@ export async function GET(req: NextRequest) {
           FROM orders
           WHERE LOWER(customer_email) IN (${inList})
             AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
+            -- Legacy-data hide: a pre-reset order must never be attached to a
+            -- live dispatch card (its number would show, and the batch note
+            -- would be written to the hidden order instead of the real one).
+            ${hideBeforeSql("created_at") ? `AND ${hideBeforeSql("created_at")}` : ""}
             -- Only a REAL order may be attached to a dispatch card: paid, or
             -- raised by staff on clinical approval (£0/unpaid by design), or
             -- already dispatched. Otherwise a customer who also has a declined
