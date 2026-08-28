@@ -121,14 +121,27 @@ export async function verifyUkAddress(input: {
     };
   }
 
-  // 2. The street must exist at that postcode. Two attempts max (fair use):
-  //    exactly as typed, then with any leading house number removed.
-  const attempts: Record<string, string>[] = [
-    { street, postalcode: postcode },
-  ];
-  const bare = withoutHouseNumber(street);
-  if (bare && bare.toLowerCase() !== street.toLowerCase()) {
-    attempts.push({ street: bare, postalcode: postcode });
+  // 2. The street must exist at that postcode. Up to two attempts (fair use).
+  //
+  //    A street containing commas is a full suggestion picked from the
+  //    address-lookup dropdown ("Airport, Ponteland Road, Woolsington, …,
+  //    NE13 8BZ, United Kingdom"). Nominatim's STRUCTURED street= search
+  //    finds nothing for such a string — but a free-form q= search round-trips
+  //    it perfectly, since the string came from Nominatim in the first place.
+  //    Fall back to a structured search on the road segment.
+  const attempts: Record<string, string>[] = [];
+  if (street.includes(",")) {
+    attempts.push({ q: street });
+    const segs = street.split(",").map((s) => s.trim()).filter(Boolean);
+    // First segment may be a house/POI name — the road is usually next.
+    const road = withoutHouseNumber(segs[1] ?? segs[0]) || (segs[1] ?? segs[0]);
+    attempts.push({ street: road, postalcode: postcode });
+  } else {
+    attempts.push({ street, postalcode: postcode });
+    const bare = withoutHouseNumber(street);
+    if (bare && bare.toLowerCase() !== street.toLowerCase()) {
+      attempts.push({ street: bare, postalcode: postcode });
+    }
   }
 
   let gotDefinitiveAnswer = false;
