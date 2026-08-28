@@ -493,7 +493,7 @@ function OrderCard({
                   : "Print the medicine (dispensing) label"
               }
             >
-              {dispensedAt ? "Dispensing label printed ✓" : "1. Print dispensing label"}
+              {dispensedAt ? "Reprint" : "1. Print dispensing label"}
             </button>
             {o.hasOrder && !localCanDispatch ? (
               <button
