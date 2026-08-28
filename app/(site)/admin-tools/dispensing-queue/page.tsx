@@ -249,6 +249,8 @@ function OrderCard({
 
   const printDispensing = useCallback(async () => {
     if (busy) return;
+    // Distinguishes the first print from a reprint for the confirmation text.
+    const isReprint = Boolean(dispensedAt);
     // Print first — synchronous, inside the click gesture.
     const patient = o.customerName?.trim() || "—";
     const date = dispensingDate();
@@ -275,13 +277,17 @@ function OrderCard({
         throw new Error(j?.error ?? `Failed to record the print (HTTP ${res.status})`);
       }
       setDispensedAt(new Date().toISOString());
-      setNote("Dispensing label printed — now print the dispatch label to send it.");
+      setNote(
+        isReprint
+          ? "Dispensing label reprinted."
+          : "Dispensing label printed — now print the dispatch label to send it.",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setBusy(false);
     }
-  }, [busy, batch, o.id, o.customerName, o.items]);
+  }, [busy, batch, dispensedAt, o.id, o.customerName, o.items]);
 
   const dismiss = useCallback(async () => {
     if (busy) return;
@@ -489,12 +495,24 @@ function OrderCard({
               }`}
               title={
                 dispensedAt
-                  ? "Dispensing label already printed — click to reprint"
+                  ? `Already printed ${fmtDateTime(dispensedAt)} — click to print another copy`
                   : "Print the medicine (dispensing) label"
               }
             >
+              {/* Once printed the button must still read as an ACTION — it
+                  used to say "Dispensing label printed ✓", which looked like a
+                  status chip. The printed state is shown by the chip beside
+                  it, so the label itself stays short. */}
               {dispensedAt ? "Reprint" : "1. Print dispensing label"}
             </button>
+            {dispensedAt ? (
+              <span
+                className="text-[12px] text-[#2f5d2f]"
+                title={`Dispensing label printed ${fmtDateTime(dispensedAt)}`}
+              >
+                Printed ✓ {fmtDateTime(dispensedAt)}
+              </span>
+            ) : null}
             {o.hasOrder && !localCanDispatch ? (
               <button
                 type="button"
