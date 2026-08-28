@@ -297,7 +297,7 @@ export async function GET(req: NextRequest) {
     //               marks it paid even when the card was declined; that belongs
     //               in Abandoned Checkout, not Clinical Check.
     const queue = req.nextUrl.searchParams.get("queue") === "marketing" ? "marketing" : "clinical";
-    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND COALESCE(o.total_amount, 0) > 0)`;
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%'))`;
     const queueCond =
       queue === "marketing"
         ? `(email IS NULL OR NOT ${paidOrderExists})`

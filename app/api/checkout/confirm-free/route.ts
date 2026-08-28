@@ -119,7 +119,17 @@ export async function POST(req: NextRequest) {
     await drizzle.execute(
       sql.raw(
         `UPDATE "orders"
-            SET status = 'paid', payment_status = 'paid', updated_at = now()
+            SET status = 'paid',
+                payment_status = 'paid',
+                payment_method = 'card',
+                -- Marker proving this £0 order's card was really verified.
+                -- Historic £0 rows were marked paid by the old buggy flow
+                -- without any card check; they carry no marker, so the queues
+                -- can tell a genuine free order from an abandoned one.
+                notes = COALESCE(NULLIF(CAST(notes AS TEXT), ''), '') ||
+                        CASE WHEN COALESCE(CAST(notes AS TEXT),'') = '' THEN '' ELSE E'\n' END ||
+                        'Card verified (£0 order)',
+                updated_at = now()
           WHERE order_number = '${safe}'
             AND COALESCE(total_amount, 0) <= 0
             AND LOWER(COALESCE(payment_status::text, '')) <> 'paid'`,
