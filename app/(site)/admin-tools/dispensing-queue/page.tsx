@@ -283,6 +283,37 @@ function OrderCard({
     }
   }, [busy, batch, o.id, o.customerName, o.items]);
 
+  const dismiss = useCallback(async () => {
+    if (busy) return;
+    if (
+      !window.confirm(
+        `Remove ${o.orderNumber ?? `#${o.id}`} from To Dispatch?\n\n` +
+          `Use this for test rows or duplicates. It won't be dispatched and ` +
+          `disappears from this queue. The record stays in the database.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin-tools/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ consultationId: o.id, stage: "dismiss" }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error ?? `Failed to remove (HTTP ${res.status})`);
+      }
+      onDispatched(o.id, "");
+      refreshAdminBadges();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+      setBusy(false);
+    }
+  }, [busy, o.id, o.orderNumber, onDispatched]);
+
   const dispatch = useCallback(async () => {
     if (busy) return;
     if (!o.orderId) {
@@ -490,6 +521,15 @@ function OrderCard({
               className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-40"
             >
               {busy ? "Dispatching…" : "2. Print dispatch label"}
+            </button>
+            <button
+              type="button"
+              onClick={dismiss}
+              disabled={busy}
+              title="Remove this row from To Dispatch (test data or a duplicate). It won't be dispatched."
+              className="rounded-lg border border-[#d0d3d6] bg-white px-3 py-1.5 text-[13px] font-medium text-[#6b7280] transition-colors hover:border-[#b91c1c] hover:text-[#b91c1c] disabled:opacity-50"
+            >
+              Remove
             </button>
           </div>
           {addrOpen ? (

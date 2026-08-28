@@ -219,6 +219,9 @@ export async function GET(req: NextRequest) {
   const hideCond = hideBeforeSql("created_at");
   const APPROVED_WHERE =
     `answers->>'_review_decision' = 'approved'` +
+    // Records staff have removed from the queue (test data, duplicates)
+    // disappear from the list and the badge, but stay in the database.
+    ` AND (answers->>'_dispatch_dismissed') IS NULL` +
     (hideCond ? ` AND ${hideCond}` : "");
 
   // Lightweight counts for the sidebar badges. awaiting = approved but not yet
@@ -575,6 +578,9 @@ export async function POST(req: NextRequest) {
   // printed WITHOUT dispatching. Dispatch itself requires the DPD label, so
   // every dispatched parcel carries a real tracking number.
   const isDispensingOnly = body.stage === "dispensing";
+  // stage="dismiss" removes a record from the To Dispatch queue without
+  // dispatching it — for test rows or duplicates that shouldn't be shipped.
+  const isDismiss = body.stage === "dismiss";
   const id = Number(body.consultationId);
   if (!id || !Number.isFinite(id)) {
     return NextResponse.json({ ok: false, error: "consultationId required" }, { status: 400 });
@@ -589,6 +595,19 @@ export async function POST(req: NextRequest) {
     // Dispensing-label print only: record it and stop. The patient stays in
     // To Dispatch until the DPD dispatch label is created, so nothing reaches
     // Dispatched (or leaves the Orders queue) without a tracking number.
+    if (isDismiss) {
+      const patch = JSON.stringify({ _dispatch_dismissed: nowIso }).replace(/'/g, "''");
+      await drizzle.execute(
+        sql.raw(`
+          UPDATE consultations
+          SET answers = COALESCE(answers, '{}'::jsonb) || '${patch}'::jsonb,
+              updated_at = now()
+          WHERE id = ${id}
+        `),
+      );
+      return NextResponse.json({ ok: true, id, dismissedAt: nowIso });
+    }
+
     if (isDispensingOnly) {
       const patch = JSON.stringify({ _dispensing_printed_at: nowIso }).replace(/'/g, "''");
       await drizzle.execute(
