@@ -11,7 +11,13 @@ import type { PDPProduct } from "@/lib/pdp-products";
 
 /** A single selectable dose (label + numeric pack price + optional
  *  strike-through compare-at price). */
-export type FlowDose = { label: string; price: number; compareAt?: number | null };
+export type FlowDose = {
+  label: string;
+  price: number;
+  compareAt?: number | null;
+  /** Units in stock. 0 (or negative) = out of stock; null/undefined = untracked. */
+  stock?: number | null;
+};
 
 /** A treatment the patient can choose after their consultation. */
 export type FlowProduct = {
@@ -81,6 +87,12 @@ function CheckCircle() {
  * "Choose your frequency" page (final-product-page/plan), which in turn
  * hands the item to /checkout.
  */
+/** A dose is out of stock when stock is tracked and has hit zero. An untracked
+ *  dose (null/undefined) is always considered available. */
+function isOutOfStock(d?: FlowDose | null): boolean {
+  return Boolean(d && typeof d.stock === "number" && d.stock <= 0);
+}
+
 export default function FinalProductClient({
   products,
   editorial,
@@ -122,13 +134,25 @@ export default function FinalProductClient({
   }, [activeSlug, doseIdx]);
 
   if (!active) return null;
-  const dose = active.doses[doseIdx] ?? active.doses[0];
+  // Never sit on an out-of-stock dose: if the stored index points at one,
+  // fall back to the first available dose (derived, so no extra render).
+  const firstAvailableIdx = active.doses.findIndex((d) => !isOutOfStock(d));
+  const activeDoseIdx = isOutOfStock(active.doses[doseIdx])
+    ? firstAvailableIdx >= 0
+      ? firstAvailableIdx
+      : doseIdx
+    : doseIdx;
+  const dose = active.doses[activeDoseIdx] ?? active.doses[0];
+  // Block checkout when the selected dose is unavailable, or the product has
+  // no available dose at all.
+  const soldOut =
+    isOutOfStock(dose) || active.doses.every((d) => isOutOfStock(d));
   const activeEditorial = editorial?.[activeSlug] ?? null;
 
   // Continue goes STRAIGHT to checkout carrying the selected product +
   // variant (no intermediate "choose your frequency" step).
   function goToCheckout() {
-    if (busy || !active || !dose) return;
+    if (busy || !active || !dose || isOutOfStock(dose)) return;
     setBusy(true);
     addItem({
       productId: active.productId,
@@ -231,29 +255,40 @@ export default function FinalProductClient({
 
                             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
                               {active.doses.map((d, i) => {
-                                const sel = i === doseIdx;
+                                const sel = i === activeDoseIdx;
+                                const out = isOutOfStock(d);
                                 return (
                                   <button
                                     key={d.label || i}
                                     type="button"
                                     onClick={() => setDoseIdx(i)}
                                     aria-pressed={sel}
+                                    disabled={out}
+                                    title={out ? "Out of stock" : undefined}
                                     className={`flex flex-col items-center rounded-[10px] border px-2 py-2 transition-colors ${
-                                      sel
-                                        ? "border-[#142e2a] bg-[#142e2a] text-white"
-                                        : "border-[#142e2a]/20 bg-white text-[#142e2a] hover:border-[#142e2a]"
+                                      out
+                                        ? "cursor-not-allowed border-[#142e2a]/10 bg-[#f3f4f1] text-[#142e2a]/40"
+                                        : sel
+                                          ? "border-[#142e2a] bg-[#142e2a] text-white"
+                                          : "border-[#142e2a]/20 bg-white text-[#142e2a] hover:border-[#142e2a]"
                                     }`}
                                   >
                                     <span className="font-ui text-[14px] font-bold leading-[18px]">
                                       {d.label}
                                     </span>
-                                    <PriceTag
-                                      price={d.price}
-                                      compareAt={d.compareAt}
-                                      className={`font-ui text-[12px] leading-[16px] ${
-                                        sel ? "text-white/80" : "text-[#142e2a]/60"
-                                      }`}
-                                    />
+                                    {out ? (
+                                      <span className="font-ui text-[11px] leading-[16px] text-[#142e2a]/45">
+                                        Out of stock
+                                      </span>
+                                    ) : (
+                                      <PriceTag
+                                        price={d.price}
+                                        compareAt={d.compareAt}
+                                        className={`font-ui text-[12px] leading-[16px] ${
+                                          sel ? "text-white/80" : "text-[#142e2a]/60"
+                                        }`}
+                                      />
+                                    )}
                                   </button>
                                 );
                               })}
@@ -302,10 +337,15 @@ export default function FinalProductClient({
                         <button
                           type="button"
                           onClick={goToCheckout}
-                          disabled={busy}
-                          className="btn-cta mt-4 inline-flex h-[52px] w-full items-center justify-center rounded-xl bg-[#142e2a] px-8 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421] disabled:opacity-60"
+                          disabled={busy || soldOut}
+                          title={soldOut ? "This treatment is out of stock" : undefined}
+                          className="btn-cta mt-4 inline-flex h-[52px] w-full items-center justify-center rounded-xl bg-[#142e2a] px-8 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421] disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {busy ? "Loading…" : `Continue With ${active.title}`}
+                          {busy
+                            ? "Loading…"
+                            : soldOut
+                              ? "Out of stock"
+                              : `Continue With ${active.title}`}
                         </button>
                       </div>
                     ) : null}

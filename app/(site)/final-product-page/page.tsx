@@ -109,6 +109,7 @@ export default async function FinalProductPage({ searchParams }: Props) {
                     label: mgLabel(db.variants[0].label),
                     price: db.variants[0].price,
                     compareAt: db.variants[0].comparePrice ?? db.comparePrice ?? null,
+                    stock: db.variants[0].stock ?? null,
                   }
                 : {
                     label: "",
@@ -120,6 +121,7 @@ export default async function FinalProductPage({ searchParams }: Props) {
             ? db.variants.map((v) => ({
                 label: mgLabel(v.label),
                 price: v.price,
+                stock: v.stock ?? null,
                 compareAt: v.comparePrice ?? db.comparePrice ?? null,
               }))
             : [
