@@ -49,7 +49,7 @@ export default async function HomePage() {
 
       {/* New Foundayo hero — replaces the old HeroGateway (kept in the repo
           at components/home/HeroGateway.tsx for easy revert). */}
-      <FoundayoHero isReturningPatient={isReturningPatient} />
+      <FoundayoHero />
 
       <CategoryPreview category={CATEGORIES["weight-loss"]} priority isReturningPatient={isReturningPatient}>
         <WeightLossDetail />

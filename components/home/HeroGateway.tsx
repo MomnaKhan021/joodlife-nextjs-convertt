@@ -148,8 +148,9 @@ function PrimaryCard({
   );
 }
 
-/** Secondary category card — cream, person cutout fills the right side. */
-function SecondaryCard({ category }: { category: Category }) {
+/** Secondary category card — cream, person cutout fills the right side.
+ *  Exported so the Foundayo hero can reuse the exact same right-column cards. */
+export function SecondaryCard({ category }: { category: Category }) {
   const title = category.cardTitle.replace(/\n/g, " ");
   // Both cutouts are anchored to the bottom of the card so the figure sits
   // grounded and complete (matching the ED seated man) rather than chopped

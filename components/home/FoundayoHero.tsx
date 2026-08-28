@@ -1,84 +1,134 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { CATEGORIES } from "@/lib/categories";
+import { SecondaryCard } from "@/components/home/HeroGateway";
+
 /**
- * Foundayo tablet hero (Figma "A new tablet option for weight management").
- * Replaces the previous gateway hero on the homepage.
+ * Foundayo gateway hero — Figma "Home Page - Hero - Next.js", node 1:59.
  *
- * Layout: a peach card — copy on the left, the Foundayo pill on the right
- * (desktop); stacked with the pill below on mobile.
+ *  ┌──────────────────────────┬───────────────┐
+ *  │  Foundayo tablet (peach   │ Men's health  │
+ *  │  card) + pill artwork     │ → /erectile-… │
+ *  │  → Explore Foundayo       ├───────────────┤
+ *  │                           │ Women's health│
+ *  └──────────────────────────┴───────────────┘
+ *
+ * Desktop: same 2-column gateway grid as HeroGateway (whose SecondaryCard is
+ * reused for the right column); the primary card swaps the green weight-loss
+ * panel for the peach Foundayo announcement. Mobile: cards stack, the pill
+ * sits below the CTA, and the three features form divided columns.
  *
  * Pill artwork lives at /assets/home/foundayo-pill.png (exported from the
  * Figma design — transparent PNG).
  */
 
 const FEATURES = [
-  { icon: TabletIcon, label: "Oral tablet treatment" },
-  { icon: SyringeIcon, label: "No injections" },
-  { icon: HeartIcon, label: "Clinician support" },
+  { icon: TabletIcon, label: "Oral tablet\ntreatment" },
+  { icon: SyringeIcon, label: "No\ninjections" },
+  { icon: HeartIcon, label: "Clinician\nsupport" },
 ] as const;
 
-export default function FoundayoHero({
-  isReturningPatient = false,
-}: {
-  isReturningPatient?: boolean;
-}) {
+function FoundayoCard() {
   return (
-    <section className="w-full px-4 pt-4 md:px-10 lg:px-[60px]">
-      <div className="relative mx-auto flex w-full max-w-[1320px] flex-col overflow-hidden rounded-[24px] bg-[#f9e7e0] p-6 md:p-10 lg:flex-row lg:items-center lg:gap-6 lg:p-14">
-        {/* Copy */}
-        <div className="relative z-10 flex flex-col gap-5 lg:max-w-[58%]">
-          <span className="inline-flex w-fit items-center rounded-md bg-[#e2957d] px-3 py-1 font-ui text-[12px] font-semibold text-white">
-            New
-          </span>
+    <div className="relative flex min-h-full flex-col overflow-hidden rounded-[24px] bg-[#fdf0ea] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12">
+      {/* Copy — left column on desktop; the pill stays right of it. */}
+      <div className="relative z-10 flex flex-col gap-4 lg:max-w-[62%]">
+        <span className="inline-flex w-fit items-center rounded-md bg-[#f7d3c1] px-3 py-1 font-ui text-[13px] font-semibold text-[#142e2a]">
+          New
+        </span>
 
-          <h1 className="font-display text-[30px] font-bold leading-[1.1] tracking-[-0.02em] text-[#142e2a] sm:text-[38px] lg:text-[44px] lg:leading-[1.08]">
-            A new tablet option{" "}
-            <em className="font-serif font-normal italic">for weight management</em>
-          </h1>
+        <h1 className="font-display text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-[#142e2a] sm:text-[36px] lg:text-[36px] lg:leading-[1.1] min-[1400px]:text-[42px]">
+          A new tablet option
+          <br />
+          <em className="font-serif font-normal italic text-[#d8836a]">
+            for weight management
+          </em>
+        </h1>
 
-          <p className="max-w-[48ch] font-ui text-[14px] leading-[1.55] text-[#142e2a]/75 md:text-[15px]">
-            Foundayo&reg; (oral tirzepatide) is a new weight management treatment
-            option, available following clinician assessment.
-          </p>
+        <p className="max-w-[44ch] font-ui text-[13px] leading-[1.55] text-[#142e2a]/80 md:text-[15px]">
+          Foundayo&reg; (oral tirzepatide) is a new weight management treatment
+          option, available following clinician assessment.
+        </p>
 
-          <ul className="flex flex-wrap gap-x-7 gap-y-3">
-            {FEATURES.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <li key={i} className="flex items-center gap-2">
-                  <span className="text-[#bd7359]">
-                    <Icon />
-                  </span>
-                  <span className="max-w-[9ch] font-ui text-[12px] font-medium leading-[1.2] text-[#142e2a] md:text-[13px]">
-                    {f.label}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+        {/* Features — desktop: icon left of a two-line label; mobile: three
+            divided columns with the icon above the label (per the Figma). */}
+        <ul className="grid grid-cols-3 divide-x divide-[#142e2a]/15 lg:flex lg:gap-8 lg:divide-x-0">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <li
+                key={i}
+                className="flex flex-col items-start gap-2 px-3 first:pl-0 last:pr-0 lg:flex-row lg:items-center lg:px-0"
+              >
+                <span className="text-[#d8836a]">
+                  <Icon />
+                </span>
+                <span className="whitespace-pre-line font-ui text-[12px] font-medium leading-[1.25] text-[#142e2a] md:text-[13px]">
+                  {f.label}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
 
-          <div className="mt-1">
-            <Link
-              href={isReturningPatient ? "/reorder" : "/consultation"}
-              className="btn-cta inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
-            >
-              {isReturningPatient ? "Reorder" : "Check Your Eligibility"}
-            </Link>
-          </div>
+        <div className="mt-1">
+          <Link
+            href="/weight-loss"
+            className="btn-cta inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
+          >
+            Explore Foundayo
+          </Link>
         </div>
+      </div>
 
-        {/* Pill artwork — right on desktop, below on mobile. */}
-        <div className="relative mt-8 h-[240px] w-full lg:mt-0 lg:h-[340px] lg:flex-1">
-          <Image
-            src="/assets/home/foundayo-pill.png"
-            alt="Foundayo oral tablet"
-            fill
-            priority
-            quality={90}
-            sizes="(max-width: 1024px) 90vw, 40vw"
-            className="object-contain object-center lg:object-right"
-          />
+      {/* Desktop: pill artwork — right half of the card, vertically centred. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-6 right-6 z-0 hidden w-[40%] lg:block"
+      >
+        <Image
+          src="/assets/home/foundayo-pill.png"
+          alt=""
+          fill
+          priority
+          quality={90}
+          sizes="480px"
+          className="object-contain object-center"
+        />
+      </div>
+
+      {/* Mobile: pill below the CTA. */}
+      <div className="relative mt-6 h-[260px] w-full lg:hidden">
+        <Image
+          src="/assets/home/foundayo-pill.png"
+          alt="Foundayo oral tablet"
+          fill
+          priority
+          quality={90}
+          sizes="90vw"
+          className="object-contain object-center"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function FoundayoHero() {
+  return (
+    <section
+      aria-label="Explore our treatments"
+      className="w-full overflow-x-hidden bg-white"
+    >
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-6 md:px-10 md:pt-[30px] lg:px-[60px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
+          <div className="min-w-0">
+            <FoundayoCard />
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <SecondaryCard category={CATEGORIES["erectile-dysfunction"]} />
+            <SecondaryCard category={CATEGORIES["period-delay"]} />
+          </div>
         </div>
       </div>
     </section>
