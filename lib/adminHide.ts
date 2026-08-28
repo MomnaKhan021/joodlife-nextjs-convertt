@@ -11,12 +11,12 @@
  * Put in place when the operator asked for a clean slate ahead of re-syncing
  * data from HubSpot. Any NEW record created after the cutoff shows normally.
  *
- * 2026-08-27: cutoff bumped to now for a fresh start of the order → clinical
- * check → dispatch flow. All existing rows stay in the DB (customers included,
- * so a returning customer keeps their details) — they're just hidden from the
- * admin queues, which now read zero. New orders from this point show normally.
+ * 2026-08-28 17:25 UTC: cutoff bumped to go-live. Orders / Clinical Check /
+ * To Dispatch / Dispatched all read zero from here; every real order placed
+ * on the live domain shows normally. All existing rows stay in the DB
+ * (customers included, so a returning customer keeps their details).
  */
-export const HIDE_BEFORE: string | null = "2026-08-28 11:00:00+00";
+export const HIDE_BEFORE: string | null = "2026-08-28 17:25:00+00";
 
 /**
  * Raw SQL condition that keeps only rows created at/after the cutoff.
