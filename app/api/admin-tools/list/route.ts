@@ -120,11 +120,14 @@ const SPECS: Record<string, SpecRow> = {
       "items_json, notes, created_at, updated_at, " +
       // Has a pharmacist approved supply for this patient? If so the order has
       // moved on to the To Dispatch queue, and the Orders list should say so
-      // instead of still reading "Clinical Check".
+      // instead of still reading "Clinical Check". Scoped past the legacy-data
+      // cutoff so pre-reset test approvals don't mislabel new orders.
       "EXISTS (SELECT 1 FROM \"consultations\" c " +
       "  WHERE c.email IS NOT NULL AND TRIM(c.email) <> '' " +
       "    AND LOWER(c.email) = LOWER(\"orders\".customer_email) " +
-      "    AND c.answers->>'_review_decision' = 'approved') AS clinically_approved" +
+      "    AND c.answers->>'_review_decision' = 'approved'" +
+      (hideBeforeSql("c.created_at") ? ` AND ${hideBeforeSql("c.created_at")}` : "") +
+      ") AS clinically_approved" +
       `, ${IS_REORDER_SQL} AS is_reorder`,
     searchableColumns: ["order_number", "customer_name", "customer_email", "status"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
@@ -259,16 +262,24 @@ export async function GET(req: NextRequest) {
   // fulfilled, so it leaves the Orders queue (the patient is on the Rejected
   // page). Only when there is no approved consultation for the same patient,
   // so a later approved order isn't hidden by an old rejection.
+  //
+  // Scoped to consultations AFTER the legacy-data cutoff: pre-reset test
+  // rejections must not suppress a customer's brand-new paid order (that hid
+  // the first live order from the Orders tab while Clinical Check showed it).
   if (type === "orders") {
+    const rcHide = hideBeforeSql("rc.created_at");
+    const acHide = hideBeforeSql("ac.created_at");
     conditions.push(`NOT (
       EXISTS (SELECT 1 FROM "consultations" rc
                WHERE rc.email IS NOT NULL AND TRIM(rc.email) <> ''
                  AND LOWER(rc.email) = LOWER("orders".customer_email)
-                 AND rc.answers->>'_review_decision' = 'rejected')
+                 AND rc.answers->>'_review_decision' = 'rejected'${rcHide ? `
+                 AND ${rcHide}` : ""})
       AND NOT EXISTS (SELECT 1 FROM "consultations" ac
                WHERE ac.email IS NOT NULL AND TRIM(ac.email) <> ''
                  AND LOWER(ac.email) = LOWER("orders".customer_email)
-                 AND ac.answers->>'_review_decision' = 'approved')
+                 AND ac.answers->>'_review_decision' = 'approved'${acHide ? `
+                 AND ${acHide}` : ""})
     )`);
   }
   // Individually removed test rows (lib/adminHiddenOrders).
