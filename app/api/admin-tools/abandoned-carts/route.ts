@@ -49,7 +49,11 @@ function rowsOf<T>(r: unknown): T[] {
  *  not dismissed, and (during fresh-start) created after the hide cutoff. */
 function consultWhere(): string {
   const hc = hideBeforeSql("created_at");
-  const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email))`;
+  // Must mirror Clinical Check, which only accepts a PAID order. Counting any
+  // order row meant a customer whose card was declined had an (unpaid) order,
+  // so they were excluded here AND excluded from Clinical Check — falling
+  // through both queues. A declined or abandoned payment belongs here.
+  const orderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid')`;
   return `status IN ('submitted','reviewed')
      AND email IS NOT NULL AND email <> ''
      AND NOT ${orderExists}

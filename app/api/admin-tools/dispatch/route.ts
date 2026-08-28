@@ -315,6 +315,14 @@ export async function GET(req: NextRequest) {
           FROM orders
           WHERE LOWER(customer_email) IN (${inList})
             AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
+            -- Only a REAL order may be attached to a dispatch card: paid, or
+            -- raised by staff on clinical approval (£0/unpaid by design), or
+            -- already dispatched. Otherwise a customer who also has a declined
+            -- attempt could have that abandoned order shown against their pack.
+            AND (LOWER(COALESCE(payment_status::text,'')) = 'paid'
+                 OR COALESCE(CAST(notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'
+                 OR LOWER(COALESCE(status::text,'')) IN ('shipped','delivered')
+                 OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')
           -- NB: do NOT require total_amount > 0. Fully-discounted/free orders
           -- and the order auto-created on clinical approval are stored at £0;
           -- excluding them made real orders invisible here, so the patient
