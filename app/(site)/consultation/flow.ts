@@ -20,7 +20,7 @@
 
 export type Answers = Record<string, unknown>;
 
-export const TOTAL_STEPS = 21;
+export const TOTAL_STEPS = 20;
 
 export const DOSES = {
   Mounjaro: ["2.5 mg", "5 mg", "7.5 mg", "10 mg", "12.5 mg", "15 mg", "Not sure"],
@@ -475,46 +475,10 @@ export const SLIDES: SlideDef[] = [
     subtitle:
       "If you share your GP details, we'll inform them about your treatment. This supports safe, coordinated care.",
     field: "gp_practice_name",
-    next: () => "s_med_pref",
-  },
-  // ── Slide 21: Medication preference ──────────────────────────
-  {
-    id: "s_med_pref",
-    type: "choiceCards",
-    step: 21,
-    title: "Which type of medication would you prefer?",
-    field: "medication_type_preference",
-    cardOptions: [
-      {
-        value: "Wegovy Pill",
-        title: "Wegovy Pill",
-        subtitle: "Daily GLP-1 pill",
-        desc: "Lose up to 17% body weight",
-        image: "/assets/wegovy/how-pill.png",
-      },
-      {
-        value: "Mounjaro Injection",
-        title: "Mounjaro Injection",
-        subtitle: "Weekly GLP-1 injection",
-        desc: "Lose up to 22.5% body weight",
-        image: "/assets/figma/pdp/mounjaro-1.png",
-      },
-      {
-        value: "Wegovy Injection",
-        title: "Wegovy Injection",
-        subtitle: "Weekly GLP-1 injection",
-        desc: "Lose up to 15% body weight",
-        image: "/assets/figma/jood-injection-pen.png",
-      },
-      {
-        value: "No preference",
-        title: "No preference",
-        desc: "A clinician will recommend the best option",
-      },
-    ],
-    // Submitting the questionnaire goes straight to the success/"making a
-    // plan" screen — the purchase step is removed; buying happens on the
-    // final product page the success screen redirects to.
+    // GP details are the last step. Submitting goes straight to the
+    // success/"making a plan" screen — the medication-preference step was
+    // removed (the medicine is chosen on the product page after), and buying
+    // happens on the final product page the success screen redirects to.
     next: () => "s_success",
   },
   // ── Block screens ────────────────────────────────────────────

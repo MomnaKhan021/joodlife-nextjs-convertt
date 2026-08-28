@@ -333,7 +333,6 @@ function PatientDetails({ c }: { c: Consultation }) {
 
   const prescriptionItems: Item[] = [
     { label: "Requested medication", value: a.intended_medicine_v2 },
-    { label: "Medication preference", value: a.medication_type_preference },
     { label: "Requested dose", value: a.requested_dose ?? a.reorder_dose_choice },
     { label: "Previous GLP-1 use", value: a.current_glp_1_use_status },
     { label: "Current / last dose", value: a.current_dose },

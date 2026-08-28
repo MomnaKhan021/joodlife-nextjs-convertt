@@ -1574,8 +1574,9 @@ function GpSlide({ slide, answers, setAnswer }: SlideProps) {
           </>
         )}
         <p className="font-ui text-[12px] text-[#142e2a]/55">
-          You can leave this blank if you&apos;d rather we didn&apos;t share an
-          outcome letter with your GP.
+          Your GP details are required so we can share an outcome letter for
+          safe, coordinated care — select your practice above or enter it
+          manually.
         </p>
       </div>
     </SlideShell>
@@ -1789,7 +1790,10 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return Boolean(answers[slide.field!]) || answers._upload_skipped === true;
   }
   if (slide.type === "gp") {
-    return true; // optional — always allow continue
+    // Compulsory: the patient must either pick a practice or enter one manually.
+    const name = (answers["gp_practice_name"] as string | undefined)?.trim();
+    const manual = (answers["gp_practice_full_address"] as string | undefined)?.trim();
+    return Boolean(name || manual);
   }
   if (slide.type === "doseSelector") {
     return Boolean(answers[slide.field!]);
