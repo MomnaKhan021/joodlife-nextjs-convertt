@@ -4,7 +4,7 @@ import Link from "next/link";
 function NewBadge() {
   return (
     <span
-      className="inline-flex flex-shrink-0 items-center rounded-md bg-[#f7d3c1] px-2.5 py-0.5 font-ui text-[12px] font-semibold text-[#142e2a]"
+      className="inline-flex flex-shrink-0 items-center rounded-md bg-[#ffcebf] px-2.5 py-0.5 font-ui text-[12px] font-semibold text-[#142e2a]"
       aria-hidden
     >
       New
