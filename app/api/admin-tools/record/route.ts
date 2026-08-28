@@ -717,27 +717,37 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Friendly guard for NOT NULL columns on create — otherwise the DB rejects
-  // the INSERT with a cryptic "Failed query" (this is what broke "Add product":
-  // products.title and products.description are NOT NULL).
-  const REQUIRED_ON_CREATE: Record<string, string[]> = {
-    products: ["title", "description"],
+  // NOT NULL guards — the DB rejects NULL writes to these columns with a
+  // cryptic "Failed query", on UPDATE as much as INSERT (an empty Description
+  // in the product editor used to crash Save exactly this way).
+  //   - REQUIRED_TEXT: must be non-empty whenever written (and on create).
+  //   - BLANK_NOT_NULL: NOT NULL in the schema but allowed blank in the
+  //     editor — an empty value is stored as '' instead of NULL.
+  const REQUIRED_TEXT: Record<string, string[]> = {
+    products: ["title"],
   };
-  if (id === "new") {
-    const required = REQUIRED_ON_CREATE[type] ?? [];
-    const missing = required.filter((c) => {
-      const pair = writePairs.find(([col]) => col === c);
-      const v = pair?.[2];
-      return v == null || String(v).trim() === "";
-    });
-    if (missing.length) {
-      const labels = missing.map((c) => c.replace(/_/g, " "));
-      return NextResponse.json(
-        { ok: false, error: `Please fill in: ${labels.join(", ")}.` },
-        { status: 400 }
-      );
-    }
+  const BLANK_NOT_NULL: Record<string, string[]> = {
+    products: ["description"],
+  };
+  const blankCols = new Set(BLANK_NOT_NULL[type] ?? []);
+  const missing = (REQUIRED_TEXT[type] ?? []).filter((c) => {
+    const pair = writePairs.find(([col]) => col === c);
+    if (!pair) return id === "new"; // must be supplied when creating
+    const v = pair[2];
+    return v == null || String(v).trim() === "";
+  });
+  if (missing.length) {
+    const labels = missing.map((c) => c.replace(/_/g, " "));
+    return NextResponse.json(
+      { ok: false, error: `Please fill in: ${labels.join(", ")}.` },
+      { status: 400 }
+    );
   }
+  /** Like valueLiteral, but stores '' (never NULL) for blank NOT NULL columns. */
+  const literalFor = (col: string, t: ColumnType, v: unknown): string => {
+    if (blankCols.has(col) && (v == null || String(v).trim() === "")) return "''";
+    return valueLiteral(t, v);
+  };
 
   let drizzle: DrizzleLike;
   let sql: SqlRaw;
@@ -755,7 +765,7 @@ export async function POST(req: NextRequest) {
   try {
     if (id === "new") {
       const cols = writePairs.map(([c]) => c);
-      const vals = writePairs.map(([, t, v]) => valueLiteral(t, v));
+      const vals = writePairs.map(([c, t, v]) => literalFor(c, t, v));
       const stmt = `
         INSERT INTO "${spec.table}" (${cols.join(", ")}, updated_at, created_at)
         VALUES (${vals.join(", ")}, now(), now())
@@ -795,7 +805,7 @@ export async function POST(req: NextRequest) {
     }
 
     const setClause = writePairs
-      .map(([c, t, v]) => `${c} = ${valueLiteral(t, v)}`)
+      .map(([c, t, v]) => `${c} = ${literalFor(c, t, v)}`)
       .join(", ");
     const stmt = `
       UPDATE "${spec.table}"
