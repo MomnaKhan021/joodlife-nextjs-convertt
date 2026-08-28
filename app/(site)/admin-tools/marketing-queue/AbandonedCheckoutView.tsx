@@ -55,7 +55,12 @@ export default function AbandonedCheckoutView() {
   const [carts, setCarts] = useState<Cart[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Which row+action is running, so each button reports its own state
+  // ("Sending…" vs "Dismissing…") instead of both going quiet together.
   const [busy, setBusy] = useState<string | null>(null);
+  const [busyAction, setBusyAction] = useState<"remind" | "dismiss" | null>(null);
+  // Per-row failure, shown next to the buttons rather than in a browser alert.
+  const [rowError, setRowError] = useState<Record<string, string>>({});
   const [q, setQ] = useState("");
 
   const keyOf = (c: Cart) => `${c.kind}-${c.id}`;
@@ -86,6 +91,13 @@ export default function AbandonedCheckoutView() {
   const act = async (item: Cart, action: "remind" | "dismiss") => {
     const key = keyOf(item);
     setBusy(key);
+    setBusyAction(action);
+    setRowError((e) => {
+      if (!e[key]) return e;
+      const next = { ...e };
+      delete next[key];
+      return next;
+    });
     try {
       const res = await fetch("/api/admin-tools/abandoned-carts", {
         method: "POST",
@@ -114,9 +126,13 @@ export default function AbandonedCheckoutView() {
         );
       }
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed");
+      setRowError((prev) => ({
+        ...prev,
+        [key]: e instanceof Error ? e.message : "Failed — please try again.",
+      }));
     } finally {
       setBusy(null);
+      setBusyAction(null);
     }
   };
 
@@ -237,23 +253,44 @@ export default function AbandonedCheckoutView() {
                       : " · no reminders yet"}
                   </p>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={busy === k}
-                    onClick={() => act(c, "remind")}
-                    className="rounded-lg bg-[#142e2a] px-4 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
-                  >
-                    {busy === k ? "Sending…" : "Send reminder"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy === k}
-                    onClick={() => act(c, "dismiss")}
-                    className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2] disabled:opacity-60"
-                  >
-                    Dismiss
-                  </button>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={busy === k}
+                      onClick={() => act(c, "remind")}
+                      title={
+                        c.last_reminded_at
+                          ? "Reminder already sent — click to send another"
+                          : "Email this shopper a reminder to finish checkout"
+                      }
+                      className={`rounded-lg px-4 py-1.5 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+                        c.last_reminded_at && !rowError[k]
+                          ? "border border-[#cfe0b8] bg-[#eef3e6] text-[#2f5d2f] hover:border-[#b9d19a]"
+                          : "bg-[#142e2a] text-white hover:bg-[#0c2421]"
+                      }`}
+                    >
+                      {busy === k && busyAction === "remind"
+                        ? "Sending…"
+                        : rowError[k]
+                          ? "Try again"
+                          : c.last_reminded_at
+                            ? "Reminder sent ✓"
+                            : "Send reminder"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy === k}
+                      onClick={() => act(c, "dismiss")}
+                      title="Stop chasing this shopper — removes them from this queue"
+                      className="rounded-lg border border-[#142e2a]/30 bg-white px-4 py-1.5 text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2] disabled:opacity-60"
+                    >
+                      {busy === k && busyAction === "dismiss" ? "Dismissing…" : "Dismiss"}
+                    </button>
+                  </div>
+                  {rowError[k] ? (
+                    <p className="text-[12px] text-[#c0392b]">{rowError[k]}</p>
+                  ) : null}
                 </div>
               </div>
             );
