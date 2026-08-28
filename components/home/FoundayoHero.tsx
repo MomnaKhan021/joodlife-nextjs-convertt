@@ -8,9 +8,8 @@ import Link from "next/link";
  * Layout: a peach card — copy on the left, the Foundayo pill on the right
  * (desktop); stacked with the pill below on mobile.
  *
- * NOTE: the pill artwork lives at /assets/home/foundayo-pill.png. A placeholder
- * is in place until the real Foundayo pill export is dropped in at that path —
- * no code change is needed to swap it, just replace the file.
+ * Pill artwork lives at /assets/home/foundayo-pill.png (exported from the
+ * Figma design — transparent PNG).
  */
 
 const FEATURES = [
