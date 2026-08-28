@@ -236,12 +236,14 @@ function NavBadge({ type }: { type: string }) {
           .then((j) => { if (j?.ok) apply(j.awaiting); })
           .catch(() => {});
       } else if (type === "dispatching") {
-        // Dispatched = orders actually dispatched (shipped/delivered or with a
-        // DPD tracking note) — same definition as the Orders "Dispatched" tab,
-        // so the badge matches (e.g. JL2429 → 1).
-        fetch(`/api/admin-tools/list?type=orders&fulfillment=dispatched&page=1&pageSize=1`, { credentials: "include", cache: "no-store" })
+        // Dispatched = the rows the Dispatched PAGE renders. It reads the same
+        // /api/admin-tools/dispatch pipeline, so counting orders separately
+        // (list?fulfillment=dispatched) could drift from what staff see — e.g.
+        // an order marked shipped whose consultation has no _dispatched_at
+        // stamp. Counting from the same source keeps badge == page.
+        fetch(`/api/admin-tools/dispatch?counts=1`, { credentials: "include", cache: "no-store" })
           .then((r) => r.json())
-          .then((j) => { if (j?.ok) apply(j.total); })
+          .then((j) => { if (j?.ok) apply(j.dispatched); })
           .catch(() => {});
       } else if (type === "orders") {
         // Orders badge = ACTIVE orders only (not yet dispatched, not cancelled)
