@@ -572,6 +572,30 @@ function OrderCard({
         </div>
       </div>
 
+      {/* Delivery address — first thing in the order details, always visible:
+          nothing can be dispatched without it. */}
+      <div className="mt-3 rounded-lg border border-[#e5e7eb] bg-[#fafafa] px-3 py-2.5">
+        <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">
+          Delivery address
+        </p>
+        {localAddr?.trim() ? (
+          <p className="whitespace-pre-line text-[13px] text-[#303030]">
+            {localAddr.trim()}
+          </p>
+        ) : o.hasOrder ? (
+          <p className="text-[13px] text-[#9ca3af]">
+            No/incomplete delivery address — use “Add delivery address” above to enable DPD.
+          </p>
+        ) : (
+          <p className="text-[13px] text-[#9ca3af]">
+            No delivery address — this patient has no linked order yet.
+          </p>
+        )}
+        {o.customerPhone && (
+          <p className="mt-1 text-[12px] text-[#6b7280]">{o.customerPhone}</p>
+        )}
+      </div>
+
       {/* Expandable clinical summary + order detail (collapsed by default,
           same as the clinical queue) */}
       <div className="mt-2">
@@ -585,25 +609,6 @@ function OrderCard({
         {open && (
           <>
             {o.consultation && <ClinicalSummary c={o.consultation} />}
-            <div className="mt-3">
-              <div className="rounded-lg border border-[#e5e7eb] px-3 py-2.5">
-                <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[#6b7280]">Delivery address</p>
-                {localAddr?.trim() ? (
-                  <p className="whitespace-pre-line text-[13px] text-[#303030]">
-                    {localAddr.trim()}
-                  </p>
-                ) : o.hasOrder ? (
-                  <p className="text-[13px] text-[#9ca3af]">
-                    No/incomplete delivery address — use “Add delivery address” above to enable DPD.
-                  </p>
-                ) : (
-                  <p className="text-[13px] text-[#9ca3af]">
-                    No delivery address — this patient has no linked order yet.
-                  </p>
-                )}
-                {o.customerPhone && <p className="mt-1 text-[12px] text-[#6b7280]">{o.customerPhone}</p>}
-              </div>
-            </div>
           </>
         )}
       </div>
