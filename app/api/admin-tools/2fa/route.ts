@@ -41,21 +41,53 @@ function rows<T>(r: unknown): T[] {
 }
 const escStr = (s: string) => "'" + s.replace(/'/g, "''") + "'";
 
-async function ctx() {
+type Denied = { deniedEmail: string; deniedRole: string };
+
+type Ctx = {
+  payload: Awaited<ReturnType<typeof getPayloadInstance>>;
+  id: string;
+  email: string;
+  name: string | null;
+  drizzle: DrizzleLike;
+  sql: SqlRaw;
+};
+
+async function ctx(): Promise<Ctx | Denied | null> {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  const role = (user as unknown as { role?: string } | null)?.role;
-  if (!user || (role !== "admin" && role !== "staff")) return null;
+  if (!user) return null;
+  let role = (user as unknown as { role?: string }).role;
+  const email = String((user as unknown as { email?: string }).email ?? "");
+  // Allowlisted emails are always admins — heal a missed promotion here so
+  // the gate never locks out an allowlisted account.
+  if (role !== "admin") {
+    const { promoteIfAllowlisted } = await import("@/lib/adminAllowlist");
+    const id = (user as unknown as { id: string | number }).id;
+    if (await promoteIfAllowlisted(payload, { id, email, role })) role = "admin";
+  }
+  if (role !== "admin" && role !== "staff") {
+    return { deniedEmail: email, deniedRole: role ?? "unknown" } satisfies Denied;
+  }
   const drizzle = (payload.db as unknown as { drizzle?: DrizzleLike }).drizzle as DrizzleLike;
   const { sql } = (await import("drizzle-orm")) as { sql: SqlRaw };
   return {
     payload,
     id: String((user as unknown as { id: string | number }).id),
-    email: String((user as unknown as { email?: string }).email ?? "admin"),
+    email: email || "admin",
     name: (user as unknown as { name?: string }).name ?? null,
     drizzle,
     sql,
   };
+}
+
+function deniedResponse(c: Denied | null) {
+  // Say WHO the server saw — distinguishes "logged into the wrong account"
+  // from "role not promoted" at a glance.
+  const detail = c ? ` — signed in as ${c.deniedEmail} (role: ${c.deniedRole})` : "";
+  return NextResponse.json(
+    { ok: false, error: `Admin role required${detail}` },
+    { status: 403 },
+  );
 }
 
 type UserRow = {
@@ -65,7 +97,7 @@ type UserRow = {
   email_otp_expires: string | null;
 };
 
-async function readTotp(c: NonNullable<Awaited<ReturnType<typeof ctx>>>): Promise<UserRow> {
+async function readTotp(c: Ctx): Promise<UserRow> {
   const r = rows<UserRow>(
     await c.drizzle.execute(
       c.sql.raw(
@@ -92,7 +124,7 @@ function secondFactorOk(u: UserRow, token: string): boolean {
 }
 
 /** Clear a used/expired email code so it can't be replayed. */
-async function clearEmailOtp(c: NonNullable<Awaited<ReturnType<typeof ctx>>>): Promise<void> {
+async function clearEmailOtp(c: Ctx): Promise<void> {
   await c.drizzle.execute(
     c.sql.raw(`UPDATE users SET email_otp_hash = NULL, email_otp_expires = NULL WHERE id = ${Number(c.id)}`),
   );
@@ -100,7 +132,7 @@ async function clearEmailOtp(c: NonNullable<Awaited<ReturnType<typeof ctx>>>): P
 
 export async function GET() {
   const c = await ctx();
-  if (!c) return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+  if (!c || "deniedEmail" in c) return deniedResponse(c);
   const u = await readTotp(c);
   return NextResponse.json({
     ok: true,
@@ -112,7 +144,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const c = await ctx();
-  if (!c) return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+  if (!c || "deniedEmail" in c) return deniedResponse(c);
 
   let body: { action?: string; token?: string };
   try {

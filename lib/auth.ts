@@ -44,11 +44,21 @@ export async function getCurrentUser(): Promise<AuthedUser | null> {
       ? (u.permissions as unknown[]).map(String)
       : [];
 
+    // Allowlisted emails are always admins — if a boot-time promotion was
+    // missed, heal the role here so the dashboard never locks them out.
+    let role = u.role ?? "customer";
+    if (role !== "admin") {
+      const { promoteIfAllowlisted } = await import("@/lib/adminAllowlist");
+      if (await promoteIfAllowlisted(payload, { id: u.id, email: u.email, role })) {
+        role = "admin";
+      }
+    }
+
     return {
       id: String(u.id),
       email: u.email ?? "",
       name: u.name,
-      role: u.role ?? "customer",
+      role,
       permissions,
     };
   } catch {
