@@ -459,6 +459,23 @@ function CheckoutForm() {
   // thank-you page. Firing here — right after a confirmed payment, while the
   // pixel is already loaded — is more reliable than only firing on the
   // success page (which depends on an async order fetch).
+  // Ask our server to confirm the charge with Stripe and mark the order paid
+  // immediately, instead of waiting for the webhook to arrive. Best-effort:
+  // the webhook is still the backstop, so a failure here never blocks the
+  // customer's confirmation screen.
+  async function markPaidNow(orderNumber: string) {
+    try {
+      await fetch("/api/stripe/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ orderNumber }),
+      });
+    } catch {
+      /* webhook will settle it */
+    }
+  }
+
   function finalizeAndRedirect(orderNumber: string, amount: number) {
     // Hand the customer details to the thank-you page for the `purchase`
     // event's user_data (Meta Advanced Matching / Google Enhanced
@@ -676,6 +693,7 @@ function CheckoutForm() {
               : "We couldn't confirm your order. Please try again.",
           );
         }
+        await markPaidNow(orderJson.orderNumber);
         finalizeAndRedirect(
           orderJson.orderNumber,
           Number(orderJson.totalAmount) || total,
@@ -922,6 +940,7 @@ function CheckoutForm() {
         }
       }
 
+      await markPaidNow(orderJson.orderNumber);
       finalizeAndRedirect(
         orderJson.orderNumber,
         Number(orderJson.totalAmount) || total,
