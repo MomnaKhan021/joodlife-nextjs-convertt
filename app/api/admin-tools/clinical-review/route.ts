@@ -289,12 +289,15 @@ export async function GET(req: NextRequest) {
     const sql = drizzleSql;
 
     // Queue split (read-only EXISTS check — no schema impact):
-    //   clinical  = the patient has a PAID order (payment actually went through)
-    //   marketing = consultation with no paid order — an abandoned checkout /
+    //   clinical  = the patient has a PAID, NON-ZERO order (real money took).
+    //   marketing = consultation with no such order — an abandoned checkout /
     //               follow-up lead. A dummy/declined card never reaches Clinical
-    //               Check: an order row alone isn't enough, it must be paid.
+    //               Check. The `total_amount > 0` guard also keeps £0 orders out
+    //               — a £0 order takes no card payment, so the "free order" path
+    //               marks it paid even when the card was declined; that belongs
+    //               in Abandoned Checkout, not Clinical Check.
     const queue = req.nextUrl.searchParams.get("queue") === "marketing" ? "marketing" : "clinical";
-    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid')`;
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND COALESCE(o.total_amount, 0) > 0)`;
     const queueCond =
       queue === "marketing"
         ? `(email IS NULL OR NOT ${paidOrderExists})`
