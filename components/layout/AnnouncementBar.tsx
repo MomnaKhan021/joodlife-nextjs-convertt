@@ -19,7 +19,7 @@ export default function AnnouncementBar() {
       <div className="hidden md:flex mx-auto h-11 w-full max-w-[1440px] items-center justify-center px-10 lg:px-20">
         <div className="flex items-center gap-3">
           <NewBadge />
-          <Link href="/weight-loss" className="font-outfit text-sm leading-snug text-white hover:underline">
+          <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
             Foundayo&reg; (oral tirzepatide) &ndash; a new tablet option for weight management is now available
           </Link>
         </div>
@@ -29,7 +29,7 @@ export default function AnnouncementBar() {
       <div className="flex md:hidden mx-auto w-full items-center justify-center px-4 py-2">
         <div className="flex items-center gap-2.5">
           <NewBadge />
-          <Link href="/weight-loss" className="font-outfit text-[13px] leading-snug text-white hover:underline">
+          <Link href="/wegovy-pills" className="font-outfit text-[13px] leading-snug text-white hover:underline">
             Foundayo&reg; (oral tirzepatide) &ndash; a new tablet option for weight management is now available
           </Link>
         </div>
