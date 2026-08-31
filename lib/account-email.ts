@@ -794,8 +794,7 @@ export async function sendAssessmentReminderEmail(
           </td>
         </tr></table>
         <div style="margin:18px 0 16px">
-          <img src="${img}/badge-legitscript.png" alt="LegitScript certified" height="40" style="height:40px;width:auto;display:inline-block;vertical-align:middle;border:0;margin-right:12px"/>
-          <img src="${img}/badge-gphc.png" alt="GPhC registered pharmacy (9012990)" height="30" style="height:30px;width:auto;display:inline-block;vertical-align:middle;border:0"/>
+          <img src="${img}/badges-row.png" alt="LegitScript Certified · Registered Pharmacy 9012990 · Apple Pay · Google Pay · Stripe" width="241" height="61" style="width:241px;height:61px;display:inline-block;border:0"/>
         </div>
         <p style="margin:0;font-family:${SANS};font-size:13px;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
           © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
