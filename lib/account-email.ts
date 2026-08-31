@@ -59,7 +59,7 @@ export function emailShell(
 ${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
   <tr><td align="center">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
       <tr><td style="background:${BRAND};padding:22px 32px">
         <img src="${logo}" alt="JoodLife" height="34" style="height:34px;width:auto;display:block;border:0" />
       </td></tr>
@@ -222,6 +222,30 @@ export async function sendWelcomeEmail(
     @font-face{font-family:'Outfit';font-weight:600;font-display:swap;src:url('${url}/fonts/Outfit-SemiBold.woff2') format('woff2')}
     @font-face{font-family:'Outfit';font-weight:700;font-display:swap;src:url('${url}/fonts/Outfit-Bold.woff2') format('woff2')}
     *{letter-spacing:0 !important}
+    /* Mobile-only rows are hidden on desktop and revealed under 620px. */
+    .m-only{display:none !important;max-height:0 !important;overflow:hidden !important;mso-hide:all}
+    @media only screen and (max-width:620px){
+      /* Collapse every fixed width so nothing forces sideways scroll */
+      table.em-wrap,table.em-card,table.stack{width:100% !important;min-width:0 !important;max-width:100% !important}
+      td.stack,th.stack{display:block !important;width:100% !important;box-sizing:border-box !important}
+      /* Hero stacks: copy on top, collage underneath (kept at its natural size) */
+      td.hero-text{display:block !important;width:100% !important;box-sizing:border-box !important;padding:24px 20px 4px !important}
+      td.hero-art{display:block !important;width:100% !important;box-sizing:border-box !important;padding:0 0 0 !important;text-align:center !important}
+      td.hero-art img{width:100% !important;max-width:286px !important;height:auto !important;margin:0 auto !important}
+      /* How it works: let the copy column flex, keep the 73px thumb */
+      td.hiw-copy{width:auto !important}
+      /* CTA: drop the baked background, buttons full width, photo stacks below */
+      td.cta-cell{height:auto !important;background-image:none !important;padding:24px 20px 20px !important}
+      td.btn{display:block !important;width:100% !important;box-sizing:border-box !important;margin:0 0 10px !important}
+      td.gap{display:none !important;height:0 !important;line-height:0 !important;font-size:0 !important}
+      .m-only{display:block !important;max-height:none !important;overflow:visible !important}
+      .m-only img{width:100% !important;max-width:280px !important;height:auto !important}
+      /* Footer stacks */
+      td.f-links{display:block !important;width:100% !important;text-align:center !important;padding:0 0 14px !important}
+      td.f-logo{display:block !important;width:100% !important;text-align:center !important}
+      .f-badges{text-align:center !important}
+      .f-badges img{max-width:100% !important;height:auto !important}
+    }
   `;
 
   // Step row — exact Figma geometry: 73px thumb (r6, per-row height), 12px
@@ -238,7 +262,7 @@ export async function sendWelcomeEmail(
       <td width="73" valign="top" style="width:73px;padding:0 12px ${last ? 0 : 16}px 0;font-size:0;line-height:0">
         <img src="${thumb}" alt="" width="73" height="${th}" style="width:73px;height:${th}px;display:block;border:0;border-radius:6px" />
       </td>
-      <td valign="top" style="padding:0 0 ${last ? 0 : 16}px">
+      <td class="hiw-copy" valign="top" style="padding:0 0 ${last ? 0 : 16}px">
         <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0" />
         <p style="margin:8px 0 4px;font-family:${SANS};font-size:16px;font-weight:500;line-height:20px;color:#040404">${title}</p>
         <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:#040404">${body}</p>
@@ -250,17 +274,17 @@ export async function sendWelcomeEmail(
          on the left, and the 286x457 collage flush to the card's top-right
          (its tiles + rounded outer corners are baked into the one image, so
          every client renders it identically). -->
-    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:20px">
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:20px">
       <tr>
-        <td valign="middle" style="padding:24px 15px 24px 16px">
+        <td class="hero-text" valign="middle" style="padding:24px 15px 24px 16px">
           <h1 style="margin:0;font-family:${GIL};font-size:29px;font-weight:500;line-height:40px;color:${BRAND}">Your Journey</h1>
-          <p style="margin:0 0 6px;font-family:${SER};font-style:italic;font-size:48px;font-weight:400;line-height:44px;color:${BRAND}">Start Here</p>
-          <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;font-weight:400;line-height:17px;color:${BRAND}">
+          <p style="margin:0 0 18px;font-family:${SER};font-style:italic;font-size:48px;font-weight:400;line-height:40px;color:${BRAND}">Start Here</p>
+          <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;font-weight:400;line-height:16px;color:${BRAND}">
             We make weight-loss simple with clinician-led care, personalised treatment options, and ongoing support all from home.
           </p>
-          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:8px;font-size:14px;font-weight:500;line-height:20px">Start My Assessment</a>
+          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;width:133px;padding:13px 22px;border-radius:8px;font-size:14px;font-weight:500;line-height:20px;text-align:center">Start My Assessment</a>
         </td>
-        <td width="286" valign="top" style="width:286px;padding:0;font-size:0;line-height:0">
+        <td class="hero-art" width="286" valign="top" style="width:286px;padding:0;font-size:0;line-height:0">
           <img src="${img}/wl-collage.jpg" alt="" width="286" height="457" style="width:286px;height:457px;display:block;border:0" />
         </td>
       </tr>
@@ -268,10 +292,10 @@ export async function sendWelcomeEmail(
 
     <!-- How it works — Figma: 580 cream card r20, heading 16/28, rows from
          y=70 with 20px side padding and 16px row gaps -->
-    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;background:#f7f9f2;border-radius:20px">
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;margin-top:16px;background:#f7f9f2;border-radius:20px">
       <tr><td style="padding:28px 20px">
         <h2 style="margin:0 0 16px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND};text-align:center">Here&rsquo;s how it <span style="font-family:${SER};font-style:italic;font-weight:400">works</span></h2>
-        <table role="presentation" width="540" cellpadding="0" cellspacing="0" style="width:540px;max-width:100%">
+        <table role="presentation" width="540" cellpadding="0" cellspacing="0" class="stack" style="width:540px;max-width:100%">
           ${step("01", `${img}/welcome-step1.jpg`, 72, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
           ${step("02", `${img}/welcome-step2.jpg`, 91, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
           ${step("03", `${img}/welcome-step3.jpg`, 72, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.", true)}
@@ -279,29 +303,37 @@ export async function sendWelcomeEmail(
       </td></tr>
     </table>
 
-    <!-- CTA banner — Figma 580x234 r12. The gradient + cut-out photo are baked
-         into one background image (email clients can't do CSS gradients
-         reliably); text and buttons sit on top, with bgcolor as the Outlook
-         fallback. Heading at y=57, buttons 177x44 at y=157. -->
-    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;border-radius:12px">
+    <!-- CTA banner — Figma 580x234 r12. Gradient + cut-out photo are baked
+         into one background image (email clients can't be trusted with CSS
+         gradients); the heading sits in a 266px column at y=57 and the two
+         177x44 r8 buttons at y=157 — they span to x=382, so they must NOT be
+         nested inside the 266px text column. bgcolor is the Outlook fallback.
+         On mobile the background is dropped and the photo stacks underneath. -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;margin-top:16px;border-radius:12px">
       <tr>
-        <td background="${img}/cta-banner.jpg" bgcolor="#1d4038" valign="top" height="234" style="height:234px;border-radius:12px;background-color:#1d4038;background-image:url('${img}/cta-banner.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 234px;padding:57px 0 0 16px">
-          <table role="presentation" width="266" cellpadding="0" cellspacing="0" style="width:266px">
-            <tr><td style="padding:0 0 20px">
-              <p style="margin:0;font-size:25px;line-height:27px;color:#ffffff">
-                <span style="font-family:${SANS};font-weight:700">It takes a few minutes. There&rsquo;s no </span><span style="font-family:${SER};font-style:italic;font-weight:400">commitment to begin.</span>
-              </p>
+        <td class="cta-cell" background="${img}/cta-banner.jpg" bgcolor="#1d4038" valign="top" height="234" style="height:234px;box-sizing:border-box;border-radius:12px;background-color:#1d4038;background-image:url('${img}/cta-banner.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 234px;padding:57px 16px 0 16px">
+          <table role="presentation" width="382" cellpadding="0" cellspacing="0" class="stack" style="width:382px;max-width:100%">
+            <tr><td class="stack" style="padding:0 0 20px">
+              <table role="presentation" width="266" cellpadding="0" cellspacing="0" class="stack" style="width:266px;max-width:100%"><tr><td>
+                <p style="margin:0;font-size:25px;line-height:27px;color:#ffffff">
+                  <span style="font-family:${SANS};font-weight:700">It takes a few minutes. There&rsquo;s no </span><span style="font-family:${SER};font-style:italic;font-weight:400">commitment to begin.</span>
+                </p>
+              </td></tr></table>
             </td></tr>
-            <tr><td>
-              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                <td width="177" height="44" align="center" valign="middle" bgcolor="#ffffff" style="width:177px;height:44px;background:#ffffff;border-radius:8px">
+            <tr><td class="stack">
+              <table role="presentation" cellpadding="0" cellspacing="0" class="stack" style="max-width:100%"><tr>
+                <td width="177" height="44" align="center" valign="middle" bgcolor="#ffffff" class="btn" style="width:177px;height:44px;background:#ffffff;border-radius:8px">
                   <a href="${assessmentUrl}" style="display:block;font-family:${SANS};font-size:14px;font-weight:500;line-height:44px;color:#052016;text-decoration:none">Start My Assessment</a>
                 </td>
-                <td width="12"></td>
-                <td width="177" height="44" align="center" valign="middle" style="width:177px;height:44px;border:1px solid rgba(255,255,255,.6);border-radius:8px">
+                <td width="12" class="gap">&nbsp;</td>
+                <td width="177" height="44" align="center" valign="middle" class="btn" style="width:177px;height:44px;border:1px solid rgba(255,255,255,.6);border-radius:8px">
                   <a href="${howUrl}" style="display:block;font-family:${SANS};font-size:14px;font-weight:500;line-height:42px;color:#ffffff;text-decoration:none">See How Jood Works</a>
                 </td>
               </tr></table>
+            </td></tr>
+            <!-- mobile-only: the cut-out photo stacks below the buttons -->
+            <tr class="m-only"><td align="right" style="padding:16px 0 0;font-size:0;line-height:0">
+              <img src="${img}/welcome-cta.png" alt="" width="240" style="width:240px;max-width:100%;height:auto;display:inline-block;border:0" />
             </td></tr>
           </table>
         </td>
@@ -321,7 +353,7 @@ export async function sendWelcomeEmail(
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your journey starts here — begin your free assessment.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
   <tr><td align="center">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
       <!-- WELCOME strip -->
       <tr><td style="background:${BRAND};padding:13px 24px;text-align:center">
         <span style="font-family:${GIL};font-size:14px;font-weight:500;color:#ffffff">Welcome To JOODLIFE</span>
@@ -340,15 +372,15 @@ export async function sendWelcomeEmail(
         </p>
         <div style="border-top:1px solid rgba(255,255,255,.18);margin:0 0 20px"></div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td valign="middle" style="font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
+          <td class="f-links" valign="middle" style="font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
             <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
             <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
           </td>
-          <td valign="middle" align="right">
+          <td class="f-logo" valign="middle" align="right">
             <img src="${logo}" alt="JOOD" height="48" style="height:48px;width:auto;display:inline-block;border:0"/>
           </td>
         </tr></table>
-        <div style="margin:14px 0 16px;text-align:right;font-size:0;line-height:0">
+        <div class="f-badges" style="margin:14px 0 16px;text-align:right;font-size:0;line-height:0">
           <img src="${url}/assets/email/badges-row.png" alt="LegitScript Certified · Registered Pharmacy 9012990 · Apple Pay · Google Pay · Stripe" width="241" height="61" style="width:241px;height:61px;display:inline-block;border:0"/>
         </div>
         <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
