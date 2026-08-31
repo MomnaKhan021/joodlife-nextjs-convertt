@@ -808,26 +808,28 @@ export async function sendAssessmentReminderEmail(
   <tr><td align="center">
     <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
 
-      <tr><td style="padding:14px 20px;text-align:center;font-family:${SANS};font-size:11px;font-weight:500;line-height:16px;color:${BRAND};text-transform:uppercase">
-        &#9200;&nbsp; Your answers are saved &mdash; finish whenever you&rsquo;re ready.
+      <tr><td style="padding:16px 20px;text-align:center">
+        <img src="${img}/icon-clock.png" alt="" width="14" height="14" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;border:0"/>
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:16px;color:${BRAND};text-transform:uppercase">&nbsp; Your answers are saved &mdash; finish whenever you&rsquo;re ready.</span>
       </td></tr>
 
       <tr><td style="padding:0 12px">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
-          <tr><td style="padding:30px 24px 0;text-align:center">
-            <img src="${img}/jood-logo.png" alt="JOOD" width="150" style="width:150px;max-width:60%;height:auto;display:inline-block;border:0;margin:0 0 14px"/>
-            <p style="margin:0 0 10px;font-size:38px;line-height:44px;color:#ffffff">
+          <tr><td style="padding:26px 24px 0;text-align:center">
+            <img src="${img}/jood-logo.png" alt="JOOD" width="112" style="width:112px;max-width:46%;height:auto;display:inline-block;border:0;margin:0 0 10px"/>
+            <p style="margin:0 0 8px;font-size:33px;line-height:38px;color:#ffffff">
               <span style="font-family:${GIL};font-weight:500">You&rsquo;re </span><span style="font-family:${SER};font-style:italic">Almost There</span>
             </p>
-            <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:rgba(255,255,255,.88)">
+            <p style="margin:0 0 16px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.86)">
               ${second
                 ? "Your assessment is still waiting &mdash; it only takes a couple of minutes."
                 : "You started your assessment but didn&rsquo;t quite finish."}
             </p>
-            <a href="${resumeUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:${BRAND};text-decoration:none;padding:13px 24px;border-radius:8px;font-size:14px;font-weight:600">Finish My Assessment</a>
-            <div style="font-size:0;line-height:0;padding:24px 0 0">
-              <img src="${img}/assessment-hero.png" alt="" width="300" style="width:300px;max-width:80%;height:auto;display:inline-block;border:0"/>
-            </div>
+            <a href="${resumeUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:${BRAND};text-decoration:none;padding:11px 20px;border-radius:6px;font-size:13px;font-weight:600">Finish My Assessment</a>
+          </td></tr>
+          <!-- Artwork sits flush to the hero's bottom edge, as in the design. -->
+          <tr><td style="padding:18px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/assessment-hero.png" alt="" width="330" style="width:330px;max-width:78%;height:auto;display:inline-block;border:0"/>
           </td></tr>
         </table>
       </td></tr>
