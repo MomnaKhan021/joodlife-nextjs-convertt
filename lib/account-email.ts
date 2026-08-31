@@ -225,17 +225,25 @@ export async function sendWelcomeEmail(
     *{letter-spacing:0 !important}
   `;
 
-  // Numbered step row (dark circle "01" + title + body), exact Figma type.
-  const step = (n: string, thumb: string, title: string, body: string) => `
+  // Step row — exact Figma geometry: 73px thumb (r6, per-row height), 12px
+  // gap, 20px round badge, title at +28, body at +52. Rows are 16px apart.
+  const step = (
+    n: string,
+    thumb: string,
+    th: number,
+    title: string,
+    body: string,
+    last = false,
+  ) => `
     <tr>
-      <td width="72" valign="top" style="padding:0 16px 20px 0">
-        <img src="${thumb}" alt="" width="64" height="64" style="width:64px;height:64px;border-radius:12px;object-fit:cover;display:block;border:0" />
+      <td width="73" valign="top" style="width:73px;padding:0 12px ${last ? 0 : 16}px 0;font-size:0;line-height:0">
+        <img src="${thumb}" alt="" width="73" height="${th}" style="width:73px;height:${th}px;display:block;border:0;border-radius:6px" />
       </td>
-      <td valign="top" style="padding:0 0 20px">
-        <div style="width:20px;height:20px;background:${BRAND};border-radius:50%;text-align:center;margin:0 0 6px">
-          <span style="font-family:${SANS};font-size:9px;font-weight:600;color:#ffffff;line-height:20px">${n}</span>
-        </div>
-        <p style="margin:0 0 4px;font-family:${SANS};font-size:16px;font-weight:600;line-height:20px;color:#040404">${title}</p>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 16}px">
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr><td width="20" height="20" align="center" valign="middle" style="width:20px;height:20px;background:#3f5c50;border-radius:10px">
+          <span style="font-family:${SANS};font-size:8px;font-weight:400;color:#ffffff;line-height:20px">${n}</span>
+        </td></tr></table>
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:16px;font-weight:600;line-height:20px;color:#040404">${title}</p>
         <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:#040404">${body}</p>
       </td>
     </tr>`;
@@ -261,14 +269,15 @@ export async function sendWelcomeEmail(
       </tr>
     </table>
 
-    <!-- How it works — sits on a cream card (Figma #f7f9f2) -->
+    <!-- How it works — Figma: 580 cream card r20, heading 16/28, rows from
+         y=70 with 20px side padding and 16px row gaps -->
     <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;background:#f7f9f2;border-radius:20px">
-      <tr><td style="padding:26px 26px 8px">
-        <h2 style="margin:0 0 20px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND};text-align:center">Here&rsquo;s how it <span style="font-family:${SER};font-style:italic;font-weight:400">works</span></h2>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          ${step("01", `${img}/welcome-step-1.jpg`, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
-          ${step("02", `${img}/welcome-step-2.jpg`, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
-          ${step("03", `${img}/welcome-step-3.jpg`, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.")}
+      <tr><td style="padding:28px 20px">
+        <h2 style="margin:0 0 16px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND};text-align:center">Here&rsquo;s how it <span style="font-family:${SER};font-style:italic;font-weight:400">works</span></h2>
+        <table role="presentation" width="540" cellpadding="0" cellspacing="0" style="width:540px;max-width:100%">
+          ${step("01", `${img}/welcome-step1.jpg`, 72, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
+          ${step("02", `${img}/welcome-step2.jpg`, 91, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
+          ${step("03", `${img}/welcome-step3.jpg`, 72, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.", true)}
         </table>
       </td></tr>
     </table>
@@ -329,9 +338,8 @@ export async function sendWelcomeEmail(
             <img src="${logo}" alt="JOOD" height="48" style="height:48px;width:auto;display:inline-block;border:0"/>
           </td>
         </tr></table>
-        <div style="margin:18px 0 16px">
-          <img src="${url}/assets/email/badge-legitscript.png" alt="LegitScript certified" height="40" style="height:40px;width:auto;display:inline-block;vertical-align:middle;border:0;margin-right:12px"/>
-          <img src="${url}/assets/email/badge-gphc.png" alt="GPhC registered pharmacy (9012990)" height="30" style="height:30px;width:auto;display:inline-block;vertical-align:middle;border:0"/>
+        <div style="margin:14px 0 16px;text-align:right;font-size:0;line-height:0">
+          <img src="${url}/assets/email/badges-row.png" alt="LegitScript Certified · Registered Pharmacy 9012990 · Apple Pay · Google Pay · Stripe" width="241" height="61" style="width:241px;height:61px;display:inline-block;border:0"/>
         </div>
         <p style="margin:0;font-family:${SANS};font-size:13px;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
           © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
