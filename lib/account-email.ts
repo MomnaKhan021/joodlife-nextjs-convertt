@@ -240,52 +240,51 @@ export async function sendWelcomeEmail(
       </td>
     </tr>`;
 
-  // Collage tile — fixed-size image with rounded corners + a 5px gap below.
-  const tile = (name: string, w: number, h: number) =>
-    `<div style="font-size:0;line-height:0;margin-bottom:5px"><img src="${img}/wl-${name}.jpg" alt="" width="${w}" height="${h}" style="width:${w}px;height:${h}px;display:block;border-radius:10px;border:0" /></div>`;
-
   const inner = `
-    <!-- Hero: text left, exact Figma collage right -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:16px;overflow:hidden">
+    <!-- Hero — Figma geometry: 580 cream card (radius 20), text column 263px
+         on the left, and the 286x457 collage flush to the card's top-right
+         (its tiles + rounded outer corners are baked into the one image, so
+         every client renders it identically). -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:20px">
       <tr>
-        <td valign="middle" style="padding:26px 6px 26px 24px">
-          <h1 style="margin:0;font-family:${GIL};font-size:29px;font-weight:500;line-height:34px;color:${BRAND}">Your Journey</h1>
-          <p style="margin:0 0 12px;font-family:${SER};font-style:italic;font-size:42px;font-weight:400;line-height:44px;color:${BRAND}">Start Here</p>
-          <p style="margin:0 0 18px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
-            Hi ${escapeHtml(firstName)} — we make weight-loss simple with clinician-led care, personalised treatment options, and ongoing support all from home.
+        <td valign="middle" style="padding:24px 15px 24px 16px">
+          <h1 style="margin:0;font-family:${GIL};font-size:29px;font-weight:500;line-height:40px;color:${BRAND}">Your Journey</h1>
+          <p style="margin:0 0 6px;font-family:${SER};font-style:italic;font-size:48px;font-weight:400;line-height:44px;color:${BRAND}">Start Here</p>
+          <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;font-weight:400;line-height:17px;color:${BRAND}">
+            We make weight-loss simple with clinician-led care, personalised treatment options, and ongoing support all from home.
           </p>
-          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:10px;font-size:14px;font-weight:600">Start My Assessment</a>
+          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:8px;font-size:14px;font-weight:600;line-height:20px">Start My Assessment</a>
         </td>
-        <td width="292" valign="top" style="padding:22px 20px 22px 0">
-          <table role="presentation" cellpadding="0" cellspacing="0" align="right"><tr>
-            <td width="141" valign="top">${tile("t1", 141, 161)}${tile("t5", 141, 218)}${tile("t6", 141, 130)}</td>
-            <td width="5"></td>
-            <td width="141" valign="top">${tile("t2", 141, 96)}${tile("t3", 141, 216)}${tile("t4", 141, 198)}</td>
-          </tr></table>
+        <td width="286" valign="top" style="width:286px;padding:0;font-size:0;line-height:0">
+          <img src="${img}/wl-collage.jpg" alt="" width="286" height="457" style="width:286px;height:457px;display:block;border:0" />
         </td>
       </tr>
     </table>
 
-    <!-- How it works -->
-    <h2 style="margin:32px 0 18px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND};text-align:center">Here&rsquo;s how it <span style="font-family:${SER};font-style:italic;font-weight:400">works</span></h2>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-      ${step("01", `${img}/welcome-step-1.jpg`, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
-      ${step("02", `${img}/welcome-step-2.jpg`, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
-      ${step("03", `${img}/welcome-step-3.jpg`, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.")}
+    <!-- How it works — sits on a cream card (Figma #f7f9f2) -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;background:#f7f9f2;border-radius:20px">
+      <tr><td style="padding:26px 26px 8px">
+        <h2 style="margin:0 0 20px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND};text-align:center">Here&rsquo;s how it <span style="font-family:${SER};font-style:italic;font-weight:400">works</span></h2>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${step("01", `${img}/welcome-step-1.jpg`, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
+          ${step("02", `${img}/welcome-step-2.jpg`, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
+          ${step("03", `${img}/welcome-step-3.jpg`, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.")}
+        </table>
+      </td></tr>
     </table>
 
-    <!-- CTA banner -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background:${BRAND};border-radius:16px;overflow:hidden">
+    <!-- CTA banner — exact Figma green gradient + transparent cut-out photo -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;background:#142e2a;background:linear-gradient(120deg,#42746d 0%,#142e2a 62%);border-radius:20px;overflow:hidden">
       <tr>
-        <td valign="middle" style="padding:28px 8px 28px 26px">
-          <p style="margin:0 0 16px;font-size:25px;line-height:28px;color:#ffffff">
+        <td valign="middle" style="padding:28px 4px 28px 26px">
+          <p style="margin:0 0 18px;font-size:25px;line-height:29px;color:#ffffff">
             <span style="font-family:${SANS};font-weight:800">It takes a few minutes. There&rsquo;s no </span><span style="font-family:${SER};font-style:italic">commitment to begin.</span>
           </p>
           <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:#052016;text-decoration:none;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;margin:0 8px 6px 0">Start My Assessment</a>
           <a href="${howUrl}" style="display:inline-block;font-family:${SANS};background:transparent;color:#ffffff;text-decoration:none;padding:11px 19px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(255,255,255,.55)">See How Jood Works</a>
         </td>
-        <td width="210" valign="bottom" align="right" style="padding:0">
-          <img src="${img}/welcome-cta.jpg" alt="" width="210" style="width:210px;max-width:210px;height:auto;display:block;border:0" />
+        <td width="200" valign="bottom" align="right" style="padding:0;font-size:0;line-height:0">
+          <img src="${img}/welcome-cta.png" alt="" width="200" style="width:200px;max-width:200px;height:auto;display:block;border:0" />
         </td>
       </tr>
     </table>
@@ -309,7 +308,7 @@ export async function sendWelcomeEmail(
         <span style="font-family:${GIL};font-size:14px;font-weight:500;color:#ffffff">Welcome To JOODLIFE</span>
       </td></tr>
       <!-- Body -->
-      <tr><td style="padding:26px 26px 30px;color:${BRAND}">
+      <tr><td style="padding:20px 10px 24px;color:${BRAND}">
         ${inner}
       </td></tr>
       <!-- Footer -->
