@@ -221,7 +221,6 @@ export async function sendWelcomeEmail(
     @font-face{font-family:'Outfit';font-weight:500;font-display:swap;src:url('${url}/fonts/Outfit-Medium.woff2') format('woff2')}
     @font-face{font-family:'Outfit';font-weight:600;font-display:swap;src:url('${url}/fonts/Outfit-SemiBold.woff2') format('woff2')}
     @font-face{font-family:'Outfit';font-weight:700;font-display:swap;src:url('${url}/fonts/Outfit-Bold.woff2') format('woff2')}
-    @font-face{font-family:'Outfit';font-weight:800;font-display:swap;src:url('${url}/fonts/Outfit-Bold.woff2') format('woff2')}
     *{letter-spacing:0 !important}
   `;
 
@@ -240,10 +239,8 @@ export async function sendWelcomeEmail(
         <img src="${thumb}" alt="" width="73" height="${th}" style="width:73px;height:${th}px;display:block;border:0;border-radius:6px" />
       </td>
       <td valign="top" style="padding:0 0 ${last ? 0 : 16}px">
-        <table role="presentation" cellpadding="0" cellspacing="0"><tr><td width="20" height="20" align="center" valign="middle" style="width:20px;height:20px;background:#3f5c50;border-radius:10px">
-          <span style="font-family:${SANS};font-size:8px;font-weight:400;color:#ffffff;line-height:20px">${n}</span>
-        </td></tr></table>
-        <p style="margin:8px 0 4px;font-family:${SANS};font-size:16px;font-weight:600;line-height:20px;color:#040404">${title}</p>
+        <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0" />
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:16px;font-weight:500;line-height:20px;color:#040404">${title}</p>
         <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:#040404">${body}</p>
       </td>
     </tr>`;
@@ -261,7 +258,7 @@ export async function sendWelcomeEmail(
           <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;font-weight:400;line-height:17px;color:${BRAND}">
             We make weight-loss simple with clinician-led care, personalised treatment options, and ongoing support all from home.
           </p>
-          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:8px;font-size:14px;font-weight:600;line-height:20px">Start My Assessment</a>
+          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:8px;font-size:14px;font-weight:500;line-height:20px">Start My Assessment</a>
         </td>
         <td width="286" valign="top" style="width:286px;padding:0;font-size:0;line-height:0">
           <img src="${img}/wl-collage.jpg" alt="" width="286" height="457" style="width:286px;height:457px;display:block;border:0" />
@@ -282,18 +279,31 @@ export async function sendWelcomeEmail(
       </td></tr>
     </table>
 
-    <!-- CTA banner — exact Figma green gradient + transparent cut-out photo -->
-    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;background:#142e2a;background:linear-gradient(120deg,#42746d 0%,#142e2a 62%);border-radius:20px;overflow:hidden">
+    <!-- CTA banner — Figma 580x234 r12. The gradient + cut-out photo are baked
+         into one background image (email clients can't do CSS gradients
+         reliably); text and buttons sit on top, with bgcolor as the Outlook
+         fallback. Heading at y=57, buttons 177x44 at y=157. -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;margin-top:16px;border-radius:12px">
       <tr>
-        <td valign="middle" style="padding:28px 4px 28px 26px">
-          <p style="margin:0 0 18px;font-size:25px;line-height:29px;color:#ffffff">
-            <span style="font-family:${SANS};font-weight:800">It takes a few minutes. There&rsquo;s no </span><span style="font-family:${SER};font-style:italic">commitment to begin.</span>
-          </p>
-          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:#052016;text-decoration:none;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;margin:0 8px 6px 0">Start My Assessment</a>
-          <a href="${howUrl}" style="display:inline-block;font-family:${SANS};background:transparent;color:#ffffff;text-decoration:none;padding:11px 19px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(255,255,255,.55)">See How Jood Works</a>
-        </td>
-        <td width="200" valign="bottom" align="right" style="padding:0;font-size:0;line-height:0">
-          <img src="${img}/welcome-cta.png" alt="" width="200" style="width:200px;max-width:200px;height:auto;display:block;border:0" />
+        <td background="${img}/cta-banner.jpg" bgcolor="#1d4038" valign="top" height="234" style="height:234px;border-radius:12px;background-color:#1d4038;background-image:url('${img}/cta-banner.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 234px;padding:57px 0 0 16px">
+          <table role="presentation" width="266" cellpadding="0" cellspacing="0" style="width:266px">
+            <tr><td style="padding:0 0 20px">
+              <p style="margin:0;font-size:25px;line-height:27px;color:#ffffff">
+                <span style="font-family:${SANS};font-weight:700">It takes a few minutes. There&rsquo;s no </span><span style="font-family:${SER};font-style:italic;font-weight:400">commitment to begin.</span>
+              </p>
+            </td></tr>
+            <tr><td>
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td width="177" height="44" align="center" valign="middle" bgcolor="#ffffff" style="width:177px;height:44px;background:#ffffff;border-radius:8px">
+                  <a href="${assessmentUrl}" style="display:block;font-family:${SANS};font-size:14px;font-weight:500;line-height:44px;color:#052016;text-decoration:none">Start My Assessment</a>
+                </td>
+                <td width="12"></td>
+                <td width="177" height="44" align="center" valign="middle" style="width:177px;height:44px;border:1px solid rgba(255,255,255,.6);border-radius:8px">
+                  <a href="${howUrl}" style="display:block;font-family:${SANS};font-size:14px;font-weight:500;line-height:42px;color:#ffffff;text-decoration:none">See How Jood Works</a>
+                </td>
+              </tr></table>
+            </td></tr>
+          </table>
         </td>
       </tr>
     </table>
@@ -322,15 +332,15 @@ export async function sendWelcomeEmail(
       </td></tr>
       <!-- Footer -->
       <tr><td style="background:${BRAND};padding:30px 30px 26px">
-        <p style="margin:0 0 6px;font-family:${SANS};font-size:16px;color:#fcfbf8;text-align:center">
-          <span style="font-weight:700">Questions?</span> <a href="${url}/support" style="color:#fcfbf8;text-decoration:none">Talk to our team</a>
+        <p style="margin:0 0 6px;font-family:${SANS};font-size:16px;font-weight:500;line-height:20px;color:#fcfbf8;text-align:center">
+          Questions? <a href="${url}/support" style="color:#fcfbf8;text-decoration:none">Talk to our team</a>
         </p>
-        <p style="margin:0 0 20px;font-family:${SANS};font-size:16px;color:#fcfbf8;text-align:center">
-          Email us at <a href="mailto:info@joodlife.com" style="color:#fcfbf8;font-weight:700;text-decoration:none">info@joodlife.com</a>
+        <p style="margin:0 0 20px;font-family:${SANS};font-size:16px;font-weight:700;line-height:20px;color:#fcfbf8;text-align:center">
+          Email us at <a href="mailto:info@joodlife.com" style="color:#fcfbf8;text-decoration:none">info@joodlife.com</a>
         </p>
         <div style="border-top:1px solid rgba(255,255,255,.18);margin:0 0 20px"></div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td valign="middle" style="font-family:${SANS};font-size:16px;line-height:26px">
+          <td valign="middle" style="font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
             <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
             <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
           </td>
@@ -341,7 +351,7 @@ export async function sendWelcomeEmail(
         <div style="margin:14px 0 16px;text-align:right;font-size:0;line-height:0">
           <img src="${url}/assets/email/badges-row.png" alt="LegitScript Certified · Registered Pharmacy 9012990 · Apple Pay · Google Pay · Stripe" width="241" height="61" style="width:241px;height:61px;display:inline-block;border:0"/>
         </div>
-        <p style="margin:0;font-family:${SANS};font-size:13px;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
+        <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
           © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
           Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
           Clinical, consultation and prescribing services are provided by UK-registered prescribers.
