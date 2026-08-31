@@ -217,8 +217,6 @@ export async function sendWelcomeEmail(
     </tr>`;
 
   const inner = `
-    <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#3f5c50;text-align:center">WELCOME TO JOODLIFE</p>
-
     <!-- Hero -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:16px;overflow:hidden">
       <tr><td style="padding:28px 26px 8px">
@@ -259,9 +257,57 @@ export async function sendWelcomeEmail(
       This account is registered to <strong>${escapeHtml(user.email)}</strong>. If you didn&rsquo;t create it, please ignore this email.
     </p>`;
 
-  const html = emailShell(inner, {
-    preheader: "Your journey starts here — begin your free assessment.",
-  });
+  // Bespoke shell matching the JoodLife 2.0 welcome design: a "WELCOME TO
+  // JOODLIFE" strip on top and the full pharmacy footer (contact + links +
+  // GPhC badge + legal) at the bottom.
+  const year = new Date().getFullYear();
+  const logo = `${url}/assets/figma/footer-logo-2.png`;
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/></head>
+<body style="margin:0;padding:0;background:#eef1e9;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your journey starts here — begin your free assessment.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+      <!-- WELCOME strip -->
+      <tr><td style="background:${BRAND};padding:12px 24px;text-align:center">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.14em;color:#ffffff">WELCOME TO JOODLIFE</span>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:28px;color:${BRAND}">
+        ${inner}
+      </td></tr>
+      <!-- Footer (Figma) -->
+      <tr><td style="background:${BRAND};padding:28px 28px 24px">
+        <p style="margin:0 0 4px;font-size:14px;color:#ffffff;text-align:center">
+          <strong>Questions?</strong> <a href="${url}/support" style="color:#d3dabe;text-decoration:none">Talk to our team</a>
+        </p>
+        <p style="margin:0 0 18px;font-size:13px;color:rgba(255,255,255,.75);text-align:center">Or just reply to this email.</p>
+        <div style="border-top:1px solid rgba(255,255,255,.16);margin:0 0 18px"></div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td valign="middle" style="font-size:13px;line-height:22px">
+            <a href="${url}/shop" style="color:rgba(255,255,255,.85);text-decoration:none">Treatments</a><br/>
+            <a href="${url}/policies/privacy" style="color:rgba(255,255,255,.85);text-decoration:none">Privacy Policy</a>
+          </td>
+          <td valign="middle" align="right">
+            <img src="${logo}" alt="JOOD" height="30" style="height:30px;width:auto;display:inline-block;border:0"/>
+          </td>
+        </tr></table>
+        <div style="margin:16px 0 14px"><img src="${url}/assets/email/badge-gphc.png" alt="GPhC registered pharmacy" height="34" style="height:34px;width:auto;display:inline-block;border:0"/></div>
+        <p style="margin:0;font-size:10.5px;line-height:16px;color:rgba(255,255,255,.6)">
+          © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
+          Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
+          Clinical, consultation and prescribing services are provided by UK-registered prescribers.
+          All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.
+          All Pharmacy operations are temporarily taking place at Weaverham Pharmacy (1029683).
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
 
   const text = `Welcome to JoodLife, ${firstName}!
 
