@@ -199,32 +199,86 @@ export async function sendWelcomeEmail(
 ): Promise<void> {
   const url = siteUrl();
   const firstName = String(user.name ?? "").trim().split(/\s+/)[0] || "there";
-  const loginUrl = `${url}/login`;
+  // "Start My Assessment" opens the weight-loss questionnaire.
+  const assessmentUrl = `${url}/consultation?product=weight-loss`;
+  const howUrl = `${url}/#how-it-works`;
+  const img = `${url}/assets/email`;
 
-  const html = emailShell(
-    `<h1 style="font-size:22px;margin:0 0 16px;color:#142e2a">Welcome to JoodLife, ${escapeHtml(firstName)}</h1>
-     <p style="font-size:15px;line-height:22px;margin:0 0 20px;color:#142e2a">
-       Your account has been created successfully. You can now sign in to manage
-       your treatments, orders and account details.
-     </p>
-     ${btn(loginUrl, "Go to your account")}
-     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:12px 0 0">
-       This account is registered to <strong>${escapeHtml(user.email)}</strong>.
-       If you didn't create this account, please ignore this email.
-     </p>`,
-    { preheader: "Your JoodLife account is ready" },
-  );
+  const step = (n: string, thumb: string, title: string, body: string) => `
+    <tr>
+      <td width="64" valign="top" style="padding:0 14px 18px 0">
+        <img src="${thumb}" alt="" width="56" height="56" style="width:56px;height:56px;border-radius:10px;object-fit:cover;display:block;border:0" />
+      </td>
+      <td valign="top" style="padding:0 0 18px">
+        <p style="margin:0 0 3px;font-size:11px;font-weight:700;letter-spacing:.06em;color:#3f5c50">STEP ${n}</p>
+        <p style="margin:0 0 3px;font-size:15px;font-weight:700;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-size:13px;line-height:19px;color:rgba(20,46,42,.72)">${body}</p>
+      </td>
+    </tr>`;
+
+  const inner = `
+    <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#3f5c50;text-align:center">WELCOME TO JOODLIFE</p>
+
+    <!-- Hero -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:16px;overflow:hidden">
+      <tr><td style="padding:28px 26px 8px">
+        <h1 style="margin:0 0 4px;font-size:26px;line-height:1.15;color:${BRAND};font-weight:600">Your Journey</h1>
+        <p style="margin:0 0 14px;font-size:28px;line-height:1.1;color:${BRAND};font-style:italic;font-family:Georgia,'Times New Roman',serif">Start Here</p>
+        <p style="margin:0 0 20px;font-size:14px;line-height:21px;color:rgba(20,46,42,.8)">
+          Hi ${escapeHtml(firstName)} — we make weight loss simple with clinician-led care, personalised treatment options, and ongoing support, all from home.
+        </p>
+        ${btn(assessmentUrl, "Start My Assessment")}
+      </td></tr>
+      <tr><td style="padding:6px 0 0">
+        <img src="${img}/welcome-hero.jpg" alt="Start your weight-loss journey with JoodLife" width="600" style="width:100%;max-width:600px;height:auto;display:block;border:0" />
+      </td></tr>
+    </table>
+
+    <!-- How it works -->
+    <h2 style="margin:30px 0 16px;font-size:20px;color:${BRAND};font-weight:600;text-align:center">Here&rsquo;s how it <span style="font-style:italic;font-family:Georgia,serif;font-weight:400">works</span></h2>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${step("1", `${img}/welcome-step-1.jpg`, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
+      ${step("2", `${img}/welcome-step-2.jpg`, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
+      ${step("3", `${img}/welcome-step-3.jpg`, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.")}
+    </table>
+
+    <!-- CTA banner -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;background:${BRAND};border-radius:16px;overflow:hidden">
+      <tr><td style="padding:26px 26px 4px">
+        <p style="margin:0 0 4px;font-size:22px;line-height:1.2;color:#ffffff;font-weight:600">It takes a few minutes.</p>
+        <p style="margin:0 0 18px;font-size:22px;line-height:1.2;color:#ffffff;font-weight:600">There&rsquo;s <span style="font-style:italic;font-family:Georgia,serif;font-weight:400">no</span> commitment to begin.</p>
+        <a href="${assessmentUrl}" style="display:inline-block;background:#ffffff;color:${BRAND};text-decoration:none;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:700;margin:0 8px 8px 0">Start My Assessment</a>
+        <a href="${howUrl}" style="display:inline-block;background:transparent;color:#ffffff;text-decoration:none;padding:11px 21px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(255,255,255,.55)">See How Jood Works</a>
+      </td></tr>
+      <tr><td align="right" style="padding:8px 0 0">
+        <img src="${img}/welcome-cta.jpg" alt="" width="300" style="width:60%;max-width:300px;height:auto;display:block;margin-left:auto;border:0" />
+      </td></tr>
+    </table>
+
+    <p style="font-size:12px;line-height:18px;color:rgba(20,46,42,.6);margin:22px 0 0;text-align:center">
+      This account is registered to <strong>${escapeHtml(user.email)}</strong>. If you didn&rsquo;t create it, please ignore this email.
+    </p>`;
+
+  const html = emailShell(inner, {
+    preheader: "Your journey starts here — begin your free assessment.",
+  });
 
   const text = `Welcome to JoodLife, ${firstName}!
 
-Your account (${user.email}) has been created successfully at ${url}.
-Sign in any time at ${loginUrl}.
+Your journey starts here. We make weight loss simple with clinician-led care, personalised treatment options and ongoing support, all from home.
 
-If you didn't create this account, please ignore this email.`;
+How it works:
+1. Tell us about your goals — complete a short online assessment.
+2. Our GPhC-registered pharmacy team checks your suitability.
+3. Receive your next step — if suitable, we guide you from there.
+
+Start your assessment: ${assessmentUrl}
+
+This account is registered to ${user.email}. If you didn't create it, please ignore this email.`;
 
   await payload.sendEmail({
     to: user.email,
-    subject: "Welcome to JoodLife — your account is ready",
+    subject: "Your JoodLife journey starts here",
     html,
     text,
   });
