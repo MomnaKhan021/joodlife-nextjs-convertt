@@ -362,29 +362,36 @@ export async function sendWelcomeEmail(
       <tr><td style="padding:20px 10px 24px;color:${BRAND}">
         ${inner}
       </td></tr>
-      <!-- Footer -->
-      <tr><td style="background:${BRAND};padding:30px 30px 26px">
-        <p style="margin:0 0 6px;font-family:${SANS};font-size:16px;font-weight:500;line-height:20px;color:#fcfbf8;text-align:center">
-          Questions? <a href="${url}/support" style="color:#fcfbf8;text-decoration:none">Talk to our team</a>
+      <!-- Footer — Figma 600x413, 28px inset (544 content). Per-character
+           weights from the file: "Questions? " Medium(500) + "Talk to our
+           team" Regular(400); "Email us at " Regular(400) + the address
+           Bold(700). Two hairline dividers: after the email line and after
+           the badge row. Legal is 14px/18 in solid white. -->
+      <tr><td style="background:${BRAND};padding:40px 28px 20px">
+        <p style="margin:0 0 10px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:500">Questions?</span> <a href="${url}/support" style="font-weight:400;color:#fcfbf8;text-decoration:none">Talk to our team</a>
         </p>
-        <p style="margin:0 0 20px;font-family:${SANS};font-size:16px;font-weight:700;line-height:20px;color:#fcfbf8;text-align:center">
-          Email us at <a href="mailto:info@joodlife.com" style="color:#fcfbf8;text-decoration:none">info@joodlife.com</a>
+        <p style="margin:0 0 16px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:400">Email us at</span> <a href="mailto:hello@joodlife.com" style="font-weight:700;color:#fcfbf8;text-decoration:none">hello@joodlife.com</a>
         </p>
-        <div style="border-top:1px solid rgba(255,255,255,.18);margin:0 0 20px"></div>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td class="f-links" valign="middle" style="font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
-            <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
-            <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
-          </td>
-          <td class="f-logo" valign="middle" align="right">
-            <img src="${logo}" alt="JOOD" height="48" style="height:48px;width:auto;display:inline-block;border:0"/>
-          </td>
-        </tr></table>
-        <div class="f-badges" style="margin:14px 0 16px;text-align:right;font-size:0;line-height:0">
-          <img src="${url}/assets/email/badges-row.png" alt="LegitScript Certified · Registered Pharmacy 9012990 · Apple Pay · Google Pay · Stripe" width="241" height="61" style="width:241px;height:61px;display:inline-block;border:0"/>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <table role="presentation" width="544" cellpadding="0" cellspacing="0" class="stack" style="width:544px;max-width:100%">
+          <tr>
+            <td class="f-links" valign="middle" style="padding:20px 0 0;font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
+              <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
+              <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
+            </td>
+            <td class="f-logo" valign="middle" align="right" style="padding:20px 0 0">
+              <img src="${img}/jood-logo.png" alt="JOOD" width="218" height="61" style="width:218px;max-width:100%;height:auto;display:inline-block;border:0"/>
+            </td>
+          </tr>
+        </table>
+        <div class="f-badges" style="margin:8px 0 14px;text-align:right;font-size:0;line-height:0">
+          <img src="${url}/assets/email/badges-row.png" alt="LegitScript Certified &middot; Registered Pharmacy 9012990 &middot; Apple Pay &middot; Google Pay &middot; Stripe" width="241" height="61" style="width:241px;max-width:100%;height:auto;display:inline-block;border:0"/>
         </div>
-        <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
-          © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <p style="margin:26px 0 0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:#ffffff;text-align:center">
+          &copy; ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969)
           Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
           Clinical, consultation and prescribing services are provided by UK-registered prescribers.
           All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.
@@ -407,7 +414,7 @@ How it works:
 
 Start your assessment: ${assessmentUrl}
 
-This account is registered to ${user.email}. If you didn't create it, please ignore this email.`;
+Questions? Email us at hello@joodlife.com\n\nThis account is registered to ${user.email}. If you didn't create it, please ignore this email.`;
 
   await payload.sendEmail({
     to: user.email,
