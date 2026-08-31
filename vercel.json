@@ -8,10 +8,21 @@
     {
       "path": "/api/cron/abandoned-reminders",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/assessment-reminders",
+      "schedule": "0 * * * *"
     }
   ],
   "functions": {
-    "app/api/hubspot/sync-all/route.ts": { "maxDuration": 60 },
-    "app/api/cron/abandoned-reminders/route.ts": { "maxDuration": 60 }
+    "app/api/hubspot/sync-all/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/abandoned-reminders/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/assessment-reminders/route.ts": {
+      "maxDuration": 60
+    }
   }
 }

@@ -627,3 +627,155 @@ From the team at ${url}.`;
     text,
   });
 }
+
+/**
+ * "You're almost there" — assessment abandonment recovery.
+ *
+ * Sent to someone who started the questionnaire but never submitted it:
+ * once a couple of hours later, then again the next day. Matches the
+ * PHASE-1 Figma template (dark-green hero, cream "answers are saved" card,
+ * pharmacy footer) using the same brand fonts as the welcome email.
+ */
+export async function sendAssessmentReminderEmail(
+  payload: Payload,
+  opts: {
+    email: string;
+    name?: string | null;
+    /** Questionnaire to resume, e.g. "weight-loss". */
+    productSlug?: string | null;
+    /** 1 = the couple-of-hours nudge, 2 = the next-day follow-up. */
+    attempt?: number;
+  },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const product = (opts.productSlug ?? "weight-loss").trim() || "weight-loss";
+  const resumeUrl = `${url}/consultation?product=${encodeURIComponent(product)}`;
+  const supportUrl = `${url}/support`;
+  const img = `${url}/assets/email`;
+  const logo = `${url}/assets/figma/footer-logo-2.png`;
+  const year = new Date().getFullYear();
+  const second = Number(opts.attempt ?? 1) >= 2;
+
+  const GIL = `'Gilroy',Helvetica,Arial,sans-serif`;
+  const SER = `'Clearface',Georgia,'Times New Roman',serif`;
+  const SANS = `'Outfit',Helvetica,Arial,sans-serif`;
+  const fonts = `
+    @font-face{font-family:'Gilroy';font-weight:500;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Medium.woff2') format('woff2')}
+    @font-face{font-family:'Gilroy';font-weight:700;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Bold.woff2') format('woff2')}
+    @font-face{font-family:'Clearface';font-weight:400;font-style:italic;font-display:swap;src:url('${url}/fonts/ClearfaceRegularItalic.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:400;font-display:swap;src:url('${url}/fonts/Outfit-Regular.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:600;font-display:swap;src:url('${url}/fonts/Outfit-SemiBold.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:700;font-display:swap;src:url('${url}/fonts/Outfit-Bold.woff2') format('woff2')}
+    *{letter-spacing:0 !important}
+  `;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${fonts}</style></head>
+<body style="margin:0;padding:0;background:#eef1e9;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your answers are saved — pick up where you left off.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
+
+      <!-- Top strip -->
+      <tr><td style="background:${BRAND};padding:13px 24px;text-align:center">
+        <span style="font-family:${GIL};font-size:14px;font-weight:500;color:#ffffff">YOU STARTED &mdash; FINISH WHENEVER YOU&rsquo;RE READY</span>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="background:${BRAND};padding:34px 26px 0;text-align:center">
+        <img src="${logo}" alt="JOOD" height="34" style="height:34px;width:auto;display:inline-block;border:0;margin:0 0 18px"/>
+        <p style="margin:0 0 10px;font-size:40px;line-height:46px;color:#ffffff">
+          <span style="font-family:${GIL};font-weight:500">You&rsquo;re </span><span style="font-family:${SER};font-style:italic">Almost There</span>
+        </p>
+        <p style="margin:0 0 22px;font-family:${SANS};font-size:15px;line-height:22px;color:rgba(255,255,255,.85)">
+          ${second
+            ? "Your assessment is still waiting — it only takes a couple of minutes."
+            : "You started your assessment but didn&rsquo;t quite finish."}
+        </p>
+        <a href="${resumeUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:${BRAND};text-decoration:none;padding:14px 26px;border-radius:10px;font-size:15px;font-weight:600">Finish My Assessment</a>
+        <div style="font-size:0;line-height:0;padding:26px 0 0">
+          <img src="${img}/assessment-hero.png" alt="" width="320" style="width:320px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </div>
+      </td></tr>
+
+      <!-- Answers are saved -->
+      <tr><td style="padding:26px 26px 30px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:16px">
+          <tr><td style="padding:26px 24px">
+            <p style="margin:0 0 12px;font-size:26px;line-height:32px;color:${BRAND}">
+              <span style="font-family:${GIL};font-weight:700">Good news &mdash; your </span><span style="font-family:${SER};font-style:italic">answers are saved.</span>
+            </p>
+            <p style="margin:0 0 12px;font-family:${SANS};font-size:14px;line-height:20px;color:${BRAND}">
+              Hi ${escapeHtml(firstName)} — you can pick up exactly where you left off.
+            </p>
+            <p style="margin:0 0 12px;font-family:${SANS};font-size:14px;line-height:20px;color:${BRAND}">
+              It only takes a couple of minutes, and our pharmacy team will review it to check the treatment is suitable for you.
+            </p>
+            <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;line-height:20px;color:${BRAND}">
+              No pressure. We&rsquo;re here if you have any questions along the way.
+            </p>
+            <a href="${resumeUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:10px;font-size:14px;font-weight:600;margin:0 8px 6px 0">Finish My Assessment</a>
+            <a href="${supportUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:${BRAND};text-decoration:none;padding:12px 21px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(20,46,42,.35)">Talk To Our Team</a>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:${BRAND};padding:30px 30px 26px">
+        <p style="margin:0 0 6px;font-family:${SANS};font-size:16px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:700">Questions?</span> <a href="${supportUrl}" style="color:#fcfbf8;text-decoration:none">Talk to our team</a>
+        </p>
+        <p style="margin:0 0 20px;font-family:${SANS};font-size:16px;color:#fcfbf8;text-align:center">
+          Email us at <a href="mailto:info@joodlife.com" style="color:#fcfbf8;font-weight:700;text-decoration:none">info@joodlife.com</a>
+        </p>
+        <div style="border-top:1px solid rgba(255,255,255,.18);margin:0 0 20px"></div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td valign="middle" style="font-family:${SANS};font-size:16px;line-height:26px">
+            <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
+            <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
+          </td>
+          <td valign="middle" align="right">
+            <img src="${logo}" alt="JOOD" height="48" style="height:48px;width:auto;display:inline-block;border:0"/>
+          </td>
+        </tr></table>
+        <div style="margin:18px 0 16px">
+          <img src="${img}/badge-legitscript.png" alt="LegitScript certified" height="40" style="height:40px;width:auto;display:inline-block;vertical-align:middle;border:0;margin-right:12px"/>
+          <img src="${img}/badge-gphc.png" alt="GPhC registered pharmacy (9012990)" height="30" style="height:30px;width:auto;display:inline-block;vertical-align:middle;border:0"/>
+        </div>
+        <p style="margin:0;font-family:${SANS};font-size:13px;line-height:18px;color:rgba(255,255,255,.72);text-align:center">
+          © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
+          Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
+          Clinical, consultation and prescribing services are provided by UK-registered prescribers.
+          All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.
+          All Pharmacy operations are temporarily taking place at Weaverham Pharmacy (1029683).
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+You started your JoodLife assessment but didn't quite finish — and your answers are saved.
+
+Pick up exactly where you left off: ${resumeUrl}
+
+It only takes a couple of minutes, and our pharmacy team will review it to check the treatment is suitable for you.
+
+Questions? Talk to our team: ${supportUrl}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: second
+      ? "Your assessment is still waiting"
+      : "You're almost there — finish your assessment",
+    html,
+    text,
+  });
+}
