@@ -295,7 +295,6 @@ export async function sendWelcomeEmail(
   const fonts = `
     @font-face{font-family:'Gilroy';font-weight:500;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Medium.woff2') format('woff2')}
     @font-face{font-family:'Gilroy';font-weight:700;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Bold.woff2') format('woff2')}
-    @font-face{font-family:'Clearface';font-weight:400;font-style:italic;font-display:swap;src:url('${url}/fonts/ClearfaceRegularItalic.woff2') format('woff2')}
     @font-face{font-family:'Outfit';font-weight:400;font-display:swap;src:url('${url}/fonts/Outfit-Regular.woff2') format('woff2')}
     @font-face{font-family:'Outfit';font-weight:500;font-display:swap;src:url('${url}/fonts/Outfit-Medium.woff2') format('woff2')}
     @font-face{font-family:'Outfit';font-weight:600;font-display:swap;src:url('${url}/fonts/Outfit-SemiBold.woff2') format('woff2')}
@@ -498,6 +497,191 @@ Questions? Email us at hello@joodlife.com\n\nThis account is registered to ${use
   await payload.sendEmail({
     to: user.email,
     subject: "Your JoodLife journey starts here",
+    html,
+    text,
+  });
+}
+
+/**
+ * "Why patients choose Jood" — the Day-2 education email.
+ *
+ * Objective: build trust and move a warm lead to start/finish the assessment.
+ * Trigger: engaged lead, ~day 2, hasn't purchased.
+ *
+ * Built from the PHASE-1 Mail template 3 Figma (AQsuk7WCxmpJiGL94OxwCt,
+ * node 1:339). Per the brief, the efficacy percentages, the BOGOF offer and
+ * the "if prescribed" wording are deliberately NOT included; the compliant
+ * "Treatment is subject to assessment and suitability." line is.
+ *
+ * The gradient panels + cut-out photography + Trustpilot lockups are baked
+ * into images (email clients can't be trusted with CSS gradients or SVG), and
+ * the copy sits on top as real text.
+ */
+export async function sendEducationEmail(
+  payload: Payload,
+  user: { email: string; name?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const assessmentUrl = `${url}/consultation?product=weight-loss`;
+  const reviewsUrl = `${url}/#reviews`;
+  const img = `${url}/assets/email`;
+  const year = new Date().getFullYear();
+
+  const { GIL, SANS } = EMAIL_FONTS;
+  // Shared @font-face + responsive base, plus the rules this layout needs.
+  const fonts = `${emailFontCss(url)}
+    .m-only{display:none !important;max-height:0 !important;overflow:hidden !important;mso-hide:all}
+    @media only screen and (max-width:620px){
+      td.hero-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 0 !important}
+      td.hero-cell h1{font-size:34px !important;line-height:38px !important}
+      td.cta-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 24px !important}
+      td.ben-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:24px 20px 8px !important}
+      td.ben-art{display:block !important;width:100% !important;box-sizing:border-box !important;padding:0 20px 20px !important;text-align:center !important}
+      td.ben-art img{width:100% !important;max-width:280px !important;height:auto !important}
+      .m-only{display:block !important;max-height:none !important;overflow:visible !important}
+      .m-only img{width:100% !important;height:auto !important}
+    }
+  `;
+
+  // One "why" item: bold claim + supporting line.
+  const item = (title: string, body: string, last = false) => `
+    <tr><td style="padding:0 0 ${last ? 0 : 18}px">
+      <p style="margin:0 0 4px;font-family:${SANS};font-size:16px;font-weight:500;line-height:20px;color:#040404">${title}</p>
+      <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:#040404">${body}</p>
+    </td></tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${fonts}</style></head>
+<body style="margin:0;padding:0;background:#eef1e9;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Clinician-led care, real support, all from home.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
+
+      <!-- Strapline strip (white, dark text) -->
+      <tr><td style="padding:12px 24px;text-align:center">
+        <span style="font-family:${GIL};font-size:14px;font-weight:500;line-height:17px;color:${BRAND}">Clinician-led care, real support, all from home.</span>
+      </td></tr>
+
+      <!-- Hero: baked gradient + JOOD mark + Trustpilot row + cut-out photo;
+           the headline and sub-copy sit on top as real text. -->
+      <tr><td class="hero-cell" background="${img}/edu-hero.jpg" bgcolor="#20463d" valign="top" height="672" style="height:672px;box-sizing:border-box;background-color:#20463d;background-image:url('${img}/edu-hero.jpg');background-repeat:no-repeat;background-position:top center;background-size:600px 672px;padding:124px 55px 0">
+        <!-- mobile only: the baked background is dropped under 620px, so the
+             JOOD mark + Trustpilot row come back as an image here. -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:0 0 14px;font-size:0;line-height:0">
+          <img src="${img}/edu-m-top.jpg" alt="Trustpilot 4.4 (50+) reviews" width="335" style="width:335px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </td></tr></table>
+        <h1 style="margin:0 0 10px;font-family:${GIL};font-size:44px;font-weight:500;line-height:48px;color:#ffffff;text-align:center">Weight management, made for you</h1>
+        <p style="margin:0;font-family:${SANS};font-size:15px;font-weight:400;line-height:17px;color:#ffffff;text-align:center">
+          Choosing where to start your weight-loss journey matters. Here&rsquo;s why thousands trust Jood.
+        </p>
+        <!-- mobile only: the hero photograph -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:18px 0 0;font-size:0;line-height:0">
+          <img src="${img}/edu-m-women.jpg" alt="" width="335" style="width:335px;max-width:100%;height:auto;display:block;border:0"/>
+        </td></tr></table>
+      </td></tr>
+
+      <!-- Why patients choose Jood -->
+      <tr><td style="padding:20px 10px 0">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:12px">
+          <tr>
+            <td class="ben-copy" width="300" valign="top" style="width:300px;padding:24px 20px 24px 20px">
+              <h2 style="margin:0 0 24px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND}">Why patients choose Jood</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                ${item("Clinician-led care.", "Your assessment is reviewed by our UK pharmacy team to check your treatment is suitable and safe.")}
+                ${item("Real support, not just supply.", "Message our team on WhatsApp whenever you need us. You&rsquo;re never left to figure it out alone.")}
+                ${item("Discreet and convenient.", "Everything happens from home, with fast, private UK pharmacy delivery.")}
+                ${item("Built around you.", "A plan that fits your goals and your life &mdash; with us beside you at every step.", true)}
+              </table>
+            </td>
+            <td class="ben-art" width="280" valign="top" style="width:280px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/edu-benefits.jpg" alt="" width="280" height="425" style="width:280px;height:425px;display:block;border:0;border-radius:12px" />
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Trustpilot proof + assessment CTA -->
+      <tr><td style="padding:20px 10px 24px">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;border-radius:12px">
+          <tr><td class="cta-cell" background="${img}/edu-cta.jpg" bgcolor="#20463d" valign="top" height="305" style="height:305px;box-sizing:border-box;border-radius:12px;background-color:#20463d;background-image:url('${img}/edu-cta.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 305px;padding:77px 48px 0">
+            <p style="margin:0 0 12px;font-family:${SANS};font-size:25px;font-weight:700;line-height:26px;color:#ffffff;text-align:center">4.4 Rating on Trustpilot by patients across the UK.</p>
+            <p style="margin:0 0 24px;font-family:${SANS};font-size:16px;font-weight:400;line-height:20px;color:#ffffff;text-align:center">
+              When you&rsquo;re ready, your assessment takes just a few minutes.
+            </p>
+            <table role="presentation" width="484" cellpadding="0" cellspacing="0" class="stack" align="center" style="width:484px;max-width:100%"><tr>
+              <td width="236" height="50" align="center" valign="middle" bgcolor="#ffffff" class="btn" style="width:236px;height:50px;background:#ffffff;border-radius:8px">
+                <a href="${assessmentUrl}" style="display:block;font-family:${SANS};font-size:16px;font-weight:500;line-height:50px;color:${BRAND};text-decoration:none">Start My Assessment</a>
+              </td>
+              <td width="12" class="gap">&nbsp;</td>
+              <td width="236" height="50" align="center" valign="middle" class="btn" style="width:236px;height:50px;border:1px solid rgba(255,255,255,.6);border-radius:8px">
+                <a href="${reviewsUrl}" style="display:block;font-family:${SANS};font-size:16px;font-weight:500;line-height:48px;color:#ffffff;text-decoration:none">Read Patient Stories</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:${BRAND};padding:40px 28px 20px">
+        <p style="margin:0 0 10px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:500">Questions?</span> <a href="${url}/support" style="font-weight:400;color:#fcfbf8;text-decoration:none">Talk to our team</a>
+        </p>
+        <p style="margin:0 0 16px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:400">Email us at</span> <a href="mailto:hello@joodlife.com" style="font-weight:700;color:#fcfbf8;text-decoration:none">hello@joodlife.com</a>
+        </p>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <table role="presentation" width="544" cellpadding="0" cellspacing="0" class="stack" style="width:544px;max-width:100%">
+          <tr>
+            <td class="f-links" valign="middle" style="padding:20px 0 0;font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
+              <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
+              <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
+            </td>
+            <td class="f-logo" valign="middle" align="right" style="padding:20px 0 0">
+              <img src="${img}/jood-logo.png" alt="JOOD" width="218" height="61" style="width:218px;max-width:100%;height:auto;display:inline-block;border:0"/>
+            </td>
+          </tr>
+        </table>
+        <div class="f-badges" style="margin:8px 0 14px;text-align:right;font-size:0;line-height:0">
+          <img src="${img}/badges-row.png" alt="LegitScript Certified &middot; Registered Pharmacy 9012990 &middot; Apple Pay &middot; Google Pay &middot; Stripe" width="241" height="61" style="width:241px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <p style="margin:26px 0 0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:#ffffff;text-align:center">
+          Treatment is subject to assessment and suitability.
+        </p>
+        <p style="margin:10px 0 0;font-family:${SANS};font-size:11px;font-weight:400;line-height:15px;color:rgba(255,255,255,.62);text-align:center">
+          &copy; ${year} Jood. Jood Pharmacy is a GPhC-registered pharmacy (9012990). Superintendent Pharmacist: Zahhaad Khalil (2228969).
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Why patients choose Jood
+
+Weight management, made for you.
+Choosing where to start your weight-loss journey matters. Here's why thousands trust Jood.
+
+- Clinician-led care. Your assessment is reviewed by our UK pharmacy team to check your treatment is suitable and safe.
+- Real support, not just supply. Message our team on WhatsApp whenever you need us.
+- Discreet and convenient. Everything happens from home, with fast, private UK pharmacy delivery.
+- Built around you. A plan that fits your goals and your life.
+
+4.4 rating on Trustpilot by patients across the UK.
+When you're ready, your assessment takes just a few minutes.
+
+Start your assessment: ${assessmentUrl}
+
+Questions? Email us at hello@joodlife.com
+Treatment is subject to assessment and suitability.`;
+
+  await payload.sendEmail({
+    to: user.email,
+    subject: "Why patients choose Jood",
     html,
     text,
   });
