@@ -216,20 +216,30 @@ export async function sendWelcomeEmail(
       </td>
     </tr>`;
 
+  // Collage tile — fixed-size image with rounded corners + a 5px gap below.
+  const tile = (name: string, w: number, h: number) =>
+    `<div style="font-size:0;line-height:0;margin-bottom:5px"><img src="${img}/wl-${name}.jpg" alt="" width="${w}" height="${h}" style="width:${w}px;height:${h}px;display:block;border-radius:10px;border:0" /></div>`;
+
   const inner = `
-    <!-- Hero -->
+    <!-- Hero: text left, exact Figma collage right -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:16px;overflow:hidden">
-      <tr><td style="padding:28px 26px 8px">
-        <h1 style="margin:0 0 4px;font-size:26px;line-height:1.15;color:${BRAND};font-weight:600">Your Journey</h1>
-        <p style="margin:0 0 14px;font-size:28px;line-height:1.1;color:${BRAND};font-style:italic;font-family:Georgia,'Times New Roman',serif">Start Here</p>
-        <p style="margin:0 0 20px;font-size:14px;line-height:21px;color:rgba(20,46,42,.8)">
-          Hi ${escapeHtml(firstName)} — we make weight loss simple with clinician-led care, personalised treatment options, and ongoing support, all from home.
-        </p>
-        ${btn(assessmentUrl, "Start My Assessment")}
-      </td></tr>
-      <tr><td style="padding:6px 0 0">
-        <img src="${img}/welcome-hero.jpg" alt="Start your weight-loss journey with JoodLife" width="600" style="width:100%;max-width:600px;height:auto;display:block;border:0" />
-      </td></tr>
+      <tr>
+        <td valign="middle" style="padding:26px 8px 26px 24px">
+          <h1 style="margin:0 0 2px;font-size:25px;line-height:1.15;color:${BRAND};font-weight:600">Your Journey</h1>
+          <p style="margin:0 0 12px;font-size:27px;line-height:1.05;color:${BRAND};font-style:italic;font-family:Georgia,'Times New Roman',serif">Start Here</p>
+          <p style="margin:0 0 18px;font-size:13.5px;line-height:20px;color:rgba(20,46,42,.8)">
+            Hi ${escapeHtml(firstName)} — we make weight loss simple with clinician-led care, personalised treatment options, and ongoing support all from home.
+          </p>
+          ${btn(assessmentUrl, "Start My Assessment")}
+        </td>
+        <td width="300" valign="top" style="padding:22px 22px 22px 0">
+          <table role="presentation" cellpadding="0" cellspacing="0" align="right"><tr>
+            <td width="141" valign="top">${tile("t1", 141, 161)}${tile("t5", 141, 218)}${tile("t6", 141, 130)}</td>
+            <td width="5"></td>
+            <td width="141" valign="top">${tile("t2", 141, 96)}${tile("t3", 141, 216)}${tile("t4", 141, 198)}</td>
+          </tr></table>
+        </td>
+      </tr>
     </table>
 
     <!-- How it works -->
@@ -295,7 +305,10 @@ export async function sendWelcomeEmail(
             <img src="${logo}" alt="JOOD" height="30" style="height:30px;width:auto;display:inline-block;border:0"/>
           </td>
         </tr></table>
-        <div style="margin:16px 0 14px"><img src="${url}/assets/email/badge-gphc.png" alt="GPhC registered pharmacy" height="34" style="height:34px;width:auto;display:inline-block;border:0"/></div>
+        <div style="margin:16px 0 14px">
+          <img src="${url}/assets/email/badge-legitscript.png" alt="LegitScript certified" height="40" style="height:40px;width:auto;display:inline-block;vertical-align:middle;border:0;margin-right:10px"/>
+          <img src="${url}/assets/email/badge-gphc.png" alt="GPhC registered pharmacy (9012990)" height="30" style="height:30px;width:auto;display:inline-block;vertical-align:middle;border:0"/>
+        </div>
         <p style="margin:0;font-size:10.5px;line-height:16px;color:rgba(255,255,255,.6)">
           © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
           Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
