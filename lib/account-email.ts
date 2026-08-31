@@ -979,7 +979,7 @@ export async function sendAssessmentReminderEmail(
   // export in at public/assets/email/assessment-clinician.png and put that
   // filename here — the column appears and the copy narrows to suit. Left
   // empty, the card runs full width rather than showing a broken image.
-  const clinicianArt = "";
+  const clinicianArt = "assessment-clinician.png";
 
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"/>
@@ -1012,8 +1012,8 @@ export async function sendAssessmentReminderEmail(
             <a href="${resumeUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:${BRAND};text-decoration:none;padding:11px 20px;border-radius:6px;font-size:13px;font-weight:600">Finish My Assessment</a>
           </td></tr>
           <!-- Artwork sits flush to the hero's bottom edge, as in the design. -->
-          <tr><td style="padding:18px 0 0;font-size:0;line-height:0;text-align:center">
-            <img src="${img}/assessment-hero.png" alt="" width="330" style="width:330px;max-width:78%;height:auto;display:inline-block;border:0"/>
+          <tr><td style="padding:14px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/assessment-hero.png" alt="Wegovy and Ozempic pens beside a Jood tub" width="420" style="width:420px;max-width:86%;height:auto;display:inline-block;border:0"/>
           </td></tr>
         </table>
       </td></tr>
@@ -1036,17 +1036,17 @@ export async function sendAssessmentReminderEmail(
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0"><tr>
                 <td class="btn" style="border-radius:8px;background:${BRAND}">
-                  <a href="${resumeUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:13px 20px;font-size:14px;font-weight:600;text-align:center">Finish My Assessment</a>
+                  <a href="${resumeUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Finish My Assessment</a>
                 </td>
                 <td class="gap" width="12"></td>
                 <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
-                  <a href="${supportUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:12px 19px;font-size:14px;font-weight:600;text-align:center">Talk To Our Team</a>
+                  <a href="${supportUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 17px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Talk To Our Team</a>
                 </td>
               </tr></table>
             </td>
             ${clinicianArt
-              ? `<td class="card-art stack" width="215" valign="bottom" align="right" style="padding:0">
-              <img src="${img}/${clinicianArt}" alt="" width="215" style="width:215px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
+              ? `<td class="card-art stack" width="196" valign="bottom" align="right" style="padding:0">
+              <img src="${img}/${clinicianArt}" alt="" width="196" style="width:196px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
             </td>`
               : ""}
           </tr>
