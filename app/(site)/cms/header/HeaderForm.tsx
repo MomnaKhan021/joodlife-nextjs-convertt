@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { MegaTreatment, SiteLink } from "@/lib/siteContent";
+import type { MegaContent, MegaTreatment, SiteLink } from "@/lib/siteContent";
 import {
   LinkRepeater,
   fieldInput,
   fieldLabel,
   saveGlobal,
 } from "../LinkFields";
+import MegaEditor from "../MegaEditor";
 
 export type HeaderInitial = {
   navLinks: SiteLink[];
@@ -79,8 +80,9 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
         </Link>
         <h1 className="mt-2 text-[24px] font-semibold text-[#1a1a1a]">Header</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Top navigation and the “Our Treatments” mega menu. Leave a list empty
-          to fall back to the built-in defaults.
+          Top navigation and mega menus. Each link can have its own panel —
+          tick “Mega menu” on a link and its editor appears underneath.
+          Anything left empty falls back to the defaults below.
         </p>
       </header>
 
@@ -98,18 +100,32 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
       <div className="space-y-5">
         <LinkRepeater
           title="Navigation links"
-          hint='Tick "Mega menu" on the item that opens the Treatments panel.'
+          hint='Tick "Mega menu" on any link to give it its own panel — each link can have a different one.'
           links={navLinks}
           onChange={setNavLinks}
           allowMega
+          renderExtra={(link, i, update) =>
+            link.mega ? (
+              <MegaEditor
+                value={link.megaContent ?? ({} as MegaContent)}
+                onChange={(next) => update({ megaContent: next })}
+              />
+            ) : null
+          }
         />
 
         {/* ---- Mega menu ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-              Mega menu — treatment cards
-            </h2>
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+                Default mega menu — cards
+              </h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Used by any link that has “Mega menu” ticked but no cards of
+                its own.
+              </p>
+            </div>
             <button
               type="button"
               onClick={() =>
@@ -155,9 +171,14 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
 
         {/* ---- Promo card ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-            Mega menu — promo card
-          </h2>
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+              Default promo card
+            </h2>
+            <p className="text-[12px] text-[#8a8a8a]">
+              Shown in any mega panel that doesn&apos;t set its own promo.
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={fieldLabel} htmlFor="promoTitle">Title (first line)</label>

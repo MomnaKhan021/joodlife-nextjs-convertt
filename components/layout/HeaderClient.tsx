@@ -14,8 +14,10 @@ import { useCart } from "@/components/cart/CartContext";
 type NavLink = {
   label: string;
   href: string;
-  /** Opens the full "Our Treatments" mega menu instead of a plain link. */
+  /** Opens a mega panel on hover instead of navigating straight away. */
   mega?: boolean;
+  /** This link's own panel content; falls back to the header-level one. */
+  megaContent?: MegaMenuContent;
 };
 
 const DEFAULT_NAV_LINKS: NavLink[] = [
@@ -72,7 +74,13 @@ export default function HeaderClient({
     ? mega.megaTreatments
     : DEFAULT_TREATMENTS;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
+  // Index of the nav link whose panel is open, or null. Per-link rather
+  // than a single boolean so each item can have its own mega menu.
+  const [megaIndex, setMegaIndex] = useState<number | null>(null);
+  const megaOpen = megaIndex !== null;
+  const openLink = megaIndex === null ? undefined : NAV_LINKS[megaIndex];
+  /** A link's own content wins; otherwise the header-level defaults. */
+  const openMega: MegaMenuContent | undefined = openLink?.megaContent ?? mega;
   // Mobile drawer: which screen is showing — main menu or the treatments panel.
   const [mobileTreat, setMobileTreat] = useState(false);
   const { itemCount, openDrawer } = useCart();
@@ -85,7 +93,7 @@ export default function HeaderClient({
   return (
     <header
       className="relative w-full border-b border-[#142e2a]/10 bg-white"
-      onMouseLeave={() => setMegaOpen(false)}
+      onMouseLeave={() => setMegaIndex(null)}
     >
       {/* Desktop Header: 80px tall */}
       <div className="hidden md:flex mx-auto h-20 w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8">
@@ -102,11 +110,11 @@ export default function HeaderClient({
 
         <nav aria-label="Primary" className="flex items-center">
           <ul className="flex items-center gap-2">
-            {NAV_LINKS.map((link) =>
+            {NAV_LINKS.map((link, i) =>
               link.mega ? (
                 <li
                   key={link.label}
-                  onMouseEnter={() => setMegaOpen(true)}
+                  onMouseEnter={() => setMegaIndex(i)}
                 >
                   <Link
                     href={link.href}
@@ -128,7 +136,7 @@ export default function HeaderClient({
               ) : (
                 <li
                   key={link.label}
-                  onMouseEnter={() => setMegaOpen(false)}
+                  onMouseEnter={() => setMegaIndex(null)}
                 >
                   <Link
                     href={link.href}
@@ -158,7 +166,7 @@ export default function HeaderClient({
 
       {/* Desktop mega menu — full-width panel below the header bar */}
       <div
-        onMouseEnter={() => setMegaOpen(true)}
+        onMouseEnter={() => setMegaIndex((cur) => cur)}
         className={`absolute left-0 right-0 top-full z-50 hidden md:block ${
           megaOpen
             ? "pointer-events-auto opacity-100 translate-y-0"
@@ -167,7 +175,7 @@ export default function HeaderClient({
       >
         <div className="mx-auto w-full max-w-[1200px] px-6 lg:px-10">
           <div className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 shadow-[0_24px_50px_-20px_rgba(20,46,42,0.35)]">
-            <MegaMenu content={mega} onNavigate={() => setMegaOpen(false)} />
+            <MegaMenu content={openMega} onNavigate={() => setMegaIndex(null)} />
           </div>
         </div>
       </div>

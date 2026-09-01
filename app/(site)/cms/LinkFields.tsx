@@ -158,12 +158,19 @@ export function LinkRepeater({
   links,
   onChange,
   allowMega,
+  renderExtra,
 }: {
   title: string;
   hint?: string;
   links: SiteLink[];
   onChange: (next: SiteLink[]) => void;
   allowMega?: boolean;
+  /** Extra editor rendered under a row — used for per-link mega menus. */
+  renderExtra?: (
+    link: SiteLink,
+    index: number,
+    update: (patch: Partial<SiteLink>) => void,
+  ) => React.ReactNode;
 }) {
   const [picking, setPicking] = useState<number | null>(null);
 
@@ -245,6 +252,7 @@ export function LinkRepeater({
                   </button>
                 </div>
               </div>
+              {renderExtra?.(l, i, (patch) => update(i, patch))}
               {picking === i && (
                 <LinkPicker
                   onClose={() => setPicking(null)}

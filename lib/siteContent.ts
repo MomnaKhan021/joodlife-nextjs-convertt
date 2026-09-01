@@ -15,7 +15,29 @@ import { getPayloadInstance } from "@/lib/payload";
  * are the source of truth whenever the CMS is empty.
  */
 
-export type SiteLink = { label: string; href: string; mega?: boolean };
+/** Mega-menu content attached to a single nav link. */
+export type MegaContent = {
+  megaHeading?: string;
+  megaTreatments?: MegaTreatment[];
+  megaPromoTitle?: string;
+  megaPromoEmphasis?: string;
+  megaPromoBullets?: string[];
+  megaPromoCta?: string;
+  megaPromoHref?: string;
+};
+
+export type SiteLink = {
+  label: string;
+  href: string;
+  /** Opens a mega panel on hover instead of navigating straight away. */
+  mega?: boolean;
+  /**
+   * This link's own mega-menu content. Optional: a link with `mega` but no
+   * `megaContent` falls back to the header-level mega fields, which is what
+   * existing single-mega-menu setups rely on.
+   */
+  megaContent?: MegaContent;
+};
 
 export const DEFAULT_NAV_LINKS: SiteLink[] = [
   { label: "Home", href: "/" },
@@ -122,6 +144,9 @@ function toLinks(value: unknown, fallback: SiteLink[]): SiteLink[] {
       label: v.label,
       href: v.href,
       ...(v.mega ? { mega: true } : {}),
+      ...(v.megaContent && typeof v.megaContent === "object"
+        ? { megaContent: v.megaContent }
+        : {}),
     }));
   return cleaned.length ? cleaned : fallback;
 }
