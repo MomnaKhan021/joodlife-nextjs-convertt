@@ -147,6 +147,15 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"consultations_id\" integer",
   "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"posts_id\" integer",
   "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"weight_logs_id\" integer",
+  // Every collection needs a column here — Payload writes a lock row whenever
+  // a document is opened or saved, and a missing column 500s the save with
+  // "column ….<collection>_id does not exist". `pages` is new; `inventory`
+  // was already registered as a collection but never had its column, so
+  // editing an inventory doc hit the same failure.
+  "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"pages_id\" integer",
+  "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"inventory_id\" integer",
+  "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_pages_id_idx ON public.payload_locked_documents_rels USING btree (pages_id)",
+  "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_inventory_id_idx ON public.payload_locked_documents_rels USING btree (inventory_id)",
   "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_order_idx ON public.payload_locked_documents_rels USING btree (\"order\")",
   "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_parent_idx ON public.payload_locked_documents_rels USING btree (parent_id)",
   "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_path_idx ON public.payload_locked_documents_rels USING btree (path)",
@@ -370,7 +379,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v9";
+const SCHEMA_VERSION = "v10";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
