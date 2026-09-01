@@ -205,6 +205,25 @@ const STATEMENTS: string[] = [
   "CREATE UNIQUE INDEX IF NOT EXISTS posts_shopify_article_id_idx ON public.posts USING btree (shopify_article_id)",
   "CREATE INDEX IF NOT EXISTS posts_updated_at_idx ON public.posts USING btree (updated_at)",
   "CREATE INDEX IF NOT EXISTS posts_created_at_idx ON public.posts USING btree (created_at)",
+  // ---- pages (editable site pages rendered at /<slug>) ----
+  "DO $$ BEGIN CREATE TYPE \"enum_pages_status\" AS ENUM ('draft','published'); EXCEPTION WHEN duplicate_object THEN null; END $$",
+  "CREATE TABLE IF NOT EXISTS \"pages\" (\n  \"id\" serial,\n  \"title\" varchar NOT NULL,\n  \"slug\" varchar NOT NULL,\n  \"excerpt\" varchar,\n  \"hero_image_id\" integer,\n  \"content\" jsonb,\n  \"status\" \"enum_pages_status\" DEFAULT 'draft'::enum_pages_status NOT NULL,\n  \"published_at\" timestamptz,\n  \"body_html\" varchar,\n  \"meta_title\" varchar,\n  \"meta_description\" varchar,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"title\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"slug\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"excerpt\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"hero_image_id\" integer",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"content\" jsonb",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"status\" \"enum_pages_status\" DEFAULT 'draft'::enum_pages_status NOT NULL",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"published_at\" timestamptz",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"body_html\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"meta_title\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"meta_description\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
+  "CREATE UNIQUE INDEX IF NOT EXISTS pages_slug_idx ON public.pages USING btree (slug)",
+  "CREATE INDEX IF NOT EXISTS pages_hero_image_idx ON public.pages USING btree (hero_image_id)",
+  "CREATE INDEX IF NOT EXISTS pages_updated_at_idx ON public.pages USING btree (updated_at)",
+  "CREATE INDEX IF NOT EXISTS pages_created_at_idx ON public.pages USING btree (created_at)",
   "CREATE TABLE IF NOT EXISTS \"posts_tags\" (\n  \"_order\" integer NOT NULL,\n  \"_parent_id\" integer NOT NULL,\n  \"id\" varchar NOT NULL,\n  \"tag\" varchar NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"posts_tags\" ADD COLUMN IF NOT EXISTS \"_order\" integer",
   "ALTER TABLE \"posts_tags\" ADD COLUMN IF NOT EXISTS \"_parent_id\" integer",
@@ -321,7 +340,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v4";
+const SCHEMA_VERSION = "v5";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

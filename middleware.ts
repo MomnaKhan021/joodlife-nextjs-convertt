@@ -45,7 +45,9 @@ export function middleware(req: NextRequest) {
   // Protect /admin-tools/* — bounce to /login carrying the FULL requested
   // path (incl. query) so after signing in the admin lands back on the exact
   // page they asked for instead of a generic dashboard.
-  if (path.startsWith("/admin-tools")) {
+  // `/cms` uses the same treatment as `/admin-tools`: the CMS layout reads
+  // x-admin-pathname to run its per-section staff guard.
+  if (path.startsWith("/admin-tools") || path.startsWith("/cms")) {
     if (!token) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("next", path + (url.search || ""));
@@ -71,5 +73,7 @@ export const config = {
     "/profile/:path*",
     "/admin-tools",
     "/admin-tools/:path*",
+    "/cms",
+    "/cms/:path*",
   ],
 };
