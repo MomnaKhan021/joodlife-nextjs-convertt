@@ -17,7 +17,7 @@ export default async function EditCmsPage({
     doc = (await payload.findByID({
       collection: "pages",
       id,
-      depth: 0,
+      depth: 1,
       overrideAccess: true,
     })) as PageDoc;
   } catch {

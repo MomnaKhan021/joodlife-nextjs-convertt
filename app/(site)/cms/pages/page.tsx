@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { getPayloadInstance } from "@/lib/payload";
+import PageActions from "./PageActions";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +99,7 @@ export default async function CmsPagesList() {
                 <th className="px-5 py-3 font-medium">URL</th>
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 font-medium">Updated</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -130,6 +132,14 @@ export default async function CmsPagesList() {
                   </td>
                   <td className="px-5 py-3 text-[13px] text-[#616161]">
                     {fmt(p.updatedAt)}
+                  </td>
+                  <td className="px-5 py-3">
+                    <PageActions
+                      id={p.id}
+                      title={p.title || "(untitled)"}
+                      slug={p.slug || ""}
+                      published={p.status === "published"}
+                    />
                   </td>
                 </tr>
               ))}

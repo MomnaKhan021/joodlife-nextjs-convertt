@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import RichTextEditor from "./RichTextEditor";
+import MediaPicker from "./MediaPicker";
 
 /**
  * Create / edit form for a CMS page.
@@ -27,6 +28,8 @@ export type PageDoc = {
   excerpt?: string | null;
   bodyHtml?: string | null;
   status?: string;
+  publishedAt?: string | null;
+  heroImage?: { id?: string | number; url?: string | null } | string | number | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
 };
@@ -56,6 +59,17 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
   const [metaDescription, setMetaDescription] = useState(
     initial?.metaDescription ?? "",
   );
+  const initialHero =
+    initial?.heroImage && typeof initial.heroImage === "object"
+      ? initial.heroImage
+      : null;
+  const [heroId, setHeroId] = useState<string | number | null>(
+    initialHero?.id ?? (typeof initial?.heroImage === "number" || typeof initial?.heroImage === "string" ? (initial.heroImage as string | number) : null),
+  );
+  const [heroUrl, setHeroUrl] = useState<string | null>(initialHero?.url ?? null);
+  const [publishedAt, setPublishedAt] = useState(
+    initial?.publishedAt ? String(initial.publishedAt).slice(0, 10) : "",
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +91,8 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
       status: nextStatus ?? status,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
+      heroImage: heroId ?? null,
+      publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
     };
     try {
       const res = await fetch(
@@ -201,6 +217,37 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
             onChange={(e) => setExcerpt(e.target.value)}
             placeholder="Short summary shown under the title and in social previews."
           />
+        </div>
+
+        <div>
+          <span className={label}>Hero image</span>
+          <MediaPicker
+            valueId={heroId}
+            valueUrl={heroUrl}
+            onChange={(id, url) => {
+              setHeroId(id);
+              setHeroUrl(url);
+            }}
+          />
+          <p className="mt-1 text-[12px] text-[#8a8a8a]">
+            Optional. Shown at the top of the page, under the title.
+          </p>
+        </div>
+
+        <div>
+          <label className={label} htmlFor="publishedAt">
+            Publish date
+          </label>
+          <input
+            id="publishedAt"
+            type="date"
+            className={`${input} max-w-[220px]`}
+            value={publishedAt}
+            onChange={(e) => setPublishedAt(e.target.value)}
+          />
+          <p className="mt-1 text-[12px] text-[#8a8a8a]">
+            Set automatically on first publish. Override it here if needed.
+          </p>
         </div>
 
         <div>
