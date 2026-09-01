@@ -61,7 +61,7 @@ export function emailFontCss(url: string): string {
       td.stack{display:block !important;width:100% !important;box-sizing:border-box !important}
       td.card-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:22px 20px 24px !important}
       td.card-art{display:block !important;width:100% !important;box-sizing:border-box !important;text-align:center !important;padding:0 !important}
-      td.card-art img{width:100% !important;max-width:260px !important;height:auto !important}
+      td.card-art img{width:100% !important;max-width:260px !important;height:auto !important;margin:0 auto !important}
       td.btn{display:block !important;width:100% !important;box-sizing:border-box !important;margin:0 0 10px !important}
       td.gap{display:none !important;height:0 !important;line-height:0 !important;font-size:0 !important}
       td.f-links{display:block !important;width:100% !important;text-align:center !important;padding:0 0 14px !important}
