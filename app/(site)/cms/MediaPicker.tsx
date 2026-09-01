@@ -144,6 +144,14 @@ export default function MediaPicker({
     setBusy(true);
     setError(null);
     try {
+      // Reuse an existing record for the same URL rather than piling up
+      // duplicates every time the same image is picked.
+      const existing = items.find((m) => m.url === url);
+      if (existing) {
+        setUrlDraft("");
+        select(existing);
+        return;
+      }
       const doc = await createMedia({
         alt: url.split("/").pop()?.split("?")[0] || "Image",
         url,
@@ -155,6 +163,36 @@ export default function MediaPicker({
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't add that URL");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Delete a media record from the library (not just deselect it). */
+  async function removeFromLibrary(m: MediaDoc) {
+    if (!confirm(`Delete "${m.alt || m.filename || m.id}" from the media library?`))
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/media/${m.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setError(
+          json?.errors?.[0]?.message || `Delete failed (HTTP ${res.status})`,
+        );
+        return;
+      }
+      setItems((prev) => prev.filter((x) => x.id !== m.id));
+      // If the deleted image was the current selection, clear it.
+      if (String(m.id) === String(valueId) || m.url === valueUrl) {
+        onChange(null, null);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -232,23 +270,32 @@ export default function MediaPicker({
           </div>
 
           {/* Works with no Blob token — the reliable path in local dev. */}
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <input
-              type="url"
-              value={urlDraft}
-              onChange={(e) => setUrlDraft(e.target.value)}
-              placeholder="…or paste an image URL (https://…)"
-              className="min-w-[240px] flex-1 rounded-lg border border-[#d8ddd0] px-3 py-1.5 text-[13px] outline-none focus:border-[#1a1a1a]"
-            />
-            <button
-              type="button"
-              onClick={() => void addByUrl()}
-              disabled={busy || !urlDraft.trim()}
-              className="rounded-lg border border-[#d8ddd0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0] disabled:opacity-40"
-            >
-              Add URL
-            </button>
-          </div>
+          <details className="mb-3 rounded-lg border border-[#eef1e8] bg-[#fafbf7] px-3 py-2">
+            <summary className="cursor-pointer text-[12px] text-[#616161]">
+              Use an image from a URL instead
+            </summary>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input
+                type="url"
+                value={urlDraft}
+                onChange={(e) => setUrlDraft(e.target.value)}
+                placeholder="https://… or /assets/…"
+                className="min-w-[220px] flex-1 rounded-lg border border-[#d8ddd0] px-3 py-1.5 text-[13px] outline-none focus:border-[#1a1a1a]"
+              />
+              <button
+                type="button"
+                onClick={() => void addByUrl()}
+                disabled={busy || !urlDraft.trim()}
+                className="rounded-lg border border-[#d8ddd0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0] disabled:opacity-40"
+              >
+                Add
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-[#8a8a8a]">
+              Adds it to the library and selects it. An image already in the
+              library is reused rather than duplicated.
+            </p>
+          </details>
 
           {error && (
             <p className="mb-3 rounded border border-[#e5b3b3] bg-[#fdf3f3] px-3 py-2 text-[12px] leading-relaxed text-[#8a2b2b]">
@@ -265,32 +312,43 @@ export default function MediaPicker({
           ) : (
             <div className="grid max-h-[280px] grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-5">
               {items.map((m) => (
-                <button
-                  key={String(m.id)}
-                  type="button"
-                  onClick={() => select(m)}
-                  title={m.filename ?? undefined}
-                  className={`relative aspect-square overflow-hidden rounded border transition-colors ${
-                    String(m.id) === String(valueId)
-                      ? "border-[#1a1a1a]"
-                      : "border-[#e4e7de] hover:border-[#b9c2ad]"
-                  }`}
-                >
-                  {m.url ? (
-                    <Image
-                      src={m.url}
-                      alt={m.alt ?? ""}
-                      fill
-                      sizes="120px"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="grid h-full place-items-center text-[10px] text-[#8a8a8a]">
-                      no preview
-                    </span>
-                  )}
-                </button>
+                <div key={String(m.id)} className="group relative">
+                  <button
+                    type="button"
+                    onClick={() => select(m)}
+                    title={m.filename ?? m.alt ?? undefined}
+                    className={`relative block aspect-square w-full overflow-hidden rounded border transition-colors ${
+                      String(m.id) === String(valueId) || m.url === valueUrl
+                        ? "border-[#1a1a1a]"
+                        : "border-[#e4e7de] hover:border-[#b9c2ad]"
+                    }`}
+                  >
+                    {m.url ? (
+                      <Image
+                        src={m.url}
+                        alt={m.alt ?? ""}
+                        fill
+                        sizes="120px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="grid h-full place-items-center text-[10px] text-[#8a8a8a]">
+                        no preview
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void removeFromLibrary(m)}
+                    disabled={busy}
+                    title="Delete from library"
+                    aria-label={`Delete ${m.alt ?? "image"} from library`}
+                    className="absolute right-1 top-1 hidden h-5 w-5 place-items-center rounded-full bg-black/65 text-[11px] leading-none text-white group-hover:grid hover:bg-[#8a2b2b]"
+                  >
+                    ✕
+                  </button>
+                </div>
               ))}
             </div>
           )}

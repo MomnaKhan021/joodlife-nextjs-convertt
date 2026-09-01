@@ -24,6 +24,10 @@ export type SitePage = {
   metaTitle: string | null;
   metaDescription: string | null;
   publishedAt: string | null;
+  /** When set, the page redirects here instead of rendering. */
+  redirectUrl: string | null;
+  /** 308 instead of 307 — cached hard by browsers, so opt in deliberately. */
+  redirectPermanent: boolean;
 };
 
 type RawPage = {
@@ -37,6 +41,8 @@ type RawPage = {
   metaTitle?: string | null;
   metaDescription?: string | null;
   publishedAt?: string | null;
+  redirectUrl?: string | null;
+  redirectPermanent?: boolean | null;
 };
 
 function toSitePage(doc: RawPage): SitePage {
@@ -55,6 +61,8 @@ function toSitePage(doc: RawPage): SitePage {
     metaTitle: doc.metaTitle ?? null,
     metaDescription: doc.metaDescription ?? null,
     publishedAt: doc.publishedAt ?? null,
+    redirectUrl: doc.redirectUrl?.trim() ? doc.redirectUrl.trim() : null,
+    redirectPermanent: Boolean(doc.redirectPermanent),
   };
 }
 

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
@@ -44,6 +44,13 @@ export default async function CmsPage({
   const { slug } = await params;
   const page = await getPageBySlug(slug);
   if (!page) notFound();
+
+  // A page with a redirect target never renders — it forwards instead.
+  // Guard against a page pointing at itself, which would loop forever.
+  if (page.redirectUrl && page.redirectUrl !== `/${slug}`) {
+    if (page.redirectPermanent) permanentRedirect(page.redirectUrl);
+    redirect(page.redirectUrl);
+  }
 
   return (
     <main className="flex min-h-screen flex-col bg-white">

@@ -28,6 +28,8 @@ export type PageDoc = {
   excerpt?: string | null;
   bodyHtml?: string | null;
   status?: string;
+  redirectUrl?: string | null;
+  redirectPermanent?: boolean | null;
   publishedAt?: string | null;
   heroImage?: { id?: string | number; url?: string | null } | string | number | null;
   metaTitle?: string | null;
@@ -70,6 +72,10 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
   const [publishedAt, setPublishedAt] = useState(
     initial?.publishedAt ? String(initial.publishedAt).slice(0, 10) : "",
   );
+  const [redirectUrl, setRedirectUrl] = useState(initial?.redirectUrl ?? "");
+  const [redirectPermanent, setRedirectPermanent] = useState(
+    Boolean(initial?.redirectPermanent),
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +99,8 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
       metaDescription: metaDescription || null,
       heroImage: heroId ?? null,
       publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+      redirectUrl: redirectUrl.trim() || null,
+      redirectPermanent,
     };
     try {
       const res = await fetch(
@@ -259,6 +267,55 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
             <strong>Preview</strong> to see it as the page will render.
           </p>
         </div>
+
+        <details
+          className="rounded-lg border border-[#e4e7de] p-4"
+          open={Boolean(redirectUrl)}
+        >
+          <summary className="cursor-pointer text-[13px] font-medium text-[#1a1a1a]">
+            Redirect
+            {redirectUrl ? (
+              <span className="ml-2 rounded-full bg-[#fff3d6] px-2 py-[2px] text-[11px] font-medium text-[#8a6100]">
+                active
+              </span>
+            ) : null}
+          </summary>
+          <div className="mt-4 space-y-3">
+            <div>
+              <label className={label} htmlFor="redirectUrl">
+                Redirect this page to
+              </label>
+              <input
+                id="redirectUrl"
+                className={input}
+                value={redirectUrl}
+                onChange={(e) => setRedirectUrl(e.target.value)}
+                placeholder="/shop or https://example.com"
+              />
+              <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                Leave empty for a normal page. When set, anyone opening{" "}
+                <code>/{effectiveSlug || "this-page"}</code> is sent here
+                instead — the page content below is not shown.
+              </p>
+            </div>
+            <label className="flex items-start gap-2 text-[13px] text-[#1a1a1a]">
+              <input
+                type="checkbox"
+                checked={redirectPermanent}
+                onChange={(e) => setRedirectPermanent(e.target.checked)}
+                className="mt-[3px]"
+              />
+              <span>
+                Permanent redirect (308)
+                <span className="block text-[12px] text-[#8a8a8a]">
+                  Browsers and search engines cache this hard. Only tick it once
+                  the destination is final — otherwise leave it off and the
+                  redirect stays temporary.
+                </span>
+              </span>
+            </label>
+          </div>
+        </details>
 
         <details className="rounded-lg border border-[#e4e7de] p-4">
           <summary className="cursor-pointer text-[13px] font-medium text-[#1a1a1a]">

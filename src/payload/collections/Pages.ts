@@ -134,6 +134,23 @@ export const Pages: CollectionConfig = {
       },
     },
     {
+      name: "redirectUrl",
+      type: "text",
+      admin: {
+        description:
+          "Optional. If set, opening this page sends the visitor here instead of rendering it — e.g. /shop or https://example.com. Leave empty for a normal page.",
+      },
+    },
+    {
+      name: "redirectPermanent",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description:
+          "Tick for a permanent (308) redirect. Browsers and search engines cache these hard, so only use it once the new URL is final.",
+      },
+    },
+    {
       name: "excerpt",
       type: "textarea",
       admin: {

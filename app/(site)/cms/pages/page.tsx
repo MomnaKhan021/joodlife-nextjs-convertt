@@ -11,6 +11,7 @@ type PageRow = {
   slug?: string;
   status?: string;
   updatedAt?: string;
+  redirectUrl?: string | null;
 };
 
 async function listPages(): Promise<PageRow[] | null> {
@@ -118,6 +119,14 @@ export default async function CmsPagesList() {
                   </td>
                   <td className="px-5 py-3 text-[13px] text-[#616161]">
                     /{p.slug}
+                    {p.redirectUrl ? (
+                      <span
+                        className="ml-2 rounded-full bg-[#fff3d6] px-2 py-[2px] text-[11px] font-medium text-[#8a6100]"
+                        title={`Redirects to ${p.redirectUrl}`}
+                      >
+                        → {p.redirectUrl}
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-5 py-3">
                     <span

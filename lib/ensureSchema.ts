@@ -218,6 +218,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"body_html\" varchar",
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"meta_title\" varchar",
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"meta_description\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"redirect_url\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"redirect_permanent\" boolean DEFAULT false",
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
   "CREATE UNIQUE INDEX IF NOT EXISTS pages_slug_idx ON public.pages USING btree (slug)",
@@ -368,7 +370,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v8";
+const SCHEMA_VERSION = "v9";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
