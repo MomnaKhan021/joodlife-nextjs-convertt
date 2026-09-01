@@ -15,7 +15,7 @@ export type Treatment = {
   icon: string;
 };
 
-export const TREATMENTS: Treatment[] = [
+export const DEFAULT_TREATMENTS: Treatment[] = [
   {
     label: "Weight loss",
     desc: "Sustainable fat reduction",
@@ -36,7 +36,7 @@ export const TREATMENTS: Treatment[] = [
   },
 ];
 
-const PROMO_BULLETS = [
+const DEFAULT_PROMO_BULLETS = [
   "Lose up to 27% body weight",
   "Plans tailored to you",
   "Guidance for lasting results",
@@ -59,13 +59,40 @@ function CheckBadge() {
 }
 
 /** Desktop mega-menu panel content. */
-export default function MegaMenu({ onNavigate }: { onNavigate?: () => void }) {
+export type MegaMenuContent = {
+  megaHeading?: string;
+  megaTreatments?: Treatment[];
+  megaPromoTitle?: string;
+  megaPromoEmphasis?: string;
+  megaPromoBullets?: string[];
+  megaPromoCta?: string;
+  megaPromoHref?: string;
+};
+
+export default function MegaMenu({
+  onNavigate,
+  content,
+}: {
+  onNavigate?: () => void;
+  content?: MegaMenuContent;
+}) {
+  const TREATMENTS = content?.megaTreatments?.length
+    ? content.megaTreatments
+    : DEFAULT_TREATMENTS;
+  const PROMO_BULLETS = content?.megaPromoBullets?.length
+    ? content.megaPromoBullets
+    : DEFAULT_PROMO_BULLETS;
+  const heading = content?.megaHeading || "Our Treatments";
+  const promoTitle = content?.megaPromoTitle || "Weight loss,";
+  const promoEmphasis = content?.megaPromoEmphasis || "made for you.";
+  const promoCta = content?.megaPromoCta || "Explore More";
+  const promoHref = content?.megaPromoHref || "/shop";
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_540px]">
       {/* Treatment links */}
       <div className="flex flex-col">
         <p className="mb-3 font-display text-[18px] font-semibold tracking-[-0.01em] text-[#142e2a]">
-          Our Treatments
+          {heading}
         </p>
         <ul className="flex flex-col">
           {TREATMENTS.map((t) => (
@@ -105,15 +132,15 @@ export default function MegaMenu({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Weight-loss promo card → shop (all products) */}
       <Link
-        href="/shop"
+        href={promoHref}
         onClick={onNavigate}
         className="group/promo relative flex min-h-[260px] overflow-hidden rounded-[20px] bg-[#142e2a] p-7"
       >
         <div className="relative z-10 flex max-w-[58%] flex-col">
           <h3 className="font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
-            Weight loss,
+            {promoTitle}
             <br />
-            <em className="font-serif font-normal italic">made for you.</em>
+            <em className="font-serif font-normal italic">{promoEmphasis}</em>
           </h3>
           <ul className="mt-4 flex flex-col gap-2.5">
             {PROMO_BULLETS.map((b) => (
@@ -124,7 +151,7 @@ export default function MegaMenu({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </ul>
           <span className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-shadow duration-200 group-hover/promo:shadow-[0_8px_20px_rgba(0,0,0,0.25)]">
-            Explore More
+            {promoCta}
           </span>
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[46%]">

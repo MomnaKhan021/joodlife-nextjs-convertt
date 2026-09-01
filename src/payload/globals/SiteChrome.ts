@@ -37,6 +37,29 @@ export const Header: GlobalConfig = {
         description: `${linkListDescription} "mega": true opens the Treatments mega menu.`,
       },
     },
+    // ---- Mega menu ("Our Treatments" panel) ----
+    { name: "megaHeading", type: "text" },
+    {
+      name: "megaTreatments",
+      type: "json",
+      admin: {
+        description:
+          'Treatment cards: [{ "label", "desc", "href", "icon" }] — icon is an image path or URL.',
+      },
+    },
+    { name: "megaPromoTitle", type: "text" },
+    {
+      name: "megaPromoEmphasis",
+      type: "text",
+      admin: { description: "Second line of the promo title, shown in italics." },
+    },
+    {
+      name: "megaPromoBullets",
+      type: "json",
+      admin: { description: 'Ticked bullet list, e.g. ["Lose up to 27% body weight"]' },
+    },
+    { name: "megaPromoCta", type: "text" },
+    { name: "megaPromoHref", type: "text" },
   ],
 };
 

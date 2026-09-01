@@ -54,7 +54,53 @@ export const DEFAULT_FOOTER_TEXT = {
   legalText: "",
 };
 
-export type HeaderContent = { navLinks: SiteLink[] };
+export type MegaTreatment = {
+  label: string;
+  desc: string;
+  href: string;
+  icon: string;
+};
+
+export const DEFAULT_MEGA_TREATMENTS: MegaTreatment[] = [
+  {
+    label: "Weight loss",
+    desc: "Sustainable fat reduction",
+    href: "/wegovy-pills",
+    icon: "/assets/megamenu/treat-wl.png",
+  },
+  {
+    label: "Erectile dysfunction",
+    desc: "Improved sexual performance",
+    href: "/erectile-dysfunction",
+    icon: "/assets/megamenu/treat-ed.png",
+  },
+  {
+    label: "Period Delay",
+    desc: "Delay menstrual cycle",
+    href: "/period-delay",
+    icon: "/assets/megamenu/treat-pd.png",
+  },
+];
+
+export const DEFAULT_MEGA = {
+  megaHeading: "Our Treatments",
+  megaPromoTitle: "Weight loss,",
+  megaPromoEmphasis: "made for you.",
+  megaPromoCta: "Explore More",
+  megaPromoHref: "/shop",
+};
+
+export const DEFAULT_MEGA_BULLETS: string[] = [
+  "Lose up to 27% body weight",
+  "Plans tailored to you",
+  "Guidance for lasting results",
+];
+
+export type HeaderContent = {
+  navLinks: SiteLink[];
+  megaTreatments: MegaTreatment[];
+  megaPromoBullets: string[];
+} & typeof DEFAULT_MEGA;
 export type FooterContent = {
   joodLinks: SiteLink[];
   treatmentLinks: SiteLink[];
@@ -80,8 +126,45 @@ function toLinks(value: unknown, fallback: SiteLink[]): SiteLink[] {
   return cleaned.length ? cleaned : fallback;
 }
 
+function toTreatments(
+  value: unknown,
+  fallback: MegaTreatment[],
+): MegaTreatment[] {
+  if (!Array.isArray(value)) return fallback;
+  const cleaned = value
+    .filter(
+      (v): v is MegaTreatment =>
+        Boolean(v) &&
+        typeof v === "object" &&
+        typeof (v as MegaTreatment).label === "string" &&
+        typeof (v as MegaTreatment).href === "string",
+    )
+    .map((v) => ({
+      label: v.label,
+      desc: typeof v.desc === "string" ? v.desc : "",
+      href: v.href,
+      icon: typeof v.icon === "string" ? v.icon : "",
+    }));
+  return cleaned.length ? cleaned : fallback;
+}
+
+function toStrings(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value)) return fallback;
+  const cleaned = value.filter((v): v is string => typeof v === "string" && v.trim() !== "");
+  return cleaned.length ? cleaned : fallback;
+}
+
 function str(value: unknown, fallback: string): string {
   return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function headerFallback(): HeaderContent {
+  return {
+    navLinks: DEFAULT_NAV_LINKS,
+    megaTreatments: DEFAULT_MEGA_TREATMENTS,
+    megaPromoBullets: DEFAULT_MEGA_BULLETS,
+    ...DEFAULT_MEGA,
+  };
 }
 
 export async function getHeaderContent(): Promise<HeaderContent> {
@@ -91,10 +174,19 @@ export async function getHeaderContent(): Promise<HeaderContent> {
       slug: "header",
       depth: 0,
       overrideAccess: true,
-    })) as { navLinks?: unknown };
-    return { navLinks: toLinks(doc?.navLinks, DEFAULT_NAV_LINKS) };
+    })) as Record<string, unknown>;
+    return {
+      navLinks: toLinks(doc?.navLinks, DEFAULT_NAV_LINKS),
+      megaTreatments: toTreatments(doc?.megaTreatments, DEFAULT_MEGA_TREATMENTS),
+      megaPromoBullets: toStrings(doc?.megaPromoBullets, DEFAULT_MEGA_BULLETS),
+      megaHeading: str(doc?.megaHeading, DEFAULT_MEGA.megaHeading),
+      megaPromoTitle: str(doc?.megaPromoTitle, DEFAULT_MEGA.megaPromoTitle),
+      megaPromoEmphasis: str(doc?.megaPromoEmphasis, DEFAULT_MEGA.megaPromoEmphasis),
+      megaPromoCta: str(doc?.megaPromoCta, DEFAULT_MEGA.megaPromoCta),
+      megaPromoHref: str(doc?.megaPromoHref, DEFAULT_MEGA.megaPromoHref),
+    };
   } catch {
-    return { navLinks: DEFAULT_NAV_LINKS };
+    return headerFallback();
   }
 }
 

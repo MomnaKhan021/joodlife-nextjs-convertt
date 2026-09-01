@@ -54,11 +54,19 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-navigation",
-    label: "Header & Footer",
-    href: "/cms/navigation",
-    description: "Navigation links and footer content",
+    label: "Header",
+    href: "/cms/header",
+    description: "Top navigation and the mega menu",
     status: "ready",
-    match: "/cms/navigation",
+    match: "/cms/header",
+  },
+  {
+    key: "cms-navigation",
+    label: "Footer",
+    href: "/cms/footer",
+    description: "Footer columns, contact card and small print",
+    status: "ready",
+    match: "/cms/footer",
   },
   {
     key: "cms-sections",

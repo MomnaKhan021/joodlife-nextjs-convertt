@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import CartDrawer from "@/components/layout/CartDrawer";
-import MegaMenu, { TREATMENTS } from "@/components/layout/MegaMenu";
+import MegaMenu, {
+  DEFAULT_TREATMENTS,
+  type MegaMenuContent,
+} from "@/components/layout/MegaMenu";
 import { useCart } from "@/components/cart/CartContext";
 
 type NavLink = {
@@ -58,10 +61,16 @@ function BagIcon() {
 
 export default function HeaderClient({
   navLinks,
+  mega,
 }: {
   navLinks?: NavLink[];
+  mega?: MegaMenuContent;
 } = {}) {
   const NAV_LINKS = navLinks?.length ? navLinks : DEFAULT_NAV_LINKS;
+  // Mobile drawer lists the same treatments as the desktop mega panel.
+  const TREATMENTS = mega?.megaTreatments?.length
+    ? mega.megaTreatments
+    : DEFAULT_TREATMENTS;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   // Mobile drawer: which screen is showing — main menu or the treatments panel.
@@ -158,7 +167,7 @@ export default function HeaderClient({
       >
         <div className="mx-auto w-full max-w-[1200px] px-6 lg:px-10">
           <div className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 shadow-[0_24px_50px_-20px_rgba(20,46,42,0.35)]">
-            <MegaMenu onNavigate={() => setMegaOpen(false)} />
+            <MegaMenu content={mega} onNavigate={() => setMegaOpen(false)} />
           </div>
         </div>
       </div>
