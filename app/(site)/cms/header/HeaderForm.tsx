@@ -11,6 +11,7 @@ import {
   saveGlobal,
 } from "../LinkFields";
 import MegaEditor from "../MegaEditor";
+import MediaPicker from "../MediaPicker";
 
 export type HeaderInitial = {
   navLinks: SiteLink[];
@@ -21,6 +22,8 @@ export type HeaderInitial = {
   megaPromoBullets: string[];
   megaPromoCta: string;
   megaPromoHref: string;
+  logoDesktop: string;
+  logoMobile: string;
 };
 
 /** Editor for everything in the site header, including the mega menu. */
@@ -33,6 +36,8 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
   const [bullets, setBullets] = useState(initial.megaPromoBullets);
   const [promoCta, setPromoCta] = useState(initial.megaPromoCta);
   const [promoHref, setPromoHref] = useState(initial.megaPromoHref);
+  const [logoDesktop, setLogoDesktop] = useState(initial.logoDesktop);
+  const [logoMobile, setLogoMobile] = useState(initial.logoMobile);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -63,6 +68,8 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
         megaPromoBullets: bullets.filter((b) => b.trim()),
         megaPromoCta: promoCta,
         megaPromoHref: promoHref,
+        logoDesktop,
+        logoMobile,
       });
       setSaved(true);
     } catch (e) {
@@ -98,6 +105,36 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Logos ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Logo</h2>
+            <p className="text-[12px] text-[#8a8a8a]">
+              Two versions — the wide one for desktop, the compact one for
+              mobile and the slide-out drawer. Clear a field to restore the
+              built-in logo.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <span className={fieldLabel}>Desktop logo</span>
+              <MediaPicker
+                valueId={null}
+                valueUrl={logoDesktop || null}
+                onChange={(_id, url) => setLogoDesktop(url ?? "")}
+              />
+            </div>
+            <div>
+              <span className={fieldLabel}>Mobile logo</span>
+              <MediaPicker
+                valueId={null}
+                valueUrl={logoMobile || null}
+                onChange={(_id, url) => setLogoMobile(url ?? "")}
+              />
+            </div>
+          </div>
+        </div>
+
         <LinkRepeater
           title="Navigation links"
           hint='Tick "Mega menu" on any link to give it its own panel — each link can have a different one.'

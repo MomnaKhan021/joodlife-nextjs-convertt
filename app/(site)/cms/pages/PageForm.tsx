@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import RichTextEditor from "./RichTextEditor";
-import MediaPicker from "./MediaPicker";
+import MediaPicker from "../MediaPicker";
 
 /**
  * Create / edit form for a CMS page.

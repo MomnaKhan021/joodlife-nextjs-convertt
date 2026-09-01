@@ -216,6 +216,9 @@ export type FooterProps = {
   newsletterHeading?: string;
   newsletterSubtext?: string;
   legalText?: string;
+  /** Image URLs; default to the assets that shipped with the design. */
+  logo?: string;
+  contactIcon?: string;
 };
 
 const DEFAULT_LEGAL =
@@ -232,6 +235,8 @@ export default function Footer(props: FooterProps = {}) {
   const newsletterSubtext =
     props.newsletterSubtext || "Stay up to date on our news, education and offers";
   const legalText = props.legalText || DEFAULT_LEGAL;
+  const logo = props.logo || "/assets/figma/footer-logo-2.png";
+  const contactIcon = props.contactIcon || "/assets/figma/icon-chat.svg";
   /** wa.me needs digits only; drop spaces and a leading 0 for the UK code. */
   const waNumber = "44" + phone.replace(/\D/g, "").replace(/^0/, "");
   const [email, setEmail] = useState("");
@@ -262,7 +267,7 @@ export default function Footer(props: FooterProps = {}) {
           <div className="flex flex-col gap-8 py-10 lg:flex-row lg:items-start lg:gap-10 lg:py-[60px]">
             <div className="flex-shrink-0">
               <Image
-                src="/assets/figma/footer-logo-2.png"
+                src={logo}
                 alt="Jood"
                 width={165}
                 height={69}
@@ -285,7 +290,7 @@ export default function Footer(props: FooterProps = {}) {
                 {contactHeading}
               </h3>
               <div className="flex items-start gap-2">
-                <Image src="/assets/figma/icon-chat.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
+                <Image src={contactIcon} alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
                 <div className="flex flex-col">
                   <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
                     WhatsApp
@@ -301,7 +306,7 @@ export default function Footer(props: FooterProps = {}) {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <Image src="/assets/figma/icon-chat.svg" alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
+                <Image src={contactIcon} alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
                 <div className="flex flex-col">
                   <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
                     Email

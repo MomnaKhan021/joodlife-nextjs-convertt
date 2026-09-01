@@ -37,6 +37,17 @@ export const Header: GlobalConfig = {
         description: `${linkListDescription} "mega": true opens the Treatments mega menu.`,
       },
     },
+    // ---- Logos ----
+    {
+      name: "logoDesktop",
+      type: "text",
+      admin: { description: "Desktop logo image URL. Blank uses the built-in logo." },
+    },
+    {
+      name: "logoMobile",
+      type: "text",
+      admin: { description: "Mobile logo image URL (also used in the drawer)." },
+    },
     // ---- Mega menu ("Our Treatments" panel) ----
     { name: "megaHeading", type: "text" },
     {
@@ -85,6 +96,16 @@ export const Footer: GlobalConfig = {
       name: "policyLinks",
       type: "json",
       admin: { description: `"Policy" column. ${linkListDescription}` },
+    },
+    {
+      name: "logo",
+      type: "text",
+      admin: { description: "Footer logo image URL. Blank uses the built-in logo." },
+    },
+    {
+      name: "contactIcon",
+      type: "text",
+      admin: { description: "Icon shown beside the WhatsApp and Email rows." },
     },
     {
       name: "contactHeading",

@@ -10,6 +10,7 @@ import {
   fieldLabel,
   saveGlobal,
 } from "../LinkFields";
+import MediaPicker from "../MediaPicker";
 
 /** Editor for the site footer: link columns, contact card, newsletter, legal. */
 export default function FooterForm({ initial }: { initial: FooterContent }) {
@@ -22,6 +23,8 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
   const [newsletterHeading, setNewsletterHeading] = useState(initial.newsletterHeading);
   const [newsletterSubtext, setNewsletterSubtext] = useState(initial.newsletterSubtext);
   const [legalText, setLegalText] = useState(initial.legalText);
+  const [logo, setLogo] = useState(initial.logo);
+  const [contactIcon, setContactIcon] = useState(initial.contactIcon);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -42,6 +45,8 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
         newsletterHeading,
         newsletterSubtext,
         legalText,
+        logo,
+        contactIcon,
       });
       setSaved(true);
     } catch (e) {
@@ -76,6 +81,37 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Images ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Images</h2>
+            <p className="text-[12px] text-[#8a8a8a]">
+              Clear a field to restore the built-in image.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <span className={fieldLabel}>Footer logo</span>
+              <MediaPicker
+                valueId={null}
+                valueUrl={logo || null}
+                onChange={(_id, url) => setLogo(url ?? "")}
+              />
+            </div>
+            <div>
+              <span className={fieldLabel}>Contact icon</span>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Shown beside the WhatsApp and Email rows.
+              </p>
+              <MediaPicker
+                valueId={null}
+                valueUrl={contactIcon || null}
+                onChange={(_id, url) => setContactIcon(url ?? "")}
+              />
+            </div>
+          </div>
+        </div>
+
         <LinkRepeater title="“Jood” column" links={joodLinks} onChange={setJoodLinks} />
         <LinkRepeater title="“Treatments” column" links={treatmentLinks} onChange={setTreatmentLinks} />
         <LinkRepeater title="“Policy” column" links={policyLinks} onChange={setPolicyLinks} />

@@ -3,6 +3,7 @@
 import type { MegaContent, MegaTreatment } from "@/lib/siteContentTypes";
 
 import { fieldInput, fieldLabel } from "./LinkFields";
+import MediaPicker from "./MediaPicker";
 
 /**
  * Editor for one nav link's mega menu.
@@ -96,12 +97,19 @@ export default function MegaEditor({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <input aria-label="Card link" className={`${fieldInput} min-w-[140px] flex-1`} value={t.href} onChange={(e) => updateTreatment(i, { href: e.target.value })} placeholder="/weight-loss" />
-                  <input aria-label="Icon path" className={`${fieldInput} min-w-[160px] flex-1`} value={t.icon} onChange={(e) => updateTreatment(i, { icon: e.target.value })} placeholder="/assets/megamenu/treat-wl.png" />
                   <div className="flex items-center gap-1">
                     <button type="button" onClick={() => moveTreatment(i, -1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move up">↑</button>
                     <button type="button" onClick={() => moveTreatment(i, 1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move down">↓</button>
                     <button type="button" onClick={() => set({ megaTreatments: treatments.filter((_, idx) => idx !== i) })} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
                   </div>
+                </div>
+                <div className="mt-2">
+                  <span className="text-[12px] text-[#616161]">Card image</span>
+                  <MediaPicker
+                    valueId={null}
+                    valueUrl={t.icon || null}
+                    onChange={(_id, url) => updateTreatment(i, { icon: url ?? "" })}
+                  />
                 </div>
               </div>
             ))}

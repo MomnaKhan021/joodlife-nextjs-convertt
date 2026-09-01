@@ -77,6 +77,14 @@ export const DEFAULT_FOOTER_TEXT = {
   newsletterHeading: "Sign Up For Our Newsletter",
   newsletterSubtext: "Stay up to date on our news, education and offers",
   legalText: "",
+  logo: "/assets/figma/footer-logo-2.png",
+  contactIcon: "/assets/figma/icon-chat.svg",
+};
+
+/** Header logos — the images that shipped in HeaderClient. */
+export const DEFAULT_HEADER_LOGOS = {
+  logoDesktop: "/assets/icons/logo-wesmount.svg",
+  logoMobile: "/assets/icons/logo-wesmount-mobile.svg",
 };
 
 export const DEFAULT_MEGA_TREATMENTS: MegaTreatment[] = [
@@ -118,7 +126,8 @@ export type HeaderContent = {
   navLinks: SiteLink[];
   megaTreatments: MegaTreatment[];
   megaPromoBullets: string[];
-} & typeof DEFAULT_MEGA;
+} & typeof DEFAULT_MEGA &
+  typeof DEFAULT_HEADER_LOGOS;
 
 export type FooterContent = {
   joodLinks: SiteLink[];
@@ -188,6 +197,7 @@ export function headerFallback(): HeaderContent {
     megaTreatments: DEFAULT_MEGA_TREATMENTS,
     megaPromoBullets: DEFAULT_MEGA_BULLETS,
     ...DEFAULT_MEGA,
+    ...DEFAULT_HEADER_LOGOS,
   };
 }
 

@@ -236,11 +236,15 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_bullets\" jsonb",
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_cta\" varchar",
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_href\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"logo_desktop\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"logo_mobile\" varchar",
   "CREATE TABLE IF NOT EXISTS \"footer\" (\"id\" serial, \"jood_links\" jsonb, \"treatment_links\" jsonb, \"policy_links\" jsonb, \"contact_heading\" varchar, \"phone\" varchar, \"email\" varchar, \"newsletter_heading\" varchar, \"newsletter_subtext\" varchar, \"legal_text\" varchar, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"jood_links\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"treatment_links\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"policy_links\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_heading\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"logo\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_icon\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"phone\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"email\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"newsletter_heading\" varchar",
@@ -364,7 +368,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v7";
+const SCHEMA_VERSION = "v8";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

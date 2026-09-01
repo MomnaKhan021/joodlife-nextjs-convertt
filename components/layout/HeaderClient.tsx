@@ -64,9 +64,14 @@ function BagIcon() {
 export default function HeaderClient({
   navLinks,
   mega,
+  logoDesktop = "/assets/icons/logo-wesmount.svg",
+  logoMobile = "/assets/icons/logo-wesmount-mobile.svg",
 }: {
   navLinks?: NavLink[];
   mega?: MegaMenuContent;
+  /** Logo image URLs; default to the assets that shipped with the design. */
+  logoDesktop?: string;
+  logoMobile?: string;
 } = {}) {
   const NAV_LINKS = navLinks?.length ? navLinks : DEFAULT_NAV_LINKS;
   // Mobile drawer lists the same treatments as the desktop mega panel.
@@ -99,7 +104,7 @@ export default function HeaderClient({
       <div className="hidden md:flex mx-auto h-20 w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8">
         <Link href="/" aria-label="JoodLife home" className="flex items-center">
           <Image
-            src="/assets/icons/logo-wesmount.svg"
+            src={logoDesktop}
             alt="JoodLife"
             width={95}
             height={30}
@@ -184,7 +189,7 @@ export default function HeaderClient({
       <div className="md:hidden flex h-14 w-full items-center justify-between px-4">
         <Link href="/" aria-label="JoodLife home" className="flex items-center">
           <Image
-            src="/assets/icons/logo-wesmount-mobile.svg"
+            src={logoMobile}
             alt="JoodLife"
             width={77}
             height={24}
@@ -251,7 +256,7 @@ export default function HeaderClient({
             onClick={closeMobile}
           >
             <Image
-              src="/assets/icons/logo-wesmount-mobile.svg"
+              src={logoMobile}
               alt="JoodLife"
               width={77}
               height={24}

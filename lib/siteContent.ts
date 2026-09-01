@@ -3,6 +3,7 @@ import "server-only";
 import { getPayloadInstance } from "@/lib/payload";
 import {
   DEFAULT_FOOTER_TEXT,
+  DEFAULT_HEADER_LOGOS,
   DEFAULT_JOOD_LINKS,
   DEFAULT_MEGA,
   DEFAULT_MEGA_BULLETS,
@@ -51,6 +52,8 @@ export async function getHeaderContent(): Promise<HeaderContent> {
       megaPromoEmphasis: str(doc?.megaPromoEmphasis, DEFAULT_MEGA.megaPromoEmphasis),
       megaPromoCta: str(doc?.megaPromoCta, DEFAULT_MEGA.megaPromoCta),
       megaPromoHref: str(doc?.megaPromoHref, DEFAULT_MEGA.megaPromoHref),
+      logoDesktop: str(doc?.logoDesktop, DEFAULT_HEADER_LOGOS.logoDesktop),
+      logoMobile: str(doc?.logoMobile, DEFAULT_HEADER_LOGOS.logoMobile),
     };
   } catch {
     return headerFallback();
@@ -81,6 +84,8 @@ export async function getFooterContent(): Promise<FooterContent> {
         DEFAULT_FOOTER_TEXT.newsletterSubtext,
       ),
       legalText: str(doc?.legalText, DEFAULT_FOOTER_TEXT.legalText),
+      logo: str(doc?.logo, DEFAULT_FOOTER_TEXT.logo),
+      contactIcon: str(doc?.contactIcon, DEFAULT_FOOTER_TEXT.contactIcon),
     };
   } catch {
     return footerFallback();
