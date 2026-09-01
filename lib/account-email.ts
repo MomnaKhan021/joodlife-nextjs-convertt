@@ -62,6 +62,9 @@ export function emailFontCss(url: string): string {
       td.card-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:22px 20px 24px !important}
       td.card-art{display:block !important;width:100% !important;box-sizing:border-box !important;text-align:center !important;padding:0 !important}
       td.card-art img{width:100% !important;max-width:260px !important;height:auto !important;margin:0 auto !important}
+      td.bgcard{background-image:none !important;height:auto !important;padding:26px 20px 26px !important}
+      table.meas{width:100% !important}
+      img.mob-art{display:block !important;width:100% !important;max-width:260px !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:18px auto 0 !important}
       td.btn{display:block !important;width:100% !important;box-sizing:border-box !important;margin:0 0 10px !important}
       td.gap{display:none !important;height:0 !important;line-height:0 !important;font-size:0 !important}
       td.f-links{display:block !important;width:100% !important;text-align:center !important;padding:0 0 14px !important}
@@ -1094,6 +1097,15 @@ Questions? Talk to our team: ${supportUrl}`;
  * template is built around reassurance and an easy way to talk to a human.
  * Matches `PHASE 1 Mail template -4` (dark strip, dark-green "Here whenever
  * You're Ready" hero, cream reassurance card, shared pharmacy footer).
+ *
+ * Both cards put their photo behind the copy as full-card background art
+ * rather than in a second table column, because the design bleeds each figure
+ * off the card's right and bottom edges and runs the WhatsApp button straight
+ * over the clinician — a two-column table cannot overlap. The artwork already
+ * carries the card's colour, corner radius and (for the clinician) a left-edge
+ * fade, so a client that drops the background just shows the flat card with
+ * the copy still legible. Narrow screens turn the background off and stack the
+ * photo underneath instead.
  */
 export async function sendAssessmentNudgeEmail(
   payload: Payload,
@@ -1133,58 +1145,56 @@ export async function sendAssessmentNudgeEmail(
 
       <!-- Hero -->
       <tr><td style="padding:14px 12px 0">
-        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
-          <tr>
-            <td class="card-copy stack" width="268" valign="middle" style="width:268px;padding:34px 4px 34px 22px">
-              <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">Here whenever</p>
-              <p style="margin:0 0 12px;font-family:${SER};font-style:italic;font-size:40px;line-height:46px;color:#ffffff">You&rsquo;re Ready</p>
-              <p style="margin:0 0 20px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.88)">
+        <table role="presentation" class="em-card" width="576" cellpadding="0" cellspacing="0" style="width:576px;max-width:100%;background:#132c27;border-radius:14px">
+          <tr><td class="bgcard" height="259" background="${img}/nudge-hero-card.png" style="height:259px;background-color:#132c27;background-image:url('${img}/nudge-hero-card-2x.png');background-size:576px 325px;background-repeat:no-repeat;background-position:top left;border-radius:14px;padding:66px 18px 0">
+            <p style="margin:0;font-family:${GIL};font-size:27px;font-weight:500;line-height:33px;color:#ffffff">Here whenever</p>
+            <p style="margin:0 0 12px;font-family:${SER};font-style:italic;font-size:44px;line-height:52px;color:#ffffff;white-space:nowrap">You&rsquo;re Ready</p>
+            <table role="presentation" class="meas" width="215" cellpadding="0" cellspacing="0" style="width:215px"><tr><td>
+              <p style="margin:0 0 20px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.9)">
                 Starting something new can feel like a big step. That&rsquo;s completely normal.
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                <td style="border-radius:8px;background:#ffffff">
-                  <a href="${startUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:12px 20px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Start My Assessment</a>
+                <td class="btn" width="177" style="width:177px;border-radius:8px;background:#ffffff">
+                  <a href="${startUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:14px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Start My Assessment</a>
                 </td>
               </tr></table>
-            </td>
-            <td class="card-art stack" width="308" valign="bottom" align="right" style="width:308px;padding:0;font-size:0;line-height:0">
-              <img src="${img}/nudge-hero.png" alt="" width="308" style="width:308px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
-            </td>
-          </tr>
+            </td></tr></table>
+            <img class="mob-art" src="${img}/nudge-hero.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
+          </td></tr>
         </table>
       </td></tr>
 
       <!-- Reassurance -->
       <tr><td style="padding:16px 12px 22px">
-        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
-          <tr>
-            <td class="card-copy stack" width="336" valign="top" style="width:336px;padding:28px 6px 26px 22px">
-              <p style="margin:0 0 14px;font-size:24px;line-height:29px;color:${BRAND}">
+        <table role="presentation" class="em-card" width="576" cellpadding="0" cellspacing="0" style="width:576px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td class="bgcard" height="373" background="${img}/nudge-care-card.png" style="height:373px;background-color:#f4f7ee;background-image:url('${img}/nudge-care-card-2x.png');background-size:576px 403px;background-repeat:no-repeat;background-position:top left;border-radius:14px;padding:30px 18px 0">
+            <table role="presentation" class="meas" width="300" cellpadding="0" cellspacing="0" style="width:300px"><tr><td>
+              <p style="margin:0 0 14px;font-size:21px;line-height:26px;color:${BRAND}">
                 <span style="font-family:${GIL};font-weight:700">Starting something new can feel like a big step.</span> <span style="font-family:${SER};font-style:italic">That&rsquo;s completely normal.</span>
               </p>
-              <p style="margin:0 0 14px;font-family:${SANS};font-size:14px;font-weight:400;line-height:19px;color:${BRAND}">
+            </td></tr></table>
+            <table role="presentation" class="meas" width="336" cellpadding="0" cellspacing="0" style="width:336px"><tr><td>
+              <p style="margin:0 0 14px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
                 If you&rsquo;ve been weighing it up, here&rsquo;s the simple truth: there&rsquo;s no commitment to take the first step. The assessment just helps us understand whether treatment is suitable for you.
               </p>
-              <p style="margin:0 0 14px;font-family:${SANS};font-size:14px;font-weight:400;line-height:19px;color:${BRAND}">
+              <p style="margin:0 0 14px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
                 And if you&rsquo;d rather talk it through with a real person first, our team is one message away.
               </p>
-              <p style="margin:0 0 24px;font-family:${SANS};font-size:14px;font-weight:400;line-height:19px;color:${BRAND}">
+              <p style="margin:0 0 26px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
                 Whenever the time feels right, we&rsquo;ll be here.
               </p>
-              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                <td class="btn" style="border-radius:8px;background:${BRAND}">
-                  <a href="${startUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Start My Assessment</a>
-                </td>
-                <td class="gap" width="10"></td>
-                <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
-                  <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 16px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Chat To Our Team On WhatsApp</a>
-                </td>
-              </tr></table>
-            </td>
-            <td class="card-art stack" width="240" valign="bottom" align="right" style="width:240px;padding:0;font-size:0;line-height:0">
-              <img src="${img}/nudge-clinician.png" alt="" width="240" style="width:240px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
-            </td>
-          </tr>
+            </td></tr></table>
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+              <td class="btn" width="249" style="width:249px;border-radius:8px;background:${BRAND}">
+                <a href="${startUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:14px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Start My Assessment</a>
+              </td>
+              <td class="gap" width="9"></td>
+              <td class="btn" width="238" style="width:238px;border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:13px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Chat To Our Team On WhatsApp</a>
+              </td>
+            </tr></table>
+            <img class="mob-art" src="${img}/nudge-clinician.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
+          </td></tr>
         </table>
       </td></tr>
 
