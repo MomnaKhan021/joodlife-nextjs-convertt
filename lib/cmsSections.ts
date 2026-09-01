@@ -57,7 +57,7 @@ export const CMS_NAV: CmsNavItem[] = [
     label: "Header & Footer",
     href: "/cms/navigation",
     description: "Navigation links and footer content",
-    status: "planned",
+    status: "ready",
     match: "/cms/navigation",
   },
   {
