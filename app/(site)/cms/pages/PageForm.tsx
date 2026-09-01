@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import RichTextEditor from "./RichTextEditor";
+
 /**
  * Create / edit form for a CMS page.
  *
@@ -12,9 +14,10 @@ import { useMemo, useState } from "react";
  * enforced server-side by Payload, and the session cookie is already what
  * authenticates every other surface.
  *
- * Body is authored as HTML with a live preview. Lexical rich text stays
- * available in Payload's editor for anyone who prefers it — a page can use
- * either, and `bodyHtml` wins when both are present (same rule as /blogs).
+ * Body is authored in RichTextEditor (Write / HTML / Preview) and stored as
+ * HTML in `bodyHtml`. Lexical rich text stays available in Payload's editor
+ * for anyone who prefers it — a page can use either, and `bodyHtml` wins when
+ * both are present (the same rule /blogs already applies).
  */
 
 export type PageDoc = {
@@ -56,7 +59,6 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
 
   // Slug follows the title until the user edits it by hand.
   const effectiveSlug = useMemo(
@@ -88,10 +90,12 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
       );
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const detail =
+          json?.errors?.[0]?.message || json?.message || `HTTP ${res.status}`;
         setError(
-          json?.errors?.[0]?.message ||
-            json?.message ||
-            `Save failed (HTTP ${res.status})`,
+          res.status === 403
+            ? `${detail}. If this says you're not allowed, the server URL in .env must match the port you're browsing on (Payload rejects cookie auth from other origins).`
+            : `Save failed: ${detail}`,
         );
         return;
       }
@@ -200,35 +204,12 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
         </div>
 
         <div>
-          <div className="flex items-center justify-between">
-            <label className={label} htmlFor="body">
-              Body (HTML)
-            </label>
-            <button
-              type="button"
-              onClick={() => setPreview((v) => !v)}
-              className="text-[12px] text-[#616161] underline-offset-2 hover:underline"
-            >
-              {preview ? "Edit HTML" : "Preview"}
-            </button>
-          </div>
-          {preview ? (
-            <div
-              className="prose-blog mt-1 min-h-[260px] rounded-lg border border-[#d8ddd0] bg-white px-4 py-3 text-[15px] leading-[1.7] text-[#142e2a]"
-              dangerouslySetInnerHTML={{ __html: bodyHtml || "<p></p>" }}
-            />
-          ) : (
-            <textarea
-              id="body"
-              className={`${input} min-h-[260px] font-mono text-[13px]`}
-              value={bodyHtml ?? ""}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              placeholder={"<h2>Heading</h2>\n<p>Your content…</p>"}
-            />
-          )}
+          <span className={label}>Body</span>
+          <RichTextEditor value={bodyHtml ?? ""} onChange={setBodyHtml} />
           <p className="mt-1 text-[12px] text-[#8a8a8a]">
-            Write HTML here, or leave it empty and use the Lexical rich-text
-            editor in Payload. If both are set, this HTML wins.
+            <strong>Write</strong> for the formatting toolbar,{" "}
+            <strong>HTML</strong> to edit the markup directly,{" "}
+            <strong>Preview</strong> to see it as the page will render.
           </p>
         </div>
 
