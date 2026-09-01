@@ -4,10 +4,19 @@ import Image from "next/image";
 import { useCallback, useState } from "react";
 
 /**
- * Hero-image chooser: pick from the existing Media library or upload a new
- * file. Both go through Payload's `/api/media` endpoints, so uploads land
- * wherever Media is configured to store them (Vercel Blob in production,
- * local disk in dev) and the admin-only rules still apply.
+ * Hero-image chooser: pick from the Media library, upload a file, or paste
+ * an existing image URL.
+ *
+ * Media is NOT a Payload upload collection here — it's a plain collection
+ * with `alt` + `url` columns (see src/payload/collections/Media.ts). So a
+ * file upload is two steps:
+ *
+ *   1. POST the file to /api/blob-upload  → { url, filename, size, contentType }
+ *   2. POST that url to /api/media        → the Media record
+ *
+ * Step 1 needs BLOB_READ_WRITE_TOKEN and returns 503 without it, which is
+ * the normal state locally. The "paste a URL" path needs no token at all,
+ * so it stays available either way.
  */
 
 type MediaDoc = {
@@ -29,8 +38,9 @@ export default function MediaPicker({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<MediaDoc[]>([]);
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urlDraft, setUrlDraft] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,35 +70,93 @@ export default function MediaPicker({
     });
   }, [items.length, load]);
 
+  /** Step 2 — create the Media row for an already-public URL. */
+  async function createMedia(fields: {
+    alt: string;
+    url: string;
+    filename?: string;
+    mimeType?: string;
+    filesize?: number;
+  }) {
+    const res = await fetch("/api/media", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(fields),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(
+        json?.errors?.[0]?.message ||
+          json?.message ||
+          `Couldn't save the media record (HTTP ${res.status})`,
+      );
+    }
+    return (json?.doc ?? json) as MediaDoc;
+  }
+
+  function select(doc: MediaDoc) {
+    onChange(doc.id, doc.url ?? null);
+    setItems((prev) => [doc, ...prev.filter((p) => p.id !== doc.id)]);
+    setOpen(false);
+  }
+
   async function upload(file: File) {
-    setUploading(true);
+    setBusy(true);
     setError(null);
     try {
+      // Step 1 — put the bytes somewhere public.
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("_payload", JSON.stringify({ alt: file.name }));
-      const res = await fetch("/api/media", {
+      const up = await fetch("/api/blob-upload", {
         method: "POST",
         credentials: "include",
         body: fd,
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
+      const upJson = await up.json().catch(() => ({}));
+      if (!up.ok || !upJson?.url) {
         setError(
-          json?.errors?.[0]?.message || `Upload failed (HTTP ${res.status})`,
+          up.status === 503
+            ? "File uploads need Vercel Blob (BLOB_READ_WRITE_TOKEN), which isn't set in this environment. Paste an image URL below instead."
+            : upJson?.error || `Upload failed (HTTP ${up.status})`,
         );
         return;
       }
-      const doc = (json?.doc ?? json) as MediaDoc;
-      if (doc?.id) {
-        onChange(doc.id, doc.url ?? null);
-        setItems((prev) => [doc, ...prev]);
-        setOpen(false);
-      }
+      // Step 2 — record it in the Media library.
+      const doc = await createMedia({
+        alt: file.name,
+        url: upJson.url,
+        filename: upJson.filename,
+        mimeType: upJson.contentType,
+        filesize: upJson.size,
+      });
+      if (doc?.id) select(doc);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
-      setUploading(false);
+      setBusy(false);
+    }
+  }
+
+  async function addByUrl() {
+    const url = urlDraft.trim();
+    if (!url) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const doc = await createMedia({
+        alt: url.split("/").pop()?.split("?")[0] || "Image",
+        url,
+        filename: url.split("/").pop()?.split("?")[0],
+      });
+      if (doc?.id) {
+        setUrlDraft("");
+        select(doc);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't add that URL");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -136,12 +204,12 @@ export default function MediaPicker({
         <div className="mt-3 rounded-lg border border-[#e4e7de] bg-white p-4">
           <div className="mb-3 flex flex-wrap items-center gap-3">
             <label className="cursor-pointer rounded-lg bg-[#1a1a1a] px-3 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90">
-              {uploading ? "Uploading…" : "Upload new"}
+              {busy ? "Working…" : "Upload file"}
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
-                disabled={uploading}
+                disabled={busy}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) void upload(f);
@@ -163,8 +231,27 @@ export default function MediaPicker({
             )}
           </div>
 
+          {/* Works with no Blob token — the reliable path in local dev. */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <input
+              type="url"
+              value={urlDraft}
+              onChange={(e) => setUrlDraft(e.target.value)}
+              placeholder="…or paste an image URL (https://…)"
+              className="min-w-[240px] flex-1 rounded-lg border border-[#d8ddd0] px-3 py-1.5 text-[13px] outline-none focus:border-[#1a1a1a]"
+            />
+            <button
+              type="button"
+              onClick={() => void addByUrl()}
+              disabled={busy || !urlDraft.trim()}
+              className="rounded-lg border border-[#d8ddd0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0] disabled:opacity-40"
+            >
+              Add URL
+            </button>
+          </div>
+
           {error && (
-            <p className="mb-3 rounded border border-[#e5b3b3] bg-[#fdf3f3] px-3 py-2 text-[12px] text-[#8a2b2b]">
+            <p className="mb-3 rounded border border-[#e5b3b3] bg-[#fdf3f3] px-3 py-2 text-[12px] leading-relaxed text-[#8a2b2b]">
               {error}
             </p>
           )}
@@ -173,7 +260,7 @@ export default function MediaPicker({
             <p className="text-[13px] text-[#616161]">Loading…</p>
           ) : items.length === 0 ? (
             <p className="text-[13px] text-[#616161]">
-              No images yet — upload one above.
+              No images yet — upload one or paste a URL above.
             </p>
           ) : (
             <div className="grid max-h-[280px] grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-5">
@@ -181,10 +268,7 @@ export default function MediaPicker({
                 <button
                   key={String(m.id)}
                   type="button"
-                  onClick={() => {
-                    onChange(m.id, m.url ?? null);
-                    setOpen(false);
-                  }}
+                  onClick={() => select(m)}
                   title={m.filename ?? undefined}
                   className={`relative aspect-square overflow-hidden rounded border transition-colors ${
                     String(m.id) === String(valueId)
@@ -199,6 +283,7 @@ export default function MediaPicker({
                       fill
                       sizes="120px"
                       className="object-cover"
+                      unoptimized
                     />
                   ) : (
                     <span className="grid h-full place-items-center text-[10px] text-[#8a8a8a]">
