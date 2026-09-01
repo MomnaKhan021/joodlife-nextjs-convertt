@@ -1084,3 +1084,134 @@ Questions? Talk to our team: ${supportUrl}`;
     text,
   });
 }
+
+/**
+ * "Still thinking it over?" — the Day 4–5 nudge.
+ *
+ * Sent ONCE to a lead who engaged (started an assessment, gave us their email)
+ * but never completed it, four to five days on. Deliberately low-pressure:
+ * no countdown, no stock warning, no "last chance" — the PHASE-1 Figma
+ * template is built around reassurance and an easy way to talk to a human.
+ * Matches `PHASE 1 Mail template -4` (dark strip, dark-green "Here whenever
+ * You're Ready" hero, cream reassurance card, shared pharmacy footer).
+ */
+export async function sendAssessmentNudgeEmail(
+  payload: Payload,
+  opts: {
+    email: string;
+    name?: string | null;
+    /** Questionnaire to resume, e.g. "weight-loss". */
+    productSlug?: string | null;
+    /** Support WhatsApp number; defaults to the published one. */
+    whatsapp?: string | null;
+  },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const product = (opts.productSlug ?? "weight-loss").trim() || "weight-loss";
+  const startUrl = `${url}/consultation?product=${encodeURIComponent(product)}`;
+  const waNumber = (opts.whatsapp ?? "447756099075").replace(/[^\d]/g, "");
+  const waLink = `https://wa.me/${waNumber}`;
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">No rush &mdash; your assessment is here whenever you&rsquo;re ready.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">Whenever the time feels right, we&rsquo;re ready.</span>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="padding:14px 12px 0">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
+          <tr>
+            <td class="card-copy stack" width="268" valign="middle" style="width:268px;padding:34px 4px 34px 22px">
+              <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">Here whenever</p>
+              <p style="margin:0 0 12px;font-family:${SER};font-style:italic;font-size:40px;line-height:46px;color:#ffffff">You&rsquo;re Ready</p>
+              <p style="margin:0 0 20px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.88)">
+                Starting something new can feel like a big step. That&rsquo;s completely normal.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td style="border-radius:8px;background:#ffffff">
+                  <a href="${startUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:12px 20px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Start My Assessment</a>
+                </td>
+              </tr></table>
+            </td>
+            <td class="card-art stack" width="308" valign="bottom" align="right" style="width:308px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/nudge-hero.png" alt="" width="308" style="width:308px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Reassurance -->
+      <tr><td style="padding:16px 12px 22px">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
+          <tr>
+            <td class="card-copy stack" width="336" valign="top" style="width:336px;padding:28px 6px 26px 22px">
+              <p style="margin:0 0 14px;font-size:24px;line-height:29px;color:${BRAND}">
+                <span style="font-family:${GIL};font-weight:700">Starting something new can feel like a big step.</span> <span style="font-family:${SER};font-style:italic">That&rsquo;s completely normal.</span>
+              </p>
+              <p style="margin:0 0 14px;font-family:${SANS};font-size:14px;font-weight:400;line-height:19px;color:${BRAND}">
+                If you&rsquo;ve been weighing it up, here&rsquo;s the simple truth: there&rsquo;s no commitment to take the first step. The assessment just helps us understand whether treatment is suitable for you.
+              </p>
+              <p style="margin:0 0 14px;font-family:${SANS};font-size:14px;font-weight:400;line-height:19px;color:${BRAND}">
+                And if you&rsquo;d rather talk it through with a real person first, our team is one message away.
+              </p>
+              <p style="margin:0 0 24px;font-family:${SANS};font-size:14px;font-weight:400;line-height:19px;color:${BRAND}">
+                Whenever the time feels right, we&rsquo;ll be here.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td class="btn" style="border-radius:8px;background:${BRAND}">
+                  <a href="${startUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Start My Assessment</a>
+                </td>
+                <td class="gap" width="10"></td>
+                <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                  <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 16px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Chat To Our Team On WhatsApp</a>
+                </td>
+              </tr></table>
+            </td>
+            <td class="card-art stack" width="240" valign="bottom" align="right" style="width:240px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/nudge-clinician.png" alt="" width="240" style="width:240px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+Starting something new can feel like a big step. That's completely normal.
+
+If you've been weighing it up, here's the simple truth: there's no commitment to take the first step. The assessment just helps us understand whether treatment is suitable for you.
+
+Start your assessment: ${startUrl}
+
+And if you'd rather talk it through with a real person first, our team is one message away: ${waLink}
+
+Whenever the time feels right, we'll be here.
+
+— The Jood team`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Still thinking it over?",
+    html,
+    text,
+  });
+}
