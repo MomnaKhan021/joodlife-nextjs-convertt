@@ -1,6 +1,6 @@
 "use client";
 
-import type { MegaContent, MegaTreatment } from "@/lib/siteContent";
+import type { MegaContent, MegaTreatment } from "@/lib/siteContentTypes";
 
 import { fieldInput, fieldLabel } from "./LinkFields";
 

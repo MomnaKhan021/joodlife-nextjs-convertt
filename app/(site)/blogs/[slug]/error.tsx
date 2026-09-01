@@ -4,8 +4,14 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
-import Header from "@/components/layout/Header";
-import Footer from "@/sections/home/Footer";
+// Client versions on purpose: this is an error boundary, so it must be a
+// client component, and the default Header/Footer are async server
+// components that read the CMS globals. Importing those here would pull
+// the whole server chain (payload → server-only) into the client bundle
+// and fail the production build. The clients render the built-in defaults,
+// which is the right thing on an error page anyway.
+import HeaderClient from "@/components/layout/HeaderClient";
+import FooterClient from "@/sections/home/FooterClient";
 
 /**
  * Article-page error boundary. Surfaces when getPostBySlug throws or
@@ -27,7 +33,7 @@ export default function ArticleError({
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
-      <Header />
+      <HeaderClient />
 
       <section className="mx-auto w-full max-w-[760px] flex-1 px-6 py-20 md:py-32">
         <p className="font-ui text-[12px] font-semibold uppercase tracking-[0.08em] text-[#142e2a]/55">
@@ -62,7 +68,7 @@ export default function ArticleError({
         ) : null}
       </section>
 
-      <Footer />
+      <FooterClient />
     </main>
   );
 }

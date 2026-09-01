@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { SiteLink } from "@/lib/siteContent";
+import type { SiteLink } from "@/lib/siteContentTypes";
 
 /**
  * Shared link-editing UI for the Header and Footer screens.

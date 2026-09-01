@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { FooterContent } from "@/lib/siteContent";
+import type { FooterContent } from "@/lib/siteContentTypes";
 import {
   LinkRepeater,
   fieldInput,

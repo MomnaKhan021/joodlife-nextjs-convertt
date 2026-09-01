@@ -1,196 +1,38 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import {
+  DEFAULT_FOOTER_TEXT,
+  DEFAULT_JOOD_LINKS,
+  DEFAULT_MEGA,
+  DEFAULT_MEGA_BULLETS,
+  DEFAULT_MEGA_TREATMENTS,
+  DEFAULT_NAV_LINKS,
+  DEFAULT_POLICY_LINKS,
+  DEFAULT_TREATMENT_LINKS,
+  footerFallback,
+  headerFallback,
+  str,
+  toLinks,
+  toStrings,
+  toTreatments,
+  type FooterContent,
+  type HeaderContent,
+} from "@/lib/siteContentTypes";
 
 /**
- * Header / footer content, read from the Payload globals with a fallback
- * to the values that were hard-coded in the components.
+ * Server-side reader for the Header and Footer globals.
  *
- * The fallbacks matter: they are what makes this safe to deploy. Until
- * someone fills the globals in — and if the tables are missing, or the DB
- * is unreachable — the site renders exactly as it does today. Nothing
- * about shipping this should change a single pixel of the live site.
+ * Types, defaults and the coercion helpers live in `siteContentTypes.ts`
+ * — that module has no `server-only` marker, so the /cms client editors can
+ * import them. Keeping the split matters: importing this file from a client
+ * component fails the production build, even for a type-only import.
  *
- * Keep DEFAULT_* in sync with the design if the components change; they
- * are the source of truth whenever the CMS is empty.
+ * Everything falls back to the shipped defaults, so an empty global, a
+ * missing table or an unreachable database all render the site unchanged.
  */
 
-/** Mega-menu content attached to a single nav link. */
-export type MegaContent = {
-  megaHeading?: string;
-  megaTreatments?: MegaTreatment[];
-  megaPromoTitle?: string;
-  megaPromoEmphasis?: string;
-  megaPromoBullets?: string[];
-  megaPromoCta?: string;
-  megaPromoHref?: string;
-};
-
-export type SiteLink = {
-  label: string;
-  href: string;
-  /** Opens a mega panel on hover instead of navigating straight away. */
-  mega?: boolean;
-  /**
-   * This link's own mega-menu content. Optional: a link with `mega` but no
-   * `megaContent` falls back to the header-level mega fields, which is what
-   * existing single-mega-menu setups rely on.
-   */
-  megaContent?: MegaContent;
-};
-
-export const DEFAULT_NAV_LINKS: SiteLink[] = [
-  { label: "Home", href: "/" },
-  { label: "Treatments", href: "/shop", mega: true },
-  { label: "FAQs", href: "/#faq" },
-  { label: "Reviews", href: "/#reviews" },
-  { label: "Support", href: "/support" },
-];
-
-export const DEFAULT_JOOD_LINKS: SiteLink[] = [
-  { label: "Log in", href: "/login" },
-  { label: "Treatments", href: "/shop" },
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "Library", href: "/blogs" },
-  { label: "Support", href: "/support" },
-];
-
-export const DEFAULT_TREATMENT_LINKS: SiteLink[] = [
-  { label: "Mounjaro", href: "/weight-loss" },
-  { label: "Wegovy", href: "/weight-loss" },
-  { label: "Wegovy Pills", href: "/wegovy-pills" },
-];
-
-export const DEFAULT_POLICY_LINKS: SiteLink[] = [
-  { label: "Terms & conditions", href: "/policies/terms" },
-  { label: "Refund & Complaints Procedure", href: "/policies/refund-complaints" },
-  { label: "Privacy & Cookies", href: "/policies/privacy" },
-];
-
-export const DEFAULT_FOOTER_TEXT = {
-  contactHeading: "Have a question?",
-  phone: "07756 099075",
-  email: "support@joodlife.com",
-  newsletterHeading: "Sign Up For Our Newsletter",
-  newsletterSubtext: "Stay up to date on our news, education and offers",
-  legalText: "",
-};
-
-export type MegaTreatment = {
-  label: string;
-  desc: string;
-  href: string;
-  icon: string;
-};
-
-export const DEFAULT_MEGA_TREATMENTS: MegaTreatment[] = [
-  {
-    label: "Weight loss",
-    desc: "Sustainable fat reduction",
-    href: "/wegovy-pills",
-    icon: "/assets/megamenu/treat-wl.png",
-  },
-  {
-    label: "Erectile dysfunction",
-    desc: "Improved sexual performance",
-    href: "/erectile-dysfunction",
-    icon: "/assets/megamenu/treat-ed.png",
-  },
-  {
-    label: "Period Delay",
-    desc: "Delay menstrual cycle",
-    href: "/period-delay",
-    icon: "/assets/megamenu/treat-pd.png",
-  },
-];
-
-export const DEFAULT_MEGA = {
-  megaHeading: "Our Treatments",
-  megaPromoTitle: "Weight loss,",
-  megaPromoEmphasis: "made for you.",
-  megaPromoCta: "Explore More",
-  megaPromoHref: "/shop",
-};
-
-export const DEFAULT_MEGA_BULLETS: string[] = [
-  "Lose up to 27% body weight",
-  "Plans tailored to you",
-  "Guidance for lasting results",
-];
-
-export type HeaderContent = {
-  navLinks: SiteLink[];
-  megaTreatments: MegaTreatment[];
-  megaPromoBullets: string[];
-} & typeof DEFAULT_MEGA;
-export type FooterContent = {
-  joodLinks: SiteLink[];
-  treatmentLinks: SiteLink[];
-  policyLinks: SiteLink[];
-} & typeof DEFAULT_FOOTER_TEXT;
-
-/** Accept only well-formed link rows; anything else falls back. */
-function toLinks(value: unknown, fallback: SiteLink[]): SiteLink[] {
-  if (!Array.isArray(value)) return fallback;
-  const cleaned = value
-    .filter(
-      (v): v is SiteLink =>
-        Boolean(v) &&
-        typeof v === "object" &&
-        typeof (v as SiteLink).label === "string" &&
-        typeof (v as SiteLink).href === "string",
-    )
-    .map((v) => ({
-      label: v.label,
-      href: v.href,
-      ...(v.mega ? { mega: true } : {}),
-      ...(v.megaContent && typeof v.megaContent === "object"
-        ? { megaContent: v.megaContent }
-        : {}),
-    }));
-  return cleaned.length ? cleaned : fallback;
-}
-
-function toTreatments(
-  value: unknown,
-  fallback: MegaTreatment[],
-): MegaTreatment[] {
-  if (!Array.isArray(value)) return fallback;
-  const cleaned = value
-    .filter(
-      (v): v is MegaTreatment =>
-        Boolean(v) &&
-        typeof v === "object" &&
-        typeof (v as MegaTreatment).label === "string" &&
-        typeof (v as MegaTreatment).href === "string",
-    )
-    .map((v) => ({
-      label: v.label,
-      desc: typeof v.desc === "string" ? v.desc : "",
-      href: v.href,
-      icon: typeof v.icon === "string" ? v.icon : "",
-    }));
-  return cleaned.length ? cleaned : fallback;
-}
-
-function toStrings(value: unknown, fallback: string[]): string[] {
-  if (!Array.isArray(value)) return fallback;
-  const cleaned = value.filter((v): v is string => typeof v === "string" && v.trim() !== "");
-  return cleaned.length ? cleaned : fallback;
-}
-
-function str(value: unknown, fallback: string): string {
-  return typeof value === "string" && value.trim() ? value : fallback;
-}
-
-function headerFallback(): HeaderContent {
-  return {
-    navLinks: DEFAULT_NAV_LINKS,
-    megaTreatments: DEFAULT_MEGA_TREATMENTS,
-    megaPromoBullets: DEFAULT_MEGA_BULLETS,
-    ...DEFAULT_MEGA,
-  };
-}
+export * from "@/lib/siteContentTypes";
 
 export async function getHeaderContent(): Promise<HeaderContent> {
   try {
@@ -216,12 +58,6 @@ export async function getHeaderContent(): Promise<HeaderContent> {
 }
 
 export async function getFooterContent(): Promise<FooterContent> {
-  const fallback: FooterContent = {
-    joodLinks: DEFAULT_JOOD_LINKS,
-    treatmentLinks: DEFAULT_TREATMENT_LINKS,
-    policyLinks: DEFAULT_POLICY_LINKS,
-    ...DEFAULT_FOOTER_TEXT,
-  };
   try {
     const payload = await getPayloadInstance();
     const doc = (await payload.findGlobal({
@@ -247,6 +83,6 @@ export async function getFooterContent(): Promise<FooterContent> {
       legalText: str(doc?.legalText, DEFAULT_FOOTER_TEXT.legalText),
     };
   } catch {
-    return fallback;
+    return footerFallback();
   }
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { MegaContent, MegaTreatment, SiteLink } from "@/lib/siteContent";
+import type { MegaContent, MegaTreatment, SiteLink } from "@/lib/siteContentTypes";
 import {
   LinkRepeater,
   fieldInput,
