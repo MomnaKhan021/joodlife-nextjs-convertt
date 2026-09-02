@@ -669,6 +669,15 @@ export async function ensureConsultationContactProperties(): Promise<
       fieldType: "text",
       groupName: "contactinformation",
     },
+    {
+      name: "jood_scale_photo",
+      label: "Jood Scales Photo",
+      description:
+        "Link to the patient's photo of themselves on the scales from the consultation, or a note that they couldn't upload one",
+      type: "string",
+      fieldType: "text",
+      groupName: "contactinformation",
+    },
   ];
   for (const def of defs) {
     await hsFetch(`/crm/v3/properties/contacts`, {

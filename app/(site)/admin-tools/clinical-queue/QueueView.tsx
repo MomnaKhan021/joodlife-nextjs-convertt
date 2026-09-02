@@ -306,7 +306,7 @@ const SECTION_KEYS = new Set<string>([
   // patient
   "which_ethnicity_are_you", "height_cm", "current_weight_kg",
   "date_of_birth_consultation", "consultation_mobile_number_v2",
-  "firstName", "lastName",
+  "firstName", "lastName", "weight_scale_photo",
   // gp
   "gp_practice_name", "gp_practice_full_address",
   // consultation
@@ -367,6 +367,16 @@ function PatientDetails({ c }: { c: Consultation }) {
       ? [{ label: "Baseline source", value: "DOB, height & weight from an earlier submission" }]
       : []),
     { label: "Weight", value: a.current_weight_kg ? `${fmtNum(a.current_weight_kg)} kg` : undefined },
+    // The scales photo backs up the typed weight. A skipped upload is shown
+    // rather than dropped so the reviewer knows to ask for it on the call.
+    {
+      label: "Photo on scales",
+      value:
+        a.weight_scale_photo ??
+        (a._weight_scale_photo_skipped === true
+          ? "Not uploaded — patient couldn't upload right now"
+          : undefined),
+    },
     { label: "BMI", value: bmi != null ? `${bmi}` : undefined },
     { label: "Mobile", value: a.consultation_mobile_number_v2 ?? c.phone },
     { label: "Email", value: c.email },
