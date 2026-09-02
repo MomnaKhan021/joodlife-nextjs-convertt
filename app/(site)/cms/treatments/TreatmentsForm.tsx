@@ -31,7 +31,14 @@ const LABELS: Record<string, string> = {
   "period-delay": "Period delay",
 };
 
-export default function TreatmentsForm({ initial }: { initial: Row[] }) {
+export default function TreatmentsForm({
+  initial,
+  embedded = false,
+}: {
+  initial: Row[];
+  /** Rendered inside the Home page screen — drop the page chrome. */
+  embedded?: boolean;
+}) {
   const [rows, setRows] = useState<Row[]>(initial);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -87,7 +94,8 @@ export default function TreatmentsForm({ initial }: { initial: Row[] }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1000px]">
+    <div className={embedded ? "" : "mx-auto w-full max-w-[1000px]"}>
+      {!embedded && (
       <header className="mb-6">
         <Link href="/cms" className="text-[13px] text-[#616161] underline-offset-2 hover:underline">
           ← Dashboard
@@ -104,6 +112,7 @@ export default function TreatmentsForm({ initial }: { initial: Row[] }) {
           landing pages. Editing one changes all of them.
         </p>
       </header>
+      )}
 
       {error && (
         <p className="mb-4 rounded-lg border border-[#e5b3b3] bg-[#fdf3f3] px-4 py-3 text-[13px] text-[#8a2b2b]">

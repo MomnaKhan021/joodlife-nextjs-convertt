@@ -11,7 +11,9 @@ import type {
   HomeContent,
   SiteReview,
 } from "@/lib/pageContentTypes";
+import type { TreatmentRow } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import TreatmentsEditor from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
 
 /**
@@ -21,7 +23,13 @@ import MediaPicker from "../MediaPicker";
  * admin-only rule is enforced server-side. Every field is optional — clearing
  * one restores the copy that ships in the component.
  */
-export default function SectionsForm({ initial }: { initial: HomeContent }) {
+export default function SectionsForm({
+  initial,
+  treatments,
+}: {
+  initial: HomeContent;
+  treatments: TreatmentRow[];
+}) {
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
@@ -272,23 +280,8 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
           </div>
         </div>
 
-        {/* ---- Treatments pointer ---- */}
-        <div className="rounded-xl border border-[#e4e7de] bg-white p-5">
-          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-            Treatment sections
-          </h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-[#616161]">
-            The three treatment bands below the hero — weight loss, erectile
-            dysfunction and period delay — share their copy with the treatment
-            landing pages, so they are edited in one place.
-          </p>
-          <Link
-            href="/cms/treatments"
-            className="mt-3 inline-block rounded-lg border border-[#d8ddd0] px-4 py-2 text-[13px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
-          >
-            Edit treatment sections →
-          </Link>
-        </div>
+        {/* ---- Treatment sections ---- */}
+        <TreatmentsEditor initial={treatments} embedded />
 
         {/* ---- Reviews ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">

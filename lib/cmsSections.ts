@@ -77,14 +77,6 @@ export const CMS_NAV: CmsNavItem[] = [
     match: "/cms/home",
   },
   {
-    key: "cms-sections",
-    label: "Treatments",
-    href: "/cms/treatments",
-    description: "Category copy shared by the home and treatment pages",
-    status: "ready",
-    match: "/cms/treatments",
-  },
-  {
     key: "cms-navigation",
     label: "Announcement bar",
     href: "/cms/announcement",
