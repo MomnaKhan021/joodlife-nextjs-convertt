@@ -3,12 +3,14 @@ import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { hideBeforeSql } from "@/lib/adminHide";
+import { resolveAnalyticsRange } from "@/lib/analyticsRange";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
  * GET /api/admin-tools/metrics?days=<1|7|30|90>
+ *     or   ?from=YYYY-MM-DD&to=YYYY-MM-DD   (custom range, inclusive days)
  *
  * Daily-monitoring KPIs for the analytics dashboard, computed live from
  * the orders / consultations / users tables:
@@ -85,8 +87,8 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const daysRaw = Number(url.searchParams.get("days") ?? 7);
-  const days = [1, 7, 30, 90].includes(daysRaw) ? daysRaw : 7;
+  const range = resolveAnalyticsRange(url.searchParams);
+  const { days } = range;
 
   let drizzle: DrizzleLike;
   let sql: SqlRaw;
@@ -102,13 +104,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Range start: for "today" use local midnight, else N-1 days back at midnight
-    // so a 7-day view is today + the 6 previous full days.
+    // Range: presets run from local midnight N-1 days back through now; a
+    // custom range is an inclusive span of calendar days, bounded at both
+    // ends so a historic window doesn't also pick up everything since.
     const now = new Date();
-    const start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-    if (days > 1) start.setDate(start.getDate() - (days - 1));
+    const { start, endExclusive } = range;
     const startIso = start.toISOString();
+    const endIso = endExclusive.toISOString();
+    const inRange = `created_at >= '${startIso}' AND created_at < '${endIso}'`;
 
     // Legacy-data hide — the analytics must reflect the same fresh-start view
     // as the rest of the admin (orders / consultations / customers reset to 0
@@ -120,12 +123,12 @@ export async function GET(req: NextRequest) {
       drizzle.execute(
         sql.raw(
           `SELECT created_at, total_amount, status, payment_status, customer_email
-           FROM orders WHERE created_at >= '${startIso}'${hideAnd};`,
+           FROM orders WHERE ${inRange}${hideAnd};`,
         ),
       ),
       drizzle.execute(
         sql.raw(
-          `SELECT created_at, status FROM consultations WHERE created_at >= '${startIso}'${hideAnd};`,
+          `SELECT created_at, status FROM consultations WHERE ${inRange}${hideAnd};`,
         ),
       ),
       drizzle.execute(
@@ -141,7 +144,7 @@ export async function GET(req: NextRequest) {
       drizzle.execute(
         sql.raw(
           `SELECT COUNT(*)::int AS n FROM users
-           WHERE COALESCE(role::text, 'customer') = 'customer' AND created_at >= '${startIso}'${hideAnd};`,
+           WHERE COALESCE(role::text, 'customer') = 'customer' AND ${inRange}${hideAnd};`,
         ),
       ),
     ]);
@@ -173,7 +176,7 @@ export async function GET(req: NextRequest) {
     const buckets: { label: string; orders: number; revenue: number; consultations: number }[] = [];
     const bucketIndex = new Map<string, number>();
 
-    if (days === 1) {
+    if (range.hourly) {
       for (let h = 0; h < 24; h++) {
         const key = String(h);
         bucketIndex.set(key, buckets.length);
@@ -197,7 +200,7 @@ export async function GET(req: NextRequest) {
     const keyFor = (iso: string) => {
       const d = new Date(iso);
       if (Number.isNaN(d.getTime())) return null;
-      return days === 1 ? String(d.getHours()) : d.toISOString().slice(0, 10);
+      return range.hourly ? String(d.getHours()) : d.toISOString().slice(0, 10);
     };
 
     for (const o of sales) {
@@ -217,8 +220,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       days,
+      mode: range.mode,
       from: startIso,
-      to: now.toISOString(),
+      to: range.mode === "custom" ? endIso : now.toISOString(),
       kpis: {
         revenue,
         orders: sales.length,

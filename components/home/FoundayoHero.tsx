@@ -8,7 +8,11 @@ import FoundayoHeroView from "./FoundayoHeroView";
  * The two secondary cards on the right come from lib/categories.ts and are
  * rendered inside the view — they're category routing, not hero copy.
  */
-export default async function FoundayoHero() {
+export default async function FoundayoHero({
+  isReturningPatient,
+}: {
+  isReturningPatient?: boolean;
+} = {}) {
   const {
     heroBadge,
     heroTitle,
@@ -32,6 +36,7 @@ export default async function FoundayoHero() {
       ctaLabel={heroCtaLabel}
       ctaHref={heroCtaHref}
       image={heroImage}
+      isReturningPatient={isReturningPatient}
     />
   );
 }

@@ -32,6 +32,7 @@ export const CONSULTATION_LABELS: Record<string, string> = {
   reorder_four_weeks_complete: "4+ weeks on current dose",
   reorder_callback_request: "Clinician callback requested",
   prescription_evidence_upload: "Prescription evidence",
+  weight_scale_photo: "Photo on scales",
   // Patient
   fullName: "Full name",
   which_ethnicity_are_you: "Ethnicity",

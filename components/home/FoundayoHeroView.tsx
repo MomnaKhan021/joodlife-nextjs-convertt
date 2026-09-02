@@ -41,6 +41,8 @@ export type HeroContent = {
   ctaLabel?: string;
   ctaHref?: string;
   image?: string;
+  /** Returning patients skip the questionnaire — see FoundayoCard. */
+  isReturningPatient?: boolean;
 };
 
 const DEFAULT_FEATURES: HeroFeatureProp[] = [
@@ -58,8 +60,14 @@ function FoundayoCard({
   ctaLabel = "Explore Foundayo",
   ctaHref = "/consultation?product=weight-loss",
   image = "/assets/home/foundayo-pill.png",
+  isReturningPatient = false,
 }: HeroContent = {}) {
   const FEATURES = features?.length ? features : DEFAULT_FEATURES;
+  // A returning patient has already been assessed — send them to reorder
+  // rather than back through the questionnaire, matching the weight-loss
+  // preview and the bottom CTA banner. Deliberately wins over the CMS values.
+  const href = isReturningPatient ? "/reorder" : ctaHref;
+  const label = isReturningPatient ? "Reorder" : ctaLabel;
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden rounded-[24px] bg-[#fdf0ea] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12">
       {/* Copy — left column on desktop; the pill stays right of it. */}
@@ -103,10 +111,10 @@ function FoundayoCard({
 
         <div className="mt-1">
           <Link
-            href={ctaHref}
+            href={href}
             className="btn-cta inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
           >
-            {ctaLabel}
+            {label}
           </Link>
         </div>
       </div>

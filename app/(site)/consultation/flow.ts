@@ -20,7 +20,7 @@
 
 export type Answers = Record<string, unknown>;
 
-export const TOTAL_STEPS = 20;
+export const TOTAL_STEPS = 21;
 
 export const DOSES = {
   Mounjaro: ["2.5 mg", "5 mg", "7.5 mg", "10 mg", "12.5 mg", "15 mg", "Not sure"],
@@ -189,6 +189,11 @@ export type SlideDef = {
   bullets?: string[];
   /** Body copy for block slides (overrides the generic copy). */
   body?: string;
+  // ── extras for upload slides ──
+  /** File-picker accept list. Defaults to images + PDF. */
+  accept?: string;
+  /** Label shown inside the drop zone before a file is chosen. */
+  uploadLabel?: string;
 };
 
 const isWegovyContext = (a: Answers): boolean => {
@@ -475,10 +480,26 @@ export const SLIDES: SlideDef[] = [
     subtitle:
       "If you share your GP details, we'll inform them about your treatment. This supports safe, coordinated care.",
     field: "gp_practice_name",
-    // GP details are the last step. Submitting goes straight to the
-    // success/"making a plan" screen — the medication-preference step was
-    // removed (the medicine is chosen on the product page after), and buying
-    // happens on the final product page the success screen redirects to.
+    next: () => "s_scales",
+  },
+  // ── Slide scales: photo of the patient on the scales ─────────
+  // Last question. Gives the clinician a live weight reading to set against
+  // the typed one. Optional in practice — "I can't upload right now" lets the
+  // patient carry on and flags the gap for the reviewer instead of blocking.
+  {
+    id: "s_scales",
+    type: "upload",
+    step: 21,
+    title: "Upload a photo of you standing on the scales",
+    subtitle:
+      "It helps our clinician confirm your current weight. Make sure the reading is visible. If you can't do this right now, you can skip it.",
+    field: "weight_scale_photo",
+    accept: "image/*",
+    uploadLabel: "Tap to take or upload a photo",
+    // Submitting goes straight to the success/"making a plan" screen — the
+    // medication-preference step was removed (the medicine is chosen on the
+    // product page after), and buying happens on the final product page the
+    // success screen redirects to.
     next: () => "s_success",
   },
   // ── Block screens ────────────────────────────────────────────

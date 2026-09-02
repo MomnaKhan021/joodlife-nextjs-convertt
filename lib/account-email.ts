@@ -34,6 +34,86 @@ function escapeHtml(s: string): string {
 
 const BRAND = "#142e2a";
 
+/* ------------------------------------------------------------------ */
+/* Shared pieces for the PHASE-1 Figma emails                          */
+/* ------------------------------------------------------------------ */
+
+/** Brand font stacks used across the Figma email set. */
+export const EMAIL_FONTS = {
+  GIL: `'Gilroy',Helvetica,Arial,sans-serif`,
+  SER: `'Clearface',Georgia,'Times New Roman',serif`,
+  SANS: `'Outfit',Helvetica,Arial,sans-serif`,
+} as const;
+
+/** @font-face block plus the shared responsive rules for the Figma emails. */
+export function emailFontCss(url: string): string {
+  return `
+    @font-face{font-family:'Gilroy';font-weight:500;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Medium.woff2') format('woff2')}
+    @font-face{font-family:'Gilroy';font-weight:700;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Bold.woff2') format('woff2')}
+    @font-face{font-family:'Clearface';font-weight:400;font-style:italic;font-display:swap;src:url('${url}/fonts/ClearfaceRegularItalic.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:400;font-display:swap;src:url('${url}/fonts/Outfit-Regular.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:500;font-display:swap;src:url('${url}/fonts/Outfit-Medium.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:600;font-display:swap;src:url('${url}/fonts/Outfit-SemiBold.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:700;font-display:swap;src:url('${url}/fonts/Outfit-Bold.woff2') format('woff2')}
+    *{letter-spacing:0 !important}
+    @media only screen and (max-width:620px){
+      table.em-wrap,table.em-card,table.stack{width:100% !important;min-width:0 !important;max-width:100% !important}
+      td.stack{display:block !important;width:100% !important;box-sizing:border-box !important}
+      td.card-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:22px 20px 24px !important}
+      td.card-art{display:block !important;width:100% !important;box-sizing:border-box !important;text-align:center !important;padding:0 !important}
+      td.card-art img{width:100% !important;max-width:260px !important;height:auto !important}
+      td.btn{display:block !important;width:100% !important;box-sizing:border-box !important;margin:0 0 10px !important}
+      td.gap{display:none !important;height:0 !important;line-height:0 !important;font-size:0 !important}
+      td.f-links{display:block !important;width:100% !important;text-align:center !important;padding:0 0 14px !important}
+      td.f-logo{display:block !important;width:100% !important;text-align:center !important}
+      .f-badges{text-align:center !important}
+      .f-badges img{max-width:100% !important;height:auto !important}
+    }
+  `;
+}
+
+/**
+ * The Figma pharmacy footer, shared by every branded email so the set can't
+ * drift apart. Designed once against the file; callers just drop it in.
+ */
+export function emailFooterHtml(url: string): string {
+  const { SANS } = EMAIL_FONTS;
+  const img = `${url}/assets/email`;
+  const year = new Date().getFullYear();
+  return `<tr><td style="background:${BRAND};padding:40px 28px 20px">
+        <p style="margin:0 0 10px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:500">Questions?</span> <a href="${url}/support" style="font-weight:400;color:#fcfbf8;text-decoration:none">Talk to our team</a>
+        </p>
+        <p style="margin:0 0 16px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:400">Email us at</span> <a href="mailto:hello@joodlife.com" style="font-weight:700;color:#fcfbf8;text-decoration:none">hello@joodlife.com</a>
+        </p>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <table role="presentation" width="544" cellpadding="0" cellspacing="0" class="stack" style="width:544px;max-width:100%">
+          <tr>
+            <td class="f-links" valign="middle" style="padding:20px 0 0;font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
+              <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
+              <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
+            </td>
+            <td class="f-logo" valign="middle" align="right" style="padding:20px 0 0">
+              <img src="${img}/jood-logo.png" alt="JOOD" width="218" height="61" style="width:218px;max-width:100%;height:auto;display:inline-block;border:0"/>
+            </td>
+          </tr>
+        </table>
+        <div class="f-badges" style="margin:8px 0 14px;text-align:right;font-size:0;line-height:0">
+          <img src="${img}/badges-row.png" alt="LegitScript Certified &middot; Registered Pharmacy 9012990 &middot; Apple Pay &middot; Google Pay &middot; Stripe" width="241" height="61" style="width:241px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <p style="margin:26px 0 0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:#ffffff;text-align:center">
+          &copy; ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969)
+          Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
+          Clinical, consultation and prescribing services are provided by UK-registered prescribers.
+          All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.
+          All Pharmacy operations are temporarily taking place at Weaverham Pharmacy (1029683).
+        </p>
+      </td></tr>`;
+}
+
+
 /**
  * Shared branded email shell. Every outbound email is wrapped in this so they
  * all carry the Jood logo, typography, colours and pharmacy footer — one
@@ -59,7 +139,7 @@ export function emailShell(
 ${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
   <tr><td align="center">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
       <tr><td style="background:${BRAND};padding:22px 32px">
         <img src="${logo}" alt="JoodLife" height="34" style="height:34px;width:auto;display:block;border:0" />
       </td></tr>
@@ -203,101 +283,193 @@ export async function sendWelcomeEmail(
   const assessmentUrl = `${url}/consultation?product=weight-loss`;
   const howUrl = `${url}/#how-it-works`;
   const img = `${url}/assets/email`;
+  const year = new Date().getFullYear();
 
-  const step = (n: string, thumb: string, title: string, body: string) => `
+  // Exact brand fonts from the Figma. @font-face upgrades supporting clients
+  // (Apple/iOS Mail) to the real faces; the stacks fall back cleanly elsewhere.
+  // Gilroy = display, Clearface = italic serif accents, Outfit = body (the
+  // Figma's "Saans" is a geometric grotesque; Outfit is the closest we host).
+  const GIL = `'Gilroy',Helvetica,Arial,sans-serif`;
+  const SER = `'Clearface',Georgia,'Times New Roman',serif`;
+  const SANS = `'Outfit',Helvetica,Arial,sans-serif`;
+  const fonts = `
+    @font-face{font-family:'Gilroy';font-weight:500;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Medium.woff2') format('woff2')}
+    @font-face{font-family:'Gilroy';font-weight:700;font-style:normal;font-display:swap;src:url('${url}/fonts/Gilroy-Bold.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:400;font-display:swap;src:url('${url}/fonts/Outfit-Regular.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:500;font-display:swap;src:url('${url}/fonts/Outfit-Medium.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:600;font-display:swap;src:url('${url}/fonts/Outfit-SemiBold.woff2') format('woff2')}
+    @font-face{font-family:'Outfit';font-weight:700;font-display:swap;src:url('${url}/fonts/Outfit-Bold.woff2') format('woff2')}
+    *{letter-spacing:0 !important}
+    /* Mobile-only rows are hidden on desktop and revealed under 620px. */
+    .m-only{display:none !important;max-height:0 !important;overflow:hidden !important;mso-hide:all}
+    @media only screen and (max-width:620px){
+      /* Collapse every fixed width so nothing forces sideways scroll */
+      table.em-wrap,table.em-card,table.stack{width:100% !important;min-width:0 !important;max-width:100% !important}
+      td.stack,th.stack{display:block !important;width:100% !important;box-sizing:border-box !important}
+      /* Hero stacks: copy on top, collage underneath (kept at its natural size) */
+      td.hero-text{display:block !important;width:100% !important;box-sizing:border-box !important;padding:24px 20px 4px !important}
+      td.hero-art{display:block !important;width:100% !important;box-sizing:border-box !important;padding:0 0 0 !important;text-align:center !important}
+      td.hero-art img{width:100% !important;max-width:286px !important;height:auto !important;margin:0 auto !important}
+      /* How it works: let the copy column flex, keep the 73px thumb */
+      td.hiw-copy{width:auto !important}
+      /* CTA: drop the baked background, buttons full width, photo stacks below */
+      td.cta-cell{height:auto !important;background-image:none !important;padding:24px 20px 20px !important}
+      td.btn{display:block !important;width:100% !important;box-sizing:border-box !important;margin:0 0 10px !important}
+      td.gap{display:none !important;height:0 !important;line-height:0 !important;font-size:0 !important}
+      .m-only{display:block !important;max-height:none !important;overflow:visible !important}
+      .m-only img{width:100% !important;max-width:280px !important;height:auto !important}
+      /* Footer stacks */
+      td.f-links{display:block !important;width:100% !important;text-align:center !important;padding:0 0 14px !important}
+      td.f-logo{display:block !important;width:100% !important;text-align:center !important}
+      .f-badges{text-align:center !important}
+      .f-badges img{max-width:100% !important;height:auto !important}
+    }
+  `;
+
+  // Step row — exact Figma geometry: 73px thumb (r6, per-row height), 12px
+  // gap, 20px round badge, title at +28, body at +52. Rows are 16px apart.
+  const step = (
+    n: string,
+    thumb: string,
+    th: number,
+    title: string,
+    body: string,
+    last = false,
+  ) => `
     <tr>
-      <td width="64" valign="top" style="padding:0 14px 18px 0">
-        <img src="${thumb}" alt="" width="56" height="56" style="width:56px;height:56px;border-radius:10px;object-fit:cover;display:block;border:0" />
+      <td width="73" valign="top" style="width:73px;padding:0 12px ${last ? 0 : 16}px 0;font-size:0;line-height:0">
+        <img src="${thumb}" alt="" width="73" height="${th}" style="width:73px;height:${th}px;display:block;border:0;border-radius:6px" />
       </td>
-      <td valign="top" style="padding:0 0 18px">
-        <p style="margin:0 0 3px;font-size:11px;font-weight:700;letter-spacing:.06em;color:#3f5c50">STEP ${n}</p>
-        <p style="margin:0 0 3px;font-size:15px;font-weight:700;color:${BRAND}">${title}</p>
-        <p style="margin:0;font-size:13px;line-height:19px;color:rgba(20,46,42,.72)">${body}</p>
+      <td class="hiw-copy" valign="top" style="padding:0 0 ${last ? 0 : 16}px">
+        <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0" />
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:16px;font-weight:500;line-height:20px;color:#040404">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:#040404">${body}</p>
       </td>
     </tr>`;
 
   const inner = `
-    <!-- Hero -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:16px;overflow:hidden">
-      <tr><td style="padding:28px 26px 8px">
-        <h1 style="margin:0 0 4px;font-size:26px;line-height:1.15;color:${BRAND};font-weight:600">Your Journey</h1>
-        <p style="margin:0 0 14px;font-size:28px;line-height:1.1;color:${BRAND};font-style:italic;font-family:Georgia,'Times New Roman',serif">Start Here</p>
-        <p style="margin:0 0 20px;font-size:14px;line-height:21px;color:rgba(20,46,42,.8)">
-          Hi ${escapeHtml(firstName)} — we make weight loss simple with clinician-led care, personalised treatment options, and ongoing support, all from home.
-        </p>
-        ${btn(assessmentUrl, "Start My Assessment")}
-      </td></tr>
-      <tr><td style="padding:6px 0 0">
-        <img src="${img}/welcome-hero.jpg" alt="Start your weight-loss journey with JoodLife" width="600" style="width:100%;max-width:600px;height:auto;display:block;border:0" />
+    <!-- Hero — Figma geometry: 580 cream card (radius 20), text column 263px
+         on the left, and the 286x457 collage flush to the card's top-right
+         (its tiles + rounded outer corners are baked into the one image, so
+         every client renders it identically). -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:20px">
+      <tr>
+        <td class="hero-text" valign="middle" style="padding:24px 15px 24px 16px">
+          <h1 style="margin:0;font-family:${GIL};font-size:29px;font-weight:500;line-height:40px;color:${BRAND}">Your Journey</h1>
+          <p style="margin:0 0 18px;font-family:${SER};font-style:italic;font-size:48px;font-weight:400;line-height:40px;color:${BRAND}">Start Here</p>
+          <p style="margin:0 0 20px;font-family:${SANS};font-size:14px;font-weight:400;line-height:16px;color:${BRAND}">
+            We make weight-loss simple with clinician-led care, personalised treatment options, and ongoing support all from home.
+          </p>
+          <a href="${assessmentUrl}" style="display:inline-block;font-family:${SANS};background:${BRAND};color:#ffffff;text-decoration:none;width:133px;padding:13px 22px;border-radius:8px;font-size:14px;font-weight:500;line-height:20px;text-align:center">Start My Assessment</a>
+        </td>
+        <td class="hero-art" width="286" valign="top" style="width:286px;padding:0;font-size:0;line-height:0">
+          <img src="${img}/wl-collage.jpg" alt="" width="286" height="457" style="width:286px;height:457px;display:block;border:0" />
+        </td>
+      </tr>
+    </table>
+
+    <!-- How it works — Figma: 580 cream card r20, heading 16/28, rows from
+         y=70 with 20px side padding and 16px row gaps -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;margin-top:16px;background:#f7f9f2;border-radius:20px">
+      <tr><td style="padding:28px 20px">
+        <h2 style="margin:0 0 16px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;color:${BRAND};text-align:center">Here&rsquo;s how it <span style="font-family:${SER};font-style:italic;font-weight:400">works</span></h2>
+        <table role="presentation" width="540" cellpadding="0" cellspacing="0" class="stack" style="width:540px;max-width:100%">
+          ${step("01", `${img}/welcome-step1.jpg`, 72, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
+          ${step("02", `${img}/welcome-step2.jpg`, 91, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
+          ${step("03", `${img}/welcome-step3.jpg`, 72, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.", true)}
+        </table>
       </td></tr>
     </table>
 
-    <!-- How it works -->
-    <h2 style="margin:30px 0 16px;font-size:20px;color:${BRAND};font-weight:600;text-align:center">Here&rsquo;s how it <span style="font-style:italic;font-family:Georgia,serif;font-weight:400">works</span></h2>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-      ${step("1", `${img}/welcome-step-1.jpg`, "Tell us about your goals.", "Complete a short online assessment so we understand your needs.")}
-      ${step("2", `${img}/welcome-step-2.jpg`, "Our pharmacy team checks your suitability.", "Your answers are reviewed against clinical eligibility criteria by our GPhC-registered pharmacy.")}
-      ${step("3", `${img}/welcome-step-3.jpg`, "Receive your next step.", "If your treatment is suitable, we&rsquo;ll guide you from there.")}
+    <!-- CTA banner — Figma 580x234 r12. Gradient + cut-out photo are baked
+         into one background image (email clients can't be trusted with CSS
+         gradients); the heading sits in a 266px column at y=57 and the two
+         177x44 r8 buttons at y=157 — they span to x=382, so they must NOT be
+         nested inside the 266px text column. bgcolor is the Outlook fallback.
+         On mobile the background is dropped and the photo stacks underneath. -->
+    <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;margin-top:16px;border-radius:12px">
+      <tr>
+        <td class="cta-cell" background="${img}/cta-banner.jpg" bgcolor="#1d4038" valign="top" height="234" style="height:234px;box-sizing:border-box;border-radius:12px;background-color:#1d4038;background-image:url('${img}/cta-banner.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 234px;padding:57px 16px 0 16px">
+          <table role="presentation" width="382" cellpadding="0" cellspacing="0" class="stack" style="width:382px;max-width:100%">
+            <tr><td class="stack" style="padding:0 0 20px">
+              <table role="presentation" width="266" cellpadding="0" cellspacing="0" class="stack" style="width:266px;max-width:100%"><tr><td>
+                <p style="margin:0;font-size:25px;line-height:27px;color:#ffffff">
+                  <span style="font-family:${SANS};font-weight:700">It takes a few minutes. There&rsquo;s no </span><span style="font-family:${SER};font-style:italic;font-weight:400">commitment to begin.</span>
+                </p>
+              </td></tr></table>
+            </td></tr>
+            <tr><td class="stack">
+              <table role="presentation" cellpadding="0" cellspacing="0" class="stack" style="max-width:100%"><tr>
+                <td width="177" height="44" align="center" valign="middle" bgcolor="#ffffff" class="btn" style="width:177px;height:44px;background:#ffffff;border-radius:8px">
+                  <a href="${assessmentUrl}" style="display:block;font-family:${SANS};font-size:14px;font-weight:500;line-height:44px;color:#052016;text-decoration:none">Start My Assessment</a>
+                </td>
+                <td width="12" class="gap">&nbsp;</td>
+                <td width="177" height="44" align="center" valign="middle" class="btn" style="width:177px;height:44px;border:1px solid rgba(255,255,255,.6);border-radius:8px">
+                  <a href="${howUrl}" style="display:block;font-family:${SANS};font-size:14px;font-weight:500;line-height:42px;color:#ffffff;text-decoration:none">See How Jood Works</a>
+                </td>
+              </tr></table>
+            </td></tr>
+            <!-- mobile-only: the cut-out photo stacks below the buttons -->
+            <tr class="m-only"><td align="right" style="padding:16px 0 0;font-size:0;line-height:0">
+              <img src="${img}/welcome-cta.png" alt="" width="240" style="width:240px;max-width:100%;height:auto;display:inline-block;border:0" />
+            </td></tr>
+          </table>
+        </td>
+      </tr>
     </table>
 
-    <!-- CTA banner -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;background:${BRAND};border-radius:16px;overflow:hidden">
-      <tr><td style="padding:26px 26px 4px">
-        <p style="margin:0 0 4px;font-size:22px;line-height:1.2;color:#ffffff;font-weight:600">It takes a few minutes.</p>
-        <p style="margin:0 0 18px;font-size:22px;line-height:1.2;color:#ffffff;font-weight:600">There&rsquo;s <span style="font-style:italic;font-family:Georgia,serif;font-weight:400">no</span> commitment to begin.</p>
-        <a href="${assessmentUrl}" style="display:inline-block;background:#ffffff;color:${BRAND};text-decoration:none;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:700;margin:0 8px 8px 0">Start My Assessment</a>
-        <a href="${howUrl}" style="display:inline-block;background:transparent;color:#ffffff;text-decoration:none;padding:11px 21px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(255,255,255,.55)">See How Jood Works</a>
-      </td></tr>
-      <tr><td align="right" style="padding:8px 0 0">
-        <img src="${img}/welcome-cta.jpg" alt="" width="300" style="width:60%;max-width:300px;height:auto;display:block;margin-left:auto;border:0" />
-      </td></tr>
-    </table>
-
-    <p style="font-size:12px;line-height:18px;color:rgba(20,46,42,.6);margin:22px 0 0;text-align:center">
+    <p style="font-family:${SANS};font-size:12px;line-height:18px;color:rgba(20,46,42,.6);margin:22px 0 0;text-align:center">
       This account is registered to <strong>${escapeHtml(user.email)}</strong>. If you didn&rsquo;t create it, please ignore this email.
     </p>`;
 
-  // Bespoke shell matching the JoodLife 2.0 welcome design: a "WELCOME TO
-  // JOODLIFE" strip on top and the full pharmacy footer (contact + links +
-  // GPhC badge + legal) at the bottom.
-  const year = new Date().getFullYear();
-  const logo = `${url}/assets/figma/footer-logo-2.png`;
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="color-scheme" content="light only"/></head>
-<body style="margin:0;padding:0;background:#eef1e9;-webkit-font-smoothing:antialiased">
+<meta name="color-scheme" content="light only"/>
+<style>${fonts}</style></head>
+<body style="margin:0;padding:0;background:#eef1e9;letter-spacing:0;-webkit-font-smoothing:antialiased">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your journey starts here — begin your free assessment.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
   <tr><td align="center">
-    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:92%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
       <!-- WELCOME strip -->
-      <tr><td style="background:${BRAND};padding:12px 24px;text-align:center">
-        <span style="font-size:12px;font-weight:700;letter-spacing:.14em;color:#ffffff">WELCOME TO JOODLIFE</span>
+      <tr><td style="background:${BRAND};padding:13px 24px;text-align:center">
+        <span style="font-family:${GIL};font-size:14px;font-weight:500;color:#ffffff">Welcome To JOODLIFE</span>
       </td></tr>
       <!-- Body -->
-      <tr><td style="padding:28px;color:${BRAND}">
+      <tr><td style="padding:20px 10px 24px;color:${BRAND}">
         ${inner}
       </td></tr>
-      <!-- Footer (Figma) -->
-      <tr><td style="background:${BRAND};padding:28px 28px 24px">
-        <p style="margin:0 0 4px;font-size:14px;color:#ffffff;text-align:center">
-          <strong>Questions?</strong> <a href="${url}/support" style="color:#d3dabe;text-decoration:none">Talk to our team</a>
+      <!-- Footer — Figma 600x413, 28px inset (544 content). Per-character
+           weights from the file: "Questions? " Medium(500) + "Talk to our
+           team" Regular(400); "Email us at " Regular(400) + the address
+           Bold(700). Two hairline dividers: after the email line and after
+           the badge row. Legal is 14px/18 in solid white. -->
+      <tr><td style="background:${BRAND};padding:40px 28px 20px">
+        <p style="margin:0 0 10px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:500">Questions?</span> <a href="${url}/support" style="font-weight:400;color:#fcfbf8;text-decoration:none">Talk to our team</a>
         </p>
-        <p style="margin:0 0 18px;font-size:13px;color:rgba(255,255,255,.75);text-align:center">Or just reply to this email.</p>
-        <div style="border-top:1px solid rgba(255,255,255,.16);margin:0 0 18px"></div>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td valign="middle" style="font-size:13px;line-height:22px">
-            <a href="${url}/shop" style="color:rgba(255,255,255,.85);text-decoration:none">Treatments</a><br/>
-            <a href="${url}/policies/privacy" style="color:rgba(255,255,255,.85);text-decoration:none">Privacy Policy</a>
-          </td>
-          <td valign="middle" align="right">
-            <img src="${logo}" alt="JOOD" height="30" style="height:30px;width:auto;display:inline-block;border:0"/>
-          </td>
-        </tr></table>
-        <div style="margin:16px 0 14px"><img src="${url}/assets/email/badge-gphc.png" alt="GPhC registered pharmacy" height="34" style="height:34px;width:auto;display:inline-block;border:0"/></div>
-        <p style="margin:0;font-size:10.5px;line-height:16px;color:rgba(255,255,255,.6)">
-          © ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969).
+        <p style="margin:0 0 16px;font-family:${SANS};font-size:16px;line-height:20px;color:#fcfbf8;text-align:center">
+          <span style="font-weight:400">Email us at</span> <a href="mailto:hello@joodlife.com" style="font-weight:700;color:#fcfbf8;text-decoration:none">hello@joodlife.com</a>
+        </p>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <table role="presentation" width="544" cellpadding="0" cellspacing="0" class="stack" style="width:544px;max-width:100%">
+          <tr>
+            <td class="f-links" valign="middle" style="padding:20px 0 0;font-family:${SANS};font-size:16px;font-weight:400;line-height:26px">
+              <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
+              <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
+            </td>
+            <td class="f-logo" valign="middle" align="right" style="padding:20px 0 0">
+              <img src="${img}/jood-logo.png" alt="JOOD" width="218" height="61" style="width:218px;max-width:100%;height:auto;display:inline-block;border:0"/>
+            </td>
+          </tr>
+        </table>
+        <div class="f-badges" style="margin:8px 0 14px;text-align:right;font-size:0;line-height:0">
+          <img src="${url}/assets/email/badges-row.png" alt="LegitScript Certified &middot; Registered Pharmacy 9012990 &middot; Apple Pay &middot; Google Pay &middot; Stripe" width="241" height="61" style="width:241px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <p style="margin:26px 0 0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;color:#ffffff;text-align:center">
+          &copy; ${year} Jood. All rights reserved. Superintendent Pharmacist: Zahhaad Khalil (2228969)
           Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd.
           Clinical, consultation and prescribing services are provided by UK-registered prescribers.
           All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.
@@ -320,11 +492,202 @@ How it works:
 
 Start your assessment: ${assessmentUrl}
 
-This account is registered to ${user.email}. If you didn't create it, please ignore this email.`;
+Questions? Email us at hello@joodlife.com\n\nThis account is registered to ${user.email}. If you didn't create it, please ignore this email.`;
 
   await payload.sendEmail({
     to: user.email,
     subject: "Your JoodLife journey starts here",
+    html,
+    text,
+  });
+}
+
+/**
+ * "Why patients choose Jood" — the Day-2 education email.
+ *
+ * Objective: build trust and move a warm lead to start/finish the assessment.
+ * Trigger: engaged lead, ~day 2, hasn't purchased.
+ *
+ * Built from the PHASE-1 Mail template 3 Figma (AQsuk7WCxmpJiGL94OxwCt,
+ * node 1:339). Per the brief, the efficacy percentages, the BOGOF offer and
+ * the "if prescribed" wording are deliberately NOT included; the compliant
+ * "Treatment is subject to assessment and suitability." line is.
+ *
+ * The gradient panels + cut-out photography + Trustpilot lockups are baked
+ * into images (email clients can't be trusted with CSS gradients or SVG), and
+ * the copy sits on top as real text.
+ */
+export async function sendEducationEmail(
+  payload: Payload,
+  user: { email: string; name?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const assessmentUrl = `${url}/consultation?product=weight-loss`;
+  const reviewsUrl = `${url}/#reviews`;
+  const img = `${url}/assets/email`;
+  const year = new Date().getFullYear();
+  const { GIL, SANS } = EMAIL_FONTS;
+
+  // Figma tracking is NEGATIVE, and emailFontCss() ships a global
+  // `*{letter-spacing:0 !important}`. Inline !important is the only thing that
+  // outranks it, so every text run carries its exact value from the file.
+  const ls = (v: number) => `letter-spacing:${v}px !important`;
+
+  const fonts = `${emailFontCss(url)}
+    .m-only{display:none !important;max-height:0 !important;overflow:hidden !important;mso-hide:all}
+    @media only screen and (max-width:620px){
+      td.hero-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 0 !important}
+      td.hero-cell h1{font-size:34px !important;line-height:37px !important}
+      td.cta-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 24px !important}
+      td.ben-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:22px 20px 6px !important}
+      td.ben-art{display:block !important;width:100% !important;box-sizing:border-box !important;padding:0 20px 20px !important;text-align:center !important}
+      td.ben-art img{width:100% !important;max-width:280px !important;height:auto !important;border-radius:12px !important}
+      .m-only{display:block !important;max-height:none !important;overflow:visible !important}
+      .m-only img{width:100% !important;height:auto !important}
+    }
+  `;
+
+  // One trust point. Figma: title 16.3/20, body 14/20, 4px apart, rows 19px apart.
+  const item = (title: string, body: string, last = false) => `
+    <tr><td style="padding:0 0 ${last ? 0 : 19}px">
+      <p style="margin:0 0 4px;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:20px;${ls(-0.32)};color:#040404">${title}</p>
+      <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;${ls(-0.32)};color:#040404">${body}</p>
+    </td></tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${fonts}</style></head>
+<body style="margin:0;padding:0;background:#eef1e9;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Clinician-led care, real support, all from home.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
+
+      <!-- Strapline strip: Figma 600x41, text y12 h17 -->
+      <tr><td style="padding:12px 24px;text-align:center">
+        <span style="font-family:${GIL};font-size:14px;font-weight:500;line-height:17px;${ls(-0.5)};color:${BRAND}">Clinician-led care, real support, all from home.</span>
+      </td></tr>
+
+      <!-- Hero 600x672. Gradient + JOOD mark + Trustpilot lockup + cut-out are
+           baked in; headline y124 (490 wide) and sub y228 (334 wide) on top. -->
+      <tr><td class="hero-cell" background="${img}/edu-hero.jpg" bgcolor="#20463d" valign="top" height="672" style="height:672px;box-sizing:border-box;background-color:#20463d;background-image:url('${img}/edu-hero.jpg');background-repeat:no-repeat;background-position:top center;background-size:600px 672px;padding:124px 55px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:0 0 14px;font-size:0;line-height:0">
+          <img src="${img}/edu-m-top.jpg" alt="Trustpilot 4.4 (50+) reviews" width="335" style="width:335px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </td></tr></table>
+        <h1 style="margin:0 0 6px;font-family:${GIL};font-size:48px;font-weight:500;line-height:48px;${ls(-1.6)};color:#ffffff;text-align:center">Weight management, made for you</h1>
+        <table role="presentation" width="334" cellpadding="0" cellspacing="0" align="center" class="stack" style="width:334px;max-width:100%"><tr><td>
+          <p style="margin:0;font-family:${SANS};font-size:15px;font-weight:400;line-height:17px;${ls(-0.488)};color:#ffffff;text-align:center">
+            Choosing where to start your weight-loss journey matters. Here&rsquo;s why thousands trust Jood.
+          </p>
+        </td></tr></table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:18px 0 0;font-size:0;line-height:0">
+          <img src="${img}/edu-m-women.jpg" alt="" width="335" style="width:335px;max-width:100%;height:auto;display:block;border:0"/>
+        </td></tr></table>
+      </td></tr>
+
+      <!-- Why patients choose Jood. Figma card 580x425 r12 with 10px padding;
+           two 280px columns, content flush to the card's top and bottom. -->
+      <tr><td style="padding:20px 10px 0">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:12px">
+          <tr>
+            <td class="ben-copy" width="280" valign="top" style="width:280px;padding:0 10px 0 10px">
+              <h2 style="margin:0 0 24px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:${BRAND}">Why patients choose Jood</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                ${item("Clinician-led care.", "Your assessment is reviewed by our UK pharmacy team to check your treatment is suitable and safe.")}
+                ${item("Real support, not just supply.", "Message our team on WhatsApp whenever you need us. You&rsquo;re never left to figure it out alone.")}
+                ${item("Discreet and convenient.", "Everything happens from home, with fast, private UK pharmacy delivery.")}
+                ${item("Built around you.", "A plan that fits your goals and your life &mdash; with us beside you at every step.", true)}
+              </table>
+            </td>
+            <td class="ben-art" width="280" valign="top" style="width:280px;padding:0 10px 0 0;font-size:0;line-height:0">
+              <img src="${img}/edu-benefits.jpg" alt="" width="280" height="425" style="width:280px;height:425px;display:block;border:0;border-radius:12px" />
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Trustpilot proof + assessment CTA. Figma panel 580x305 r12:
+           heading y77 (340 wide), sub y143, buttons y214 (236x50, 12px gap). -->
+      <tr><td style="padding:20px 10px 24px">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;border-radius:12px">
+          <tr><td class="cta-cell" background="${img}/edu-cta.jpg" bgcolor="#20463d" valign="top" height="305" style="height:305px;box-sizing:border-box;border-radius:12px;background-color:#20463d;background-image:url('${img}/edu-cta.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 305px;padding:77px 48px 0">
+            <table role="presentation" width="340" cellpadding="0" cellspacing="0" align="center" class="stack" style="width:340px;max-width:100%"><tr><td>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:#ffffff;text-align:center">4.4 Rating on Trustpilot by patients across the UK.</p>
+              <p style="margin:0 0 32px;font-family:${SANS};font-size:16.3px;font-weight:400;line-height:20px;${ls(-0.32)};color:#ffffff;text-align:center">When you&rsquo;re ready, your assessment takes just a few minutes.</p>
+            </td></tr></table>
+            <table role="presentation" width="484" cellpadding="0" cellspacing="0" class="stack" align="center" style="width:484px;max-width:100%"><tr>
+              <td width="236" height="50" align="center" valign="middle" bgcolor="#ffffff" class="btn" style="width:236px;height:50px;background:#ffffff;border-radius:8px">
+                <a href="${assessmentUrl}" style="display:block;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:50px;${ls(-0.32)};color:${BRAND};text-decoration:none">Start My Assessment</a>
+              </td>
+              <td width="12" class="gap">&nbsp;</td>
+              <td width="236" height="50" align="center" valign="middle" class="btn" style="width:236px;height:50px;border:1px solid rgba(255,255,255,.6);border-radius:8px">
+                <a href="${reviewsUrl}" style="display:block;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:48px;${ls(-0.32)};color:#ffffff;text-decoration:none">Read Patient Stories</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Footer. Figma: contact 16.3/20 at y1588 & y1618, links 16.3/26,
+           legal 14/18. -->
+      <tr><td style="background:${BRAND};padding:40px 28px 20px">
+        <p style="margin:0 0 10px;font-family:${SANS};font-size:16.3px;line-height:20px;${ls(-0.32)};color:#fcfbf8;text-align:center">
+          <span style="font-weight:500">Questions?</span> <a href="${url}/support" style="font-weight:400;color:#fcfbf8;text-decoration:none">Talk to our team</a>
+        </p>
+        <p style="margin:0 0 16px;font-family:${SANS};font-size:16.3px;line-height:20px;${ls(-0.32)};color:#fcfbf8;text-align:center">
+          <span style="font-weight:400">Email us at</span> <a href="mailto:hello@joodlife.com" style="font-weight:700;color:#fcfbf8;text-decoration:none">hello@joodlife.com</a>
+        </p>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <table role="presentation" width="544" cellpadding="0" cellspacing="0" class="stack" style="width:544px;max-width:100%">
+          <tr>
+            <td class="f-links" valign="middle" style="padding:20px 0 0;font-family:${SANS};font-size:16.3px;font-weight:400;line-height:26px;${ls(-0.32)}">
+              <a href="${url}/shop" style="color:#fcfbf8;text-decoration:none">Treatments</a><br/>
+              <a href="${url}/policies/privacy" style="color:#fcfbf8;text-decoration:none">Privacy Policy</a>
+            </td>
+            <td class="f-logo" valign="middle" align="right" style="padding:20px 0 0">
+              <img src="${img}/jood-logo.png" alt="JOOD" width="218" height="61" style="width:218px;max-width:100%;height:auto;display:inline-block;border:0"/>
+            </td>
+          </tr>
+        </table>
+        <div class="f-badges" style="margin:8px 0 14px;text-align:right;font-size:0;line-height:0">
+          <img src="${img}/badges-row.png" alt="LegitScript Certified &middot; Registered Pharmacy 9012990 &middot; Apple Pay &middot; Google Pay &middot; Stripe" width="241" height="61" style="width:241px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.28);font-size:0;line-height:0">&nbsp;</div>
+        <p style="margin:26px 0 0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;${ls(-0.32)};color:#ffffff;text-align:center">
+          Treatment is subject to assessment and suitability.
+        </p>
+        <p style="margin:10px 0 0;font-family:${SANS};font-size:11px;font-weight:400;line-height:15px;${ls(-0.32)};color:rgba(255,255,255,.62);text-align:center">
+          &copy; ${year} Jood. Jood Pharmacy is a GPhC-registered pharmacy (9012990). Superintendent Pharmacist: Zahhaad Khalil (2228969).
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Why patients choose Jood
+
+Weight management, made for you.
+Choosing where to start your weight-loss journey matters. Here's why thousands trust Jood.
+
+- Clinician-led care. Your assessment is reviewed by our UK pharmacy team to check your treatment is suitable and safe.
+- Real support, not just supply. Message our team on WhatsApp whenever you need us.
+- Discreet and convenient. Everything happens from home, with fast, private UK pharmacy delivery.
+- Built around you. A plan that fits your goals and your life.
+
+4.4 rating on Trustpilot by patients across the UK.
+When you're ready, your assessment takes just a few minutes.
+
+Start your assessment: ${assessmentUrl}
+
+Questions? Email us at hello@joodlife.com
+Treatment is subject to assessment and suitability.`;
+
+  await payload.sendEmail({
+    to: user.email,
+    subject: "Why patients choose Jood",
     html,
     text,
   });
@@ -586,6 +949,137 @@ From the team at ${url}.`;
   await payload.sendEmail({
     to: opts.email,
     subject: "You left items in your basket — complete your order",
+    html,
+    text,
+  });
+}
+
+/**
+ * "You're almost there" — assessment abandonment recovery.
+ *
+ * Sent to someone who started the questionnaire but never submitted it:
+ * once a couple of hours later, then again the next day. Matches the
+ * PHASE-1 Figma template (dark-green hero, cream "answers are saved" card,
+ * pharmacy footer) using the same brand fonts as the welcome email.
+ */
+export async function sendAssessmentReminderEmail(
+  payload: Payload,
+  opts: {
+    email: string;
+    name?: string | null;
+    /** Questionnaire to resume, e.g. "weight-loss". */
+    productSlug?: string | null;
+    /** 1 = the couple-of-hours nudge, 2 = the next-day follow-up. */
+    attempt?: number;
+  },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const product = (opts.productSlug ?? "weight-loss").trim() || "weight-loss";
+  const resumeUrl = `${url}/consultation?product=${encodeURIComponent(product)}`;
+  const supportUrl = `${url}/support`;
+  const img = `${url}/assets/email`;
+  const second = Number(opts.attempt ?? 1) >= 2;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  // The Figma card has a clinician photo bleeding off its right edge. Drop the
+  // export in at public/assets/email/assessment-clinician.png and put that
+  // filename here — the column appears and the copy narrows to suit. Left
+  // empty, the card runs full width rather than showing a broken image.
+  const clinicianArt = "assessment-clinician.png";
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your answers are saved — pick up where you left off.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <tr><td style="padding:16px 20px;text-align:center">
+        <img src="${img}/icon-clock.png" alt="" width="14" height="14" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;border:0"/>
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:16px;color:${BRAND};text-transform:uppercase">&nbsp; Your answers are saved &mdash; finish whenever you&rsquo;re ready.</span>
+      </td></tr>
+
+      <tr><td style="padding:0 12px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
+          <tr><td style="padding:26px 24px 0;text-align:center">
+            <img src="${img}/jood-logo.png" alt="JOOD" width="112" style="width:112px;max-width:46%;height:auto;display:inline-block;border:0;margin:0 0 10px"/>
+            <p style="margin:0 0 8px;font-size:33px;line-height:38px;color:#ffffff">
+              <span style="font-family:${GIL};font-weight:500">You&rsquo;re </span><span style="font-family:${SER};font-style:italic">Almost There</span>
+            </p>
+            <p style="margin:0 0 16px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.86)">
+              ${second
+                ? "Your assessment is still waiting &mdash; it only takes a couple of minutes."
+                : "You started your assessment but didn&rsquo;t quite finish."}
+            </p>
+            <a href="${resumeUrl}" style="display:inline-block;font-family:${SANS};background:#ffffff;color:${BRAND};text-decoration:none;padding:11px 20px;border-radius:6px;font-size:13px;font-weight:600">Finish My Assessment</a>
+          </td></tr>
+          <!-- Artwork sits flush to the hero's bottom edge, as in the design. -->
+          <tr><td style="padding:14px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/assessment-hero.png" alt="Wegovy and Ozempic pens beside a Jood tub" width="420" style="width:420px;max-width:86%;height:auto;display:inline-block;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <tr><td style="padding:18px 12px 22px">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
+          <tr>
+            <td class="card-copy stack" valign="top" style="padding:26px ${clinicianArt ? "8px" : "26px"} 26px 26px">
+              <p style="margin:0 0 14px;font-size:24px;line-height:30px;color:${BRAND}">
+                <span style="font-family:${GIL};font-weight:700">Good news &mdash; your </span><span style="font-family:${SER};font-style:italic">answers are saved.</span>
+              </p>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                ${escapeHtml(firstName)}, you can pick up exactly where you left off.
+              </p>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                It only takes a couple of minutes, and our pharmacy team will review it to check the treatment is suitable for you.
+              </p>
+              <p style="margin:0 0 22px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                No pressure. We&rsquo;re here if you have any questions along the way.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td class="btn" style="border-radius:8px;background:${BRAND}">
+                  <a href="${resumeUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Finish My Assessment</a>
+                </td>
+                <td class="gap" width="12"></td>
+                <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                  <a href="${supportUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 17px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Talk To Our Team</a>
+                </td>
+              </tr></table>
+            </td>
+            ${clinicianArt
+              ? `<td class="card-art stack" width="196" valign="bottom" align="right" style="padding:0">
+              <img src="${img}/${clinicianArt}" alt="" width="196" style="width:196px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
+            </td>`
+              : ""}
+          </tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+You started your JoodLife assessment but didn't quite finish — and your answers are saved.
+
+Pick up exactly where you left off: ${resumeUrl}
+
+It only takes a couple of minutes, and our pharmacy team will review it to check the treatment is suitable for you.
+
+Questions? Talk to our team: ${supportUrl}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: second
+      ? "Your assessment is still waiting"
+      : "You're almost there — finish your assessment",
     html,
     text,
   });

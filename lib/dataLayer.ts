@@ -15,6 +15,8 @@
  * https://developers.google.com/analytics/devguides/collection/ga4/ecommerce
  */
 
+import { fbTrack } from "./metaPixel";
+
 export type DlItem = {
   item_id: string;
   item_name: string;
@@ -139,6 +141,16 @@ function pushEcommerce(
 
 export function dlViewItem(item: DlItem): void {
   pushEcommerce("view_item", { currency: CURRENCY, value: sumValue([item]), items: [item] });
+  // Meta's matching standard event. AddToCart / InitiateCheckout / Purchase
+  // already reach our pixel from the click tracker and the checkout; this was
+  // the one funnel step it never saw.
+  fbTrack("ViewContent", {
+    content_name: item.item_name,
+    content_ids: [item.item_id],
+    content_type: "product",
+    value: sumValue([item]),
+    currency: CURRENCY,
+  });
 }
 
 export function dlAddToCart(item: DlItem): void {
