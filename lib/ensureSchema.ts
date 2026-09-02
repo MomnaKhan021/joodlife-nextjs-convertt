@@ -261,6 +261,13 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"categories\" jsonb",
   "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  // ---- global: policy pages ----
+  "CREATE TABLE IF NOT EXISTS \"policies\" (\"id\" serial, \"terms\" jsonb, \"refund_complaints\" jsonb, \"privacy\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"terms\" jsonb",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"refund_complaints\" jsonb",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"privacy\" jsonb",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   // ---- global: home page sections ----
   "CREATE TABLE IF NOT EXISTS \"home_page\" (\"id\" serial, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_badge\" varchar",
@@ -418,7 +425,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v15";
+const SCHEMA_VERSION = "v16";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

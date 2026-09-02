@@ -32,6 +32,9 @@ const ICONS: Record<string, React.ReactNode> = {
   "/cms/home": I("M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z"),
   "/cms/treatments": I("M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7zM7 7l7 7"),
   "/cms/announcement": I("M3 11l14-6v14L3 13zM7 12v5a2 2 0 0 0 4 0"),
+  "/cms/policies/terms": I("M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"),
+  "/cms/policies/refund-complaints": I("M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h4"),
+  "/cms/policies/privacy": I("M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"),
 };
 
 export default function CmsShell({
@@ -121,12 +124,14 @@ export default function CmsShell({
         <span className="text-[15px] font-semibold text-[#1a1a1a]">JoodLife CMS</span>
       </header>
 
-      {/* Sidebar — static on desktop, drawer on mobile */}
-      <aside className="hidden w-[240px] shrink-0 border-r border-[#e4e7de] bg-[#eef1e8] md:block">
+      {/* Sidebar — sticky on desktop so it stays put on these long forms,
+          drawer on mobile. Its own scrollbar in case the nav outgrows the
+          viewport. */}
+      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 self-start overflow-y-auto border-r border-[#e4e7de] bg-[#eef1e8] md:block">
         <div className="border-b border-[#e4e7de] px-5 py-4">
           <span className="text-[15px] font-semibold text-[#1a1a1a]">JoodLife CMS</span>
         </div>
-        <div className="h-[calc(100vh-61px)]">{sidebar}</div>
+        <div className="min-h-[calc(100vh-61px)]">{sidebar}</div>
       </aside>
 
       {open && (
