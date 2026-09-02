@@ -78,6 +78,20 @@ function detectReorderRedFlags(answers: Record<string, unknown>): boolean {
  * alert banner is prepended so pharmacists (and HubSpot AI) see it
  * immediately without scrolling through the answers.
  */
+/**
+ * What HubSpot should hold for the scales photo: the image URL, an explicit
+ * "not provided" when the patient tapped "I can't upload right now", or
+ * nothing at all for flows that never ask (ED, period delay, reorder).
+ */
+function scalePhotoValue(answers: Record<string, unknown>): string | undefined {
+  const url = answers.weight_scale_photo;
+  if (typeof url === "string" && url.trim()) return url.trim();
+  if (answers._weight_scale_photo_skipped === true) {
+    return "Not provided — patient couldn't upload right now";
+  }
+  return undefined;
+}
+
 function buildNoteBody(opts: {
   ref: number | null;
   productSlug?: string;
@@ -93,6 +107,13 @@ function buildNoteBody(opts: {
       const value = Array.isArray(v) ? v.join(", ") : String(v ?? "—");
       return `<b>${k}</b>: ${value}`;
     })
+    // A skipped scales photo lives under an underscore key, so surface it
+    // explicitly — the reviewer needs to know it was asked for and missed.
+    .concat(
+      !answers.weight_scale_photo && answers._weight_scale_photo_skipped === true
+        ? [`<b>weight_scale_photo</b>: ${scalePhotoValue(answers)}`]
+        : [],
+    )
     .join("<br/>");
 
   const wantsCallback = String(answers.reorder_callback_request ?? "").startsWith("Yes");
@@ -303,6 +324,7 @@ export async function POST(req: NextRequest) {
               jood_product_interest: body.productSlug ?? null,
               jood_consultation_status: isReorder ? reorderStatus : "submitted",
               jood_consultation_id: insertedId ?? undefined,
+              jood_scale_photo: scalePhotoValue(body.answers ?? {}),
               ...(hasRedFlags ? { jood_red_flag: "true" } : {}),
             },
           }),
@@ -444,6 +466,7 @@ export async function PATCH(req: NextRequest) {
               jood_product_interest: body.productSlug ?? null,
               jood_consultation_status: isReorder ? reorderStatus : "submitted",
               jood_consultation_id: updatedId,
+              jood_scale_photo: scalePhotoValue(body.answers ?? {}),
               ...(hasRedFlags ? { jood_red_flag: "true" } : {}),
             },
           }),

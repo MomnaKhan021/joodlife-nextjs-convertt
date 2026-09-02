@@ -1368,11 +1368,21 @@ function DateSlide({ slide, answers, setAnswer }: SlideProps) {
 
 /* ---- Upload (uses our /api/blob-upload) ---- */
 
+/** Per-field "I can't upload right now" marker, so skipping one upload
+ *  question can't satisfy another. */
+const uploadSkipKey = (field: string) => `_${field}_skipped`;
+function isUploadSkipped(answers: Record<string, unknown>, field: string): boolean {
+  if (answers[uploadSkipKey(field)] === true) return true;
+  // Drafts saved before the marker became per-field used one shared flag,
+  // and only the prescription-evidence question existed then.
+  return field === "prescription_evidence_upload" && answers._upload_skipped === true;
+}
+
 function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const url = answers[slide.field!] as string | undefined;
-  const skipped = answers._upload_skipped === true;
+  const skipped = isUploadSkipped(answers, slide.field!);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -1390,7 +1400,7 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
         handleUploadUrl: "/api/blob-upload-token?public=1",
       });
       setAnswer(slide.field!, blob.url);
-      setAnswer("_upload_skipped", false);
+      setAnswer(uploadSkipKey(slide.field!), false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -1408,13 +1418,13 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
             ? "Uploading…"
             : url
               ? "✓ Uploaded — Continue"
-              : "Tap to upload a photo or screenshot"}
+              : slide.uploadLabel ?? "Tap to upload a photo or screenshot"}
         </span>
         {/* sr-only (not display:none) so iOS Safari reliably opens the
             file / camera picker when the label is tapped. */}
         <input
           type="file"
-          accept="image/*,.pdf"
+          accept={slide.accept ?? "image/*,.pdf"}
           onChange={handleFile}
           disabled={busy}
           className="sr-only"
@@ -1424,7 +1434,7 @@ function UploadSlide({ slide, answers, setAnswer }: SlideProps) {
         type="button"
         onClick={() => {
           setAnswer(slide.field!, null);
-          setAnswer("_upload_skipped", true);
+          setAnswer(uploadSkipKey(slide.field!), true);
         }}
         className="mt-3 font-ui text-[13px] font-medium text-[#142e2a] underline underline-offset-4 hover:text-[#0c2421]"
       >
@@ -1836,7 +1846,7 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return Boolean(answers[slide.field!]);
   }
   if (slide.type === "upload") {
-    return Boolean(answers[slide.field!]) || answers._upload_skipped === true;
+    return Boolean(answers[slide.field!]) || isUploadSkipped(answers, slide.field!);
   }
   if (slide.type === "gp") {
     // Compulsory: the patient must either pick a practice or enter one manually.
