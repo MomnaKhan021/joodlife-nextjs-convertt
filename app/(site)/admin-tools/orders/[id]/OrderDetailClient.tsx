@@ -395,15 +395,6 @@ export default function OrderDetailClient({ id }: { id: string }) {
 
   async function printDpdLabel() {
     if (!order || printingDpd) return;
-    // Open the label window NOW, inside the click, so it isn't blocked as a
-    // popup (the DPD shipment call is slow; opening after the await would not
-    // count as user-initiated).
-    const win = window.open("", "_blank");
-    if (win) {
-      win.document.write(
-        `<!doctype html><title>Dispatch label</title><body style="font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:32px;color:#142e2a">Generating dispatch label…</body>`,
-      );
-    }
     setPrintingDpd(true);
     setError(null);
     try {
@@ -415,21 +406,14 @@ export default function OrderDetailClient({ id }: { id: string }) {
       });
       const j = await res.json();
       if (!res.ok || !j.ok) {
-        if (win) win.close();
         throw new Error(j?.error ?? "Failed to generate DPD label");
       }
 
-      // Write the FULL DPD label into the visible window (keeping its
-      // barcode-rendering script). Fall back to an iframe if popup-blocked.
+      // Print the FULL DPD label (keeping its barcode-rendering script) from a
+      // hidden frame, so the print dialog opens right here — same as the
+      // dispensing label — rather than in a new tab staff must print manually.
       if (j.labelHtml) {
-        if (win) {
-          win.document.open();
-          win.document.write(String(j.labelHtml));
-          win.document.close();
-          win.focus();
-        } else {
-          printHtmlDocument(String(j.labelHtml));
-        }
+        printHtmlDocument(String(j.labelHtml), { keepScripts: true });
       }
 
       setDpdTracking(j.trackingNumber);
