@@ -12,7 +12,7 @@ import Blog from "@/sections/home/Blog";
 import CtaBanner from "@/sections/home/CtaBanner";
 import Footer from "@/sections/home/Footer";
 
-import { getCategories } from "@/lib/treatmentContent";
+import { getCategories, getCategoryDetails } from "@/lib/treatmentContent";
 import { getCurrentUser } from "@/lib/auth";
 import { getOrdersForEmail } from "@/lib/accountData";
 
@@ -28,6 +28,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function HomePage() {
   const CATEGORIES = await getCategories();
+  const DETAILS = await getCategoryDetails();
 
   // Detect returning patients so CTAs switch from "Get Started" to "Reorder".
   let isReturningPatient = false;
@@ -54,13 +55,13 @@ export default async function HomePage() {
       <FoundayoHero />
 
       <CategoryPreview category={CATEGORIES["weight-loss"]} priority isReturningPatient={isReturningPatient}>
-        <WeightLossDetail />
+        <WeightLossDetail {...DETAILS["weight-loss"]} />
       </CategoryPreview>
       <CategoryPreview category={CATEGORIES["erectile-dysfunction"]}>
-        <EdDetail />
+        <EdDetail {...DETAILS["erectile-dysfunction"]} />
       </CategoryPreview>
       <CategoryPreview category={CATEGORIES["period-delay"]}>
-        <PeriodDetail />
+        <PeriodDetail {...DETAILS["period-delay"]} />
       </CategoryPreview>
 
       <Reviews />

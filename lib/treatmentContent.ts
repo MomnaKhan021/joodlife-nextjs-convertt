@@ -3,8 +3,11 @@ import "server-only";
 import { CATEGORIES, type Category, type CategoryKey } from "@/lib/categories";
 import { getPayloadInstance } from "@/lib/payload";
 import {
+  DEFAULT_DETAILS,
   mergeCategories,
+  mergeDetails,
   toTreatmentOverrides,
+  type CategoryDetail,
   type TreatmentOverride,
 } from "@/lib/treatmentContentTypes";
 
@@ -29,6 +32,17 @@ export async function getTreatmentOverrides(): Promise<TreatmentOverride[]> {
     return toTreatmentOverrides(doc?.categories);
   } catch {
     return [];
+  }
+}
+
+/** Detail-panel content per category — CMS copy over the built-in defaults. */
+export async function getCategoryDetails(): Promise<
+  Record<CategoryKey, CategoryDetail>
+> {
+  try {
+    return mergeDetails(await getTreatmentOverrides());
+  } catch {
+    return DEFAULT_DETAILS;
   }
 }
 

@@ -16,12 +16,12 @@ type Chip = { label: string; sub: string; iconSrc: string };
 // Column split + exact Figma copy. Icons are the exact glyphs exported from
 // the Figma (white circle + mark baked in). Left column sits higher, right
 // column is staggered ~64px lower around the portrait (Figma 289).
-const LEFT_CHIPS: Chip[] = [
+const DEFAULT_LEFT_CHIPS: Chip[] = [
   { label: "Medication", sub: "Clinically-backed", iconSrc: "/assets/icons/chip-medication.svg" },
   { label: "Support", sub: "Long term", iconSrc: "/assets/icons/chip-support.svg" },
   { label: "Progress", sub: "Personalised care", iconSrc: "/assets/icons/chip-result.svg" },
 ];
-const RIGHT_CHIPS: Chip[] = [
+const DEFAULT_RIGHT_CHIPS: Chip[] = [
   { label: "Delivery", sub: "Free & Next-day", iconSrc: "/assets/icons/chip-delivery.svg" },
   { label: "Guidance", sub: "Long-term support", iconSrc: "/assets/icons/chip-guidance.svg" },
   { label: "WhatsApp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
@@ -152,7 +152,21 @@ function WegovyIntroCard() {
   );
 }
 
-export default function WeightLossDetail() {
+export type WeightLossDetailContent = {
+  chipsLeft?: Chip[];
+  chipsRight?: Chip[];
+  ctaPrimary?: string;
+  ctaSecondary?: string;
+};
+
+export default function WeightLossDetail({
+  chipsLeft,
+  chipsRight,
+  ctaPrimary = 'Start Your Journey',
+  ctaSecondary = 'Check Your Eligibility',
+}: WeightLossDetailContent = {}) {
+  const LEFT_CHIPS = chipsLeft?.length ? chipsLeft : DEFAULT_LEFT_CHIPS;
+  const RIGHT_CHIPS = chipsRight?.length ? chipsRight : DEFAULT_RIGHT_CHIPS;
   return (
     <div className="flex flex-col gap-4 md:gap-5">
       <WegovyIntroCard />
@@ -208,7 +222,7 @@ export default function WeightLossDetail() {
         </div>
 
         <div className="mt-auto w-full pt-4 md:pt-7">
-          <GhostButton href="/consultation?product=weight-loss">Start Your Journey</GhostButton>
+          <GhostButton href="/consultation?product=weight-loss">{ctaPrimary}</GhostButton>
         </div>
       </Reveal>
 
@@ -238,7 +252,7 @@ export default function WeightLossDetail() {
         </p>
 
         <div className="mt-6 w-full">
-          <GhostButton href="/consultation?product=weight-loss">Check Your Eligibility</GhostButton>
+          <GhostButton href="/consultation?product=weight-loss">{ctaSecondary}</GhostButton>
         </div>
       </Reveal>
       </div>

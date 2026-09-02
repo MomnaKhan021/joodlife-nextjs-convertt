@@ -13,14 +13,14 @@ import TestimonialCarousel, {
  *   • "What are your goals?" image card + a patient testimonial carousel
  */
 
-const GOALS = [
+const DEFAULT_GOALS = [
   "Improve erections",
   "Boost sexual confidence",
   "Improve intimacy",
   "All of the above",
 ];
 
-const TESTIMONIALS: Testimonial[] = [
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
   {
     quote:
       "Treatment helped restore my confidence. I feel more in control and no longer worry about my erections.",
@@ -47,7 +47,14 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-export default function EdDetail() {
+export type EdDetailContent = {
+  goals?: string[];
+  testimonials?: Testimonial[];
+};
+
+export default function EdDetail({ goals, testimonials }: EdDetailContent = {}) {
+  const GOALS = goals?.length ? goals : DEFAULT_GOALS;
+  const TESTIMONIALS = testimonials?.length ? testimonials : DEFAULT_TESTIMONIALS;
   return (
     <div className="flex flex-col gap-4 md:gap-5">
       {/* Treatment card */}

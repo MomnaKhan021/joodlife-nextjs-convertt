@@ -10,7 +10,7 @@ import Reveal from "@/components/ui/Reveal";
  *     hormone tag cloud + eligibility CTA
  */
 
-const TAGS = [
+const DEFAULT_TAGS = [
   "Hormones",
   "Period Delay",
   "Hormone Balance",
@@ -23,7 +23,10 @@ const TAGS = [
   "Oestrogen",
 ];
 
-export default function PeriodDetail() {
+export type PeriodDetailContent = { tags?: string[] };
+
+export default function PeriodDetail({ tags }: PeriodDetailContent = {}) {
+  const TAGS = tags?.length ? tags : DEFAULT_TAGS;
   return (
     <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
       {/* Norethisterone treatment card */}

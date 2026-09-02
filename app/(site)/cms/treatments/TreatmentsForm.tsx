@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { TreatmentRow } from "@/lib/treatmentContentTypes";
+import type {
+  Chip,
+  Testimonial,
+  TreatmentRow,
+} from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
 
@@ -36,6 +40,27 @@ export default function TreatmentsForm({ initial }: { initial: Row[] }) {
   function update(i: number, patch: Partial<Row>) {
     setRows(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   }
+  function updateDetail(i: number, patch: Partial<Row["detail"]>) {
+    update(i, { detail: { ...rows[i].detail, ...patch } });
+  }
+  function updateChip(
+    i: number,
+    side: "chipsLeft" | "chipsRight",
+    ci: number,
+    patch: Partial<Chip>,
+  ) {
+    const list = rows[i].detail[side] ?? [];
+    updateDetail(i, {
+      [side]: list.map((c, idx) => (idx === ci ? { ...c, ...patch } : c)),
+    });
+  }
+  function updateTestimonial(i: number, ti: number, patch: Partial<Testimonial>) {
+    const list = rows[i].detail.testimonials ?? [];
+    updateDetail(i, {
+      testimonials: list.map((t, idx) => (idx === ti ? { ...t, ...patch } : t)),
+    });
+  }
+
   function updateBullet(i: number, b: number, value: string) {
     update(i, {
       bullets: rows[i].bullets.map((x, idx) => (idx === b ? value : x)),
@@ -192,6 +217,122 @@ export default function TreatmentsForm({ initial }: { initial: Row[] }) {
                   Describes the image for screen readers and when it fails to load.
                 </p>
               </div>
+
+              {/* Panel content — differs per treatment. */}
+              {r.key === "weight-loss" && (
+                <div className="space-y-4 rounded-lg border border-[#eef1e8] p-3">
+                  <p className="text-[13px] font-medium text-[#1a1a1a]">
+                    Feature chips &amp; buttons
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className={fieldLabel}>Primary button</label>
+                      <input className={`${fieldInput} mt-1`} value={r.detail.ctaPrimary ?? ""} onChange={(e) => updateDetail(i, { ctaPrimary: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Secondary button</label>
+                      <input className={`${fieldInput} mt-1`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
+                    </div>
+                  </div>
+                  {(["chipsLeft", "chipsRight"] as const).map((side) => (
+                    <div key={side}>
+                      <div className="flex items-center justify-between">
+                        <span className={fieldLabel}>
+                          {side === "chipsLeft" ? "Left chips" : "Right chips"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateDetail(i, {
+                              [side]: [...(r.detail[side] ?? []), { label: "", sub: "", iconSrc: "" }],
+                            })
+                          }
+                          className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
+                        >
+                          + Add chip
+                        </button>
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {(r.detail[side] ?? []).map((c, ci) => (
+                          <div key={ci} className="flex flex-wrap items-center gap-2">
+                            <input aria-label="Chip label" className={`${fieldInput} min-w-[110px] flex-1`} value={c.label} onChange={(e) => updateChip(i, side, ci, { label: e.target.value })} placeholder="Medication" />
+                            <input aria-label="Chip subtitle" className={`${fieldInput} min-w-[130px] flex-1`} value={c.sub} onChange={(e) => updateChip(i, side, ci, { sub: e.target.value })} placeholder="Clinically-backed" />
+                            <input aria-label="Chip icon" className={`${fieldInput} min-w-[150px] flex-1`} value={c.iconSrc} onChange={(e) => updateChip(i, side, ci, { iconSrc: e.target.value })} placeholder="/assets/icons/chip-…svg" />
+                            <button type="button" onClick={() => updateDetail(i, { [side]: (r.detail[side] ?? []).filter((_, x) => x !== ci) })} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {r.key === "erectile-dysfunction" && (
+                <div className="space-y-4 rounded-lg border border-[#eef1e8] p-3">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className={fieldLabel}>Goal options</span>
+                      <button type="button" onClick={() => updateDetail(i, { goals: [...(r.detail.goals ?? []), ""] })} className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]">
+                        + Add goal
+                      </button>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {(r.detail.goals ?? []).map((g, gi) => (
+                        <div key={gi} className="flex items-center gap-2">
+                          <input aria-label={`Goal ${gi + 1}`} className={fieldInput} value={g} onChange={(e) => updateDetail(i, { goals: (r.detail.goals ?? []).map((x, y) => (y === gi ? e.target.value : x)) })} />
+                          <button type="button" onClick={() => updateDetail(i, { goals: (r.detail.goals ?? []).filter((_, x) => x !== gi) })} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className={fieldLabel}>Testimonials</span>
+                      <button type="button" onClick={() => updateDetail(i, { testimonials: [...(r.detail.testimonials ?? []), { quote: "", name: "", meta: "" }] })} className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]">
+                        + Add testimonial
+                      </button>
+                    </div>
+                    <p className="mt-1 rounded-lg border border-[#f0e2c0] bg-[#fffaf0] px-3 py-2 text-[12px] leading-relaxed text-[#8a6100]">
+                      These are shown as patient outcomes for a prescription
+                      medicine. Only publish quotes from real, consenting
+                      patients — invented ones breach ASA and MHRA rules for a
+                      registered pharmacy.
+                    </p>
+                    <div className="mt-2 space-y-3">
+                      {(r.detail.testimonials ?? []).map((t, ti) => (
+                        <div key={ti} className="rounded-lg border border-[#e8ece0] p-2.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input aria-label="Name" className={`${fieldInput} min-w-[120px] flex-1`} value={t.name} onChange={(e) => updateTestimonial(i, ti, { name: e.target.value })} placeholder="Name, age" />
+                            <input aria-label="Meta" className={`${fieldInput} min-w-[140px] flex-1`} value={t.meta} onChange={(e) => updateTestimonial(i, ti, { meta: e.target.value })} placeholder="2 months into treatment" />
+                            <button type="button" onClick={() => updateDetail(i, { testimonials: (r.detail.testimonials ?? []).filter((_, x) => x !== ti) })} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                          </div>
+                          <textarea aria-label="Quote" rows={2} className={`${fieldInput} mt-2`} value={t.quote} onChange={(e) => updateTestimonial(i, ti, { quote: e.target.value })} placeholder="Quote" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {r.key === "period-delay" && (
+                <div className="space-y-2 rounded-lg border border-[#eef1e8] p-3">
+                  <div className="flex items-center justify-between">
+                    <span className={fieldLabel}>Topic tags</span>
+                    <button type="button" onClick={() => updateDetail(i, { tags: [...(r.detail.tags ?? []), ""] })} className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]">
+                      + Add tag
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(r.detail.tags ?? []).map((t, ti) => (
+                      <div key={ti} className="flex items-center gap-1">
+                        <input aria-label={`Tag ${ti + 1}`} className={`${fieldInput} max-w-[160px]`} value={t} onChange={(e) => updateDetail(i, { tags: (r.detail.tags ?? []).map((x, y) => (y === ti ? e.target.value : x)) })} />
+                        <button type="button" onClick={() => updateDetail(i, { tags: (r.detail.tags ?? []).filter((_, x) => x !== ti) })} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <details className="rounded-lg border border-[#e4e7de] p-3">
                 <summary className="cursor-pointer text-[13px] font-medium text-[#1a1a1a]">

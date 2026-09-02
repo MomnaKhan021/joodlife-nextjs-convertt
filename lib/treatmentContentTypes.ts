@@ -10,8 +10,94 @@ import { CATEGORIES, CATEGORY_ORDER, type Category, type CategoryKey } from "@/l
  * numbers stay in lib/categories.ts — they're design tokens matched to the
  * Figma design, not content.
  */
+export type Chip = { label: string; sub: string; iconSrc: string };
+export type Testimonial = { quote: string; name: string; meta: string };
+
+/**
+ * Content of the panel inside each category band — the part that differs per
+ * treatment. Only the keys relevant to a category are used:
+ *   weight-loss  → chipsLeft, chipsRight, ctaPrimary, ctaSecondary
+ *   erectile-dysfunction → goals, testimonials
+ *   period-delay → tags
+ */
+export type CategoryDetail = {
+  chipsLeft?: Chip[];
+  chipsRight?: Chip[];
+  ctaPrimary?: string;
+  ctaSecondary?: string;
+  goals?: string[];
+  testimonials?: Testimonial[];
+  tags?: string[];
+};
+
+export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
+  "weight-loss": {
+    chipsLeft: [
+      { label: "Medication", sub: "Clinically-backed", iconSrc: "/assets/icons/chip-medication.svg" },
+      { label: "Support", sub: "Long term", iconSrc: "/assets/icons/chip-support.svg" },
+      { label: "Progress", sub: "Personalised care", iconSrc: "/assets/icons/chip-result.svg" },
+    ],
+    chipsRight: [
+      { label: "Delivery", sub: "Free & Next-day", iconSrc: "/assets/icons/chip-delivery.svg" },
+      { label: "Guidance", sub: "Long-term support", iconSrc: "/assets/icons/chip-guidance.svg" },
+      { label: "WhatsApp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
+    ],
+    ctaPrimary: "Start Your Journey",
+    ctaSecondary: "Check Your Eligibility",
+  },
+  "erectile-dysfunction": {
+    goals: [
+      "Improve erections",
+      "Boost sexual confidence",
+      "Improve intimacy",
+      "All of the above",
+    ],
+    testimonials: [
+      {
+        quote:
+          "Treatment helped restore my confidence. I feel more in control and no longer worry about my erections.",
+        name: "Jordan, 42",
+        meta: "2 months into treatment",
+      },
+      {
+        quote:
+          "I feel like myself again. My confidence has improved, and intimacy no longer feels stressful.",
+        name: "Michael, 46",
+        meta: "6 weeks completed",
+      },
+      {
+        quote:
+          "I noticed a real difference in my performance and confidence. It's helped me feel more in control again.",
+        name: "David, 39",
+        meta: "1 month completed",
+      },
+      {
+        quote:
+          "This has made a big impact on both my confidence and my relationship. I feel much more relaxed and reassured now.",
+        name: "Chris, 51",
+        meta: "7 weeks completed",
+      },
+    ],
+  },
+  "period-delay": {
+    tags: [
+      "Hormones",
+      "Period Delay",
+      "Hormone Balance",
+      "Progesterone",
+      "Cycle Tracker",
+      "Norethisterone",
+      "Follicle",
+      "Ovulation",
+      "Menstrual Health",
+      "Oestrogen",
+    ],
+  },
+};
+
 export type TreatmentOverride = {
   key: CategoryKey;
+  detail?: CategoryDetail;
   eyebrow?: string;
   cardTitle?: string;
   title?: string;
@@ -59,7 +145,84 @@ export function toTreatmentOverrides(value: unknown): TreatmentOverride[] {
       imageAlt: pick(v.imageAlt),
       href: pick(v.href),
       learnMoreHref: pick(v.learnMoreHref),
+      detail: toDetail(v.detail),
     }));
+}
+
+function strings(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const out = value.filter((s): s is string => typeof s === "string" && s.trim() !== "");
+  return out.length ? out : undefined;
+}
+
+function chips(value: unknown): Chip[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const out = value
+    .filter(
+      (v): v is Chip =>
+        Boolean(v) && typeof v === "object" && typeof (v as Chip).label === "string",
+    )
+    .map((v) => ({
+      label: v.label,
+      sub: typeof v.sub === "string" ? v.sub : "",
+      iconSrc: typeof v.iconSrc === "string" ? v.iconSrc : "",
+    }));
+  return out.length ? out : undefined;
+}
+
+function testimonials(value: unknown): Testimonial[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const out = value
+    .filter(
+      (v): v is Testimonial =>
+        Boolean(v) &&
+        typeof v === "object" &&
+        typeof (v as Testimonial).quote === "string",
+    )
+    .map((v) => ({
+      quote: v.quote,
+      name: typeof v.name === "string" ? v.name : "",
+      meta: typeof v.meta === "string" ? v.meta : "",
+    }));
+  return out.length ? out : undefined;
+}
+
+function toDetail(value: unknown): CategoryDetail | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const d = value as CategoryDetail;
+  return {
+    chipsLeft: chips(d.chipsLeft),
+    chipsRight: chips(d.chipsRight),
+    ctaPrimary: pick(d.ctaPrimary),
+    ctaSecondary: pick(d.ctaSecondary),
+    goals: strings(d.goals),
+    testimonials: testimonials(d.testimonials),
+    tags: strings(d.tags),
+  };
+}
+
+/** Detail content per category — CMS values over the built-in defaults. */
+export function mergeDetails(
+  overrides: TreatmentOverride[],
+): Record<CategoryKey, CategoryDetail> {
+  const byKey = new Map(overrides.map((o) => [o.key, o]));
+  const out = {} as Record<CategoryKey, CategoryDetail>;
+  for (const key of TREATMENT_KEYS) {
+    const base = DEFAULT_DETAILS[key];
+    const d = byKey.get(key)?.detail;
+    out[key] = !d
+      ? base
+      : {
+          chipsLeft: d.chipsLeft ?? base.chipsLeft,
+          chipsRight: d.chipsRight ?? base.chipsRight,
+          ctaPrimary: d.ctaPrimary ?? base.ctaPrimary,
+          ctaSecondary: d.ctaSecondary ?? base.ctaSecondary,
+          goals: d.goals ?? base.goals,
+          testimonials: d.testimonials ?? base.testimonials,
+          tags: d.tags ?? base.tags,
+        };
+  }
+  return out;
 }
 
 /**
@@ -103,6 +266,7 @@ export function mergeCategories(
  */
 export type TreatmentRow = {
   key: CategoryKey;
+  detail: CategoryDetail;
   eyebrow: string;
   cardTitle: string;
   title: string;
@@ -139,6 +303,7 @@ export function overridesFromDefaults(
       imageAlt: o?.imageAlt ?? base.imageAlt,
       href: o?.href ?? base.href,
       learnMoreHref: o?.learnMoreHref ?? base.learnMoreHref ?? "",
+      detail: mergeDetails(saved)[key],
     };
   });
 }
