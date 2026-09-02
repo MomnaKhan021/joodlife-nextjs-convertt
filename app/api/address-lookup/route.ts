@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       `&addressdetails=1&limit=6&countrycodes=gb&q=${encodeURIComponent(q)}`;
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "JoodLife-Checkout/1.0 (https://joodlife.shop)",
+        "User-Agent": "JoodLife-Checkout/1.0 (https://www.joodlife.com)",
         "Accept-Language": "en-GB",
       },
       // Nominatim is shared infra — cache identical queries briefly.

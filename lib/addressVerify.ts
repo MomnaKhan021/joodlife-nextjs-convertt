@@ -31,7 +31,7 @@ export type AddressCheck = {
   message?: string;
 };
 
-const UA = "JoodLife-Checkout/1.0 (https://joodlife.shop)";
+const UA = "JoodLife-Checkout/1.0 (https://www.joodlife.com)";
 const TIMEOUT_MS = 3_500;
 
 async function getJson(url: string): Promise<unknown | null> {

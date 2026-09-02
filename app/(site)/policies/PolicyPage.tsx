@@ -9,7 +9,7 @@ import Footer from "@/sections/home/Footer";
  * (Terms, Refund & Complaints, Privacy & Cookies).
  *
  * These pages replace the old off-site links that pointed at
- * joodlife.com — everything now lives on joodlife.shop with the
+ * joodlife.com — everything now lives on our own site with the
  * site's own typography and branding (dark-green #142e2a, cream
  * #f7f9f2, font-display / font-serif / font-ui).
  */

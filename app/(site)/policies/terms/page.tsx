@@ -27,7 +27,7 @@ const SECTIONS: PolicySection[] = [
     blocks: [
       {
         type: "p",
-        text: "By accessing joodlife.shop, completing a consultation, or placing an order, you confirm that you accept these terms and conditions and that you agree to comply with them. If you do not agree to these terms, you must not use our services.",
+        text: "By accessing joodlife.com, completing a consultation, or placing an order, you confirm that you accept these terms and conditions and that you agree to comply with them. If you do not agree to these terms, you must not use our services.",
       },
       {
         type: "p",
@@ -124,7 +124,7 @@ const SECTIONS: PolicySection[] = [
     blocks: [
       {
         type: "p",
-        text: "All content on joodlife.shop — including text, graphics, logos, images and the JoodLife name — is owned by or licensed to Jood and is protected by intellectual property laws. You may not reproduce, distribute or use our content without our prior written permission.",
+        text: "All content on joodlife.com — including text, graphics, logos, images and the JoodLife name — is owned by or licensed to Jood and is protected by intellectual property laws. You may not reproduce, distribute or use our content without our prior written permission.",
       },
     ],
   },

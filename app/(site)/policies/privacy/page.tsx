@@ -3,7 +3,7 @@ import PolicyPage, { type PolicySection } from "../PolicyPage";
 export const metadata = {
   title: "Privacy & Cookies Policy — JoodLife",
   description:
-    "How JoodLife and Jood Pharmacy collect, use and protect your personal and health information, and how we use cookies on joodlife.shop.",
+    "How JoodLife and Jood Pharmacy collect, use and protect your personal and health information, and how we use cookies on joodlife.com.",
 };
 
 const UPDATED = "11 August 2026";
@@ -101,7 +101,7 @@ const SECTIONS: PolicySection[] = [
     blocks: [
       {
         type: "p",
-        text: "Cookies are small text files stored on your device when you visit a website. We use them to make joodlife.shop work, to remember your preferences, and to understand how the site is used so we can improve it.",
+        text: "Cookies are small text files stored on your device when you visit a website. We use them to make joodlife.com work, to remember your preferences, and to understand how the site is used so we can improve it.",
       },
       { type: "h", text: "Types of cookies we use" },
       {
@@ -134,7 +134,7 @@ export default function PrivacyPage() {
     <PolicyPage
       title="Privacy &"
       titleAccent="Cookies"
-      intro="How we collect, use and protect your personal and health information, and how we use cookies on joodlife.shop. Your privacy matters to us."
+      intro="How we collect, use and protect your personal and health information, and how we use cookies on joodlife.com. Your privacy matters to us."
       updated={UPDATED}
       sections={SECTIONS}
     />

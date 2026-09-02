@@ -11,7 +11,7 @@ import type { FullPost, StorefrontPost } from "./posts";
  * never empty. Once real posts are published in the CMS, these are
  * automatically superseded.
  *
- * Everything here is self-hosted on joodlife.shop — images live in
+ * Everything here is self-hosted on our own site — images live in
  * /public/assets/journal, and nothing links off to another site.
  */
 
