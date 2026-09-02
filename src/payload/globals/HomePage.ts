@@ -65,6 +65,37 @@ export const HomePage: GlobalConfig = {
       },
     },
 
+    // ---- Reviews ----
+    { name: "reviewsHeading", type: "text" },
+    {
+      name: "reviewsHeadingEmphasis",
+      type: "text",
+      admin: { description: "Second part of the heading, shown in italics." },
+    },
+    { name: "reviewsIntro", type: "textarea", admin: { rows: 3 } },
+    {
+      name: "reviews",
+      type: "json",
+      admin: {
+        description:
+          'Reviews: [{ "name": "…", "text": "…", "initials": "AB", "avatar": "/…" }]. These are real Trustpilot reviews — do not invent testimonials.',
+      },
+    },
+    {
+      name: "trustpilotScore",
+      type: "text",
+      admin: { description: 'Score shown beside the Trustpilot logo, e.g. "4.4".' },
+    },
+    { name: "trustpilotUrl", type: "text" },
+
+    // ---- Blog strip ----
+    { name: "blogHeading", type: "text" },
+    {
+      name: "blogHeadingEmphasis",
+      type: "text",
+      admin: { description: "Second part of the heading, shown in italics." },
+    },
+
     // ---- How it works ----
     { name: "hiwHeading", type: "text" },
     {

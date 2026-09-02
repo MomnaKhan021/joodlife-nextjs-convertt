@@ -21,7 +21,15 @@ export type BlogCardPost = {
  * Prev/next arrows and the dot pagination are wired to the Swiper
  * instance through React state so they always reflect the active slide.
  */
-export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
+export default function BlogCarousel({
+  posts,
+  heading = "Recent",
+  headingEmphasis = "blog",
+}: {
+  posts: BlogCardPost[];
+  heading?: string;
+  headingEmphasis?: string;
+}) {
   const swiperRef = useRef<SwiperType | null>(null);
   const [active, setActive] = useState(0);
   // Loop needs enough slides to fill the largest view (3) plus a buffer.
@@ -31,7 +39,7 @@ export default function BlogCarousel({ posts }: { posts: BlogCardPost[] }) {
     <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
       <div className="flex items-center justify-between gap-4 pb-8 md:pb-10">
         <h2 className="font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-          Recent <em className="font-serif italic font-normal">blog</em> posts
+          {heading} <em className="font-serif italic font-normal">{headingEmphasis}</em> posts
         </h2>
         <div className="hidden items-center gap-3 md:flex">
           <button

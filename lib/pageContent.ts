@@ -7,11 +7,14 @@ import {
   DEFAULT_CTA,
   DEFAULT_FAQS,
   DEFAULT_FAQ_HEADING,
+  DEFAULT_BLOG_HEADING,
   DEFAULT_HIW_HEADING,
   DEFAULT_HIW_STEPS,
+  DEFAULT_REVIEWS_HEADING,
   homeFallback,
   toFaqs,
   toHiwSteps,
+  toReviews,
   type HomeContent,
 } from "@/lib/pageContentTypes";
 
@@ -53,6 +56,26 @@ export async function getHomeContent(): Promise<HomeContent> {
       faqHeadingEmphasis: str(
         doc?.faqHeadingEmphasis,
         DEFAULT_FAQ_HEADING.faqHeadingEmphasis,
+      ),
+      reviews: toReviews(doc?.reviews),
+      reviewsHeading: str(
+        doc?.reviewsHeading,
+        DEFAULT_REVIEWS_HEADING.reviewsHeading,
+      ),
+      reviewsHeadingEmphasis: str(
+        doc?.reviewsHeadingEmphasis,
+        DEFAULT_REVIEWS_HEADING.reviewsHeadingEmphasis,
+      ),
+      reviewsIntro: str(doc?.reviewsIntro, DEFAULT_REVIEWS_HEADING.reviewsIntro),
+      trustpilotScore: str(
+        doc?.trustpilotScore,
+        DEFAULT_REVIEWS_HEADING.trustpilotScore,
+      ),
+      trustpilotUrl: str(doc?.trustpilotUrl, DEFAULT_REVIEWS_HEADING.trustpilotUrl),
+      blogHeading: str(doc?.blogHeading, DEFAULT_BLOG_HEADING.blogHeading),
+      blogHeadingEmphasis: str(
+        doc?.blogHeadingEmphasis,
+        DEFAULT_BLOG_HEADING.blogHeadingEmphasis,
       ),
       hiwSteps: toHiwSteps(doc?.hiwSteps, DEFAULT_HIW_STEPS),
       hiwHeading: str(doc?.hiwHeading, DEFAULT_HIW_HEADING.hiwHeading),

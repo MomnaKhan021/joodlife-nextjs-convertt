@@ -48,6 +48,27 @@ export const DEFAULT_FAQS: Faq[] = [
   },
 ];
 
+export type SiteReview = {
+  name: string;
+  text: string;
+  avatar?: string;
+  initials?: string;
+};
+
+export const DEFAULT_REVIEWS_HEADING = {
+  reviewsHeading: "Loved by our",
+  reviewsHeadingEmphasis: "customers",
+  reviewsIntro:
+    "Real reviews from real patients on Trustpilot. Our patients value the expert support, clear communication and fast, discreet delivery that make every journey unique.",
+  trustpilotScore: "4.4",
+  trustpilotUrl: "https://www.trustpilot.com/review/joodlife.com",
+};
+
+export const DEFAULT_BLOG_HEADING = {
+  blogHeading: "Recent",
+  blogHeadingEmphasis: "blog",
+};
+
 export type HiwStep = {
   step: string;
   title: string;
@@ -89,9 +110,16 @@ export const DEFAULT_CTA = {
   ctaImage: "/assets/figma/cta-bg.png",
 };
 
-export type HomeContent = { faqs: Faq[]; hiwSteps: HiwStep[] } & typeof DEFAULT_ANNOUNCEMENT &
+export type HomeContent = {
+  faqs: Faq[];
+  hiwSteps: HiwStep[];
+  /** Empty means "use the curated Trustpilot list in lib/reviews.ts". */
+  reviews: SiteReview[];
+} & typeof DEFAULT_ANNOUNCEMENT &
   typeof DEFAULT_FAQ_HEADING &
   typeof DEFAULT_HIW_HEADING &
+  typeof DEFAULT_REVIEWS_HEADING &
+  typeof DEFAULT_BLOG_HEADING &
   typeof DEFAULT_CTA;
 
 /** Accept only well-formed FAQ rows; anything else falls back. */
@@ -126,13 +154,43 @@ export function toHiwSteps(value: unknown, fallback: HiwStep[]): HiwStep[] {
   return cleaned.length ? cleaned : fallback;
 }
 
+/**
+ * Accept only well-formed review rows.
+ *
+ * Returns [] rather than a fallback list when there is nothing valid: these
+ * are real Trustpilot reviews, and the curated set in lib/reviews.ts stays
+ * the source of truth unless someone deliberately overrides it here.
+ */
+export function toReviews(value: unknown): SiteReview[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(
+      (v): v is SiteReview =>
+        Boolean(v) &&
+        typeof v === "object" &&
+        typeof (v as SiteReview).name === "string" &&
+        typeof (v as SiteReview).text === "string",
+    )
+    .map((v) => ({
+      name: v.name,
+      text: v.text,
+      ...(typeof v.avatar === "string" && v.avatar ? { avatar: v.avatar } : {}),
+      ...(typeof v.initials === "string" && v.initials
+        ? { initials: v.initials }
+        : {}),
+    }));
+}
+
 export function homeFallback(): HomeContent {
   return {
     faqs: DEFAULT_FAQS,
     hiwSteps: DEFAULT_HIW_STEPS,
+    reviews: [],
     ...DEFAULT_ANNOUNCEMENT,
     ...DEFAULT_FAQ_HEADING,
     ...DEFAULT_HIW_HEADING,
+    ...DEFAULT_REVIEWS_HEADING,
+    ...DEFAULT_BLOG_HEADING,
     ...DEFAULT_CTA,
   };
 }
