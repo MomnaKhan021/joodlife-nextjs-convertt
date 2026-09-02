@@ -25,6 +25,8 @@ const DEFAULT_TAGS = [
 
 export type PeriodDetailContent = {
   card1Body?: string;
+  card1Image?: string;
+  card2Image?: string;
   tagsTitle?: string;
   tags?: string[];
   ctaSecondary?: string;
@@ -32,6 +34,8 @@ export type PeriodDetailContent = {
 
 export default function PeriodDetail({
   card1Body = 'Delay your period safely and discreetly when you need to. Whether you’re travelling, attending a special event or planning ahead, our UK clinicians can assess whether norethisterone is appropriate for you.',
+  card1Image = '/assets/category/period-hand.png',
+  card2Image = '/assets/category/period-cycle.png',
   tagsTitle = 'Understand Your Cycle and Hormone Health',
   tags,
   ctaSecondary = 'Check Your Eligibility',
@@ -49,7 +53,7 @@ export default function PeriodDetail({
         </p>
         <div className="relative -mb-6 mt-6 h-[260px] w-full sm:h-[300px] md:-mb-8 md:h-[340px]">
           <Image
-            src="/assets/category/period-hand.png"
+            src={card1Image}
             alt="Hand holding a Norethisterone tablet"
             fill
             quality={90}
@@ -90,7 +94,7 @@ export default function PeriodDetail({
             Smaller + centred on mobile so she doesn't sink into the heading/tags. */}
         <div className="pointer-events-none absolute bottom-0 left-1/2 z-[1] h-[250px] w-[92%] max-w-[340px] -translate-x-1/2 md:left-[2%] md:h-[300px] md:w-[62%] md:translate-x-0">
           <Image
-            src="/assets/category/period-cycle.png"
+            src={card2Image}
             alt="Woman reflecting on her cycle and hormone health"
             fill
             quality={88}

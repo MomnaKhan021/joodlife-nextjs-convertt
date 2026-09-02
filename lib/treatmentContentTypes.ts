@@ -35,6 +35,7 @@ export type CategoryDetail = {
   card1Body?: string;
   card1Features?: FeatureRow[];
   card1Cta?: string;
+  card1Image?: string;
 
   // --- Card 2: bottom-left ---
   card2Title?: string;
@@ -42,12 +43,14 @@ export type CategoryDetail = {
   chipsLeft?: Chip[];
   chipsRight?: Chip[];
   ctaPrimary?: string;
+  card2Image?: string;
 
   // --- Card 3: bottom-right ---
   card3Title?: string;
   card3Em?: string;
   card3Body?: string;
   ctaSecondary?: string;
+  card3Image?: string;
 
   // --- Erectile dysfunction only ---
   goalsTitle?: string;
@@ -76,6 +79,9 @@ export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
       },
     ],
     card1Cta: "Learn More",
+    card1Image: "/assets/category/wl-wegovy.png",
+    card2Image: "/assets/category/wl-man.png",
+    card3Image: "/assets/category/wl-checkin.png",
     card2Title: "It’s more than treatment, **it’s transformation**",
     card2Body:
       "Your clinician will review your health and create a **personalised treatment plan** tailored to your individual needs.",
@@ -100,6 +106,8 @@ export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
     card1Body:
       "Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.",
     card1Cta: "Start Your Assessment",
+    card1Image: "/assets/category/ed-pill.png",
+    card2Image: "/assets/category/ed-goals.png",
     goalsTitle: "What are your goals?",
     goals: [
       "Improve erections",
@@ -137,6 +145,8 @@ export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
   "period-delay": {
     card1Body:
       "Delay your period safely and discreetly when you need to. Whether you’re travelling, attending a special event or planning ahead, our UK clinicians can assess whether norethisterone is appropriate for you.",
+    card1Image: "/assets/category/period-hand.png",
+    card2Image: "/assets/category/period-cycle.png",
     tagsTitle: "Understand Your Cycle and Hormone Health",
     ctaSecondary: "Check Your Eligibility",
     tags: [
@@ -265,6 +275,9 @@ function toDetail(value: unknown): CategoryDetail | undefined {
     card1Body: pick(d.card1Body),
     card1Features: features(d.card1Features),
     card1Cta: pick(d.card1Cta),
+    card1Image: pick(d.card1Image),
+    card2Image: pick(d.card2Image),
+    card3Image: pick(d.card3Image),
     card2Title: pick(d.card2Title),
     card2Body: pick(d.card2Body),
     card3Title: pick(d.card3Title),
@@ -298,6 +311,9 @@ export function mergeDetails(
           card1Body: d.card1Body ?? base.card1Body,
           card1Features: d.card1Features ?? base.card1Features,
           card1Cta: d.card1Cta ?? base.card1Cta,
+          card1Image: d.card1Image ?? base.card1Image,
+          card2Image: d.card2Image ?? base.card2Image,
+          card3Image: d.card3Image ?? base.card3Image,
           card2Title: d.card2Title ?? base.card2Title,
           card2Body: d.card2Body ?? base.card2Body,
           card3Title: d.card3Title ?? base.card3Title,

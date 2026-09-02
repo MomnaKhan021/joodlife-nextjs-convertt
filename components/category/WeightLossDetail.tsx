@@ -102,11 +102,13 @@ function WegovyIntroCard({
   card1Body,
   FEATURES,
   card1Cta,
+  card1Image,
 }: {
   card1Title: string;
   card1Body: string;
   FEATURES: { title: string; sub: string }[];
   card1Cta: string;
+  card1Image: string;
 }) {
   return (
     <Reveal
@@ -149,7 +151,7 @@ function WegovyIntroCard({
 
         <div className="relative mx-auto h-[300px] w-full max-w-[440px] md:h-[380px]">
           <Image
-            src="/assets/category/wl-wegovy.png"
+            src={card1Image}
             alt="A Jood Life member who started Wegovy treatment"
             fill
             quality={90}
@@ -167,6 +169,9 @@ export type WeightLossDetailContent = {
   card1Body?: string;
   card1Features?: { title: string; sub: string }[];
   card1Cta?: string;
+  card1Image?: string;
+  card2Image?: string;
+  card3Image?: string;
   card2Title?: string;
   card2Body?: string;
   card3Title?: string;
@@ -183,6 +188,9 @@ export default function WeightLossDetail({
   card1Body = "A new oral treatment option, available following an **individual clinical assessment**.",
   card1Features,
   card1Cta = 'Learn More',
+  card1Image = '/assets/category/wl-wegovy.png',
+  card2Image = '/assets/category/wl-man.png',
+  card3Image = '/assets/category/wl-checkin.png',
   card2Title = 'It’s more than treatment, **it’s transformation**',
   card2Body = 'Your clinician will review your health and create a **personalised treatment plan** tailored to your individual needs.',
   card3Title = 'Continuous, expert guidance',
@@ -208,6 +216,7 @@ export default function WeightLossDetail({
         card1Body={card1Body}
         FEATURES={FEATURES}
         card1Cta={card1Cta}
+        card1Image={card1Image}
       />
       <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
@@ -231,7 +240,7 @@ export default function WeightLossDetail({
           </ul>
           <div className="relative mx-auto mt-5 aspect-[150/212] w-[210px]">
             <Image
-              src="/assets/category/wl-man.png"
+              src={card2Image}
               alt="A member supported through his weight-loss journey"
               fill
               quality={90}
@@ -246,7 +255,7 @@ export default function WeightLossDetail({
         <div className="relative mt-6 hidden h-[400px] w-full shrink-0 lg:block">
           <div className="absolute bottom-0 left-1/2 z-0 h-[380px] w-[210px] -translate-x-1/2">
             <Image
-              src="/assets/category/wl-man.png"
+              src={card2Image}
               alt=""
               fill
               quality={90}
@@ -275,7 +284,7 @@ export default function WeightLossDetail({
 
         <div className="relative mt-[18px] aspect-[300/211] w-full overflow-hidden rounded-[16px] md:rounded-[20px]">
           <Image
-            src="/assets/category/wl-checkin.png"
+            src={card3Image}
             alt="Monthly video check-in with a licensed clinician"
             fill
             quality={90}

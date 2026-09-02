@@ -179,10 +179,11 @@ export default function SectionsForm({
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h2 className="text-[15px] font-medium text-[#1a1a1a]">Hero</h2>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+                Hero — left card
+              </h2>
               <p className="text-[12px] text-[#8a8a8a]">
-                The peach card at the top of the page. The two cards beside it
-                come from the treatment categories.
+                The peach Foundayo card at the top of the page.
               </p>
             </div>
             <button
@@ -281,6 +282,18 @@ export default function SectionsForm({
         </div>
 
         {/* ---- Treatment sections ---- */}
+        <div className="rounded-xl border border-[#e4e7de] bg-[#fafbf7] p-4">
+          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+            Hero — right cards, and the three treatment bands
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-[#616161]">
+            Each treatment below controls two things: the small card beside the
+            hero (its <strong>hero card title</strong> and{" "}
+            <strong>hero card image</strong>), and its full band further down
+            the page. The same copy is used on that treatment&apos;s own
+            landing page.
+          </p>
+        </div>
         <TreatmentsEditor initial={treatments} embedded />
 
         {/* ---- Reviews ---- */}

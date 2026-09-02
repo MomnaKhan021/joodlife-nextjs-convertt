@@ -162,10 +162,10 @@ export default function TreatmentsForm({
                   <input className={`${fieldInput} mt-1`} value={r.titleAccent ?? ""} onChange={(e) => update(i, { titleAccent: e.target.value })} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={fieldLabel}>Card title</label>
+                  <label className={fieldLabel}>Hero card title</label>
                   <textarea rows={2} className={`${fieldInput} mt-1`} value={r.cardTitle ?? ""} onChange={(e) => update(i, { cardTitle: e.target.value })} />
                   <p className="mt-1 text-[12px] text-[#8a8a8a]">
-                    Shown on the hero card. A line break controls where it wraps.
+                    Shown on the small card beside the hero. A line break controls where it wraps.
                   </p>
                 </div>
                 <div className="sm:col-span-2">
@@ -209,7 +209,8 @@ export default function TreatmentsForm({
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <span className={fieldLabel}>Card image</span>
+                  <span className={fieldLabel}>Hero card image</span>
+                  <p className="text-[12px] text-[#8a8a8a]">Small card beside the hero, at the top of the page.</p>
                   <MediaPicker
                     valueId={null}
                     valueUrl={r.cardImage || null}
@@ -217,7 +218,8 @@ export default function TreatmentsForm({
                   />
                 </div>
                 <div>
-                  <span className={fieldLabel}>Section image</span>
+                  <span className={fieldLabel}>Section portrait</span>
+                  <p className="text-[12px] text-[#8a8a8a]">The large photo at the top of this band.</p>
                   <MediaPicker
                     valueId={null}
                     valueUrl={r.heroImage || null}
@@ -281,6 +283,10 @@ export default function TreatmentsForm({
                       <label className={fieldLabel}>Button text</label>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.card1Cta ?? ""} onChange={(e) => updateDetail(i, { card1Cta: e.target.value })} />
                     </div>
+                    <div>
+                      <span className={fieldLabel}>Image</span>
+                      <MediaPicker valueId={null} valueUrl={r.detail.card1Image || null} onChange={(_id, url) => updateDetail(i, { card1Image: url ?? "" })} />
+                    </div>
                   </div>
 
                   {/* Card 2 — bottom left */}
@@ -299,6 +305,10 @@ export default function TreatmentsForm({
                     <div>
                       <label className={fieldLabel}>Button text</label>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.ctaPrimary ?? ""} onChange={(e) => updateDetail(i, { ctaPrimary: e.target.value })} />
+                    </div>
+                    <div>
+                      <span className={fieldLabel}>Portrait</span>
+                      <MediaPicker valueId={null} valueUrl={r.detail.card2Image || null} onChange={(_id, url) => updateDetail(i, { card2Image: url ?? "" })} />
                     </div>
                   </div>
 
@@ -324,6 +334,10 @@ export default function TreatmentsForm({
                     <div>
                       <label className={fieldLabel}>Button text</label>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
+                    </div>
+                    <div>
+                      <span className={fieldLabel}>Check-in widget image</span>
+                      <MediaPicker valueId={null} valueUrl={r.detail.card3Image || null} onChange={(_id, url) => updateDetail(i, { card3Image: url ?? "" })} />
                     </div>
                   </div>
 
@@ -381,11 +395,24 @@ export default function TreatmentsForm({
                       <label className={fieldLabel}>Button text</label>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.card1Cta ?? ""} onChange={(e) => updateDetail(i, { card1Cta: e.target.value })} />
                     </div>
+                    <div>
+                      <span className={fieldLabel}>Image</span>
+                      <MediaPicker valueId={null} valueUrl={r.detail.card1Image || null} onChange={(_id, url) => updateDetail(i, { card1Image: url ?? "" })} />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className={fieldLabel}>2 · Goals card heading</label>
-                    <input className={`${fieldInput} mt-1`} value={r.detail.goalsTitle ?? ""} onChange={(e) => updateDetail(i, { goalsTitle: e.target.value })} />
+                  <div className="space-y-3 rounded-lg border border-[#e8ece0] bg-white p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                      2 · Goals card
+                    </p>
+                    <div>
+                      <label className={fieldLabel}>Heading</label>
+                      <input className={`${fieldInput} mt-1`} value={r.detail.goalsTitle ?? ""} onChange={(e) => updateDetail(i, { goalsTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <span className={fieldLabel}>Background image</span>
+                      <MediaPicker valueId={null} valueUrl={r.detail.card2Image || null} onChange={(_id, url) => updateDetail(i, { card2Image: url ?? "" })} />
+                    </div>
                   </div>
 
                   <div>
@@ -448,11 +475,20 @@ export default function TreatmentsForm({
                       <label className={fieldLabel}>Body</label>
                       <textarea rows={3} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
                     </div>
+                    <div>
+                      <span className={fieldLabel}>Image</span>
+                      <MediaPicker valueId={null} valueUrl={r.detail.card1Image || null} onChange={(_id, url) => updateDetail(i, { card1Image: url ?? "" })} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className={fieldLabel}>2 · Tags card portrait</span>
+                    <MediaPicker valueId={null} valueUrl={r.detail.card2Image || null} onChange={(_id, url) => updateDetail(i, { card2Image: url ?? "" })} />
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className={fieldLabel}>2 · Tags card heading</label>
+                      <label className={fieldLabel}>Tags card heading</label>
                       <input className={`${fieldInput} mt-1`} value={r.detail.tagsTitle ?? ""} onChange={(e) => updateDetail(i, { tagsTitle: e.target.value })} />
                     </div>
                     <div>

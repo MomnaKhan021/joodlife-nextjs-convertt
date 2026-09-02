@@ -50,6 +50,8 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 export type EdDetailContent = {
   card1Body?: string;
   card1Cta?: string;
+  card1Image?: string;
+  card2Image?: string;
   goalsTitle?: string;
   goals?: string[];
   testimonials?: Testimonial[];
@@ -58,6 +60,8 @@ export type EdDetailContent = {
 export default function EdDetail({
   card1Body = 'Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.',
   card1Cta = 'Start Your Assessment',
+  card1Image = '/assets/category/ed-pill.png',
+  card2Image = '/assets/category/ed-goals.png',
   goalsTitle = 'What are your goals?',
   goals,
   testimonials,
@@ -76,7 +80,7 @@ export default function EdDetail({
         </p>
         <div className="relative mx-auto h-[120px] w-[180px]">
           <Image
-            src="/assets/category/ed-pill.png"
+            src={card1Image}
             alt="Clinically approved ED treatment tablet"
             fill
             quality={90}
@@ -99,7 +103,7 @@ export default function EdDetail({
             wider than the viewport (clipped by the section's overflow). */}
         <Reveal as="div" className="relative min-w-0 min-h-[360px] overflow-hidden rounded-[16px] md:rounded-[24px] md:min-h-[400px]">
           <Image
-            src="/assets/category/ed-goals.png"
+            src={card2Image}
             alt="Man considering his treatment goals"
             fill
             quality={90}
