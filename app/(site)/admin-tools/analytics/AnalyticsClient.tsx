@@ -73,6 +73,27 @@ const RANGES = [
   { days: 90, label: "90 days" },
 ] as const;
 
+/** Either a preset window or an inclusive custom span of calendar days. */
+type Range = { kind: "preset"; days: number } | { kind: "custom"; from: string; to: string };
+
+const ymdLocal = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const rangeQuery = (r: Range) =>
+  r.kind === "custom"
+    ? `from=${encodeURIComponent(r.from)}&to=${encodeURIComponent(r.to)}`
+    : `days=${r.days}`;
+
+/** "2026-09-02" → "2 Sep 2026" for the active-range pill. */
+const fmtYmd = (ymd: string) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+};
+
 const gbp = new Intl.NumberFormat("en-GB", {
   style: "currency",
   currency: "GBP",
@@ -348,19 +369,29 @@ function ChartCard({ title, children, wide }: { title: string; children: React.R
 /* ------------------------------------------------------------------ */
 
 export default function AnalyticsClient() {
-  const [days, setDays] = useState<number>(7);
+  const [range, setRange] = useState<Range>({ kind: "preset", days: 7 });
+  // Draft custom dates — applied with the button so we don't refetch on
+  // every keystroke of a half-typed date. Defaults to the last 30 days.
+  const [draftFrom, setDraftFrom] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 29);
+    return ymdLocal(d);
+  });
+  const [draftTo, setDraftTo] = useState(() => ymdLocal(new Date()));
+  const [customOpen, setCustomOpen] = useState(false);
   const [data, setData] = useState<MetricsResponse | null>(null);
   const [mkt, setMkt] = useState<MarketingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (d: number) => {
+  const load = useCallback(async (r: Range) => {
     setLoading(true);
     setError(null);
     try {
+      const qs = rangeQuery(r);
       const [mRes, kRes] = await Promise.all([
-        fetch(`/api/admin-tools/metrics?days=${d}`, { credentials: "include" }),
-        fetch(`/api/admin-tools/marketing?days=${d}`, { credentials: "include" }).catch(() => null),
+        fetch(`/api/admin-tools/metrics?${qs}`, { credentials: "include" }),
+        fetch(`/api/admin-tools/marketing?${qs}`, { credentials: "include" }).catch(() => null),
       ]);
       const json: MetricsResponse = await mRes.json();
       if (!mRes.ok || !json.ok) {
@@ -378,8 +409,18 @@ export default function AnalyticsClient() {
   }, []);
 
   useEffect(() => {
-    load(days);
-  }, [days, load]);
+    // Kick off the fetch for the selected range; `load` sets the loading flag
+    // as its first step, which is the intent here (show the spinner at once).
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
+    load(range);
+  }, [range, load]);
+
+  const today = ymdLocal(new Date());
+  const customValid = Boolean(draftFrom && draftTo && draftFrom <= draftTo && draftTo <= today);
+  const applyCustom = () => {
+    if (!customValid) return;
+    setRange({ kind: "custom", from: draftFrom, to: draftTo });
+  };
 
   const k = data?.kpis;
   const series = useMemo(() => data?.series ?? [], [data]);
@@ -418,18 +459,72 @@ export default function AnalyticsClient() {
                 <button
                   key={r.days}
                   type="button"
-                  onClick={() => setDays(r.days)}
+                  onClick={() => {
+                    setCustomOpen(false);
+                    setRange({ kind: "preset", days: r.days });
+                  }}
                   className={`rounded-[8px] px-3 py-1.5 text-[13px] font-medium transition-colors ${
-                    days === r.days ? "bg-[#142e2a] text-white" : "text-[#303030] hover:bg-[#f1f1f1]"
+                    range.kind === "preset" && range.days === r.days
+                      ? "bg-[#142e2a] text-white"
+                      : "text-[#303030] hover:bg-[#f1f1f1]"
                   }`}
                 >
                   {r.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setCustomOpen((v) => !v)}
+                className={`rounded-[8px] px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                  range.kind === "custom" ? "bg-[#142e2a] text-white" : "text-[#303030] hover:bg-[#f1f1f1]"
+                }`}
+              >
+                {range.kind === "custom"
+                  ? `${fmtYmd(range.from)} – ${fmtYmd(range.to)}`
+                  : "Custom"}
+              </button>
             </div>
+            {customOpen ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  applyCustom();
+                }}
+                className="flex flex-wrap items-center gap-1.5 rounded-[10px] border border-[#d0d3d6] bg-white px-2 py-1"
+              >
+                <label className="flex items-center gap-1 text-[12px] text-[#616161]">
+                  From
+                  <input
+                    type="date"
+                    value={draftFrom}
+                    max={draftTo || today}
+                    onChange={(e) => setDraftFrom(e.target.value)}
+                    className="rounded-[6px] border border-[#d0d3d6] px-1.5 py-1 text-[13px] text-[#303030]"
+                  />
+                </label>
+                <label className="flex items-center gap-1 text-[12px] text-[#616161]">
+                  To
+                  <input
+                    type="date"
+                    value={draftTo}
+                    min={draftFrom}
+                    max={today}
+                    onChange={(e) => setDraftTo(e.target.value)}
+                    className="rounded-[6px] border border-[#d0d3d6] px-1.5 py-1 text-[13px] text-[#303030]"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  disabled={!customValid || loading}
+                  className="rounded-[8px] bg-[#142e2a] px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-40"
+                >
+                  Apply
+                </button>
+              </form>
+            ) : null}
             <button
               type="button"
-              onClick={() => load(days)}
+              onClick={() => load(range)}
               disabled={loading}
               className="rounded-[10px] border border-[#d0d3d6] bg-white px-3 py-1.5 text-[13px] font-medium hover:bg-[#f7f7f7] disabled:opacity-50"
             >
