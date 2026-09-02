@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveAnalyticsRange } from "@/lib/analyticsRange";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -8,6 +9,7 @@ export const runtime = "nodejs";
 
 /**
  * GET /api/admin-tools/marketing?days=<1|7|30|90>
+ *     or   ?from=YYYY-MM-DD&to=YYYY-MM-DD   (custom range, inclusive days)
  *
  * Marketing metrics pulled live from Brevo's REST API (v3) when a
  * BREVO_API_KEY is configured:
@@ -226,12 +228,9 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const daysRaw = Number(url.searchParams.get("days") ?? 7);
-  const days = [1, 7, 30, 90].includes(daysRaw) ? daysRaw : 7;
-
-  const end = new Date();
-  const start = new Date(end);
-  start.setDate(start.getDate() - (days - 1));
+  const range = resolveAnalyticsRange(url.searchParams);
+  const { days, start } = range;
+  const end = range.endDay;
   const qs = `?startDate=${ymd(start)}&endDate=${ymd(end)}`;
 
   const { key, reason } = resolveBrevoKey();
