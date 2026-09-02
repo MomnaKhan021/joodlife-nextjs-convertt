@@ -29,7 +29,7 @@ const FEATURES = [
   { icon: HeartIcon, label: "Clinician\nsupport" },
 ] as const;
 
-function FoundayoCard() {
+function FoundayoCard({ isReturningPatient = false }: { isReturningPatient?: boolean }) {
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden rounded-[24px] bg-[#fdf0ea] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12">
       {/* Copy — left column on desktop; the pill stays right of it. */}
@@ -72,12 +72,15 @@ function FoundayoCard() {
           })}
         </ul>
 
+        {/* A returning patient has already been assessed — send them to
+            reorder rather than back through the questionnaire, matching the
+            weight-loss preview and the bottom CTA banner. */}
         <div className="mt-1">
           <Link
-            href="/consultation?product=weight-loss"
+            href={isReturningPatient ? "/reorder" : "/consultation?product=weight-loss"}
             className="btn-cta inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
           >
-            Explore Foundayo
+            {isReturningPatient ? "Reorder" : "Explore Foundayo"}
           </Link>
         </div>
       </div>
@@ -114,7 +117,7 @@ function FoundayoCard() {
   );
 }
 
-export default function FoundayoHero() {
+export default function FoundayoHero({ isReturningPatient }: { isReturningPatient?: boolean }) {
   return (
     <section
       aria-label="Explore our treatments"
@@ -123,7 +126,7 @@ export default function FoundayoHero() {
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-6 md:px-10 md:pt-[30px] lg:px-[60px]">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
           <div className="min-w-0">
-            <FoundayoCard />
+            <FoundayoCard isReturningPatient={isReturningPatient} />
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <SecondaryCard category={CATEGORIES["erectile-dysfunction"]} />
