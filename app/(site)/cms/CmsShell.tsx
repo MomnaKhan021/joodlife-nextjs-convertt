@@ -32,6 +32,7 @@ const ICONS: Record<string, React.ReactNode> = {
   "/cms/home": I("M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z"),
   "/cms/treatments": I("M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7zM7 7l7 7"),
   "/cms/announcement": I("M3 11l14-6v14L3 13zM7 12v5a2 2 0 0 0 4 0"),
+  "/cms/support": I("M12 3a9 9 0 1 0 4.5 16.8L21 21l-1.2-4.5A9 9 0 0 0 12 3zM12 8v4M12 16h.01"),
   "/cms/policies/terms": I("M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"),
   "/cms/policies/refund-complaints": I("M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h4"),
   "/cms/policies/privacy": I("M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"),

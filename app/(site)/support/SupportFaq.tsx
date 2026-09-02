@@ -3,6 +3,12 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
+import {
+  SUPPORT_FAQ_DEFAULT,
+  type FaqItem as QA,
+  type SupportFaqContent,
+} from "@/lib/supportContentTypes";
+
 /**
  * Interactive FAQ block for the Support page.
  *
@@ -11,156 +17,11 @@ import { useMemo, useState } from "react";
  * second word in serif italic, a "Get In Touch" button, and an accordion list
  * of questions on the right. Selecting a filter pill scrolls focus to the
  * matching section list.
+ *
+ * Presentational — the content arrives as a prop from the server page, which
+ * reads it from the Support global. The shipped copy is the default, so the
+ * block still renders on its own.
  */
-
-type QA = { q: string; a: string };
-
-type FaqSection = {
-  /** Filter-pill / anchor id. */
-  id: string;
-  /** Short pill label (e.g. "About Jood"). */
-  pill: string;
-  /** First word of the display heading. */
-  headStart: string;
-  /** Second word — rendered in serif italic. */
-  headAccent: string;
-  items: QA[];
-};
-
-const SECTIONS: FaqSection[] = [
-  {
-    id: "about-jood",
-    pill: "About Jood",
-    headStart: "About",
-    headAccent: "Jood",
-    items: [
-      {
-        q: "What is Jood?",
-        a: "Jood is a fully remote private weight-loss clinic providing clinically guided care through licensed UK prescribers. Our treatments are dispensed from a GPhC-registered pharmacy and delivered discreetly across the UK.",
-      },
-      {
-        q: "Who is behind Jood?",
-        a: "Jood is operated by Jood Pharmacy, a GPhC-registered pharmacy. Consultations and prescribing are overseen by UK-registered prescribers and a superintendent pharmacist, so every part of your treatment is clinically supervised.",
-      },
-      {
-        q: "Is Jood a legitimate clinic?",
-        a: "Yes. Jood Pharmacy is registered with the General Pharmaceutical Council (9012990) and all medicines are dispensed and delivered in line with GPhC and MHRA guidance.",
-      },
-    ],
-  },
-  {
-    id: "medication-treatment",
-    pill: "Medication & Treatment",
-    headStart: "Medication and",
-    headAccent: "treatment",
-    items: [
-      {
-        q: "What treatments do you offer?",
-        a: "Jood provides access to licensed GLP-1 medications, including Mounjaro (tirzepatide), the Wegovy injection and the Wegovy Pill (oral semaglutide), prescribed only when clinically appropriate. All treatments are reviewed and dispensed safely under prescriber supervision.",
-      },
-      {
-        q: "How do these medications work?",
-        a: "GLP-1 medications mimic a hormone your body releases after eating. They help regulate appetite, slow digestion and reduce cravings, making it easier to eat less and lose weight steadily alongside diet and lifestyle changes.",
-      },
-      {
-        q: "Are these medications safe?",
-        a: "The medications we prescribe are MHRA-licensed and are only supplied after a UK-registered prescriber has reviewed your full health assessment. Our clinical team monitors your progress and is available if you have any concerns.",
-      },
-      {
-        q: "What if I experience side effects?",
-        a: "Mild side effects such as nausea usually ease as your body adjusts. If symptoms persist or worry you, contact our clinical team and they will review your dose and advise on the safest next step.",
-      },
-      {
-        q: "Can I switch between medications?",
-        a: "Yes, if your prescriber agrees it is clinically appropriate. We will help review your progress and recommend the best next step for you.",
-      },
-    ],
-  },
-  {
-    id: "consultations-eligibility",
-    pill: "Consultations & Eligibility",
-    headStart: "Consultations and",
-    headAccent: "eligibility",
-    items: [
-      {
-        q: "Who is eligible for treatment?",
-        a: "You may be eligible if your BMI is 30 or higher, or 27 or higher with certain weight-related health conditions. Eligibility is confirmed after completing your online consultation with a UK-licensed prescriber.",
-      },
-      {
-        q: "Do I need a GP referral?",
-        a: "No referral is needed. You complete a secure online consultation and, where appropriate, we may contact your GP to help keep your wider care safe and joined up.",
-      },
-      {
-        q: "How does the consultation work?",
-        a: "You answer a short set of medical questions online. A UK-registered prescriber reviews your responses to confirm whether treatment is suitable before anything is prescribed or dispensed.",
-      },
-      {
-        q: "How long does approval take?",
-        a: "Most consultations are reviewed within one working day. If the prescriber needs more information, they will get in touch before approving your treatment.",
-      },
-    ],
-  },
-  {
-    id: "delivery-payments",
-    pill: "Delivery & Payments",
-    headStart: "Delivery and",
-    headAccent: "payments",
-    items: [
-      {
-        q: "How will my medication be delivered?",
-        a: "All parcels are sent via DPD, arriving in plain, unbranded packaging for complete privacy. You'll receive live tracking updates once your order is shipped.",
-      },
-      {
-        q: "Is delivery free?",
-        a: "Yes. Free, discreet delivery is included with your treatment — no names, no logos and no delivery fee.",
-      },
-      {
-        q: "How much does treatment cost?",
-        a: "Pricing depends on the medication and dose your prescriber recommends. You'll see the full cost clearly before you check out, with no hidden fees.",
-      },
-      {
-        q: "Can I cancel or pause my plan?",
-        a: "Yes — you're always in control of your treatment. You can pause or cancel at any time from your account, with no cancellation charges.",
-      },
-      {
-        q: "What payment methods do you accept?",
-        a: "We accept all major debit and credit cards, as well as Apple Pay and Google Pay. All payments are processed securely.",
-      },
-    ],
-  },
-  {
-    id: "support-follow-up",
-    pill: "Support & Follow-up",
-    headStart: "Support and",
-    headAccent: "follow-up",
-    items: [
-      {
-        q: "What kind of support will I receive?",
-        a: "Your care doesn't stop at delivery. You'll receive ongoing access to Jood clinicians and health coaches for check-ins, motivation and progress tracking.",
-      },
-      {
-        q: "Can I speak to someone directly?",
-        a: "Yes. You can message our care team through your account or get in touch by phone and email, and a clinician will respond to any clinical questions.",
-      },
-      {
-        q: "How do I track my progress?",
-        a: "You can log your weight and check-ins through your account. Your care team reviews your progress and adjusts your plan where clinically appropriate.",
-      },
-      {
-        q: "What if I miss an injection?",
-        a: "Don't worry — contact our clinical team and they'll advise you on the safest way to get back on schedule. It's never a problem we can't solve.",
-      },
-      {
-        q: "Can I continue treatment long-term?",
-        a: "Yes. Many patients continue treatment for as long as it remains clinically beneficial. Your prescriber will review this with you at regular intervals.",
-      },
-      {
-        q: "How is my personal information protected?",
-        a: "Your data is handled in line with UK GDPR and stored securely. We only share information where clinically necessary and with your knowledge.",
-      },
-    ],
-  },
-];
 
 function PlusIcon({ open }: { open: boolean }) {
   return (
@@ -224,11 +85,16 @@ function AccordionItem({
   );
 }
 
-export default function SupportFaq() {
+export default function SupportFaq({
+  content = SUPPORT_FAQ_DEFAULT,
+}: {
+  content?: SupportFaqContent;
+}) {
+  const SECTIONS = content.sections;
   const [activePill, setActivePill] = useState<string>("all");
   // Track open item as "sectionId:index" so each section manages one open row.
   const [openKey, setOpenKey] = useState<string | null>(
-    `${SECTIONS[0].id}:0`,
+    SECTIONS.length ? `${SECTIONS[0].id}:0` : null,
   );
 
   const visibleSections = useMemo(
@@ -236,7 +102,7 @@ export default function SupportFaq() {
       activePill === "all"
         ? SECTIONS
         : SECTIONS.filter((s) => s.id === activePill),
-    [activePill],
+    [activePill, SECTIONS],
   );
 
   return (
@@ -249,7 +115,7 @@ export default function SupportFaq() {
         {/* Filter pills */}
         <div className="mb-10 flex flex-wrap items-center gap-2 md:mb-14 md:gap-3">
           <FilterPill
-            label="All"
+            label={content.allLabel}
             active={activePill === "all"}
             onClick={() => setActivePill("all")}
           />
@@ -277,14 +143,17 @@ export default function SupportFaq() {
                     {section.headAccent}
                   </em>
                 </h3>
-                <a
-                  href="https://wa.me/447756099075"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-6 inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
-                >
-                  Get In Touch
-                </a>
+                {content.ctaLabel ? (
+                  <a
+                    href={content.ctaHref}
+                    {...(/^https?:\/\//i.test(content.ctaHref)
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                    className="mt-6 inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+                  >
+                    {content.ctaLabel}
+                  </a>
+                ) : null}
               </div>
 
               <ul className="flex w-full flex-col border-t border-[#142e2a]/12">

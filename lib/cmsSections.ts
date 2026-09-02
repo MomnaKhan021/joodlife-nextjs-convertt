@@ -77,6 +77,14 @@ export const CMS_NAV: CmsNavItem[] = [
     match: "/cms/home",
   },
   {
+    key: "cms-sections",
+    label: "Support page",
+    href: "/cms/support",
+    description: "Hero, FAQs and success stories, in page order",
+    status: "ready",
+    match: "/cms/support",
+  },
+  {
     key: "cms-pages",
     label: "Terms & conditions",
     href: "/cms/policies/terms",
