@@ -13,12 +13,6 @@ export const metadata = {
 export default async function RefundComplaintsPage() {
   const p = await getPolicy("refund-complaints");
   return (
-    <PolicyPage
-      title={p.title}
-      titleAccent={p.titleAccent}
-      intro={p.intro}
-      updated={p.updated}
-      sections={p.sections}
-    />
+    <PolicyPage {...p} />
   );
 }

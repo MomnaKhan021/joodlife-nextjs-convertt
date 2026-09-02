@@ -1,5 +1,12 @@
 import type { PolicyBlock, PolicySection } from "@/app/(site)/policies/PolicyPage";
-import { POLICY_DEFAULTS, type PolicySlug } from "@/lib/policyDefaults";
+import {
+  POLICY_CONTACT_DEFAULT,
+  POLICY_DEFAULTS,
+  POLICY_EYEBROW_DEFAULT,
+  type PolicyContact,
+  type PolicyContactLink,
+  type PolicySlug,
+} from "@/lib/policyDefaults";
 
 /**
  * Shape and validation for an editable policy page.
@@ -14,6 +21,8 @@ export type PolicyDoc = {
   intro: string;
   updated: string;
   sections: PolicySection[];
+  eyebrow: string;
+  contact: PolicyContact;
 };
 
 /** Which json field on the global holds which page. */
@@ -69,6 +78,34 @@ function toSections(value: unknown): PolicySection[] {
     .filter((s) => s.heading.trim() || s.blocks.length);
 }
 
+/** Drop link rows that lost their label or href. */
+function toLinks(value: unknown): PolicyContactLink[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((l): l is PolicyContactLink => Boolean(l) && typeof l === "object")
+    .map((l) => ({ label: String(l.label ?? ""), href: String(l.href ?? "") }))
+    .filter((l) => l.label.trim() && l.href.trim());
+}
+
+/**
+ * The help card falls back field by field, so clearing one line doesn't
+ * take the whole card down with it. An empty link list falls back too —
+ * removing every way to contact the pharmacy is never the intent.
+ */
+function toContact(value: unknown): PolicyContact {
+  const c = (value && typeof value === "object" ? value : {}) as Partial<PolicyContact>;
+  const links = toLinks(c.links);
+  return {
+    heading: str(c.heading, POLICY_CONTACT_DEFAULT.heading),
+    body: str(c.body, POLICY_CONTACT_DEFAULT.body),
+    links: links.length ? links : POLICY_CONTACT_DEFAULT.links,
+    // The button is the one part that may legitimately be emptied, so an
+    // empty label is honoured rather than replaced — the page hides it.
+    ctaLabel: typeof c.ctaLabel === "string" ? c.ctaLabel : POLICY_CONTACT_DEFAULT.ctaLabel,
+    ctaHref: str(c.ctaHref, POLICY_CONTACT_DEFAULT.ctaHref),
+  };
+}
+
 /**
  * Merge a stored value over the shipped defaults.
  *
@@ -86,5 +123,7 @@ export function mergePolicy(slug: PolicySlug, stored: unknown): PolicyDoc {
     intro: str(d.intro, base.intro),
     updated: str(d.updated, base.updated),
     sections: sections.length ? sections : base.sections,
+    eyebrow: str(d.eyebrow, POLICY_EYEBROW_DEFAULT),
+    contact: toContact(d.contact),
   };
 }

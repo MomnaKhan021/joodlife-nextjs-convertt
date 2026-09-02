@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
-import { POLICY_DEFAULTS, type PolicySlug } from "@/lib/policyDefaults";
+import { type PolicySlug } from "@/lib/policyDefaults";
 import {
   mergePolicy,
   POLICY_FIELD,
@@ -27,6 +27,8 @@ export async function getPolicy(slug: PolicySlug): Promise<PolicyDoc> {
     })) as Record<string, unknown>;
     return mergePolicy(slug, doc?.[POLICY_FIELD[slug]]);
   } catch {
-    return POLICY_DEFAULTS[slug];
+    // Same merge with nothing stored, so the shipped copy comes back
+    // complete — contact card and all — rather than a partial object.
+    return mergePolicy(slug, null);
   }
 }

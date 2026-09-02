@@ -2,6 +2,11 @@ import Link from "next/link";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
+import {
+  POLICY_CONTACT_DEFAULT,
+  POLICY_EYEBROW_DEFAULT,
+  type PolicyContact,
+} from "@/lib/policyDefaults";
 import Footer from "@/sections/home/Footer";
 
 /**
@@ -74,12 +79,18 @@ export default function PolicyPage({
   intro,
   updated,
   sections,
+  eyebrow = POLICY_EYEBROW_DEFAULT,
+  contact = POLICY_CONTACT_DEFAULT,
 }: {
   title: string;
   titleAccent?: string;
   intro: string;
   updated: string;
   sections: PolicySection[];
+  /** Small label above the title. */
+  eyebrow?: string;
+  /** The help card at the foot of the page. */
+  contact?: PolicyContact;
 }) {
   return (
     <>
@@ -91,7 +102,7 @@ export default function PolicyPage({
         <section className="w-full bg-[#f7f9f2]">
           <div className="mx-auto w-full max-w-[860px] px-6 pb-12 pt-12 md:px-10 md:pb-16 md:pt-16">
             <p className="font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142e2a]/55">
-              Legal
+              {eyebrow}
             </p>
             <h1 className="mt-3 font-display text-[34px] font-bold leading-[1.06] tracking-[-0.02em] text-[#142e2a] md:text-[52px]">
               {title}
@@ -132,40 +143,37 @@ export default function PolicyPage({
             {/* Contact / help card */}
             <div className="mt-12 rounded-3xl bg-[#f7f9f2] p-6 md:p-8">
               <h2 className="font-display text-[20px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#142e2a] md:text-[24px]">
-                Questions about this policy?
+                {contact.heading}
               </h2>
               <p className="mt-2 font-ui text-[15px] leading-[25px] text-[#142e2a]/75 md:text-[16px]">
-                Our care team is here to help. Contact us and a member of the
-                team will be happy to assist you.
+                {contact.body}
               </p>
               <div className="mt-4 flex flex-col gap-2 font-ui text-[15px] text-[#142e2a]/80 md:text-[16px]">
-                <a
-                  className="w-fit underline decoration-[#142e2a]/30 underline-offset-4 transition-colors hover:text-[#142e2a] hover:decoration-[#142e2a]"
-                  href="mailto:support@joodlife.com"
-                >
-                  support@joodlife.com
-                </a>
-                <a
-                  className="w-fit underline decoration-[#142e2a]/30 underline-offset-4 transition-colors hover:text-[#142e2a] hover:decoration-[#142e2a]"
-                  href="tel:01494424435"
-                >
-                  01494 424435
-                </a>
-                <a
-                  className="w-fit underline decoration-[#142e2a]/30 underline-offset-4 transition-colors hover:text-[#142e2a] hover:decoration-[#142e2a]"
-                  href="https://wa.me/447756099075"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  WhatsApp: 07756 099075
-                </a>
+                {contact.links.map((l, i) => {
+                  // mailto: and tel: stay in-page; a real URL opens away.
+                  const external = /^https?:\/\//i.test(l.href);
+                  return (
+                    <a
+                      key={i}
+                      className="w-fit underline decoration-[#142e2a]/30 underline-offset-4 transition-colors hover:text-[#142e2a] hover:decoration-[#142e2a]"
+                      href={l.href}
+                      {...(external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                    >
+                      {l.label}
+                    </a>
+                  );
+                })}
               </div>
-              <Link
-                href="/support"
-                className="mt-6 inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
-              >
-                Visit our Support centre
-              </Link>
+              {contact.ctaLabel ? (
+                <Link
+                  href={contact.ctaHref}
+                  className="mt-6 inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+                >
+                  {contact.ctaLabel}
+                </Link>
+              ) : null}
             </div>
           </div>
         </section>

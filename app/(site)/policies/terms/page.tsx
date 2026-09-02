@@ -13,12 +13,6 @@ export const metadata = {
 export default async function TermsPage() {
   const p = await getPolicy("terms");
   return (
-    <PolicyPage
-      title={p.title}
-      titleAccent={p.titleAccent}
-      intro={p.intro}
-      updated={p.updated}
-      sections={p.sections}
-    />
+    <PolicyPage {...p} />
   );
 }

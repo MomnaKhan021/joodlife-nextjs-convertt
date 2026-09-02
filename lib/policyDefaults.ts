@@ -386,3 +386,35 @@ export const POLICY_DEFAULTS = {
 
 export type PolicySlug = keyof typeof POLICY_DEFAULTS;
 export const POLICY_SLUGS: PolicySlug[] = ["terms", "refund-complaints", "privacy"];
+
+/**
+ * The help card at the foot of every policy page, and the small "Legal"
+ * label above the title.
+ *
+ * Shared defaults rather than per-policy ones: all three pages ship the
+ * same card today. Each policy still stores its own copy, so a page can be
+ * given its own contact details without touching the other two.
+ */
+export type PolicyContactLink = { label: string; href: string };
+
+export type PolicyContact = {
+  heading: string;
+  body: string;
+  links: PolicyContactLink[];
+  ctaLabel: string;
+  ctaHref: string;
+};
+
+export const POLICY_EYEBROW_DEFAULT = "Legal";
+
+export const POLICY_CONTACT_DEFAULT: PolicyContact = {
+  heading: "Questions about this policy?",
+  body: "Our care team is here to help. Contact us and a member of the team will be happy to assist you.",
+  links: [
+    { label: "support@joodlife.com", href: "mailto:support@joodlife.com" },
+    { label: "01494 424435", href: "tel:01494424435" },
+    { label: "WhatsApp: 07756 099075", href: "https://wa.me/447756099075" },
+  ],
+  ctaLabel: "Visit our Support centre",
+  ctaHref: "/support",
+};
