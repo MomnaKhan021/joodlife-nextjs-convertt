@@ -34,6 +34,16 @@ export default function SectionsForm({
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
 
+  // Owned here so the hero's right-hand cards (edited in the hero block)
+  // and the treatment bands below stay in step — one piece of state.
+  const [treatmentRows, setTreatmentRows] = useState<TreatmentRow[]>(treatments);
+  const updateTreatment = (key: string, patch: Partial<TreatmentRow>) =>
+    setTreatmentRows((prev) =>
+      prev.map((r) => (r.key === key ? { ...r, ...patch } : r)),
+    );
+  /** The two categories that sit beside the hero, in render order. */
+  const heroCards = ['erectile-dysfunction', 'period-delay'] as const;
+
   const [heroBadge, setHeroBadge] = useState(initial.heroBadge);
   const [heroTitle, setHeroTitle] = useState(initial.heroTitle);
   const [heroEmphasis, setHeroEmphasis] = useState(initial.heroTitleEmphasis);
@@ -281,20 +291,94 @@ export default function SectionsForm({
           </div>
         </div>
 
+        {/* ---- Hero: the two cards stacked to the right ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+              Hero — right cards
+            </h2>
+            <p className="text-[12px] text-[#8a8a8a]">
+              The two smaller cards stacked beside the hero. These belong to
+              their treatments, so the same title and image also appear on the
+              treatment&apos;s own page — editing here updates both.
+            </p>
+          </div>
+
+          {heroCards.map((key) => {
+            const row = treatmentRows.find((r) => r.key === key);
+            if (!row) return null;
+            const label =
+              key === "erectile-dysfunction"
+                ? "Erectile dysfunction"
+                : "Period delay";
+            return (
+              <div
+                key={key}
+                className="space-y-3 rounded-lg border border-[#eef1e8] bg-[#fafbf7] p-3"
+              >
+                <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                  {label}
+                </p>
+                <div>
+                  <label className={fieldLabel}>Card title</label>
+                  <textarea
+                    rows={2}
+                    className={`${fieldInput} mt-1`}
+                    value={row.cardTitle ?? ""}
+                    onChange={(e) =>
+                      updateTreatment(key, { cardTitle: e.target.value })
+                    }
+                  />
+                  <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                    A line break controls where it wraps.
+                  </p>
+                </div>
+                <div>
+                  <label className={fieldLabel}>Card link</label>
+                  <input
+                    className={`${fieldInput} mt-1`}
+                    value={row.href ?? ""}
+                    onChange={(e) =>
+                      updateTreatment(key, { href: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <span className={fieldLabel}>Card image</span>
+                  <MediaPicker
+                    valueId={null}
+                    valueUrl={row.cardImage || null}
+                    onChange={(_id, url) =>
+                      updateTreatment(key, { cardImage: url ?? "" })
+                    }
+                  />
+                </div>
+              </div>
+            );
+          })}
+
+          <p className="rounded-lg border border-[#e4e7de] bg-[#fafbf7] px-3 py-2 text-[12px] leading-relaxed text-[#616161]">
+            These fields save with the treatment sections below — use{" "}
+            <strong>Save treatments</strong> there after editing them.
+          </p>
+        </div>
+
         {/* ---- Treatment sections ---- */}
         <div className="rounded-xl border border-[#e4e7de] bg-[#fafbf7] p-4">
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-            Hero — right cards, and the three treatment bands
+            Treatment sections
           </h2>
           <p className="mt-1 text-[13px] leading-relaxed text-[#616161]">
-            Each treatment below controls two things: the small card beside the
-            hero (its <strong>hero card title</strong> and{" "}
-            <strong>hero card image</strong>), and its full band further down
-            the page. The same copy is used on that treatment&apos;s own
-            landing page.
+            The three bands below the hero. The same copy is used on each
+            treatment&apos;s own landing page.
           </p>
         </div>
-        <TreatmentsEditor initial={treatments} embedded />
+        <TreatmentsEditor
+          initial={treatments}
+          embedded
+          rows={treatmentRows}
+          onRowsChange={setTreatmentRows}
+        />
 
         {/* ---- Reviews ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">

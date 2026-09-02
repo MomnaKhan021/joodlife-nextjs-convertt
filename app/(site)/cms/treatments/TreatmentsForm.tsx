@@ -35,12 +35,26 @@ const LABELS: Record<string, string> = {
 export default function TreatmentsForm({
   initial,
   embedded = false,
+  rows: controlledRows,
+  onRowsChange,
 }: {
   initial: Row[];
   /** Rendered inside the Home page screen — drop the page chrome. */
   embedded?: boolean;
+  /**
+   * Controlled mode. The Home page screen owns the rows so the hero's
+   * right-hand cards can be edited up in the hero block and stay in step
+   * with the bands down here — two editors, one piece of state.
+   */
+  rows?: Row[];
+  onRowsChange?: (next: Row[]) => void;
 }) {
-  const [rows, setRows] = useState<Row[]>(initial);
+  const [ownRows, setOwnRows] = useState<Row[]>(initial);
+  const rows = controlledRows ?? ownRows;
+  const setRows = (next: Row[]) => {
+    if (onRowsChange) onRowsChange(next);
+    else setOwnRows(next);
+  };
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,7 +179,11 @@ export default function TreatmentsForm({
                   <label className={fieldLabel}>Hero card title</label>
                   <textarea rows={2} className={`${fieldInput} mt-1`} value={r.cardTitle ?? ""} onChange={(e) => update(i, { cardTitle: e.target.value })} />
                   <p className="mt-1 text-[12px] text-[#8a8a8a]">
-                    Shown on the small card beside the hero. A line break controls where it wraps.
+                    Shown on the small card beside the hero. A line break
+                    controls where it wraps.
+                    {embedded && r.key !== "weight-loss" ? (
+                      <> Also editable under <strong>Hero — right cards</strong> above; the two stay in step.</>
+                    ) : null}
                   </p>
                 </div>
                 <div className="sm:col-span-2">
