@@ -48,11 +48,20 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 ];
 
 export type EdDetailContent = {
+  card1Body?: string;
+  card1Cta?: string;
+  goalsTitle?: string;
   goals?: string[];
   testimonials?: Testimonial[];
 };
 
-export default function EdDetail({ goals, testimonials }: EdDetailContent = {}) {
+export default function EdDetail({
+  card1Body = 'Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.',
+  card1Cta = 'Start Your Assessment',
+  goalsTitle = 'What are your goals?',
+  goals,
+  testimonials,
+}: EdDetailContent = {}) {
   const GOALS = goals?.length ? goals : DEFAULT_GOALS;
   const TESTIMONIALS = testimonials?.length ? testimonials : DEFAULT_TESTIMONIALS;
   return (
@@ -63,8 +72,7 @@ export default function EdDetail({ goals, testimonials }: EdDetailContent = {}) 
         className="grid min-h-[300px] items-center gap-6 rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:min-h-[330px] md:grid-cols-[1.3fr_auto_auto] md:p-8"
       >
         <p className="max-w-[46ch] font-ui text-[15px] leading-relaxed text-white/90">
-          Take control of your erectile health with safe, discreet, clinician-led care.
-          Treatments are prescribed where appropriate and delivered directly to your door.
+          {card1Body}
         </p>
         <div className="relative mx-auto h-[120px] w-[180px]">
           <Image
@@ -80,7 +88,7 @@ export default function EdDetail({ goals, testimonials }: EdDetailContent = {}) 
           href="/consultation?product=erectile-dysfunction"
           className="btn-cta inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white hover:bg-[#08222f] md:w-auto md:justify-self-end"
         >
-          Start Your Assessment
+          {card1Cta}
         </Link>
       </Reveal>
 
@@ -101,7 +109,7 @@ export default function EdDetail({ goals, testimonials }: EdDetailContent = {}) 
           <div aria-hidden className="absolute inset-0 bg-black/20" />
           <div className="absolute inset-0 flex flex-col p-6 md:p-8">
             <h3 className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
-              What are your goals?
+              {goalsTitle}
             </h3>
             <ul className="mt-auto flex flex-col items-start gap-2 md:mt-0 md:flex-1 md:items-end md:justify-center md:gap-2.5">
               {GOALS.map((g) => (

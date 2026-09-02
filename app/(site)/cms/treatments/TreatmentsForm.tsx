@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import type {
   Chip,
+  FeatureRow,
   Testimonial,
   TreatmentRow,
 } from "@/lib/treatmentContentTypes";
@@ -59,6 +60,12 @@ export default function TreatmentsForm({
     const list = rows[i].detail[side] ?? [];
     updateDetail(i, {
       [side]: list.map((c, idx) => (idx === ci ? { ...c, ...patch } : c)),
+    });
+  }
+  function updateFeatureRow(i: number, fi: number, patch: Partial<FeatureRow>) {
+    const list = rows[i].detail.card1Features ?? [];
+    updateDetail(i, {
+      card1Features: list.map((f, idx) => (idx === fi ? { ...f, ...patch } : f)),
     });
   }
   function updateTestimonial(i: number, ti: number, patch: Partial<Testimonial>) {
@@ -227,22 +234,102 @@ export default function TreatmentsForm({
                 </p>
               </div>
 
-              {/* Panel content — differs per treatment. */}
+              {/* Panel content — listed in the order it reads down the page. */}
               {r.key === "weight-loss" && (
                 <div className="space-y-4 rounded-lg border border-[#eef1e8] p-3">
-                  <p className="text-[13px] font-medium text-[#1a1a1a]">
-                    Feature chips &amp; buttons
-                  </p>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-[13px] font-medium text-[#1a1a1a]">
+                      Panel content
+                    </p>
+                    <p className="text-[12px] text-[#8a8a8a]">
+                      In page order. Wrap a phrase in{" "}
+                      <code className="rounded bg-[#eef1e8] px-1">**stars**</code>{" "}
+                      to give it the green accent.
+                    </p>
+                  </div>
+
+                  {/* Card 1 — the wide banner */}
+                  <div className="space-y-3 rounded-lg border border-[#e8ece0] bg-white p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                      1 · Top banner
+                    </p>
                     <div>
-                      <label className={fieldLabel}>Primary button</label>
-                      <input className={`${fieldInput} mt-1`} value={r.detail.ctaPrimary ?? ""} onChange={(e) => updateDetail(i, { ctaPrimary: e.target.value })} />
+                      <label className={fieldLabel}>Heading</label>
+                      <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card1Title ?? ""} onChange={(e) => updateDetail(i, { card1Title: e.target.value })} />
+                      <p className="mt-1 text-[12px] text-[#8a8a8a]">A line break splits it across two lines.</p>
                     </div>
                     <div>
-                      <label className={fieldLabel}>Secondary button</label>
-                      <input className={`${fieldInput} mt-1`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
+                      <label className={fieldLabel}>Body</label>
+                      <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className={fieldLabel}>Feature rows</span>
+                        <button type="button" onClick={() => updateDetail(i, { card1Features: [...(r.detail.card1Features ?? []), { title: "", sub: "" }] })} className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]">+ Add row</button>
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {(r.detail.card1Features ?? []).map((f, fi) => (
+                          <div key={fi} className="flex flex-wrap items-center gap-2">
+                            <input aria-label="Feature title" className={`${fieldInput} min-w-[140px] flex-1`} value={f.title} onChange={(e) => updateFeatureRow(i, fi, { title: e.target.value })} placeholder="Personalised Assessment" />
+                            <input aria-label="Feature subtitle" className={`${fieldInput} min-w-[180px] flex-[2]`} value={f.sub} onChange={(e) => updateFeatureRow(i, fi, { sub: e.target.value })} placeholder="Every treatment starts with a clinical review." />
+                            <button type="button" onClick={() => updateDetail(i, { card1Features: (r.detail.card1Features ?? []).filter((_, x) => x !== fi) })} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Button text</label>
+                      <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.card1Cta ?? ""} onChange={(e) => updateDetail(i, { card1Cta: e.target.value })} />
                     </div>
                   </div>
+
+                  {/* Card 2 — bottom left */}
+                  <div className="space-y-3 rounded-lg border border-[#e8ece0] bg-white p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                      2 · Bottom-left card
+                    </p>
+                    <div>
+                      <label className={fieldLabel}>Heading</label>
+                      <input className={`${fieldInput} mt-1`} value={r.detail.card2Title ?? ""} onChange={(e) => updateDetail(i, { card2Title: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Body</label>
+                      <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card2Body ?? ""} onChange={(e) => updateDetail(i, { card2Body: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Button text</label>
+                      <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.ctaPrimary ?? ""} onChange={(e) => updateDetail(i, { ctaPrimary: e.target.value })} />
+                    </div>
+                  </div>
+
+                  {/* Card 3 — bottom right */}
+                  <div className="space-y-3 rounded-lg border border-[#e8ece0] bg-white p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                      3 · Bottom-right card
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className={fieldLabel}>Heading</label>
+                        <input className={`${fieldInput} mt-1`} value={r.detail.card3Title ?? ""} onChange={(e) => updateDetail(i, { card3Title: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className={fieldLabel}>Italic line</label>
+                        <input className={`${fieldInput} mt-1`} value={r.detail.card3Em ?? ""} onChange={(e) => updateDetail(i, { card3Em: e.target.value })} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Body</label>
+                      <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card3Body ?? ""} onChange={(e) => updateDetail(i, { card3Body: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Button text</label>
+                      <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
+                    </div>
+                  </div>
+
+                  <p className="text-[13px] font-medium text-[#1a1a1a]">
+                    4 · Feature chips
+                  </p>
                   {(["chipsLeft", "chipsRight"] as const).map((side) => (
                     <div key={side}>
                       <div className="flex items-center justify-between">
@@ -278,6 +365,29 @@ export default function TreatmentsForm({
 
               {r.key === "erectile-dysfunction" && (
                 <div className="space-y-4 rounded-lg border border-[#eef1e8] p-3">
+                  <p className="text-[13px] font-medium text-[#1a1a1a]">
+                    Panel content
+                  </p>
+
+                  <div className="space-y-3 rounded-lg border border-[#e8ece0] bg-white p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                      1 · Intro card
+                    </p>
+                    <div>
+                      <label className={fieldLabel}>Body</label>
+                      <textarea rows={3} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Button text</label>
+                      <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.card1Cta ?? ""} onChange={(e) => updateDetail(i, { card1Cta: e.target.value })} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={fieldLabel}>2 · Goals card heading</label>
+                    <input className={`${fieldInput} mt-1`} value={r.detail.goalsTitle ?? ""} onChange={(e) => updateDetail(i, { goalsTitle: e.target.value })} />
+                  </div>
+
                   <div>
                     <div className="flex items-center justify-between">
                       <span className={fieldLabel}>Goal options</span>
@@ -325,7 +435,32 @@ export default function TreatmentsForm({
               )}
 
               {r.key === "period-delay" && (
-                <div className="space-y-2 rounded-lg border border-[#eef1e8] p-3">
+                <div className="space-y-4 rounded-lg border border-[#eef1e8] p-3">
+                  <p className="text-[13px] font-medium text-[#1a1a1a]">
+                    Panel content
+                  </p>
+
+                  <div className="space-y-3 rounded-lg border border-[#e8ece0] bg-white p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+                      1 · Intro card
+                    </p>
+                    <div>
+                      <label className={fieldLabel}>Body</label>
+                      <textarea rows={3} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className={fieldLabel}>2 · Tags card heading</label>
+                      <input className={`${fieldInput} mt-1`} value={r.detail.tagsTitle ?? ""} onChange={(e) => updateDetail(i, { tagsTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={fieldLabel}>Button text</label>
+                      <input className={`${fieldInput} mt-1`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className={fieldLabel}>Topic tags</span>
                     <button type="button" onClick={() => updateDetail(i, { tags: [...(r.detail.tags ?? []), ""] })} className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]">

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
+import Highlight from "@/components/ui/Highlight";
 
 /**
  * Weight-loss section content (Figma Component 289, below the hero):
@@ -96,7 +97,17 @@ function FeatureRow({
 }
 
 /** "Introducing Wegovy Pills" card (Figma 67:1897, top of the WL panel). */
-function WegovyIntroCard() {
+function WegovyIntroCard({
+  card1Title,
+  card1Body,
+  FEATURES,
+  card1Cta,
+}: {
+  card1Title: string;
+  card1Body: string;
+  FEATURES: { title: string; sub: string }[];
+  card1Cta: string;
+}) {
   return (
     <Reveal
       as="div"
@@ -105,26 +116,25 @@ function WegovyIntroCard() {
       <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
         <div className="flex flex-col">
           <h3 className="font-display text-[18px] font-semibold leading-[1.2] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
-            New Oral Treatment Available
-            <br className="hidden md:block" />
-            {" "}Part of Jood&rsquo;s <span className="text-[#b4ff9f]">clinician-led care</span>
+            <Highlight text={card1Title} />
           </h3>
           <p className="mt-3 max-w-[48ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px] md:leading-[22px]">
-            A new oral treatment option, available following an{" "}
-            <span className="text-[#b4ff9f]">individual clinical assessment</span>.
+            <Highlight text={card1Body} />
           </p>
 
           <ul className="mt-6 flex flex-col gap-4">
-            <FeatureRow
-              title="Personalised Assessment"
-              sub="Every treatment starts with a clinical review."
-              iconSrc="/assets/icons/wegovy-uk.svg"
-            />
-            <FeatureRow
-              title="Ongoing Support"
-              sub="Expert guidance throughout your journey."
-              iconSrc="/assets/icons/wegovy-clinician.svg"
-            />
+            {FEATURES.map((f, i) => (
+              <FeatureRow
+                key={i}
+                title={f.title}
+                sub={f.sub}
+                iconSrc={
+                  i === 0
+                    ? "/assets/icons/wegovy-uk.svg"
+                    : "/assets/icons/wegovy-clinician.svg"
+                }
+              />
+            ))}
           </ul>
 
           <div className="mt-7">
@@ -132,7 +142,7 @@ function WegovyIntroCard() {
               href="/wegovy-pills"
               className="btn-cta inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white hover:bg-white/15"
             >
-              Learn More
+              {card1Cta}
             </Link>
           </div>
         </div>
@@ -153,6 +163,15 @@ function WegovyIntroCard() {
 }
 
 export type WeightLossDetailContent = {
+  card1Title?: string;
+  card1Body?: string;
+  card1Features?: { title: string; sub: string }[];
+  card1Cta?: string;
+  card2Title?: string;
+  card2Body?: string;
+  card3Title?: string;
+  card3Em?: string;
+  card3Body?: string;
   chipsLeft?: Chip[];
   chipsRight?: Chip[];
   ctaPrimary?: string;
@@ -160,26 +179,48 @@ export type WeightLossDetailContent = {
 };
 
 export default function WeightLossDetail({
+  card1Title = "New Oral Treatment Available\nPart of Jood's **clinician-led care**",
+  card1Body = "A new oral treatment option, available following an **individual clinical assessment**.",
+  card1Features,
+  card1Cta = 'Learn More',
+  card2Title = 'It’s more than treatment, **it’s transformation**',
+  card2Body = 'Your clinician will review your health and create a **personalised treatment plan** tailored to your individual needs.',
+  card3Title = 'Continuous, expert guidance',
+  card3Em = 'Every step of the way',
+  card3Body = 'Access experienced UK clinicians and dedicated support **throughout your weight loss journey**.',
   chipsLeft,
   chipsRight,
   ctaPrimary = 'Start Your Journey',
   ctaSecondary = 'Check Your Eligibility',
 }: WeightLossDetailContent = {}) {
+  const FEATURES = card1Features?.length
+    ? card1Features
+    : [
+        { title: 'Personalised Assessment', sub: 'Every treatment starts with a clinical review.' },
+        { title: 'Ongoing Support', sub: 'Expert guidance throughout your journey.' },
+      ];
   const LEFT_CHIPS = chipsLeft?.length ? chipsLeft : DEFAULT_LEFT_CHIPS;
   const RIGHT_CHIPS = chipsRight?.length ? chipsRight : DEFAULT_RIGHT_CHIPS;
   return (
     <div className="flex flex-col gap-4 md:gap-5">
-      <WegovyIntroCard />
+      <WegovyIntroCard
+        card1Title={card1Title}
+        card1Body={card1Body}
+        FEATURES={FEATURES}
+        card1Cta={card1Cta}
+      />
       <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
       <Reveal as="div" className="order-2 flex flex-col items-center rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
         <h3 className="font-display text-[22px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
-          It&rsquo;s more than treatment,{" "}
-          <em className="font-serif font-normal italic text-[#b4ff9f]">it&rsquo;s transformation</em>
+          <Highlight
+            text={card2Title}
+            as="em"
+            accentClass="font-serif font-normal italic text-[#b4ff9f]"
+          />
         </h3>
         <p className="mt-3 max-w-[46ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px]">
-          Your clinician will review your health and create a{" "}
-          <span className="text-[#b4ff9f]">personalised treatment plan</span> tailored to your individual needs.
+          <Highlight text={card2Body} />
         </p>
 
         {/* Mobile / tablet: chips flow in a 2-column grid above a centred
@@ -229,7 +270,7 @@ export default function WeightLossDetail({
       {/* Card B — continuous expert guidance (first on mobile per Figma) */}
       <Reveal as="div" delay={120} className="order-1 flex flex-col items-center rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 text-center backdrop-blur-[20px] md:p-8 lg:order-2">
         <h3 className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
-          Continuous, expert guidance
+          {card3Title}
         </h3>
 
         <div className="relative mt-[18px] aspect-[300/211] w-full overflow-hidden rounded-[16px] md:rounded-[20px]">
@@ -244,11 +285,10 @@ export default function WeightLossDetail({
         </div>
 
         <p className="mt-6 font-serif text-[24px] font-normal italic text-[#b4ff9f] md:text-[34px]">
-          Every step of the way
+          {card3Em}
         </p>
         <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
-          Access experienced UK clinicians and dedicated support{" "}
-          <span className="text-[#b4ff9f]">throughout your weight loss journey</span>.
+          <Highlight text={card3Body} />
         </p>
 
         <div className="mt-6 w-full">

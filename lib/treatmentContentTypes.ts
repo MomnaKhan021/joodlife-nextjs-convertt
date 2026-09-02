@@ -20,18 +20,69 @@ export type Testimonial = { quote: string; name: string; meta: string };
  *   erectile-dysfunction → goals, testimonials
  *   period-delay → tags
  */
+export type FeatureRow = { title: string; sub: string };
+
+/**
+ * Panel content, named and ordered as it reads down the page.
+ *
+ * Copy fields accept **double asterisks** around a phrase to give it the
+ * design's accent colour — see components/ui/Highlight.tsx. One field per
+ * visible block, rather than a field per fragment.
+ */
 export type CategoryDetail = {
+  // --- Card 1: the wide banner at the top of the panel ---
+  card1Title?: string;
+  card1Body?: string;
+  card1Features?: FeatureRow[];
+  card1Cta?: string;
+
+  // --- Card 2: bottom-left ---
+  card2Title?: string;
+  card2Body?: string;
   chipsLeft?: Chip[];
   chipsRight?: Chip[];
   ctaPrimary?: string;
+
+  // --- Card 3: bottom-right ---
+  card3Title?: string;
+  card3Em?: string;
+  card3Body?: string;
   ctaSecondary?: string;
+
+  // --- Erectile dysfunction only ---
+  goalsTitle?: string;
   goals?: string[];
   testimonials?: Testimonial[];
+
+  // --- Period delay only ---
+  tagsTitle?: string;
   tags?: string[];
 };
 
 export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
   "weight-loss": {
+    card1Title:
+      "New Oral Treatment Available\nPart of Jood's **clinician-led care**",
+    card1Body:
+      "A new oral treatment option, available following an **individual clinical assessment**.",
+    card1Features: [
+      {
+        title: "Personalised Assessment",
+        sub: "Every treatment starts with a clinical review.",
+      },
+      {
+        title: "Ongoing Support",
+        sub: "Expert guidance throughout your journey.",
+      },
+    ],
+    card1Cta: "Learn More",
+    card2Title: "It’s more than treatment, **it’s transformation**",
+    card2Body:
+      "Your clinician will review your health and create a **personalised treatment plan** tailored to your individual needs.",
+    card3Title: "Continuous, expert guidance",
+    card3Em: "Every step of the way",
+    card3Body:
+      "Access experienced UK clinicians and dedicated support **throughout your weight loss journey**.",
     chipsLeft: [
       { label: "Medication", sub: "Clinically-backed", iconSrc: "/assets/icons/chip-medication.svg" },
       { label: "Support", sub: "Long term", iconSrc: "/assets/icons/chip-support.svg" },
@@ -46,6 +97,10 @@ export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
     ctaSecondary: "Check Your Eligibility",
   },
   "erectile-dysfunction": {
+    card1Body:
+      "Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.",
+    card1Cta: "Start Your Assessment",
+    goalsTitle: "What are your goals?",
     goals: [
       "Improve erections",
       "Boost sexual confidence",
@@ -80,6 +135,10 @@ export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
     ],
   },
   "period-delay": {
+    card1Body:
+      "Delay your period safely and discreetly when you need to. Whether you’re travelling, attending a special event or planning ahead, our UK clinicians can assess whether norethisterone is appropriate for you.",
+    tagsTitle: "Understand Your Cycle and Hormone Health",
+    ctaSecondary: "Check Your Eligibility",
     tags: [
       "Hormones",
       "Period Delay",
@@ -187,16 +246,38 @@ function testimonials(value: unknown): Testimonial[] | undefined {
   return out.length ? out : undefined;
 }
 
+function features(value: unknown): FeatureRow[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const out = value
+    .filter(
+      (v): v is FeatureRow =>
+        Boolean(v) && typeof v === "object" && typeof (v as FeatureRow).title === "string",
+    )
+    .map((v) => ({ title: v.title, sub: typeof v.sub === "string" ? v.sub : "" }));
+  return out.length ? out : undefined;
+}
+
 function toDetail(value: unknown): CategoryDetail | undefined {
   if (!value || typeof value !== "object") return undefined;
   const d = value as CategoryDetail;
   return {
+    card1Title: pick(d.card1Title),
+    card1Body: pick(d.card1Body),
+    card1Features: features(d.card1Features),
+    card1Cta: pick(d.card1Cta),
+    card2Title: pick(d.card2Title),
+    card2Body: pick(d.card2Body),
+    card3Title: pick(d.card3Title),
+    card3Em: pick(d.card3Em),
+    card3Body: pick(d.card3Body),
     chipsLeft: chips(d.chipsLeft),
     chipsRight: chips(d.chipsRight),
     ctaPrimary: pick(d.ctaPrimary),
     ctaSecondary: pick(d.ctaSecondary),
+    goalsTitle: pick(d.goalsTitle),
     goals: strings(d.goals),
     testimonials: testimonials(d.testimonials),
+    tagsTitle: pick(d.tagsTitle),
     tags: strings(d.tags),
   };
 }
@@ -213,12 +294,23 @@ export function mergeDetails(
     out[key] = !d
       ? base
       : {
+          card1Title: d.card1Title ?? base.card1Title,
+          card1Body: d.card1Body ?? base.card1Body,
+          card1Features: d.card1Features ?? base.card1Features,
+          card1Cta: d.card1Cta ?? base.card1Cta,
+          card2Title: d.card2Title ?? base.card2Title,
+          card2Body: d.card2Body ?? base.card2Body,
+          card3Title: d.card3Title ?? base.card3Title,
+          card3Em: d.card3Em ?? base.card3Em,
+          card3Body: d.card3Body ?? base.card3Body,
           chipsLeft: d.chipsLeft ?? base.chipsLeft,
           chipsRight: d.chipsRight ?? base.chipsRight,
           ctaPrimary: d.ctaPrimary ?? base.ctaPrimary,
           ctaSecondary: d.ctaSecondary ?? base.ctaSecondary,
+          goalsTitle: d.goalsTitle ?? base.goalsTitle,
           goals: d.goals ?? base.goals,
           testimonials: d.testimonials ?? base.testimonials,
+          tagsTitle: d.tagsTitle ?? base.tagsTitle,
           tags: d.tags ?? base.tags,
         };
   }

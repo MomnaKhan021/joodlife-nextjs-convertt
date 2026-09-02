@@ -23,9 +23,19 @@ const DEFAULT_TAGS = [
   "Oestrogen",
 ];
 
-export type PeriodDetailContent = { tags?: string[] };
+export type PeriodDetailContent = {
+  card1Body?: string;
+  tagsTitle?: string;
+  tags?: string[];
+  ctaSecondary?: string;
+};
 
-export default function PeriodDetail({ tags }: PeriodDetailContent = {}) {
+export default function PeriodDetail({
+  card1Body = 'Delay your period safely and discreetly when you need to. Whether you’re travelling, attending a special event or planning ahead, our UK clinicians can assess whether norethisterone is appropriate for you.',
+  tagsTitle = 'Understand Your Cycle and Hormone Health',
+  tags,
+  ctaSecondary = 'Check Your Eligibility',
+}: PeriodDetailContent = {}) {
   const TAGS = tags?.length ? tags : DEFAULT_TAGS;
   return (
     <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
@@ -35,9 +45,7 @@ export default function PeriodDetail({ tags }: PeriodDetailContent = {}) {
         className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:p-8"
       >
         <p className="max-w-[42ch] font-ui text-[15px] leading-relaxed text-white/90">
-          Delay your period safely and discreetly when you need to. Whether you&rsquo;re
-          travelling, attending a special event or planning ahead, our UK clinicians can
-          assess whether norethisterone is appropriate for you.
+          {card1Body}
         </p>
         <div className="relative -mb-6 mt-6 h-[260px] w-full sm:h-[300px] md:-mb-8 md:h-[340px]">
           <Image
@@ -60,7 +68,7 @@ export default function PeriodDetail({ tags }: PeriodDetailContent = {}) {
         className="relative flex min-h-[380px] flex-col items-center overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:min-h-[420px] md:p-8"
       >
         <h3 className="relative z-10 max-w-[20ch] text-center font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
-          Understand Your Cycle and Hormone Health
+          {tagsTitle}
         </h3>
 
         {/* hormone tag cloud — faint, fills the whole card */}
@@ -97,7 +105,7 @@ export default function PeriodDetail({ tags }: PeriodDetailContent = {}) {
             href="/consultation?product=period-delay"
             className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#3a0d20] px-7 font-ui text-[14px] font-semibold text-white hover:bg-[#2d0a19]"
           >
-            Check Your Eligibility
+            {ctaSecondary}
           </Link>
         </div>
       </Reveal>
