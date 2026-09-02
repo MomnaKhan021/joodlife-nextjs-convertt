@@ -7,8 +7,11 @@ import {
   DEFAULT_CTA,
   DEFAULT_FAQS,
   DEFAULT_FAQ_HEADING,
+  DEFAULT_HIW_HEADING,
+  DEFAULT_HIW_STEPS,
   homeFallback,
   toFaqs,
+  toHiwSteps,
   type HomeContent,
 } from "@/lib/pageContentTypes";
 
@@ -50,6 +53,12 @@ export async function getHomeContent(): Promise<HomeContent> {
       faqHeadingEmphasis: str(
         doc?.faqHeadingEmphasis,
         DEFAULT_FAQ_HEADING.faqHeadingEmphasis,
+      ),
+      hiwSteps: toHiwSteps(doc?.hiwSteps, DEFAULT_HIW_STEPS),
+      hiwHeading: str(doc?.hiwHeading, DEFAULT_HIW_HEADING.hiwHeading),
+      hiwHeadingEmphasis: str(
+        doc?.hiwHeadingEmphasis,
+        DEFAULT_HIW_HEADING.hiwHeadingEmphasis,
       ),
       ctaTitle: str(doc?.ctaTitle, DEFAULT_CTA.ctaTitle),
       ctaTitleEmphasis: str(doc?.ctaTitleEmphasis, DEFAULT_CTA.ctaTitleEmphasis),

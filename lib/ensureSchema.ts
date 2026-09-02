@@ -265,6 +265,9 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading_emphasis\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faqs\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_heading\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_steps\" jsonb",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title_emphasis\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_subtitle\" varchar",
@@ -394,7 +397,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v11";
+const SCHEMA_VERSION = "v12";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

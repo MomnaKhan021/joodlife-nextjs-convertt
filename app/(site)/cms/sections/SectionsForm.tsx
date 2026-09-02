@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { Faq, HomeContent } from "@/lib/pageContentTypes";
+import type { Faq, HiwStep, HomeContent } from "@/lib/pageContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
 
@@ -23,6 +23,10 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
+
+  const [hiwHeading, setHiwHeading] = useState(initial.hiwHeading);
+  const [hiwEmphasis, setHiwEmphasis] = useState(initial.hiwHeadingEmphasis);
+  const [hiwSteps, setHiwSteps] = useState<HiwStep[]>(initial.hiwSteps);
 
   const [ctaTitle, setCtaTitle] = useState(initial.ctaTitle);
   const [ctaEmphasis, setCtaEmphasis] = useState(initial.ctaTitleEmphasis);
@@ -44,6 +48,17 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
     setFaqs(next);
   }
 
+  function updateStep(i: number, patch: Partial<HiwStep>) {
+    setHiwSteps(hiwSteps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  }
+  function moveStep(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= hiwSteps.length) return;
+    const next = [...hiwSteps];
+    [next[i], next[j]] = [next[j], next[i]];
+    setHiwSteps(next);
+  }
+
   async function save() {
     setSaving(true);
     setError(null);
@@ -57,6 +72,9 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
         faqHeading,
         faqHeadingEmphasis: faqEmphasis,
         faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
+        hiwHeading,
+        hiwHeadingEmphasis: hiwEmphasis,
+        hiwSteps: hiwSteps.filter((s) => s.title.trim() || s.copy.trim()),
         ctaTitle,
         ctaTitleEmphasis: ctaEmphasis,
         ctaSubtitle,
@@ -186,6 +204,70 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
                     onChange={(e) => updateFaq(i, { a: e.target.value })}
                     placeholder="Answer"
                   />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ---- How it works ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+                How it works
+              </h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                The three-step explainer in the middle of the page.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setHiwSteps([...hiwSteps, { step: "", title: "", copy: "", img: "" }])
+              }
+              className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
+            >
+              + Add step
+            </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={fieldLabel} htmlFor="hiwH">Heading</label>
+              <input id="hiwH" className={`${fieldInput} mt-1`} value={hiwHeading} onChange={(e) => setHiwHeading(e.target.value)} />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="hiwE">Heading (italic part)</label>
+              <input id="hiwE" className={`${fieldInput} mt-1`} value={hiwEmphasis} onChange={(e) => setHiwEmphasis(e.target.value)} />
+            </div>
+          </div>
+
+          {hiwSteps.length === 0 ? (
+            <p className="text-[13px] text-[#616161]">
+              No steps — the built-in three will be used.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {hiwSteps.map((s, i) => (
+                <div key={i} className="rounded-lg border border-[#eef1e8] p-3">
+                  <div className="flex flex-wrap items-start gap-2">
+                    <input aria-label={`Step label ${i + 1}`} className={`${fieldInput} max-w-[120px]`} value={s.step} onChange={(e) => updateStep(i, { step: e.target.value })} placeholder="Step 1" />
+                    <input aria-label={`Step title ${i + 1}`} className={`${fieldInput} min-w-[180px] flex-1`} value={s.title} onChange={(e) => updateStep(i, { title: e.target.value })} placeholder="Complete your assessment" />
+                    <div className="flex items-center gap-1">
+                      <button type="button" onClick={() => moveStep(i, -1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move up">↑</button>
+                      <button type="button" onClick={() => moveStep(i, 1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move down">↓</button>
+                      <button type="button" onClick={() => setHiwSteps(hiwSteps.filter((_, idx) => idx !== i))} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                    </div>
+                  </div>
+                  <textarea aria-label={`Step copy ${i + 1}`} rows={2} className={`${fieldInput} mt-2`} value={s.copy} onChange={(e) => updateStep(i, { copy: e.target.value })} placeholder="Description" />
+                  <div className="mt-2">
+                    <span className="text-[12px] text-[#616161]">Step image</span>
+                    <MediaPicker
+                      valueId={null}
+                      valueUrl={s.img || null}
+                      onChange={(_id, url) => updateStep(i, { img: url ?? "" })}
+                    />
+                  </div>
                 </div>
               ))}
             </div>

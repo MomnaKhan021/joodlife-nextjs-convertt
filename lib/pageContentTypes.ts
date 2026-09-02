@@ -48,6 +48,39 @@ export const DEFAULT_FAQS: Faq[] = [
   },
 ];
 
+export type HiwStep = {
+  step: string;
+  title: string;
+  copy: string;
+  img: string;
+};
+
+export const DEFAULT_HIW_HEADING = {
+  hiwHeading: "How it",
+  hiwHeadingEmphasis: "works",
+};
+
+export const DEFAULT_HIW_STEPS: HiwStep[] = [
+  {
+    step: "Step 1",
+    title: "Complete your assessment",
+    copy: "Answer a few quick questions about your health, medical history and treatment goals.",
+    img: "/assets/figma/hiw-step1.png",
+  },
+  {
+    step: "Step 2",
+    title: "Clinical review",
+    copy: "One of our experienced UK clinicians will review your assessment and recommend the most appropriate treatment, where clinically suitable.",
+    img: "/assets/figma/hiw-step2.png",
+  },
+  {
+    step: "Step 3",
+    title: "Treatment delivered",
+    copy: "If approved, your treatment will be prepared by our pharmacy and delivered quickly, discreetly and securely to your door.",
+    img: "/assets/figma/hiw-step3-v2.png",
+  },
+];
+
 export const DEFAULT_CTA = {
   ctaTitle: "Take the first step",
   ctaTitleEmphasis: "toward a better you",
@@ -56,8 +89,9 @@ export const DEFAULT_CTA = {
   ctaImage: "/assets/figma/cta-bg.png",
 };
 
-export type HomeContent = { faqs: Faq[] } & typeof DEFAULT_ANNOUNCEMENT &
+export type HomeContent = { faqs: Faq[]; hiwSteps: HiwStep[] } & typeof DEFAULT_ANNOUNCEMENT &
   typeof DEFAULT_FAQ_HEADING &
+  typeof DEFAULT_HIW_HEADING &
   typeof DEFAULT_CTA;
 
 /** Accept only well-formed FAQ rows; anything else falls back. */
@@ -75,11 +109,30 @@ export function toFaqs(value: unknown, fallback: Faq[]): Faq[] {
   return cleaned.length ? cleaned : fallback;
 }
 
+/** Accept only well-formed step rows; anything else falls back. */
+export function toHiwSteps(value: unknown, fallback: HiwStep[]): HiwStep[] {
+  if (!Array.isArray(value)) return fallback;
+  const cleaned = value
+    .filter(
+      (v): v is HiwStep =>
+        Boolean(v) && typeof v === "object" && typeof (v as HiwStep).title === "string",
+    )
+    .map((v) => ({
+      step: typeof v.step === "string" ? v.step : "",
+      title: v.title,
+      copy: typeof v.copy === "string" ? v.copy : "",
+      img: typeof v.img === "string" ? v.img : "",
+    }));
+  return cleaned.length ? cleaned : fallback;
+}
+
 export function homeFallback(): HomeContent {
   return {
     faqs: DEFAULT_FAQS,
+    hiwSteps: DEFAULT_HIW_STEPS,
     ...DEFAULT_ANNOUNCEMENT,
     ...DEFAULT_FAQ_HEADING,
+    ...DEFAULT_HIW_HEADING,
     ...DEFAULT_CTA,
   };
 }

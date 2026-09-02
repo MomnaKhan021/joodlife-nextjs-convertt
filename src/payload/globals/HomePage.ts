@@ -65,6 +65,22 @@ export const HomePage: GlobalConfig = {
       },
     },
 
+    // ---- How it works ----
+    { name: "hiwHeading", type: "text" },
+    {
+      name: "hiwHeadingEmphasis",
+      type: "text",
+      admin: { description: "Second part of the heading, shown in italics." },
+    },
+    {
+      name: "hiwSteps",
+      type: "json",
+      admin: {
+        description:
+          'Steps: [{ "step": "Step 1", "title": "…", "copy": "…", "img": "/assets/…" }]',
+      },
+    },
+
     // ---- Closing CTA banner ----
     { name: "ctaTitle", type: "text" },
     {
