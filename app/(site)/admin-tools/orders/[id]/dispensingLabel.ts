@@ -216,13 +216,25 @@ export function buildLabelsDocument(labels: LabelData[]): string {
  * printer spools) must not queue a second identical print job. */
 let printing = false;
 
+export type PrintHtmlOptions = {
+  /**
+   * Keep the document's own <script> tags and let them run before printing.
+   * Needed for the DPD dispatch label, which draws its barcode with a script;
+   * without it the label prints with a blank barcode. Our own labels don't
+   * need it, and stripping scripts there guarantees we control the one print.
+   */
+  keepScripts?: boolean;
+};
+
 /**
  * Print an arbitrary, complete HTML document via a hidden iframe and the
- * browser print dialog. Unlike window.open(), this is NOT blocked by popup
- * blockers — which is why it's used for both the dispensing labels and the
- * DPD dispatch label (whose HTML is returned by the DPD API).
+ * browser print dialog — on the same screen, going straight to whichever
+ * printer the browser has selected. Unlike window.open(), this is NOT blocked
+ * by popup blockers and never lands staff in a second tab they then have to
+ * print or "Save as PDF" from themselves. Used for both the dispensing labels
+ * and the DPD dispatch label (whose HTML is returned by the DPD API).
  */
-export function printHtmlDocument(html: string): void {
+export function printHtmlDocument(html: string, opts: PrintHtmlOptions = {}): void {
   if (typeof document === "undefined" || !html) return;
   if (printing) return;
   printing = true;
@@ -251,18 +263,46 @@ export function printHtmlDocument(html: string): void {
 
   win.onafterprint = cleanup;
 
-  doc.open();
-  // Strip any embedded auto-print scripts so we control printing exactly once.
-  doc.write(html.replace(/<script[\s\S]*?<\/script>/gi, ""));
-  doc.close();
-
-  /* Give the iframe a tick to lay out before invoking print. */
-  win.setTimeout(() => {
+  // While the document loads, the frame's own print() is a no-op: a label that
+  // auto-prints itself (DPD's does) must not open a second dialog. We call the
+  // real one exactly once below.
+  const realPrint = win.print.bind(win);
+  const fire = () => {
     win.focus();
-    win.print();
+    realPrint();
     /* Safety net in case onafterprint never fires (some browsers). */
     win.setTimeout(cleanup, 60000);
-  }, 300);
+  };
+  if (opts.keepScripts) win.print = () => {};
+
+  doc.open();
+  doc.write(
+    opts.keepScripts
+      ? html
+      : // Strip any embedded auto-print scripts so we control printing exactly once.
+        html.replace(/<script[\s\S]*?<\/script>/gi, ""),
+  );
+  doc.close();
+
+  if (!opts.keepScripts) {
+    /* Give the iframe a tick to lay out before invoking print. */
+    win.setTimeout(fire, 300);
+    return;
+  }
+
+  /* Scripts (the barcode) need the document fully loaded first. Poll for
+   * readyState "complete", then a short settle for the canvas/SVG to paint;
+   * give up waiting after 8s and print whatever has rendered. */
+  const started = Date.now();
+  const whenReady = () => {
+    const ready = doc.readyState === "complete";
+    if (ready || Date.now() - started > 8000) {
+      win.setTimeout(fire, 400);
+    } else {
+      win.setTimeout(whenReady, 100);
+    }
+  };
+  whenReady();
 }
 
 /** Render the dispensing labels into a hidden iframe and print. */
