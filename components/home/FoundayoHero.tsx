@@ -1,4 +1,5 @@
 import { getHomeContent } from "@/lib/pageContent";
+import { getCategories } from "@/lib/treatmentContent";
 import FoundayoHeroView from "./FoundayoHeroView";
 
 /**
@@ -18,9 +19,11 @@ export default async function FoundayoHero() {
     heroCtaHref,
     heroImage,
   } = await getHomeContent();
+  const categories = await getCategories();
 
   return (
     <FoundayoHeroView
+      categories={categories}
       badge={heroBadge}
       title={heroTitle}
       titleEmphasis={heroTitleEmphasis}

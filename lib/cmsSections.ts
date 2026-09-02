@@ -70,6 +70,14 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-sections",
+    label: "Treatments",
+    href: "/cms/treatments",
+    description: "Category copy shown on the home and treatment pages",
+    status: "ready",
+    match: "/cms/treatments",
+  },
+  {
+    key: "cms-sections",
     label: "Page sections",
     href: "/cms/sections",
     description: "Home page section copy and imagery",

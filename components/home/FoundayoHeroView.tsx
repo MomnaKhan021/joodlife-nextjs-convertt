@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, type Category, type CategoryKey } from "@/lib/categories";
 import { SecondaryCard } from "@/components/home/HeroGateway";
 
 /**
@@ -147,7 +147,14 @@ function FoundayoCard({
  * Presentational only — no async, no data access — so it stays safe from a
  * client boundary. FoundayoHero.tsx is the server wrapper that feeds it.
  */
-export default function FoundayoHeroView(content: HeroContent = {}) {
+export default function FoundayoHeroView({
+  categories,
+  ...content
+}: HeroContent & {
+  /** Merged treatment categories; falls back to the built-in ones. */
+  categories?: Record<CategoryKey, Category>;
+} = {}) {
+  const CATS = categories ?? CATEGORIES;
   return (
     <section
       aria-label="Explore our treatments"
@@ -159,8 +166,8 @@ export default function FoundayoHeroView(content: HeroContent = {}) {
             <FoundayoCard {...content} />
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <SecondaryCard category={CATEGORIES["erectile-dysfunction"]} />
-            <SecondaryCard category={CATEGORIES["period-delay"]} />
+            <SecondaryCard category={CATS["erectile-dysfunction"]} />
+            <SecondaryCard category={CATS["period-delay"]} />
           </div>
         </div>
       </div>

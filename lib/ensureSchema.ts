@@ -256,6 +256,11 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_heading\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"logo\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_icon\" varchar",
+  // ---- global: treatment category overrides ----
+  "CREATE TABLE IF NOT EXISTS \"treatments\" (\"id\" serial, \"categories\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"categories\" jsonb",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   // ---- global: home page sections ----
   "CREATE TABLE IF NOT EXISTS \"home_page\" (\"id\" serial, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_badge\" varchar",
@@ -413,7 +418,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v14";
+const SCHEMA_VERSION = "v15";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

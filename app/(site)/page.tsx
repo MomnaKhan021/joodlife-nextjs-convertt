@@ -12,7 +12,7 @@ import Blog from "@/sections/home/Blog";
 import CtaBanner from "@/sections/home/CtaBanner";
 import Footer from "@/sections/home/Footer";
 
-import { CATEGORIES } from "@/lib/categories";
+import { getCategories } from "@/lib/treatmentContent";
 import { getCurrentUser } from "@/lib/auth";
 import { getOrdersForEmail } from "@/lib/accountData";
 
@@ -27,6 +27,8 @@ export const dynamic = "force-dynamic";
  * how-it-works / reviews / CTA sections close the page out.
  */
 export default async function HomePage() {
+  const CATEGORIES = await getCategories();
+
   // Detect returning patients so CTAs switch from "Get Started" to "Reorder".
   let isReturningPatient = false;
   const user = await getCurrentUser();
