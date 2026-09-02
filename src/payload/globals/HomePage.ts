@@ -65,6 +65,35 @@ export const HomePage: GlobalConfig = {
       },
     },
 
+    // ---- Hero ----
+    {
+      name: "heroBadge",
+      type: "text",
+      admin: { description: 'Small pill above the title, e.g. "New". Blank hides it.' },
+    },
+    { name: "heroTitle", type: "text" },
+    {
+      name: "heroTitleEmphasis",
+      type: "text",
+      admin: { description: "Second line of the title, shown in serif italic." },
+    },
+    { name: "heroBody", type: "textarea", admin: { rows: 3 } },
+    {
+      name: "heroFeatures",
+      type: "json",
+      admin: {
+        description:
+          'Three feature labels: [{ "label": "Oral tablet treatment", "icon": "tablet" }]. Icon is one of: tablet, syringe, heart.',
+      },
+    },
+    { name: "heroCtaLabel", type: "text" },
+    { name: "heroCtaHref", type: "text" },
+    {
+      name: "heroImage",
+      type: "text",
+      admin: { description: "Product artwork shown beside the copy." },
+    },
+
     // ---- Reviews ----
     { name: "reviewsHeading", type: "text" },
     {

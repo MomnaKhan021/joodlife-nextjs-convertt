@@ -265,6 +265,14 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading_emphasis\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faqs\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_badge\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_title\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_title_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_body\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_features\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_cta_label\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_cta_href\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_image\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews_heading\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews_heading_emphasis\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews_intro\" varchar",
@@ -405,7 +413,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v13";
+const SCHEMA_VERSION = "v14";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

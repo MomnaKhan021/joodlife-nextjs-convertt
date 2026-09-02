@@ -48,6 +48,28 @@ export const DEFAULT_FAQS: Faq[] = [
   },
 ];
 
+/** Icon keys the hero knows how to draw. Anything else falls back to tablet. */
+export type HeroIcon = "tablet" | "syringe" | "heart";
+
+export type HeroFeature = { label: string; icon: HeroIcon };
+
+export const DEFAULT_HERO = {
+  heroBadge: "New",
+  heroTitle: "A new tablet option",
+  heroTitleEmphasis: "for weight management",
+  heroBody:
+    "Foundayo® (oral tirzepatide) is a new weight management treatment option, available following clinician assessment.",
+  heroCtaLabel: "Explore Foundayo",
+  heroCtaHref: "/consultation?product=weight-loss",
+  heroImage: "/assets/home/foundayo-pill.png",
+};
+
+export const DEFAULT_HERO_FEATURES: HeroFeature[] = [
+  { label: "Oral tablet\ntreatment", icon: "tablet" },
+  { label: "No\ninjections", icon: "syringe" },
+  { label: "Clinician\nsupport", icon: "heart" },
+];
+
 export type SiteReview = {
   name: string;
   text: string;
@@ -113,9 +135,11 @@ export const DEFAULT_CTA = {
 export type HomeContent = {
   faqs: Faq[];
   hiwSteps: HiwStep[];
+  heroFeatures: HeroFeature[];
   /** Empty means "use the curated Trustpilot list in lib/reviews.ts". */
   reviews: SiteReview[];
-} & typeof DEFAULT_ANNOUNCEMENT &
+} & typeof DEFAULT_HERO &
+  typeof DEFAULT_ANNOUNCEMENT &
   typeof DEFAULT_FAQ_HEADING &
   typeof DEFAULT_HIW_HEADING &
   typeof DEFAULT_REVIEWS_HEADING &
@@ -181,11 +205,32 @@ export function toReviews(value: unknown): SiteReview[] {
     }));
 }
 
+/** Accept only well-formed hero features; anything else falls back. */
+export function toHeroFeatures(
+  value: unknown,
+  fallback: HeroFeature[],
+): HeroFeature[] {
+  if (!Array.isArray(value)) return fallback;
+  const icons: HeroIcon[] = ["tablet", "syringe", "heart"];
+  const cleaned = value
+    .filter(
+      (v): v is HeroFeature =>
+        Boolean(v) && typeof v === "object" && typeof (v as HeroFeature).label === "string",
+    )
+    .map((v) => ({
+      label: v.label,
+      icon: icons.includes(v.icon) ? v.icon : ("tablet" as HeroIcon),
+    }));
+  return cleaned.length ? cleaned : fallback;
+}
+
 export function homeFallback(): HomeContent {
   return {
     faqs: DEFAULT_FAQS,
     hiwSteps: DEFAULT_HIW_STEPS,
+    heroFeatures: DEFAULT_HERO_FEATURES,
     reviews: [],
+    ...DEFAULT_HERO,
     ...DEFAULT_ANNOUNCEMENT,
     ...DEFAULT_FAQ_HEADING,
     ...DEFAULT_HIW_HEADING,

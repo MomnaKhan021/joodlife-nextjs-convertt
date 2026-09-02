@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type {
   Faq,
+  HeroFeature,
+  HeroIcon,
   HiwStep,
   HomeContent,
   SiteReview,
@@ -28,6 +30,17 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
+
+  const [heroBadge, setHeroBadge] = useState(initial.heroBadge);
+  const [heroTitle, setHeroTitle] = useState(initial.heroTitle);
+  const [heroEmphasis, setHeroEmphasis] = useState(initial.heroTitleEmphasis);
+  const [heroBody, setHeroBody] = useState(initial.heroBody);
+  const [heroFeatures, setHeroFeatures] = useState<HeroFeature[]>(
+    initial.heroFeatures,
+  );
+  const [heroCtaLabel, setHeroCtaLabel] = useState(initial.heroCtaLabel);
+  const [heroCtaHref, setHeroCtaHref] = useState(initial.heroCtaHref);
+  const [heroImage, setHeroImage] = useState(initial.heroImage);
 
   const [revHeading, setRevHeading] = useState(initial.reviewsHeading);
   const [revEmphasis, setRevEmphasis] = useState(initial.reviewsHeadingEmphasis);
@@ -61,6 +74,12 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
     const next = [...faqs];
     [next[i], next[j]] = [next[j], next[i]];
     setFaqs(next);
+  }
+
+  function updateFeature(i: number, patch: Partial<HeroFeature>) {
+    setHeroFeatures(
+      heroFeatures.map((f, idx) => (idx === i ? { ...f, ...patch } : f)),
+    );
   }
 
   function updateReview(i: number, patch: Partial<SiteReview>) {
@@ -98,6 +117,14 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
         faqHeading,
         faqHeadingEmphasis: faqEmphasis,
         faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
+        heroBadge,
+        heroTitle,
+        heroTitleEmphasis: heroEmphasis,
+        heroBody,
+        heroFeatures: heroFeatures.filter((f) => f.label.trim()),
+        heroCtaLabel,
+        heroCtaHref,
+        heroImage,
         reviewsHeading: revHeading,
         reviewsHeadingEmphasis: revEmphasis,
         reviewsIntro: revIntro,
@@ -242,6 +269,111 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* ---- Hero ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">Hero</h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                The peach card at the top of the page. The two cards beside it
+                come from the treatment categories.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setHeroFeatures([...heroFeatures, { label: "", icon: "tablet" }])
+              }
+              className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
+            >
+              + Add feature
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={fieldLabel} htmlFor="heroBadge">Badge</label>
+              <input id="heroBadge" className={`${fieldInput} mt-1`} value={heroBadge} onChange={(e) => setHeroBadge(e.target.value)} placeholder="New" />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="heroTitle">Title</label>
+              <input id="heroTitle" className={`${fieldInput} mt-1`} value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="heroEm">Title (italic line)</label>
+              <input id="heroEm" className={`${fieldInput} mt-1`} value={heroEmphasis} onChange={(e) => setHeroEmphasis(e.target.value)} />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="heroCtaL">Button text</label>
+              <input id="heroCtaL" className={`${fieldInput} mt-1`} value={heroCtaLabel} onChange={(e) => setHeroCtaLabel(e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={fieldLabel} htmlFor="heroCtaH">Button link</label>
+              <input id="heroCtaH" className={`${fieldInput} mt-1`} value={heroCtaHref} onChange={(e) => setHeroCtaHref(e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={fieldLabel} htmlFor="heroBody">Body copy</label>
+              <textarea id="heroBody" rows={3} className={`${fieldInput} mt-1`} value={heroBody} onChange={(e) => setHeroBody(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <span className={fieldLabel}>Feature list</span>
+            <p className="text-[12px] text-[#8a8a8a]">
+              Use a line break in the label to control where it wraps.
+            </p>
+            {heroFeatures.length === 0 ? (
+              <p className="mt-2 text-[13px] text-[#616161]">
+                No features — the built-in three will be used.
+              </p>
+            ) : (
+              <div className="mt-2 space-y-2">
+                {heroFeatures.map((f, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-2">
+                    <textarea
+                      aria-label={`Feature label ${i + 1}`}
+                      rows={2}
+                      className={`${fieldInput} min-w-[180px] flex-1`}
+                      value={f.label}
+                      onChange={(e) => updateFeature(i, { label: e.target.value })}
+                      placeholder={"Oral tablet\ntreatment"}
+                    />
+                    <select
+                      aria-label={`Feature icon ${i + 1}`}
+                      className={`${fieldInput} max-w-[130px]`}
+                      value={f.icon}
+                      onChange={(e) =>
+                        updateFeature(i, { icon: e.target.value as HeroIcon })
+                      }
+                    >
+                      <option value="tablet">Tablet</option>
+                      <option value="syringe">Syringe</option>
+                      <option value="heart">Heart</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setHeroFeatures(heroFeatures.filter((_, idx) => idx !== i))}
+                      className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]"
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <span className={fieldLabel}>Product image</span>
+            <MediaPicker
+              valueId={null}
+              valueUrl={heroImage || null}
+              onChange={(_id, url) => setHeroImage(url ?? "")}
+            />
+          </div>
         </div>
 
         {/* ---- Reviews ---- */}
