@@ -22,11 +22,6 @@ import MediaPicker from "../MediaPicker";
  * one restores the copy that ships in the component.
  */
 export default function SectionsForm({ initial }: { initial: HomeContent }) {
-  const [badge, setBadge] = useState(initial.announcementBadge);
-  const [annText, setAnnText] = useState(initial.announcementText);
-  const [annHref, setAnnHref] = useState(initial.announcementHref);
-  const [annHidden, setAnnHidden] = useState(initial.announcementHidden);
-
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
@@ -110,10 +105,6 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
     setSaved(false);
     try {
       await saveGlobal("home-page", {
-        announcementBadge: badge,
-        announcementText: annText,
-        announcementHref: annHref,
-        announcementHidden: annHidden,
         faqHeading,
         faqHeadingEmphasis: faqEmphasis,
         faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
@@ -156,11 +147,11 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
           ← Dashboard
         </Link>
         <h1 className="mt-2 text-[24px] font-semibold text-[#1a1a1a]">
-          Page sections
+          Home page
         </h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Copy and imagery for the home page. Clear any field to restore the
-          built-in text.
+          Every section of the home page, in the order it appears. Clear any
+          field to restore the built-in text.
         </p>
       </header>
 
@@ -176,101 +167,6 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
       )}
 
       <div className="space-y-5">
-        {/* ---- Announcement bar ---- */}
-        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-              Announcement bar
-            </h2>
-            <p className="text-[12px] text-[#8a8a8a]">
-              The dark strip above the header — shown on every page.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <label className={fieldLabel} htmlFor="badge">Badge</label>
-              <input id="badge" className={`${fieldInput} mt-1`} value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="New" />
-              <p className="mt-1 text-[12px] text-[#8a8a8a]">Blank hides the pill.</p>
-            </div>
-            <div className="sm:col-span-2">
-              <label className={fieldLabel} htmlFor="annHref">Links to</label>
-              <input id="annHref" className={`${fieldInput} mt-1`} value={annHref} onChange={(e) => setAnnHref(e.target.value)} placeholder="/wegovy-pills" />
-            </div>
-          </div>
-          <div>
-            <label className={fieldLabel} htmlFor="annText">Message</label>
-            <textarea id="annText" rows={2} className={`${fieldInput} mt-1`} value={annText} onChange={(e) => setAnnText(e.target.value)} />
-          </div>
-          <label className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">
-            <input type="checkbox" checked={annHidden} onChange={(e) => setAnnHidden(e.target.checked)} />
-            Hide the announcement bar entirely
-          </label>
-        </div>
-
-        {/* ---- FAQ ---- */}
-        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <h2 className="text-[15px] font-medium text-[#1a1a1a]">FAQ</h2>
-              <p className="text-[12px] text-[#8a8a8a]">
-                Questions shown near the bottom of the home page.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFaqs([...faqs, { q: "", a: "" }])}
-              className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
-            >
-              + Add question
-            </button>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="faqH">Heading</label>
-              <input id="faqH" className={`${fieldInput} mt-1`} value={faqHeading} onChange={(e) => setFaqHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="faqE">Heading (italic part)</label>
-              <input id="faqE" className={`${fieldInput} mt-1`} value={faqEmphasis} onChange={(e) => setFaqEmphasis(e.target.value)} />
-            </div>
-          </div>
-
-          {faqs.length === 0 ? (
-            <p className="text-[13px] text-[#616161]">
-              No questions — the built-in list will be used.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {faqs.map((f, i) => (
-                <div key={i} className="rounded-lg border border-[#eef1e8] p-3">
-                  <div className="flex items-start gap-2">
-                    <input
-                      aria-label={`Question ${i + 1}`}
-                      className={fieldInput}
-                      value={f.q}
-                      onChange={(e) => updateFaq(i, { q: e.target.value })}
-                      placeholder="Question"
-                    />
-                    <div className="flex items-center gap-1">
-                      <button type="button" onClick={() => moveFaq(i, -1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move up">↑</button>
-                      <button type="button" onClick={() => moveFaq(i, 1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move down">↓</button>
-                      <button type="button" onClick={() => setFaqs(faqs.filter((_, idx) => idx !== i))} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
-                    </div>
-                  </div>
-                  <textarea
-                    aria-label={`Answer ${i + 1}`}
-                    rows={2}
-                    className={`${fieldInput} mt-2`}
-                    value={f.a}
-                    onChange={(e) => updateFaq(i, { a: e.target.value })}
-                    placeholder="Answer"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* ---- Hero ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -376,6 +272,24 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
           </div>
         </div>
 
+        {/* ---- Treatments pointer ---- */}
+        <div className="rounded-xl border border-[#e4e7de] bg-white p-5">
+          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+            Treatment sections
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-[#616161]">
+            The three treatment bands below the hero — weight loss, erectile
+            dysfunction and period delay — share their copy with the treatment
+            landing pages, so they are edited in one place.
+          </p>
+          <Link
+            href="/cms/treatments"
+            className="mt-3 inline-block rounded-lg border border-[#d8ddd0] px-4 py-2 text-[13px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
+          >
+            Edit treatment sections →
+          </Link>
+        </div>
+
         {/* ---- Reviews ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -457,32 +371,6 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
           )}
         </div>
 
-        {/* ---- Blog strip ---- */}
-        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-              Blog strip
-            </h2>
-            <p className="text-[12px] text-[#8a8a8a]">
-              Heading above the recent-posts carousel. The posts themselves come
-              from the blog.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="blogH">Heading</label>
-              <input id="blogH" className={`${fieldInput} mt-1`} value={blogHeading} onChange={(e) => setBlogHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="blogE">Heading (italic part)</label>
-              <input id="blogE" className={`${fieldInput} mt-1`} value={blogEmphasis} onChange={(e) => setBlogEmphasis(e.target.value)} />
-            </div>
-          </div>
-          <p className="text-[12px] text-[#8a8a8a]">
-            Renders as: {blogHeading} <em>{blogEmphasis}</em> posts
-          </p>
-        </div>
-
         {/* ---- How it works ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -545,6 +433,96 @@ export default function SectionsForm({ initial }: { initial: HomeContent }) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* ---- FAQ ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">FAQ</h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Questions shown near the bottom of the home page.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFaqs([...faqs, { q: "", a: "" }])}
+              className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
+            >
+              + Add question
+            </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={fieldLabel} htmlFor="faqH">Heading</label>
+              <input id="faqH" className={`${fieldInput} mt-1`} value={faqHeading} onChange={(e) => setFaqHeading(e.target.value)} />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="faqE">Heading (italic part)</label>
+              <input id="faqE" className={`${fieldInput} mt-1`} value={faqEmphasis} onChange={(e) => setFaqEmphasis(e.target.value)} />
+            </div>
+          </div>
+
+          {faqs.length === 0 ? (
+            <p className="text-[13px] text-[#616161]">
+              No questions — the built-in list will be used.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {faqs.map((f, i) => (
+                <div key={i} className="rounded-lg border border-[#eef1e8] p-3">
+                  <div className="flex items-start gap-2">
+                    <input
+                      aria-label={`Question ${i + 1}`}
+                      className={fieldInput}
+                      value={f.q}
+                      onChange={(e) => updateFaq(i, { q: e.target.value })}
+                      placeholder="Question"
+                    />
+                    <div className="flex items-center gap-1">
+                      <button type="button" onClick={() => moveFaq(i, -1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move up">↑</button>
+                      <button type="button" onClick={() => moveFaq(i, 1)} className="rounded px-1.5 py-1 text-[13px] text-[#616161] hover:bg-[#f0f2ec]" title="Move down">↓</button>
+                      <button type="button" onClick={() => setFaqs(faqs.filter((_, idx) => idx !== i))} className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]" title="Remove">✕</button>
+                    </div>
+                  </div>
+                  <textarea
+                    aria-label={`Answer ${i + 1}`}
+                    rows={2}
+                    className={`${fieldInput} mt-2`}
+                    value={f.a}
+                    onChange={(e) => updateFaq(i, { a: e.target.value })}
+                    placeholder="Answer"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ---- Blog strip ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+              Blog strip
+            </h2>
+            <p className="text-[12px] text-[#8a8a8a]">
+              Heading above the recent-posts carousel. The posts themselves come
+              from the blog.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={fieldLabel} htmlFor="blogH">Heading</label>
+              <input id="blogH" className={`${fieldInput} mt-1`} value={blogHeading} onChange={(e) => setBlogHeading(e.target.value)} />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="blogE">Heading (italic part)</label>
+              <input id="blogE" className={`${fieldInput} mt-1`} value={blogEmphasis} onChange={(e) => setBlogEmphasis(e.target.value)} />
+            </div>
+          </div>
+          <p className="text-[12px] text-[#8a8a8a]">
+            Renders as: {blogHeading} <em>{blogEmphasis}</em> posts
+          </p>
         </div>
 
         {/* ---- Closing CTA ---- */}

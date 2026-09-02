@@ -70,19 +70,27 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-sections",
+    label: "Home page",
+    href: "/cms/home",
+    description: "Every home page section, in page order",
+    status: "ready",
+    match: "/cms/home",
+  },
+  {
+    key: "cms-sections",
     label: "Treatments",
     href: "/cms/treatments",
-    description: "Category copy shown on the home and treatment pages",
+    description: "Category copy shared by the home and treatment pages",
     status: "ready",
     match: "/cms/treatments",
   },
   {
-    key: "cms-sections",
-    label: "Page sections",
-    href: "/cms/sections",
-    description: "Home page section copy and imagery",
+    key: "cms-navigation",
+    label: "Announcement bar",
+    href: "/cms/announcement",
+    description: "The strip above the header, shown sitewide",
     status: "ready",
-    match: "/cms/sections",
+    match: "/cms/announcement",
   },
 ];
 

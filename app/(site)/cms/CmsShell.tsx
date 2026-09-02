@@ -29,8 +29,9 @@ const ICONS: Record<string, React.ReactNode> = {
   "/cms/pages": I("M7 3h7l5 5v13H7zM14 3v5h5"),
   "/cms/header": I("M3 5h18M3 12h18M3 19h18"),
   "/cms/footer": I("M3 19h18M3 12h18M7 5h10"),
-  "/cms/sections": I("M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z"),
+  "/cms/home": I("M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z"),
   "/cms/treatments": I("M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7zM7 7l7 7"),
+  "/cms/announcement": I("M3 11l14-6v14L3 13zM7 12v5a2 2 0 0 0 4 0"),
 };
 
 export default function CmsShell({
