@@ -73,7 +73,7 @@ export const CMS_NAV: CmsNavItem[] = [
     label: "Page sections",
     href: "/cms/sections",
     description: "Home page section copy and imagery",
-    status: "planned",
+    status: "ready",
     match: "/cms/sections",
   },
 ];

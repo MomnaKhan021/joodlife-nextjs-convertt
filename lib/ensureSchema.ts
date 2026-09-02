@@ -256,6 +256,21 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_heading\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"logo\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_icon\" varchar",
+  // ---- global: home page sections ----
+  "CREATE TABLE IF NOT EXISTS \"home_page\" (\"id\" serial, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_badge\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_text\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_href\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_hidden\" boolean DEFAULT false",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faqs\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_subtitle\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_image\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"phone\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"email\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"newsletter_heading\" varchar",
@@ -379,7 +394,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v10";
+const SCHEMA_VERSION = "v11";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

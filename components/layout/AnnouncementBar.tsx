@@ -1,39 +1,29 @@
-import Link from "next/link";
+import { getHomeContent } from "@/lib/pageContent";
+import AnnouncementBarView from "./AnnouncementBarView";
 
-/** "New" pill badge — peach on the dark bar, per the Figma announcement bar. */
-function NewBadge() {
+/**
+ * Server wrapper: reads the announcement from the Home global and renders the
+ * presentational bar. Exists so the ~20 pages that render <AnnouncementBar />
+ * keep working unchanged.
+ *
+ * Client boundaries (the article error page) import AnnouncementBarView
+ * directly — importing this file from a client component would pull the whole
+ * Payload chain into the client bundle and fail the production build.
+ */
+export default async function AnnouncementBar() {
+  const {
+    announcementBadge,
+    announcementText,
+    announcementHref,
+    announcementHidden,
+  } = await getHomeContent();
+
   return (
-    <span
-      className="inline-flex flex-shrink-0 items-center rounded-md bg-[#ffcebf] px-2.5 py-0.5 font-ui text-[12px] font-semibold text-[#142e2a]"
-      aria-hidden
-    >
-      New
-    </span>
-  );
-}
-
-export default function AnnouncementBar() {
-  return (
-    <div className="w-full bg-[#142e2a] text-white">
-      {/* Desktop: 44px tall, padded horizontally */}
-      <div className="hidden md:flex mx-auto h-11 w-full max-w-[1440px] items-center justify-center px-10 lg:px-20">
-        <div className="flex items-center gap-3">
-          <NewBadge />
-          <Link href="/wegovy-pills" className="font-outfit text-sm leading-snug text-white hover:underline">
-            Foundayo&reg; (oral tirzepatide) &ndash; a new tablet option for weight management is now available
-          </Link>
-        </div>
-      </div>
-
-      {/* Mobile: compact, text wraps to two lines */}
-      <div className="flex md:hidden mx-auto w-full items-center justify-center px-4 py-2">
-        <div className="flex items-center gap-2.5">
-          <NewBadge />
-          <Link href="/wegovy-pills" className="font-outfit text-[13px] leading-snug text-white hover:underline">
-            Foundayo&reg; (oral tirzepatide) &ndash; a new tablet option for weight management is now available
-          </Link>
-        </div>
-      </div>
-    </div>
+    <AnnouncementBarView
+      badge={announcementBadge}
+      text={announcementText}
+      href={announcementHref}
+      hidden={announcementHidden}
+    />
   );
 }

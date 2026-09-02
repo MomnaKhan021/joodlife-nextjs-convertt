@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
-import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import AnnouncementBarView from "@/components/layout/AnnouncementBarView";
 // Client versions on purpose: this is an error boundary, so it must be a
 // client component, and the default Header/Footer are async server
 // components that read the CMS globals. Importing those here would pull
@@ -32,7 +32,7 @@ export default function ArticleError({
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
-      <AnnouncementBar />
+      <AnnouncementBarView />
       <HeaderClient />
 
       <section className="mx-auto w-full max-w-[760px] flex-1 px-6 py-20 md:py-32">
