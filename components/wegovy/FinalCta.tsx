@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import {
+  WEGOVY_DEFAULT,
+  type WegovyFinalCta,
+} from "@/lib/wegovyContentTypes";
 
 /**
  * Closing CTA — Figma node 1:2132.
@@ -9,7 +13,11 @@ import Reveal from "@/components/ui/Reveal";
  *   Center: decorative ellipse 438×442 + portrait image 284×440 (right side)
  *   Right: outlined button 183×50, border=#0c2421, padding=(15,50), font Saans w570
  */
-export default function FinalCta() {
+export default function FinalCta({
+  content = WEGOVY_DEFAULT.finalCta,
+}: {
+  content?: WegovyFinalCta;
+}) {
   return (
     <section
       aria-label="Ready to start the Wegovy Pill"
@@ -43,22 +51,23 @@ export default function FinalCta() {
 
                 {/* Heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}
                 <h2 className="max-w-[425px] font-display text-[36px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-                  Ready to start your{" "}
-                  <em className="font-serif italic font-normal">journey?</em>
+                  {content.heading}{" "}
+                  <em className="font-serif italic font-normal">
+                    {content.headingAccent}
+                  </em>
                 </h2>
 
                 {/* Body: Saans 16.3px / lh 19.5px / w380 / ls -0.32px */}
                 <p className="max-w-[425px] font-ui text-[15px] leading-[19.5px] tracking-[-0.02em] text-[#142e2a]/70 md:text-[16.3px]">
-                  Complete a short online assessment to see if the Wegovy tablet
-                  is suitable for you.
+                  {content.body}
                 </p>
               </div>
 
               {/* MIDDLE — portrait image (284×440, right-aligned in column) */}
               <div className="relative order-3 h-[300px] w-full md:order-2 md:h-full md:min-h-[430px]">
                 <Image
-                  src="/assets/wegovy/cta-woman.png"
-                  alt="Woman looking up, smiling"
+                  src={content.image}
+                  alt={content.imageAlt}
                   fill
                   sizes="(max-width:768px) 100vw, 284px"
                   quality={95}
@@ -68,12 +77,14 @@ export default function FinalCta() {
 
               {/* RIGHT — outlined button: 183×50, border=#0c2421, px=50px, Saans w570 */}
               <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-0 md:py-0">
-                <a
-                  href="/consultation?product=weight-loss"
-                  className="inline-flex h-[50px] w-full max-w-[220px] cursor-pointer items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[24px] font-ui text-[16.3px] font-semibold tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white"
-                >
-                  Check Your Eligibility
-                </a>
+                {content.ctaLabel ? (
+                  <a
+                    href={content.ctaHref}
+                    className="inline-flex h-[50px] w-full max-w-[220px] cursor-pointer items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[24px] font-ui text-[16.3px] font-semibold tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white"
+                  >
+                    {content.ctaLabel}
+                  </a>
+                ) : null}
               </div>
 
             </div>
@@ -81,11 +92,7 @@ export default function FinalCta() {
 
           {/* Footer disclaimer */}
           <p className="mt-6 font-ui text-[11px] leading-[16px] text-[#142e2a]/55">
-            *Weight-loss outcomes vary between individuals. Figures are based on
-            published clinical trial data for semaglutide alongside
-            reduced-calorie diet and increased physical activity. Treatment is
-            subject to clinical assessment and is only prescribed where
-            appropriate.
+            {content.disclaimer}
           </p>
         </Reveal>
       </div>

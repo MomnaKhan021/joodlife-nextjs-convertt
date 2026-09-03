@@ -86,6 +86,14 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-sections",
+    label: "Wegovy Pills page",
+    href: "/cms/wegovy",
+    description: "Every section of /wegovy-pills, in page order",
+    status: "ready",
+    match: "/cms/wegovy",
+  },
+  {
+    key: "cms-sections",
     label: "Support page",
     href: "/cms/support",
     description: "Hero, FAQs and success stories, in page order",

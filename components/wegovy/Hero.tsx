@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import {
+  WEGOVY_DEFAULT,
+  type WegovyHero,
+} from "@/lib/wegovyContentTypes";
 
 /**
  * Wegovy Pills landing hero — Figma node 1:1506 (desktop) / 1:2362 (mobile).
@@ -8,12 +12,6 @@ import Reveal from "@/components/ui/Reveal";
  * white. Desktop anchors the gradient to the left (text on the left); mobile
  * anchors it to the bottom (text over the lower, darker part of the photo).
  */
-
-const STATS = [
-  "Average weight loss of up to 16.6% at 64 weeks*",
-  "MHRA-approved in the UK",
-  "Once-daily oral semaglutide",
-];
 
 function CheckBadge() {
   return (
@@ -31,7 +29,7 @@ function CheckBadge() {
   );
 }
 
-function HeroCopy() {
+function HeroCopy({ c }: { c: WegovyHero }) {
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -50,32 +48,30 @@ function HeroCopy() {
           className="h-4 w-auto"
         />
         <span className="font-ui text-[14.2px] text-white/90">
-          4.4 (50+) Reviews
+          {c.reviewsLabel}
         </span>
       </div>
 
       <h1 className="font-display text-[26px] font-semibold leading-[1.12] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[46px] lg:leading-[1.1]">
-        A New Era of Weight Loss.
+        {c.title}
         <br />
-        <span className="font-serif italic font-normal">
-          Introducing the Wegovy Tablet.
-        </span>
+        <span className="font-serif italic font-normal">{c.titleAccent}</span>
       </h1>
       <p className="mt-4 max-w-[480px] font-ui text-[15px] leading-[1.5] text-white/85 sm:text-[16px] md:text-[17px] md:leading-[1.5]">
-        A once-daily prescription treatment for weight loss with personalised
-        clinician-led care. The same trusted active ingredient, now without
-        weekly injections.
+        {c.body}
       </p>
 
-      <a
-        href="/consultation?product=weight-loss"
-        className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
-      >
-        Check Your Eligibility
-      </a>
+      {c.ctaLabel ? (
+        <a
+          href={c.ctaHref}
+          className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
+        >
+          {c.ctaLabel}
+        </a>
+      ) : null}
 
       <ul className="mt-7 flex flex-col gap-3">
-        {STATS.map((s) => (
+        {c.stats.map((s) => (
           <li key={s} className="flex items-center gap-3">
             <CheckBadge />
             <span className="font-ui text-[14px] leading-[20px] text-white/90 md:text-[15px]">
@@ -88,7 +84,11 @@ function HeroCopy() {
   );
 }
 
-export default function Hero() {
+export default function Hero({
+  content = WEGOVY_DEFAULT.hero,
+}: {
+  content?: WegovyHero;
+}) {
   return (
     <section
       aria-label="Wegovy Pills — a new way to lose weight"
@@ -96,8 +96,8 @@ export default function Hero() {
     >
       {/* Background photo */}
       <Image
-        src="/assets/wegovy/hero.png"
-        alt="Woman smiling outdoors holding a glass of water"
+        src={content.image}
+        alt={content.imageAlt}
         fill
         priority
         sizes="100vw"
@@ -125,7 +125,7 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-12 md:px-10 md:py-20 lg:px-[60px] lg:py-[110px]">
         <Reveal as="div" className="max-w-[720px]">
-          <HeroCopy />
+          <HeroCopy c={content} />
         </Reveal>
       </div>
     </section>

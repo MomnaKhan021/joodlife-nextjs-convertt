@@ -285,6 +285,22 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"cta\" jsonb",
   "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Wegovy Pills page - one json column per section, in page order.
+  "CREATE TABLE IF NOT EXISTS \"wegovy_page\" (\"id\" serial, \"announcement\" jsonb, \"hero\" jsonb, \"usp_bar\" jsonb, \"what_is_pill\" jsonb, \"comparison\" jsonb, \"how_it_works\" jsonb, \"real_results\" jsonb, \"dosing\" jsonb, \"why_choose\" jsonb, \"faq\" jsonb, \"final_cta\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"announcement\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"usp_bar\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"what_is_pill\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"comparison\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"how_it_works\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"real_results\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"dosing\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"why_choose\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"faq\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"final_cta\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   // ---- global: home page sections ----
   "CREATE TABLE IF NOT EXISTS \"home_page\" (\"id\" serial, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_badge\" varchar",
@@ -442,7 +458,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v18";
+const SCHEMA_VERSION = "v19";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

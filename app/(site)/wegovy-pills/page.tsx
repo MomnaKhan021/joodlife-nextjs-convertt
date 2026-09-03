@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Header from "@/components/layout/Header";
+import { getWegovyContent } from "@/lib/wegovyContent";
 import Footer from "@/sections/home/Footer";
 
 import Hero from "@/components/wegovy/Hero";
@@ -28,27 +29,31 @@ export const metadata: Metadata = {
  * Header, the shared Reviews carousel and the site Footer; every other
  * section is a bespoke component under components/wegovy/.
  */
-export default function WegovyPillsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function WegovyPillsPage() {
+  const c = await getWegovyContent();
+
   return (
     <main className="flex min-h-screen flex-col bg-white">
       {/* Announcement bar — sits above the header, per Figma */}
       <div className="w-full bg-[#142e2a]">
         <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[13px] font-semibold leading-[16.9px] tracking-[-0.02em] text-white md:px-10 lg:px-[60px]">
-          New Wegovy Pills treatment in the UK
+          {c.announcement.text}
         </p>
       </div>
       <Header />
-      <Hero />
-      <UspBar />
-      <WhatIsPill />
-      <Comparison />
-      <HowItWorks />
+      <Hero content={c.hero} />
+      <UspBar content={c.uspBar} />
+      <WhatIsPill content={c.whatIsPill} />
+      <Comparison content={c.comparison} />
+      <HowItWorks content={c.howItWorks} />
       <Reviews />
-      <RealResults />
-      <Dosing />
-      <WhyChoose />
-      <WegovyFaq />
-      <FinalCta />
+      <RealResults content={c.realResults} />
+      <Dosing content={c.dosing} />
+      <WhyChoose content={c.whyChoose} />
+      <WegovyFaq content={c.faq} />
+      <FinalCta content={c.finalCta} />
       <Footer />
     </main>
   );

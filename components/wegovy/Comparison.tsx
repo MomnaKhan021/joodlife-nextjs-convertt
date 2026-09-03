@@ -1,28 +1,15 @@
 import Reveal from "@/components/ui/Reveal";
+import {
+  WEGOVY_DEFAULT,
+  type ComparisonRow,
+  type WegovyComparison,
+} from "@/lib/wegovyContentTypes";
 
 /**
  * "Wegovy pill vs Wegovy injection" — Figma node 1:1676.
  * Cards container: 690px total (340px each + 10px gap), centred on page.
  * Card rows have fixed heights matching Figma exactly.
  */
-
-type Row = { label: React.ReactNode; check?: boolean; minus?: boolean };
-
-const PILL_ROWS: Row[] = [
-  { label: (<span className="font-semibold text-[#00b67a]">Once daily</span>) },
-  { label: "Oral tablet", check: true },
-  { label: "Semaglutide", check: true },
-  { label: "Clinically studied", check: true },
-  { label: "Needle-free", check: true },
-];
-
-const PEN_ROWS: Row[] = [
-  { label: (<span className="font-semibold">Once weekly</span>) },
-  { label: "Injection pen", check: true },
-  { label: "Semaglutide", check: true },
-  { label: "Clinically studied", check: true },
-  { label: "Weekly injection", minus: true },
-];
 
 /* Row min-heights — tighter on mobile, Figma values (127/81/97) at md+ */
 const ROW_MIN = [
@@ -82,7 +69,7 @@ function Card({
   variant,
 }: {
   title: string;
-  rows: Row[];
+  rows: ComparisonRow[];
   variant: "pill" | "pen";
 }) {
   const dark = variant === "pill";
@@ -101,6 +88,7 @@ function Card({
 
       <ul className="flex flex-col">
         {rows.map((r, i) => {
+          const min = ROW_MIN[Math.min(i, ROW_MIN.length - 1)];
           const divider = i < rows.length - 1
             ? dark ? "border-b border-white/10" : "border-b border-[#142e2a]/8"
             : "";
@@ -108,17 +96,25 @@ function Card({
           return (
             <li
               key={i}
-              className={`flex flex-col items-center justify-center gap-2 px-3 text-center md:px-4 ${ROW_MIN[i]} ${divider}`}
+              className={`flex flex-col items-center justify-center gap-2 px-3 text-center md:px-4 ${min} ${divider}`}
             >
               {/* Row 0 (pricing): product icon above text */}
               {i === 0 && (variant === "pill" ? <PillIcon dark={dark} /> : <PenIcon dark={dark} />)}
 
               {/* Rows 1+ check / minus */}
-              {i > 0 && r.check ? <Tick dark={dark} /> : null}
-              {i > 0 && r.minus ? <Minus /> : null}
+              {i > 0 && r.mark === "check" ? <Tick dark={dark} /> : null}
+              {i > 0 && r.mark === "minus" ? <Minus /> : null}
 
               <span className={`font-ui text-[12px] leading-[18px] md:text-[14px] md:leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
-                {r.label}
+                {/* The first row is the cadence line, set bold — green on the
+                    tablet card, plain on the pen card. */}
+                {i === 0 ? (
+                  <span className={dark ? "font-semibold text-[#00b67a]" : "font-semibold"}>
+                    {r.label}
+                  </span>
+                ) : (
+                  r.label
+                )}
               </span>
             </li>
           );
@@ -128,7 +124,11 @@ function Card({
   );
 }
 
-export default function Comparison() {
+export default function Comparison({
+  content = WEGOVY_DEFAULT.comparison,
+}: {
+  content?: WegovyComparison;
+}) {
   return (
     <section
       aria-label="Wegovy pill versus Wegovy injection"
@@ -139,35 +139,43 @@ export default function Comparison() {
         {/* Heading — 846px wide in Figma, centred */}
         <Reveal as="div">
           <h2 className="mb-5 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-            Wegovy Tablet vs{" "}
+            {content.heading}{" "}
             <span className="font-serif italic font-normal">
-              Wegovy Injection
+              {content.headingAccent}
             </span>
           </h2>
           <p className="mx-auto mb-10 max-w-[620px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
-            Both treatments contain semaglutide and are prescribed following a
-            clinical assessment. The best option depends on your lifestyle,
-            preferences and clinical suitability.
+            {content.body}
           </p>
         </Reveal>
 
         {/* Cards — 690px total (340 + 10 gap + 340), centred */}
         <Reveal as="div" delay={100}>
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
-            <Card title="Wegovy Tablet" rows={PILL_ROWS} variant="pill" />
-            <Card title="Wegovy Injection" rows={PEN_ROWS} variant="pen" />
+            <Card
+              title={content.pillTitle}
+              rows={content.pillRows}
+              variant="pill"
+            />
+            <Card
+              title={content.penTitle}
+              rows={content.penRows}
+              variant="pen"
+            />
           </div>
         </Reveal>
 
         {/* Footer — 690px wide, centred */}
         <Reveal as="div" delay={150}>
           <div className="mx-auto mt-9 flex max-w-[690px] flex-col items-center gap-6">
-            <a
-              href="/consultation?product=weight-loss"
-              className="inline-flex h-[50px] w-[220px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
-            >
-              Compare Treatments
-            </a>
+            {content.ctaLabel ? (
+              <a
+                href={content.ctaHref}
+                className="inline-flex h-[50px] w-[220px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+              >
+                {content.ctaLabel}
+              </a>
+            ) : null}
           </div>
         </Reveal>
 

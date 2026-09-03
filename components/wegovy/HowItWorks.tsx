@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import {
+  WEGOVY_DEFAULT,
+  type WegovyHowItWorks,
+} from "@/lib/wegovyContentTypes";
 
 /**
  * "How do Wegovy pills work?" — Figma node 1:1725.
@@ -8,8 +12,8 @@ import Reveal from "@/components/ui/Reveal";
  * Mobile: same overlay layout, scaled height.
  */
 
+/** Position and connector art for one corner. The words come from the CMS. */
 type Callout = {
-  label: string;
   pos: string;
   mobilePos: string;
   align: "text-left" | "text-right";
@@ -74,7 +78,6 @@ const MobileConnectorLeftUp = () => (
 
 const CALLOUTS: Callout[] = [
   {
-    label: "Reduce food\ncravings",
     /* Figma: x=18.7%, y=24.6% — top-left */
     pos: "left-[18%] top-[24%]",
     mobilePos: "left-[2%] top-[22%]",
@@ -83,7 +86,6 @@ const CALLOUTS: Callout[] = [
     mobileConnector: <MobileConnectorRightDown />,
   },
   {
-    label: "Increase feelings\nof fullness",
     /* Figma: right text at x=74%, y=24.5% — top-right */
     pos: "right-[14%] top-[24%]",
     mobilePos: "right-[2%] top-[22%]",
@@ -92,7 +94,6 @@ const CALLOUTS: Callout[] = [
     mobileConnector: <MobileConnectorLeftDown />,
   },
   {
-    label: "Slow stomach\nemptying",
     /* Figma: x=18.7%, y=58% — bottom-left */
     pos: "left-[18%] bottom-[18%]",
     mobilePos: "left-[2%] bottom-[16%]",
@@ -102,7 +103,6 @@ const CALLOUTS: Callout[] = [
     connectorFirst: true,
   },
   {
-    label: "Help regulate\nappetite",
     /* Figma: right text at x=71%, y=58% — bottom-right */
     pos: "right-[14%] bottom-[18%]",
     mobilePos: "right-[2%] bottom-[16%]",
@@ -113,7 +113,11 @@ const CALLOUTS: Callout[] = [
   },
 ];
 
-export default function HowItWorks() {
+export default function HowItWorks({
+  content = WEGOVY_DEFAULT.howItWorks,
+}: {
+  content?: WegovyHowItWorks;
+}) {
   return (
     <section
       aria-label="How Wegovy pills work"
@@ -121,7 +125,7 @@ export default function HowItWorks() {
     >
       {/* Background pill image */}
       <Image
-        src="/assets/wegovy/how-pill.png"
+        src={content.image}
         alt=""
         fill
         sizes="100vw"
@@ -145,29 +149,27 @@ export default function HowItWorks() {
         {/* Heading + subtitle — centred, max-w 580px */}
         <Reveal as="div" className="mx-auto max-w-[640px] text-center">
           <h2 className="font-display text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[48px] lg:leading-[52px]">
-            How the{" "}
-            <em className="font-serif italic">Wegovy Tablet Works</em>
+            {content.heading}{" "}
+            <em className="font-serif italic">{content.headingAccent}</em>
           </h2>
           <p className="mx-auto mt-4 max-w-[580px] font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
-            The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist
-            that works with your body&apos;s natural appetite hormones to
-            support weight loss. Helps to:
+            {content.intro}
           </p>
         </Reveal>
 
         {/* Callout overlay — shown on ALL screen sizes */}
         <div className="relative mx-auto w-full flex-1" style={{ minHeight: 300 }}>
           {/* Desktop (lg+) — wide layout tuned to the full-width pill */}
-          {CALLOUTS.map((c) => (
+          {CALLOUTS.map((c, i) => (
             <div
-              key={c.label}
+              key={i}
               className={`absolute ${c.pos} hidden max-w-[220px] flex-col gap-0 lg:flex ${
                 c.align === "text-right" ? "items-end" : "items-start"
               }`}
             >
               {c.connectorFirst && c.connector}
               <p className="whitespace-pre-line font-ui text-[18px] font-semibold leading-[24px] text-white">
-                {c.label}
+                {content.callouts[i]}
               </p>
               {!c.connectorFirst && c.connector}
             </div>
@@ -178,16 +180,16 @@ export default function HowItWorks() {
               the centred pill) so the connector arrows always meet the pill
               instead of drifting to the far edges. */}
           <div className="absolute inset-0 mx-auto max-w-[440px] lg:hidden">
-            {CALLOUTS.map((c) => (
+            {CALLOUTS.map((c, i) => (
               <div
-                key={`m-${c.label}`}
+                key={`m-${i}`}
                 className={`absolute ${c.mobilePos} flex max-w-[130px] flex-col gap-0 ${
                   c.align === "text-right" ? "items-end" : "items-start"
                 }`}
               >
                 {c.connectorFirst && c.mobileConnector}
                 <p className={`whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white sm:text-[13px] sm:leading-[17px] ${c.align}`}>
-                  {c.label}
+                  {content.callouts[i]}
                 </p>
                 {!c.connectorFirst && c.mobileConnector}
               </div>
@@ -198,26 +200,27 @@ export default function HowItWorks() {
         {/* Description + buttons — centred */}
         <Reveal as="div" className="mx-auto mt-4 max-w-[690px] text-center" delay={120}>
           <p className="font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
-            Like the Wegovy injection, the tablet contains semaglutide. The
-            difference is simply how it&apos;s taken — one as a daily tablet and
-            the other as a once-weekly injection.
+            {content.body}
           </p>
           <div className="mt-7 flex items-center justify-center gap-4">
-            <a
-              href="/consultation?product=weight-loss"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
-            >
-              Check Your Eligibility
-            </a>
-            {/* Keep the reader on the Wegovy tablet page — scroll down to the
-                tablet's own FAQs rather than sending them to the weight-loss
-                injection page. */}
-            <a
-              href="#faq"
-              className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/40 bg-white/[0.08] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/15"
-            >
-              Learn More
-            </a>
+            {content.ctaLabel ? (
+              <a
+                href={content.ctaHref}
+                className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
+              >
+                {content.ctaLabel}
+              </a>
+            ) : null}
+            {/* Second button defaults to #faq — the tablet's own questions,
+                further down this page, rather than the injection page. */}
+            {content.secondaryLabel ? (
+              <a
+                href={content.secondaryHref}
+                className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/40 bg-white/[0.08] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/15"
+              >
+                {content.secondaryLabel}
+              </a>
+            ) : null}
           </div>
         </Reveal>
 

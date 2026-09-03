@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import {
+  WEGOVY_DEFAULT,
+  type WegovyWhyChoose,
+} from "@/lib/wegovyContentTypes";
 
 /**
  * "Why Choose Jood Life for Wegovy" — Figma node 1:2049.
@@ -7,24 +11,19 @@ import Reveal from "@/components/ui/Reveal";
  * heading, three benefit rows and the safety disclaimer.
  */
 
-const BENEFITS = [
-  "MHRA-approved prescription treatment",
-  "UK clinician review",
-  "Ongoing support throughout treatment",
-  "Fast, discreet UK delivery",
-  "Regular progress check-ins",
-  "Dedicated patient support",
-];
-
-export default function WhyChoose() {
+export default function WhyChoose({
+  content = WEGOVY_DEFAULT.whyChoose,
+}: {
+  content?: WegovyWhyChoose;
+}) {
   return (
     <section
       aria-label="Why choose Jood Life for Wegovy"
       className="relative flex min-h-[560px] w-full items-end overflow-hidden md:min-h-[665px] md:items-center"
     >
       <Image
-        src="/assets/wegovy/why-runner.png"
-        alt="Man running outdoors"
+        src={content.image}
+        alt={content.imageAlt}
         fill
         sizes="100vw"
         className="object-cover object-[75%_top] md:object-[80%_top]"
@@ -51,14 +50,14 @@ export default function WhyChoose() {
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
         <Reveal as="div" className="max-w-[560px]">
           <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-            Why Choose Jood Life for your{" "}
+            {content.heading}{" "}
             <span className="font-serif italic font-normal">
-              Wegovy journey
+              {content.headingAccent}
             </span>
           </h2>
 
           <ul className="mt-8 flex flex-col gap-3">
-            {BENEFITS.map((b) => (
+            {content.benefits.map((b) => (
               <li
                 key={b}
                 className="flex items-center justify-between gap-3 rounded-xl bg-black/[0.23] px-5 py-4 backdrop-blur-sm"
@@ -77,13 +76,10 @@ export default function WhyChoose() {
 
           <div className="mt-8 max-w-[520px]">
             <p className="font-ui text-[16px] font-semibold text-white md:text-[18px]">
-              Important Safety Information
+              {content.safetyTitle}
             </p>
             <p className="mt-2 font-ui text-[15px] leading-[21px] text-white/80 md:text-[16.3px]">
-              The Wegovy tablet is not suitable for everyone. Before treatment,
-              one of our UK clinicians will review your medical history to ensure
-              it is appropriate for you. Please read the Patient Information
-              Leaflet before starting treatment.
+              {content.safetyBody}
             </p>
           </div>
         </Reveal>
