@@ -1,7 +1,9 @@
 import Link from "next/link";
 
+import { journalSeedPosts } from "@/lib/journalSeed";
 import { getPayloadInstance } from "@/lib/payload";
 
+import ImportStarter from "./ImportStarter";
 import PostActions from "./PostActions";
 import { CATEGORIES } from "./PostForm";
 
@@ -104,7 +106,9 @@ export default async function CmsBlogsList() {
         </p>
       ) : posts.length === 0 ? (
         <div className="rounded-xl border border-[#e4e7de] bg-white p-8 text-center">
-          <p className="text-[15px] font-medium text-[#1a1a1a]">No posts yet</p>
+          <p className="text-[15px] font-medium text-[#1a1a1a]">
+            No posts in the database yet
+          </p>
           <p className="mx-auto mt-2 max-w-[440px] text-[13px] leading-relaxed text-[#616161]">
             Write your first article — give it a title, a cover image and a
             body, then publish. It appears on /blogs straight away.
@@ -115,6 +119,9 @@ export default async function CmsBlogsList() {
           >
             New post
           </Link>
+          {journalSeedPosts.length > 0 && (
+            <ImportStarter count={journalSeedPosts.length} />
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[#e4e7de] bg-white">
