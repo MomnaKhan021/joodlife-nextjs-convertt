@@ -1,5 +1,6 @@
 import "server-only";
-import { CATEGORIES } from "@/lib/postCategories";
+import { getCategoryLabelMap } from "@/lib/blogCategories";
+import { fallbackLabel } from "@/lib/postCategories";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { journalSeedPosts, seedToStorefront } from "./journalSeed";
@@ -22,6 +23,8 @@ export type StorefrontPost = {
   heroImageUrl: string | null;
   heroImageAlt: string | null;
   category: string | null;
+  /** Display name for `category`, resolved from the editable list. */
+  categoryLabel: string;
   publishedAt: string | null;
   authorName: string | null;
   tags: string[];
@@ -222,9 +225,12 @@ export async function listPublishedPostsPaginated(
     return { posts: [], total: 0, page: 1, pageSize, totalPages: 0 };
   }
 
-  const tags = await fetchTagsByPost(rows.map((r) => r.id));
+  const [tags, labels] = await Promise.all([
+    fetchTagsByPost(rows.map((r) => r.id)),
+    getCategoryLabelMap(),
+  ]);
   return {
-    posts: rows.map((r) => rowToList(r, tags.get(r.id) ?? [])),
+    posts: rows.map((r) => rowToList(r, tags.get(r.id) ?? [], labels)),
     total,
     page: Math.floor(offset / pageSize) + 1,
     pageSize,
@@ -246,9 +252,14 @@ export async function getCategoryCounts(): Promise<
       if (!p.category) continue;
       counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
     }
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([slug, count]) => ({ slug, label: categoryLabel(slug), count }));
+    const seedLabels = await getCategoryLabelMap();
+          return [...counts.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .map(([slug, count]) => ({
+              slug,
+              label: seedLabels.get(slug) ?? fallbackLabel(slug),
+              count,
+            }));
   }
 
   let rows: Array<{ category: string | null; count: string }>;
@@ -263,11 +274,15 @@ export async function getCategoryCounts(): Promise<
   } catch {
     return [];
   }
-  return rows.map((r) => ({
-    slug: r.category ?? "other",
-    label: categoryLabel(r.category ?? "other"),
-    count: Number(r.count),
-  }));
+  const labels = await getCategoryLabelMap();
+    return rows.map((r) => {
+      const slug = r.category ?? "other";
+      return {
+        slug,
+        label: labels.get(slug) ?? fallbackLabel(slug),
+        count: Number(r.count),
+      };
+    });
 }
 
 /**
@@ -316,10 +331,18 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   const row = rows[0];
   if (!row) {
     // Fall back to the curated starter article, if one matches.
-    return journalSeedPosts.find((p) => p.slug === slug) ?? null;
+    const seed = journalSeedPosts.find((p) => p.slug === slug);
+    if (!seed) return null;
+    return {
+      ...seed,
+      categoryLabel: seed.category ? fallbackLabel(seed.category) : "",
+    };
   }
-  const tags = await fetchTagsByPost([row.id]);
-  const list = rowToList(row, tags.get(row.id) ?? []);
+  const [tags, labels] = await Promise.all([
+    fetchTagsByPost([row.id]),
+    getCategoryLabelMap(),
+  ]);
+  const list = rowToList(row, tags.get(row.id) ?? [], labels);
   return {
     ...list,
     content: row.content,
@@ -329,7 +352,11 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   };
 }
 
-function rowToList(row: ListRow, tags: string[]): StorefrontPost {
+function rowToList(
+  row: ListRow,
+  tags: string[],
+  labels: Map<string, string>,
+): StorefrontPost {
   return {
     id: row.id,
     title: row.title,
@@ -338,6 +365,9 @@ function rowToList(row: ListRow, tags: string[]): StorefrontPost {
     heroImageUrl: row.hero_image_url,
     heroImageAlt: row.hero_image_alt,
     category: row.category,
+    categoryLabel: row.category
+      ? (labels.get(row.category) ?? fallbackLabel(row.category))
+      : "",
     publishedAt: row.published_at,
     authorName: row.author_name,
     tags,
@@ -357,12 +387,10 @@ export function formatPublishedDate(iso: string | null): string {
   }
 }
 
+/**
+ * Kept for callers that only have a slug. Prefer `post.categoryLabel`, which
+ * carries the name the team actually set - this can only guess from the slug.
+ */
 export function categoryLabel(slug: string | null): string {
-  // Same list as everywhere else, but this one renders on article cards, so
-  // an empty slug means "show nothing" rather than a dash, and an
-  // unrecognised one is de-hyphenated rather than shown raw.
-  if (!slug) return "";
-  return (
-    CATEGORIES.find((c) => c.value === slug)?.label ?? slug.replace(/-/g, " ")
-  );
+  return slug ? fallbackLabel(slug) : "";
 }

@@ -1,7 +1,5 @@
 import type { CollectionConfig } from "payload";
 
-import { CATEGORIES } from "@/lib/postCategories";
-
 import { isAdmin } from "../access/isAdmin";
 
 /**
@@ -116,11 +114,12 @@ export const Posts: CollectionConfig = {
     },
     {
       name: "category",
-      type: "select",
+      // Text rather than a select: the category list is editable in
+      // /cms/blog-categories, and a select would compile the options into a
+      // Postgres enum that rejects anything added later. The /cms editor
+      // renders the dropdown from the live list instead.
+      type: "text",
       defaultValue: "weight-loss",
-      // From lib/postCategories so the dropdown, the /cms editor, the
-      // article cards and the database's allowed values cannot drift apart.
-      options: CATEGORIES,
       admin: { position: "sidebar" },
     },
     {

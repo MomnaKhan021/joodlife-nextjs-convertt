@@ -1,22 +1,18 @@
 /**
- * The blog categories — the single source of truth.
+ * Blog categories — shape, shipped defaults and validation.
  *
- * Read by the Posts collection (the dropdown), the /cms editor, the article
- * cards, and lib/ensureSchema (which teaches Postgres the new value).
+ * The list is editable in /cms/blog-categories and stored on the
+ * `blog-categories` global. These are the categories the site ships with;
+ * an empty global falls back to them, so the filter tabs on /blogs never
+ * come up blank.
  *
- * TO ADD A CATEGORY: add one line to CATEGORIES below. Nothing else needs
- * touching — the dropdown, the labels and the database's allowed values all
- * derive from this list, and SCHEMA_VERSION fingerprints it so the migration
- * runs on the next boot without anyone having to remember to bump it.
+ * Client-safe (no `server-only`, no Payload import) so the editors can
+ * import it. `lib/blogCategories.ts` is the server-side reader.
  *
- * The `value` is stored in the database and appears in URLs
- * (/blogs?category=…), so treat it as permanent: renaming one orphans every
- * post already filed under it. The `label` is display-only and safe to edit.
- *
- * Deliberately a plain module rather than living beside the editor: the
- * editor is a client component, and a value imported from a client module
- * into a server component arrives as a client-reference proxy rather than
- * the array itself — so `CATEGORIES.find(...)` would not be a function.
+ * The `value` is stored on every post and appears in URLs
+ * (/blogs?category=…), so it is fixed once created — renaming it would
+ * orphan every post already filed under it. The `label` is display-only and
+ * safe to change at any time. The editor enforces exactly that.
  */
 
 export type PostCategory = { label: string; value: string };
@@ -30,25 +26,55 @@ export const CATEGORIES: PostCategory[] = [
   { label: "Other", value: "other" },
 ];
 
-/** Human-readable name for a stored category value. */
-export function categoryLabel(value?: string | null): string {
-  if (!value) return "—";
-  return CATEGORIES.find((c) => c.value === value)?.label ?? value;
+/** Turn a display name into the permanent stored value. */
+export function slugifyCategory(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 /**
- * A short, stable fingerprint of the category list.
- *
- * ensureSchema folds this into SCHEMA_VERSION so that adding a category
- * automatically re-runs the repair — otherwise the version would still match,
- * the ALTER TYPE would be skipped, and saving a post in the new category
- * would fail against an enum that had never heard of it.
+ * Last-resort label for a value with no entry in the list — a category
+ * that was removed while posts still referenced it. Reads better than the
+ * raw slug, and is what the stored label would have been anyway.
  */
-export function categoriesFingerprint(): string {
-  const joined = CATEGORIES.map((c) => c.value).join(",");
-  let h = 5381;
-  for (let i = 0; i < joined.length; i++) {
-    h = ((h << 5) + h + joined.charCodeAt(i)) >>> 0;
+export function fallbackLabel(value: string): string {
+  const words = value.replace(/-/g, " ").trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : value;
+}
+
+/** Human-readable name for a value, given the list in force. */
+export function labelFor(
+  value: string | null | undefined,
+  list: PostCategory[] = CATEGORIES,
+): string {
+  if (!value) return "";
+  return list.find((c) => c.value === value)?.label ?? fallbackLabel(value);
+}
+
+/**
+ * Merge a stored list over the shipped one.
+ *
+ * Rows missing a value or a label are dropped, duplicate values collapse to
+ * the first occurrence, and an empty result falls back to the shipped list
+ * — deleting every category should leave the site with working filter tabs
+ * rather than none.
+ */
+export function mergeCategories(stored: unknown): PostCategory[] {
+  const raw = (stored as { items?: unknown } | null)?.items ?? stored;
+  if (!Array.isArray(raw)) return CATEGORIES;
+
+  const seen = new Set<string>();
+  const out: PostCategory[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== "object") continue;
+    const r = row as { value?: unknown; label?: unknown };
+    const value = String(r.value ?? "").trim();
+    const label = String(r.label ?? "").trim();
+    if (!value || !label || seen.has(value)) continue;
+    seen.add(value);
+    out.push({ value, label });
   }
-  return h.toString(36);
+  return out.length ? out : CATEGORIES;
 }

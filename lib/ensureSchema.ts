@@ -1,5 +1,4 @@
 import "server-only";
-import { CATEGORIES, categoriesFingerprint } from "@/lib/postCategories";
 
 import type { Payload } from "payload";
 
@@ -468,16 +467,31 @@ const STATEMENTS: string[] = [
   // Seed a starter discount code (WELCOME20 → 20% off) once. Idempotent: only
   // inserts when absent, so editing/disabling it in the dashboard sticks. To
   // retire it, set it inactive in the admin rather than deleting the row.
-  // Blog categories. posts.category is a Postgres enum, so a category added
-  // in lib/postCategories has to be taught to the database before a post can
-  // be saved under it. Generated from that list, so adding one there is the
-  // only edit needed. ADD VALUE IF NOT EXISTS makes it idempotent, and enum
-  // values can never be removed here - dropping one would orphan every post
-  // already filed under it.
-  ...CATEGORIES.map(
-    (c) =>
-      `ALTER TYPE "enum_posts_category" ADD VALUE IF NOT EXISTS '${c.value.replace(/'/g, "''")}'`,
-  ),
+  // Blog categories are editable in /cms, so posts.category can hold any
+  // value the team creates. It shipped as a Postgres enum, which would
+  // reject anything not compiled into the code, so convert it to plain text.
+  // Guarded on the column still being an enum, so this is a one-time
+  // conversion that is safe to re-run. The enum type is left behind rather
+  // than dropped - nothing else references it, and dropping types is not
+  // something this repair does.
+  `DO $$
+   BEGIN
+     IF EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'posts'
+         AND column_name = 'category' AND data_type = 'USER-DEFINED'
+     ) THEN
+       ALTER TABLE "posts" ALTER COLUMN "category" DROP DEFAULT;
+       ALTER TABLE "posts" ALTER COLUMN "category" TYPE varchar USING "category"::text;
+     END IF;
+   END $$`,
+
+  // The editable list itself.
+  "CREATE TABLE IF NOT EXISTS \"blog_categories\" (\"id\" serial, \"items\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"blog_categories\" ADD COLUMN IF NOT EXISTS \"items\" jsonb",
+  "ALTER TABLE \"blog_categories\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"blog_categories\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
@@ -490,11 +504,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-// The category list is fingerprinted into the version: adding a category
-// changes it, which makes the repair below run again and teach Postgres the
-// new enum value. Without that the version would still match, the ALTER TYPE
-// would be skipped, and saving a post in the new category would fail.
-const SCHEMA_VERSION = `v22-${categoriesFingerprint()}`;
+const SCHEMA_VERSION = "v23";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

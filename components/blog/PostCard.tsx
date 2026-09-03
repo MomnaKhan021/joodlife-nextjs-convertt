@@ -1,11 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  categoryLabel,
-  formatPublishedDate,
-  type StorefrontPost,
-} from "@/lib/posts";
+import { formatPublishedDate, type StorefrontPost } from "@/lib/posts";
 
 type Variant = "default" | "feature";
 
@@ -30,7 +26,7 @@ export default function PostCard({
   priority?: boolean;
 }) {
   const href = `/blogs/${post.slug}`;
-  const cat = post.category ? categoryLabel(post.category) : null;
+  const cat = post.categoryLabel || null;
   const date = formatPublishedDate(post.publishedAt);
   const isFeature = variant === "feature";
 

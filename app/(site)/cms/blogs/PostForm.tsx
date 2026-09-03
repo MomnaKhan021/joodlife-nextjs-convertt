@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { CATEGORIES } from "@/lib/postCategories";
+import { fallbackLabel, type PostCategory } from "@/lib/postCategories";
 
 import MediaPicker from "../MediaPicker";
 import RichTextEditor from "../pages/RichTextEditor";
@@ -55,7 +55,13 @@ function slugify(s: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export default function PostForm({ initial }: { initial?: PostDoc }) {
+export default function PostForm({
+  initial,
+  categories,
+}: {
+  initial?: PostDoc;
+  categories: PostCategory[];
+}) {
   const router = useRouter();
   const isEdit = Boolean(initial?.id);
 
@@ -64,7 +70,9 @@ export default function PostForm({ initial }: { initial?: PostDoc }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(initial?.slug));
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [bodyHtml, setBodyHtml] = useState(initial?.bodyHtml ?? "");
-  const [category, setCategory] = useState(initial?.category ?? "weight-loss");
+  const [category, setCategory] = useState(
+      initial?.category ?? categories[0]?.value ?? "other",
+    );
   const [tags, setTags] = useState<string[]>(
     (initial?.tags ?? [])
       .map((t) => t?.tag ?? "")
@@ -265,14 +273,25 @@ export default function PostForm({ initial }: { initial?: PostDoc }) {
               value={category ?? "weight-loss"}
               onChange={(e) => setCategory(e.target.value)}
             >
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
               ))}
+              {category && !categories.some((c) => c.value === category) && (
+                <option value={category}>
+                  {fallbackLabel(category)} (no longer listed)
+                </option>
+              )}
             </select>
             <p className="mt-1 text-[12px] text-[#8a8a8a]">
-              Sets which filter tab the post appears under on /blogs.
+              Sets which filter tab the post appears under on /blogs.{" "}
+              <Link
+                href="/cms/blog-categories"
+                className="underline underline-offset-2"
+              >
+                Manage categories
+              </Link>
             </p>
           </div>
           <div>

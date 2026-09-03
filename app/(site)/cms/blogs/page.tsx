@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { journalSeedPosts } from "@/lib/journalSeed";
 import { getPayloadInstance } from "@/lib/payload";
-import { categoryLabel } from "@/lib/postCategories";
+import { getBlogCategories } from "@/lib/blogCategories";
+import { fallbackLabel } from "@/lib/postCategories";
 
 import ImportStarter from "./ImportStarter";
 import PostActions from "./PostActions";
@@ -51,7 +52,12 @@ function fmt(iso?: string | null) {
 }
 
 export default async function CmsBlogsList() {
-  const posts = await listPosts();
+  const [posts, categories] = await Promise.all([
+    listPosts(),
+    getBlogCategories(),
+  ]);
+  const labelFor = (v?: string | null) =>
+    v ? (categories.find((c) => c.value === v)?.label ?? fallbackLabel(v)) : "\u2014";
   const published = posts?.filter((p) => p.status === "published").length ?? 0;
   const drafts = (posts?.length ?? 0) - published;
 
@@ -148,7 +154,7 @@ export default async function CmsBlogsList() {
                     </span>
                   </td>
                   <td className="px-5 py-3 text-[13px] text-[#616161]">
-                    {categoryLabel(p.category)}
+                    {labelFor(p.category)}
                   </td>
                   <td className="px-5 py-3">
                     <span

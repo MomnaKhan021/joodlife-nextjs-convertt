@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { getBlogCategories } from "@/lib/blogCategories";
 import { getPayloadInstance } from "@/lib/payload";
 
 import PostForm, { type PostDoc } from "../PostForm";
@@ -12,6 +13,7 @@ export default async function EditCmsPost({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const categories = await getBlogCategories();
   let doc: PostDoc | null = null;
   try {
     const payload = await getPayloadInstance();
@@ -27,5 +29,5 @@ export default async function EditCmsPost({
     doc = null;
   }
   if (!doc) notFound();
-  return <PostForm initial={doc} />;
+  return <PostForm initial={doc} categories={categories} />;
 }

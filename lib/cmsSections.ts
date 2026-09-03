@@ -83,6 +83,15 @@ export const CMS_NAV: CmsNavItem[] = [
     match: "/cms/blogs",
   },
   {
+    key: "content",
+    group: "blog",
+    label: "Categories",
+    href: "/cms/blog-categories",
+    description: "The filter tabs on /blogs and the dropdown when writing",
+    status: "ready",
+    match: "/cms/blog-categories",
+  },
+  {
     key: "cms-sections",
     group: "blog",
     label: "Blog listing page",
