@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-import type { Faq } from "@/lib/categoryFaqs";
+import {
+  CATEGORY_PAGE_DEFAULT,
+  type Faq,
+} from "@/lib/categoryPageContentTypes";
 
 /**
  * Themed FAQ accordion for the category sub-pages. Accent colour is
@@ -12,9 +15,13 @@ import type { Faq } from "@/lib/categoryFaqs";
 export default function CategoryFaq({
   items,
   accent = "#142e2a",
+  heading = CATEGORY_PAGE_DEFAULT.faqs.heading,
+  headingAccent = CATEGORY_PAGE_DEFAULT.faqs.headingAccent,
 }: {
   items: Faq[];
   accent?: string;
+  heading?: string;
+  headingAccent?: string;
 }) {
   const [open, setOpen] = useState<number | null>(0);
 
@@ -26,15 +33,15 @@ export default function CategoryFaq({
     >
       <div className="mx-auto flex w-full max-w-[820px] flex-col items-center gap-8 px-6 md:gap-10 md:px-10">
         <h2 className="text-center font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
-          Frequently asked{" "}
-          <em className="font-serif font-normal italic">questions</em>
+          {heading}{" "}
+          <em className="font-serif font-normal italic">{headingAccent}</em>
         </h2>
 
         <ul className="w-full divide-y divide-[#142e2a]/10 border-y border-[#142e2a]/10">
           {items.map((item, i) => {
             const isOpen = open === i;
             return (
-              <li key={item.q}>
+              <li key={i}>
                 <button
                   type="button"
                   aria-expanded={isOpen}

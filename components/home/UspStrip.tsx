@@ -1,6 +1,9 @@
 import Image from "next/image";
 
-type Item = { icon: string; label: string };
+import {
+  CATEGORY_PAGE_DEFAULT,
+  type UspItem,
+} from "@/lib/categoryPageContentTypes";
 
 /**
  * USP Marquee strip — Figma node 141:1910 (Component 139). The Figma
@@ -10,18 +13,16 @@ type Item = { icon: string; label: string };
  * We render the row twice in the track so a -50% translate yields a
  * seamless loop. group-hover pauses for interaction.
  */
-const ITEMS: Item[] = [
-  { icon: "/assets/figma/usp-licensed.svg", label: "UK Licensed medication" },
-  { icon: "/assets/figma/usp-whatsapp.svg", label: "24-Hour WhatsApp support" },
-  { icon: "/assets/figma/usp-delivery.svg", label: "Free next-day delivery" },
-  { icon: "/assets/figma/usp-cancel.svg", label: "Cancel anytime subscription" },
-  { icon: "/assets/figma/usp-support.svg", label: "Ongoing medical support" },
-];
-
-function MarqueeRow({ aria = false }: { aria?: boolean }) {
+function MarqueeRow({
+  items,
+  aria = false,
+}: {
+  items: UspItem[];
+  aria?: boolean;
+}) {
   return (
     <ul aria-hidden={aria} className="flex shrink-0 items-center">
-      {ITEMS.map((item, i) => (
+      {items.map((item, i) => (
         <li key={i} className="flex shrink-0 items-center gap-3 pr-8 md:pr-[44px]">
           <Image
             src={item.icon}
@@ -41,7 +42,11 @@ function MarqueeRow({ aria = false }: { aria?: boolean }) {
   );
 }
 
-export default function UspStrip() {
+export default function UspStrip({
+  items = CATEGORY_PAGE_DEFAULT.uspStrip.items,
+}: {
+  items?: UspItem[];
+}) {
   return (
     <section
       aria-label="Why customers choose Jood Life"
@@ -55,8 +60,8 @@ export default function UspStrip() {
           className="flex shrink-0 animate-marquee items-center group-hover:[animation-play-state:paused]"
           style={{ animationDuration: "40s" }}
         >
-          <MarqueeRow />
-          <MarqueeRow aria />
+          <MarqueeRow items={items} />
+          <MarqueeRow items={items} aria />
         </div>
       </div>
     </section>

@@ -86,6 +86,22 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-sections",
+    label: "Treatment pages",
+    href: "/cms/category-pages",
+    description: "Trust strip, features and FAQs on the three sub-pages",
+    status: "ready",
+    match: "/cms/category-pages",
+  },
+  {
+    key: "cms-sections",
+    label: "Erectile dysfunction",
+    href: "/cms/ed",
+    description: "Every section of /erectile-dysfunction, in page order",
+    status: "ready",
+    match: "/cms/ed",
+  },
+  {
+    key: "cms-sections",
     label: "Wegovy Pills page",
     href: "/cms/wegovy",
     description: "Every section of /wegovy-pills, in page order",

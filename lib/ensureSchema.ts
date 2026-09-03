@@ -301,6 +301,27 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"final_cta\" jsonb",
   "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Treatment sub-pages - shared trust strip, feature panel and FAQs.
+  "CREATE TABLE IF NOT EXISTS \"category_pages\" (\"id\" serial, \"usp_strip\" jsonb, \"feature_grid\" jsonb, \"faqs\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"usp_strip\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"feature_grid\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"faqs\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Erectile dysfunction page - one json column per section, in page order.
+  "CREATE TABLE IF NOT EXISTS \"ed_page\" (\"id\" serial, \"hero\" jsonb, \"reviews\" jsonb, \"journey\" jsonb, \"plan\" jsonb, \"steps\" jsonb, \"confidence\" jsonb, \"know\" jsonb, \"banner\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"reviews\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"journey\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"plan\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"steps\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"confidence\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"know\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"banner\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   // ---- global: home page sections ----
   "CREATE TABLE IF NOT EXISTS \"home_page\" (\"id\" serial, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_badge\" varchar",
@@ -458,7 +479,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v19";
+const SCHEMA_VERSION = "v21";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

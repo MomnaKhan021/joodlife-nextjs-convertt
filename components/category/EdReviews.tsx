@@ -3,6 +3,10 @@
 import { useCallback, useRef, useState } from "react";
 
 import Reveal from "@/components/ui/Reveal";
+import {
+  ED_DEFAULT,
+  type EdReviewsContent,
+} from "@/lib/edContentTypes";
 
 /**
  * "3000+ happy customers" review wall — Figma ED page (node 18:811).
@@ -10,49 +14,6 @@ import Reveal from "@/components/ui/Reveal";
  * patient reviews. (No category tabs — this is the ED page, so every review
  * is ED-relevant.)
  */
-
-type Review = {
-  title?: string;
-  body: string;
-  name: string;
-  initials: string;
-};
-
-const REVIEWS: Review[] = [
-  {
-    title: "A huge improvement overall",
-    body: "I no longer worry the way I used to. I feel more in control, more relaxed, and much more confident in intimate situations.",
-    name: "Mike",
-    initials: "MI",
-  },
-  {
-    body: "Discreet delivery and clear instructions. The consultation was simple and I felt supported the whole way through.",
-    name: "David P.",
-    initials: "DP",
-  },
-  {
-    title: "Confidence restored",
-    body: "The whole process was quick and completely private. Within weeks I felt like myself again — it's made a real difference.",
-    name: "James R.",
-    initials: "JR",
-  },
-  {
-    body: "My medication always arrives well packaged and promptly, and I don't have to answer hundreds of questions to receive it.",
-    name: "Hayley Churchyard",
-    initials: "HC",
-  },
-  {
-    title: "Genuinely reassuring",
-    body: "The clinician took the time to recommend the right option for me. Reasonable prices and no pressure at any point.",
-    name: "Daniel K.",
-    initials: "DK",
-  },
-  {
-    body: "Fast, professional and completely discreet. The ongoing support made all the difference to my confidence.",
-    name: "Thomas B.",
-    initials: "TB",
-  },
-];
 
 function Stars() {
   return (
@@ -70,7 +31,12 @@ function Stars() {
   );
 }
 
-export default function EdReviews() {
+export default function EdReviews({
+  content = ED_DEFAULT.reviews,
+}: {
+  content?: EdReviewsContent;
+}) {
+  const REVIEWS = content.reviews;
   const trackRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
 
@@ -112,22 +78,20 @@ export default function EdReviews() {
               <span className="text-[#00b67a]">★</span> Trustpilot
             </span>
             <Stars />
-            <span className="font-semibold">
-              4.4 <span className="font-normal text-[#142e2a]/60">(50+) Reviews</span>
-            </span>
+            <span className="font-semibold">{content.reviewsLabel}</span>
           </div>
 
           <h2
             id="ed-reviews"
             className="mt-3 font-display text-[30px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
-            3000+ happy{" "}
-            <em className="font-serif font-normal italic">customers</em>
+            {content.heading}{" "}
+            <em className="font-serif font-normal italic">
+              {content.headingAccent}
+            </em>
           </h2>
           <p className="mx-auto mt-3 max-w-[62ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
-            Thousands of men have trusted Jood for safe, clinically guided care.
-            Our patients value the expert support, clear communication, and
-            lasting confidence that follows.
+            {content.body}
           </p>
         </Reveal>
 

@@ -33,6 +33,8 @@ const ICONS: Record<string, React.ReactNode> = {
   "/cms/home": I("M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z"),
   "/cms/treatments": I("M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7zM7 7l7 7"),
   "/cms/announcement": I("M3 11l14-6v14L3 13zM7 12v5a2 2 0 0 0 4 0"),
+  "/cms/category-pages": I("M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"),
+  "/cms/ed": I("M12 20.5S4 15.5 4 9.8A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 20 9.8c0 5.7-8 10.7-8 10.7z"),
   "/cms/wegovy": I("M8.5 8.5a4.5 4.5 0 0 1 7 7l-7-7zM15.5 15.5a4.5 4.5 0 0 1-7-7M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0"),
   "/cms/support": I("M12 3a9 9 0 1 0 4.5 16.8L21 21l-1.2-4.5A9 9 0 0 0 12 3zM12 8v4M12 16h.01"),
   "/cms/policies/terms": I("M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"),

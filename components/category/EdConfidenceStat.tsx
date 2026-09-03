@@ -6,9 +6,14 @@ import { useEffect, useRef, useState } from "react";
  * Animated "89%" stat overlay for the Confidence section. Starts at 0 and
  * counts up / fills the bar to 89% the first time it scrolls into view.
  */
-const TARGET = 89;
-
-export default function EdConfidenceStat() {
+export default function EdConfidenceStat({
+  target = 89,
+  caption = "Members reported improved confidence in intimacy",
+}: {
+  target?: number;
+  caption?: string;
+}) {
+  const TARGET = target;
   const ref = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState(0);
   const started = useRef(false);
@@ -44,7 +49,7 @@ export default function EdConfidenceStat() {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [TARGET]);
 
   return (
     <div
@@ -65,7 +70,7 @@ export default function EdConfidenceStat() {
         {value}%
       </p>
       <p className="mt-1 max-w-[24ch] font-ui text-[12px] leading-[17px] text-white/80">
-        Members reported improved confidence in intimacy
+        {caption}
       </p>
     </div>
   );

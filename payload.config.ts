@@ -21,6 +21,8 @@ import { Policies } from "./src/payload/globals/Policies";
 import { Support } from "./src/payload/globals/Support";
 import { BlogPage } from "./src/payload/globals/BlogPage";
 import { WegovyPage } from "./src/payload/globals/WegovyPage";
+import { CategoryPages } from "./src/payload/globals/CategoryPages";
+import { EdPage } from "./src/payload/globals/EdPage";
 import { WeightLogs } from "./src/payload/collections/WeightLogs";
 import { Inventory } from "./src/payload/collections/Inventory";
 import { applyDiscountEndpoint } from "./src/payload/endpoints/applyDiscount";
@@ -345,6 +347,8 @@ export default buildConfig({
     Support,
     BlogPage,
     WegovyPage,
+    CategoryPages,
+    EdPage,
   ],
   endpoints: [applyDiscountEndpoint],
   secret: resolveSecret(),
