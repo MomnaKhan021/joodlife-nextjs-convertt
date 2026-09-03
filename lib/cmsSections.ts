@@ -9,6 +9,12 @@
  *
  * Admins see everything. A "staff" user sees only the entries whose `key`
  * is in their `permissions` array. Customers never reach /cms at all.
+ *
+ * Entries are also sorted into GROUPS. The permission key answers "may this
+ * person open it"; the group answers "where would someone look for it" —
+ * two different questions, so they are two different fields. Grouping by
+ * permission would put the policy pages beside the page builder purely
+ * because they happen to share a grant.
  */
 
 import type { SectionKey } from "./adminSections";
@@ -16,9 +22,47 @@ import type { SectionKey } from "./adminSections";
 /** Whether the underlying feature is actually built yet. */
 export type CmsItemStatus = "ready" | "planned";
 
+/** Sidebar groups, in display order. */
+export const CMS_GROUPS = [
+  {
+    key: "blog",
+    label: "Blog",
+    description: "Articles and the page they sit on",
+  },
+  {
+    key: "site-pages",
+    label: "Site pages",
+    description: "Copy and images on the pages the site ships with",
+  },
+  {
+    key: "custom-pages",
+    label: "Custom pages",
+    description: "Pages you create yourself",
+  },
+  {
+    key: "legal",
+    label: "Legal",
+    description: "Terms, refunds and privacy",
+  },
+  {
+    key: "site-wide",
+    label: "Site-wide",
+    description: "Shown on every page",
+  },
+  {
+    key: "media",
+    label: "Media",
+    description: "Images used across the site",
+  },
+] as const;
+
+export type CmsGroupKey = (typeof CMS_GROUPS)[number]["key"];
+
 export type CmsNavItem = {
   /** Permission key — shared with the operations section registry. */
   key: SectionKey;
+  /** Which sidebar group this belongs under. */
+  group: CmsGroupKey;
   label: string;
   href: string;
   description: string;
@@ -28,96 +72,89 @@ export type CmsNavItem = {
 };
 
 export const CMS_NAV: CmsNavItem[] = [
+  /* ── Blog ─────────────────────────────────────────────── */
   {
     key: "content",
+    group: "blog",
     label: "Blog posts",
     href: "/cms/blogs",
-    description: "Write and publish articles",
+    description: "Write, edit and publish articles",
     status: "ready",
     match: "/cms/blogs",
   },
   {
-    key: "content",
-    label: "Media",
-    href: "/cms/media",
-    description: "Images and uploads",
-    status: "ready",
-    match: "/cms/media",
-  },
-  {
     key: "cms-sections",
+    group: "blog",
     label: "Blog listing page",
     href: "/cms/blog-page",
-    description: "The /blogs page around the articles",
+    description: "The hero, newsletter and banner around the articles",
     status: "ready",
     match: "/cms/blog-page",
   },
-  {
-    key: "cms-pages",
-    label: "Pages",
-    href: "/cms/pages",
-    description: "Create new pages with rich text",
-    status: "ready",
-    match: "/cms/pages",
-  },
-  {
-    key: "cms-navigation",
-    label: "Header",
-    href: "/cms/header",
-    description: "Top navigation and the mega menu",
-    status: "ready",
-    match: "/cms/header",
-  },
-  {
-    key: "cms-navigation",
-    label: "Footer",
-    href: "/cms/footer",
-    description: "Footer columns, contact card and small print",
-    status: "ready",
-    match: "/cms/footer",
-  },
+
+  /* ── Site pages ───────────────────────────────────────── */
   {
     key: "cms-sections",
+    group: "site-pages",
     label: "Home page",
     href: "/cms/home",
-    description: "Every home page section, in page order",
+    description: "Every section of the home page, in page order",
     status: "ready",
     match: "/cms/home",
   },
   {
     key: "cms-sections",
-    label: "Treatment pages",
-    href: "/cms/category-pages",
-    description: "Trust strip, features and FAQs on the three sub-pages",
+    group: "site-pages",
+    label: "Support page",
+    href: "/cms/support",
+    description: "Hero, FAQs and success stories",
     status: "ready",
-    match: "/cms/category-pages",
+    match: "/cms/support",
   },
   {
     key: "cms-sections",
-    label: "Erectile dysfunction",
-    href: "/cms/ed",
-    description: "Every section of /erectile-dysfunction, in page order",
-    status: "ready",
-    match: "/cms/ed",
-  },
-  {
-    key: "cms-sections",
-    label: "Wegovy Pills page",
+    group: "site-pages",
+    label: "Wegovy Pills",
     href: "/cms/wegovy",
-    description: "Every section of /wegovy-pills, in page order",
+    description: "All eleven sections of /wegovy-pills",
     status: "ready",
     match: "/cms/wegovy",
   },
   {
     key: "cms-sections",
-    label: "Support page",
-    href: "/cms/support",
-    description: "Hero, FAQs and success stories, in page order",
+    group: "site-pages",
+    label: "Erectile dysfunction",
+    href: "/cms/ed",
+    description: "All eight sections of /erectile-dysfunction",
     status: "ready",
-    match: "/cms/support",
+    match: "/cms/ed",
   },
   {
+    key: "cms-sections",
+    group: "site-pages",
+    label: "Shared across treatments",
+    href: "/cms/category-pages",
+    description:
+      "Trust strip, features and FAQs on the weight-loss, ED and period-delay pages",
+    status: "ready",
+    match: "/cms/category-pages",
+  },
+
+  /* ── Custom pages ─────────────────────────────────────── */
+  {
     key: "cms-pages",
+    group: "custom-pages",
+    label: "All pages",
+    href: "/cms/pages",
+    description: "Create and edit standalone pages at /your-slug",
+    status: "ready",
+    match: "/cms/pages",
+  },
+
+  /* ── Legal ────────────────────────────────────────────── */
+  {
+    key: "cms-pages",
+    group: "legal",
     label: "Terms & conditions",
     href: "/cms/policies/terms",
     description: "The terms page at /policies/terms",
@@ -126,6 +163,7 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-pages",
+    group: "legal",
     label: "Refund & Complaints",
     href: "/cms/policies/refund-complaints",
     description: "The refund and complaints procedure",
@@ -134,19 +172,52 @@ export const CMS_NAV: CmsNavItem[] = [
   },
   {
     key: "cms-pages",
+    group: "legal",
     label: "Privacy & Cookies",
     href: "/cms/policies/privacy",
     description: "The privacy and cookies page",
     status: "ready",
     match: "/cms/policies/privacy",
   },
+
+  /* ── Site-wide ────────────────────────────────────────── */
   {
     key: "cms-navigation",
+    group: "site-wide",
+    label: "Header",
+    href: "/cms/header",
+    description: "Top navigation, logo and the mega menu",
+    status: "ready",
+    match: "/cms/header",
+  },
+  {
+    key: "cms-navigation",
+    group: "site-wide",
+    label: "Footer",
+    href: "/cms/footer",
+    description: "Footer columns, contact card and small print",
+    status: "ready",
+    match: "/cms/footer",
+  },
+  {
+    key: "cms-navigation",
+    group: "site-wide",
     label: "Announcement bar",
     href: "/cms/announcement",
-    description: "The strip above the header, shown sitewide",
+    description: "The strip above the header",
     status: "ready",
     match: "/cms/announcement",
+  },
+
+  /* ── Media ────────────────────────────────────────────── */
+  {
+    key: "content",
+    group: "media",
+    label: "Media library",
+    href: "/cms/media",
+    description: "Images and uploads used anywhere on the site",
+    status: "ready",
+    match: "/cms/media",
   },
 ];
 
@@ -160,13 +231,17 @@ export const CMS_SECTION_KEYS: SectionKey[] = Array.from(
  *   - a SectionKey → that grant is required
  *   - "cms-home"   → the /cms overview (any CMS grant will do)
  *   - null         → unknown path, treat as admin-only
+ *
+ * Longest match wins, so /cms/blog-page isn't shadowed by a shorter prefix.
  */
 export function sectionForCmsPath(
   path: string,
 ): SectionKey | "cms-home" | null {
   const p = path.replace(/\/+$/, "") || "/cms";
   if (p === "/cms") return "cms-home";
-  const hit = CMS_NAV.find((i) => p.startsWith(i.match));
+  const hit = [...CMS_NAV]
+    .sort((a, b) => b.match.length - a.match.length)
+    .find((i) => p === i.match || p.startsWith(`${i.match}/`));
   return hit ? hit.key : null;
 }
 
@@ -194,7 +269,7 @@ export function canAccessCmsPath(
   return (permissions ?? []).includes(section);
 }
 
-/** Nav entries this user is allowed to see. */
+/** Nav entries this user is allowed to see, in registry order. */
 export function visibleCmsNav(
   role: string,
   permissions: string[] | undefined,
@@ -202,6 +277,31 @@ export function visibleCmsNav(
   if (role === "admin") return CMS_NAV;
   const perms = permissions ?? [];
   return CMS_NAV.filter((i) => perms.includes(i.key));
+}
+
+export type CmsNavGroup = {
+  key: CmsGroupKey;
+  label: string;
+  description: string;
+  items: CmsNavItem[];
+};
+
+/**
+ * The same entries, bucketed into groups for display. A group whose items
+ * this user can't see is dropped entirely rather than left as an empty
+ * heading.
+ */
+export function groupedCmsNav(
+  role: string,
+  permissions: string[] | undefined,
+): CmsNavGroup[] {
+  const visible = visibleCmsNav(role, permissions);
+  return CMS_GROUPS.map((g) => ({
+    key: g.key,
+    label: g.label,
+    description: g.description,
+    items: visible.filter((i) => i.group === g.key),
+  })).filter((g) => g.items.length > 0);
 }
 
 /** Where to send a user who hit a CMS page they may not open. */

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { visibleCmsNav } from "@/lib/cmsSections";
+import { groupedCmsNav } from "@/lib/cmsSections";
 
 /* CMS shell: fixed left sidebar + content area, matching the operations
    dashboard's Shopify-style chrome. Collapses to a slide-in drawer on
@@ -55,9 +55,12 @@ export default function CmsShell({
 }) {
   const pathname = usePathname() || "/cms";
   const [open, setOpen] = useState(false);
-  const nav = visibleCmsNav(role, permissions);
+  const groups = groupedCmsNav(role, permissions);
 
-  const isActive = (match: string) => pathname.startsWith(match);
+  // Exact match, or a child path — so /cms/blog-page doesn't light up
+  // /cms/blogs, and /cms/blogs/new still lights up /cms/blogs.
+  const isActive = (match: string) =>
+    pathname === match || pathname.startsWith(`${match}/`);
 
   const sidebar = (
     <nav className="flex h-full flex-col gap-1 p-3">
@@ -74,29 +77,33 @@ export default function CmsShell({
         Dashboard
       </Link>
 
-      <p className="mt-4 px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
-        Content
-      </p>
-
-      {nav.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={() => setOpen(false)}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] transition-colors ${
-            isActive(item.match)
-              ? "bg-white font-medium text-[#1a1a1a] shadow-sm"
-              : "text-[#4a4a4a] hover:bg-white/60"
-          }`}
-        >
-          {ICONS[item.href] ?? I("M4 6h16M4 12h16M4 18h16")}
-          <span className="flex-1">{item.label}</span>
-          {item.status === "planned" && (
-            <span className="rounded-full bg-[#e8e8e8] px-2 py-[2px] text-[10px] font-medium text-[#6a6a6a]">
-              Soon
-            </span>
-          )}
-        </Link>
+      {groups.map((group) => (
+        <div key={group.key} className="mt-4 first:mt-3">
+          <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+            {group.label}
+          </p>
+          {group.items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              title={item.description}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] transition-colors ${
+                isActive(item.match)
+                  ? "bg-white font-medium text-[#1a1a1a] shadow-sm"
+                  : "text-[#4a4a4a] hover:bg-white/60"
+              }`}
+            >
+              {ICONS[item.href] ?? I("M4 6h16M4 12h16M4 18h16")}
+              <span className="flex-1">{item.label}</span>
+              {item.status === "planned" && (
+                <span className="rounded-full bg-[#e8e8e8] px-2 py-[2px] text-[10px] font-medium text-[#6a6a6a]">
+                  Soon
+                </span>
+              )}
+            </Link>
+          ))}
+        </div>
       ))}
 
       <div className="mt-auto border-t border-[#e4e7de] pt-3">
