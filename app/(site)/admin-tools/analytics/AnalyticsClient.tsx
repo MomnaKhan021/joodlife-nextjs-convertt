@@ -73,8 +73,11 @@ const RANGES = [
   { days: 90, label: "90 days" },
 ] as const;
 
-/** Either a preset window or an inclusive custom span of calendar days. */
-type Range = { kind: "preset"; days: number } | { kind: "custom"; from: string; to: string };
+/** A preset window, yesterday (one full day, hourly), or a custom span. */
+type Range =
+  | { kind: "preset"; days: number }
+  | { kind: "yesterday" }
+  | { kind: "custom"; from: string; to: string };
 
 const ymdLocal = (d: Date) => {
   const y = d.getFullYear();
@@ -83,10 +86,22 @@ const ymdLocal = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
-const rangeQuery = (r: Range) =>
-  r.kind === "custom"
-    ? `from=${encodeURIComponent(r.from)}&to=${encodeURIComponent(r.to)}`
-    : `days=${r.days}`;
+/** Yesterday's calendar date (local), as YYYY-MM-DD. */
+const yesterdayYmd = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return ymdLocal(d);
+};
+
+const rangeQuery = (r: Range) => {
+  if (r.kind === "custom") return `from=${encodeURIComponent(r.from)}&to=${encodeURIComponent(r.to)}`;
+  if (r.kind === "yesterday") {
+    // One full day → the API buckets it by hour, same as "Today".
+    const y = yesterdayYmd();
+    return `from=${y}&to=${y}`;
+  }
+  return `days=${r.days}`;
+};
 
 /** "2026-09-02" → "2 Sep 2026" for the active-range pill. */
 const fmtYmd = (ymd: string) => {
@@ -472,6 +487,18 @@ export default function AnalyticsClient() {
                   {r.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomOpen(false);
+                  setRange({ kind: "yesterday" });
+                }}
+                className={`rounded-[8px] px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                  range.kind === "yesterday" ? "bg-[#142e2a] text-white" : "text-[#303030] hover:bg-[#f1f1f1]"
+                }`}
+              >
+                Yesterday
+              </button>
               <button
                 type="button"
                 onClick={() => setCustomOpen((v) => !v)}

@@ -71,7 +71,8 @@ const nextConfig: NextConfig = {
    * - Permissions-Policy denies sensors/camera/mic/payment APIs that
    *   we don't use, so a compromised third-party script can't pop them
    * - CSP is enforced everywhere. Allowed third-parties: Stripe,
-   *   Trustpilot, Meta Pixel and Google Tag Manager/GA4. `script-src` allows 'unsafe-inline' for
+   *   Trustpilot, Meta Pixel, Google Tag Manager/GA4 and the marketing team's
+   *   GTM server container (sst.momenta.rocks). `script-src` allows 'unsafe-inline' for
    *   Next.js's hydration tags; 'strict-dynamic' would be cleaner but
    *   requires a nonce middleware refactor. Frame-src for Stripe is
    *   needed for 3D-Secure challenge iframes.
@@ -120,6 +121,12 @@ const nextConfig: NextConfig = {
       "https://*.analytics.google.com",
       "https://stats.g.doubleclick.net",
     ];
+    // GTM SERVER-SIDE container (marketing team's first-party tagging host).
+    // The web container forwards GA4/Meta hits to it instead of straight to
+    // Google/Meta, and loads gtag.js from it. Allow-list only — the browser
+    // has no other way to send events there, and this was the reason the
+    // marketing team saw "blocked by CSP" for add-to-cart / checkout data.
+    const gtmServerOrigins = ["https://sst.momenta.rocks"];
     const gtmImgOrigins = [
       "https://www.googletagmanager.com",
       "https://www.google-analytics.com",
@@ -133,13 +140,13 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")} ${gtmScriptOrigins.join(" ")}`,
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")} ${gtmScriptOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
       // blob.vercel-storage.com (no subdomain) is the client-direct UPLOAD
       // API host — without it the consultation evidence upload is blocked by
       // the browser ("Failed to fetch"); *.public… only covers file READS.
-      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com ${gtmConnectOrigins.join(" ")}`,
-      `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com https://www.googletagmanager.com https://tagmanager.google.com`,
-      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com ${gtmImgOrigins.join(" ")}`,
+      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com ${gtmConnectOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
+      `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com https://www.googletagmanager.com https://tagmanager.google.com ${gtmServerOrigins.join(" ")}`,
+      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com ${gtmImgOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
       `style-src 'self' 'unsafe-inline'`,
       `font-src 'self' data: https://fonts.gstatic.com`,
       `form-action 'self'`,
