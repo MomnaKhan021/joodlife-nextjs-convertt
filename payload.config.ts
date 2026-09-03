@@ -369,7 +369,14 @@ export default buildConfig({
       // connections quickly so slots free up between requests.
       max: 3,
       idleTimeoutMillis: 10_000,
-      connectionTimeoutMillis: 10_000,
+      // Neon suspends an idle database, and whichever connection arrives
+      // first has to wait for that compute to wake. 10s was not enough for
+      // the wake, so a quiet period could leave the app unable to reach its
+      // own database. Only the waking connection is slow — warm ones connect
+      // in milliseconds — so a longer ceiling costs nothing in normal use.
+      connectionTimeoutMillis: Number(
+        process.env.PG_CONNECT_TIMEOUT_MS ?? 30_000,
+      ),
       allowExitOnIdle: true,
     },
     // Auto-sync the Drizzle schema with Postgres so first-boot doesn't
