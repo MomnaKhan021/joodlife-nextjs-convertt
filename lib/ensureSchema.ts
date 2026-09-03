@@ -1,4 +1,5 @@
 import "server-only";
+import { CATEGORIES, categoriesFingerprint } from "@/lib/postCategories";
 
 import type { Payload } from "payload";
 
@@ -467,6 +468,16 @@ const STATEMENTS: string[] = [
   // Seed a starter discount code (WELCOME20 → 20% off) once. Idempotent: only
   // inserts when absent, so editing/disabling it in the dashboard sticks. To
   // retire it, set it inactive in the admin rather than deleting the row.
+  // Blog categories. posts.category is a Postgres enum, so a category added
+  // in lib/postCategories has to be taught to the database before a post can
+  // be saved under it. Generated from that list, so adding one there is the
+  // only edit needed. ADD VALUE IF NOT EXISTS makes it idempotent, and enum
+  // values can never be removed here - dropping one would orphan every post
+  // already filed under it.
+  ...CATEGORIES.map(
+    (c) =>
+      `ALTER TYPE "enum_posts_category" ADD VALUE IF NOT EXISTS '${c.value.replace(/'/g, "''")}'`,
+  ),
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
@@ -479,7 +490,11 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v21";
+// The category list is fingerprinted into the version: adding a category
+// changes it, which makes the repair below run again and teach Postgres the
+// new enum value. Without that the version would still match, the ALTER TYPE
+// would be skipped, and saving a post in the new category would fail.
+const SCHEMA_VERSION = `v22-${categoriesFingerprint()}`;
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

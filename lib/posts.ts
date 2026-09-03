@@ -1,4 +1,5 @@
 import "server-only";
+import { CATEGORIES } from "@/lib/postCategories";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { journalSeedPosts, seedToStorefront } from "./journalSeed";
@@ -357,14 +358,11 @@ export function formatPublishedDate(iso: string | null): string {
 }
 
 export function categoryLabel(slug: string | null): string {
+  // Same list as everywhere else, but this one renders on article cards, so
+  // an empty slug means "show nothing" rather than a dash, and an
+  // unrecognised one is de-hyphenated rather than shown raw.
   if (!slug) return "";
-  const map: Record<string, string> = {
-    "weight-loss": "Weight loss",
-    nutrition: "Nutrition",
-    lifestyle: "Lifestyle",
-    science: "Science",
-    "company-news": "Company news",
-    other: "Other",
-  };
-  return map[slug] ?? slug.replace(/-/g, " ");
+  return (
+    CATEGORIES.find((c) => c.value === slug)?.label ?? slug.replace(/-/g, " ")
+  );
 }

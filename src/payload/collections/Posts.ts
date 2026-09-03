@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { CATEGORIES } from "@/lib/postCategories";
+
 import { isAdmin } from "../access/isAdmin";
 
 /**
@@ -116,14 +118,9 @@ export const Posts: CollectionConfig = {
       name: "category",
       type: "select",
       defaultValue: "weight-loss",
-      options: [
-        { label: "Weight loss", value: "weight-loss" },
-        { label: "Nutrition", value: "nutrition" },
-        { label: "Lifestyle", value: "lifestyle" },
-        { label: "Science", value: "science" },
-        { label: "Company news", value: "company-news" },
-        { label: "Other", value: "other" },
-      ],
+      // From lib/postCategories so the dropdown, the /cms editor, the
+      // article cards and the database's allowed values cannot drift apart.
+      options: CATEGORIES,
       admin: { position: "sidebar" },
     },
     {
