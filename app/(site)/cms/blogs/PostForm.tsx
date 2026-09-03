@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { CATEGORIES } from "@/lib/postCategories";
+
 import MediaPicker from "../MediaPicker";
 import RichTextEditor from "../pages/RichTextEditor";
 
@@ -41,16 +43,6 @@ export type PostDoc = {
   metaTitle?: string | null;
   metaDescription?: string | null;
 };
-
-/** Kept in step with the Posts collection's own select options. */
-export const CATEGORIES = [
-  { label: "Weight loss", value: "weight-loss" },
-  { label: "Nutrition", value: "nutrition" },
-  { label: "Lifestyle", value: "lifestyle" },
-  { label: "Science", value: "science" },
-  { label: "Company news", value: "company-news" },
-  { label: "Other", value: "other" },
-];
 
 const label = "block text-[13px] font-medium text-[#1a1a1a]";
 const input =

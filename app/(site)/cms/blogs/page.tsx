@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { journalSeedPosts } from "@/lib/journalSeed";
 import { getPayloadInstance } from "@/lib/payload";
+import { categoryLabel } from "@/lib/postCategories";
 
 import ImportStarter from "./ImportStarter";
 import PostActions from "./PostActions";
-import { CATEGORIES } from "./PostForm";
 
 export const dynamic = "force-dynamic";
 
@@ -48,11 +48,6 @@ function fmt(iso?: string | null) {
   } catch {
     return "—";
   }
-}
-
-function categoryLabel(value?: string | null) {
-  if (!value) return "—";
-  return CATEGORIES.find((c) => c.value === value)?.label ?? value;
 }
 
 export default async function CmsBlogsList() {
