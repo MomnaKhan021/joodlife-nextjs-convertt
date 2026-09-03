@@ -45,6 +45,14 @@ export const CMS_NAV: CmsNavItem[] = [
     match: "/cms/media",
   },
   {
+    key: "cms-sections",
+    label: "Blog listing page",
+    href: "/cms/blog-page",
+    description: "The /blogs page around the articles",
+    status: "ready",
+    match: "/cms/blog-page",
+  },
+  {
     key: "cms-pages",
     label: "Pages",
     href: "/cms/pages",

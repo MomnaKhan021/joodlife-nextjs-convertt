@@ -19,6 +19,7 @@ import { HomePage } from "./src/payload/globals/HomePage";
 import { Treatments } from "./src/payload/globals/Treatments";
 import { Policies } from "./src/payload/globals/Policies";
 import { Support } from "./src/payload/globals/Support";
+import { BlogPage } from "./src/payload/globals/BlogPage";
 import { WeightLogs } from "./src/payload/collections/WeightLogs";
 import { Inventory } from "./src/payload/collections/Inventory";
 import { applyDiscountEndpoint } from "./src/payload/endpoints/applyDiscount";
@@ -334,7 +335,7 @@ export default buildConfig({
   },
   editor: lexicalEditor(),
   collections: [Users, Products, Orders, Discounts, Media, Consultations, Posts, Pages, WeightLogs, Inventory],
-  globals: [Header, Footer, HomePage, Treatments, Policies, Support],
+  globals: [Header, Footer, HomePage, Treatments, Policies, Support, BlogPage],
   endpoints: [applyDiscountEndpoint],
   secret: resolveSecret(),
   typescript: {

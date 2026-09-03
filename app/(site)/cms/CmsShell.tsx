@@ -25,6 +25,7 @@ const I = (d: string) => (
 /** Icon per nav href — kept out of the registry so it stays server-safe. */
 const ICONS: Record<string, React.ReactNode> = {
   "/cms/blogs": I("M4 5h16M4 12h16M4 19h10"),
+  "/cms/blog-page": I("M4 4h16v5H4zM4 12h7v8H4zM13 12h7M13 16h7M13 20h4"),
   "/cms/media": I("M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 6"),
   "/cms/pages": I("M7 3h7l5 5v13H7zM14 3v5h5"),
   "/cms/header": I("M3 5h18M3 12h18M3 19h18"),
