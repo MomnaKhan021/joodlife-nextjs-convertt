@@ -736,77 +736,121 @@ export async function sendOrderConfirmationEmail(
       maximumFractionDigits: 2,
     })}`;
 
-  const rows = opts.items
-    .map((it) => {
-      const name = escapeHtml(
-        `${it.title}${it.dose ? ` — ${it.dose}` : ""}`
-      );
-      const qty = Math.max(1, Number(it.quantity) || 1);
-      const line =
-        it.price != null ? gbp(Number(it.price) * qty) : "";
-      const img = absoluteImageUrl(it.imageUrl, url);
-      const imgCell = img
-        ? `<td width="56" style="padding:8px 12px 8px 0;vertical-align:middle"><img src="${img}" width="48" height="48" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;display:block;background:#f2ecf2" /></td>`
-        : "";
-      return `<tr>
-        ${imgCell}
-        <td style="padding:8px 0;font-size:14px;color:#142e2a;vertical-align:middle">${name} × ${qty}</td>
-        <td style="padding:8px 0;font-size:14px;color:#142e2a;text-align:right;vertical-align:middle">${line}</td>
-      </tr>`;
-    })
-    .join("");
 
-  // The "Book consultation" CTA appears on every order-confirmation email
-  // (both first orders and reorders) and books via the HubSpot scheduler.
-  const bookConsultationBtn = `<p style="margin:0 0 24px">
-        <a href="${BOOKING_URL}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-          Book consultation
-        </a>
-      </p>`;
+  // PHASE-2 Figma "Order Confirmation — What Happens Next": dark strip, green
+  // hero with the two-women cut-out bleeding off the card, cream "What Happens
+  // Next" steps, green reassurance CTA, shared pharmacy footer. The photos sit
+  // behind the copy as full-card background art (same technique as the
+  // assessment nudge) so they can bleed to the card edges; narrow screens drop
+  // the background and stack the photo instead.
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const img = `${url}/assets/email`;
+  // /profile is where a signed-in customer sees their orders and status.
+  const trackUrl = `${url}/profile`;
+  const supportUrl = `${url}/support`;
 
-  const nextStepHtml = opts.isReorder
-    ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        Our pharmacist will review your resupply questionnaire and be in touch shortly.
-        <strong>You need to book a consultation to get your medication.</strong>
-        Click the button below to book your consultation.
-      </p>
-      ${bookConsultationBtn}`
-    : `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        <strong>You need to book a consultation to get your medication.</strong>
-        Click the button below to book your consultation.
-      </p>
-      ${bookConsultationBtn}`;
+  const step = (n: string, thumb: string, title: string, body: string, last = false) => `
+    <tr>
+      <td width="84" valign="top" style="width:84px;padding:0 12px ${last ? 0 : 18}px 0;font-size:0;line-height:0">
+        <img src="${img}/${thumb}" alt="" width="84" height="84" style="width:84px;height:84px;display:block;border:0;border-radius:6px"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 18}px">
+        <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0"/>
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND}">${body}</p>
+      </td>
+    </tr>`;
 
-  const html = emailShell(
-    `<h1 style="font-size:22px;margin:0 0 8px;color:#142e2a">Thank you for your order, ${escapeHtml(firstName)}</h1>
-     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
-       We've received your order <strong>${escapeHtml(opts.orderNumber)}</strong>.
-       A clinician will review it before anything is dispatched.
-     </p>
-     <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 12px">
-       ${rows}
-     </table>
-     <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right;color:#142e2a">
-       Total: ${gbp(opts.total)}
-     </p>
-     ${nextStepHtml}`,
-    { preheader: `Order ${opts.orderNumber} received — book your consultation` },
-  );
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Order ${escapeHtml(opts.orderNumber)} confirmed &mdash; here&rsquo;s exactly what happens from here.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
 
-  const bookText = `Book your consultation: ${BOOKING_URL}`;
-  const nextStepText = opts.isReorder
-    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly. You need to book a consultation to get your medication.\n${bookText}`
-    : `You need to book a consultation to get your medication. Click below to book.\n${bookText}`;
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">Here&rsquo;s exactly what happens from here.</span>
+      </td></tr>
 
-  const text = `Thank you for your order, ${firstName}!
+      <!-- Hero -->
+      <tr><td style="padding:12px 10px 0">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#132c27;border-radius:14px">
+          <tr><td class="bgcard" height="234" background="${img}/confirm-hero-card.png" style="height:234px;background-color:#132c27;background-image:url('${img}/confirm-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:top left;border-radius:14px;padding:40px 18px 40px">
+            <table role="presentation" class="meas" width="300" cellpadding="0" cellspacing="0" style="width:300px"><tr><td>
+              <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">Thank you</p>
+              <p style="margin:0;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Order Is<br/>Confirmed.</p>
+            </td></tr></table>
+            <img class="mob-art" src="${img}/confirm-hero-m.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- What happens next -->
+      <tr><td style="padding:14px 10px 0">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:26px 20px 26px">
+            <p style="margin:0 0 20px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
+              <span style="font-family:${GIL};font-weight:700">What Happens </span><span style="font-family:${SER};font-style:italic;font-weight:400">Next</span>
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${step("01", "confirm-step1.jpg", "Suitability check.", "Our pharmacy team reviews your assessment to make sure your treatment is right for you.")}
+              ${step("02", "confirm-step2.jpg", "We prepare your order.", "Once everything&rsquo;s confirmed, your treatment is dispensed by our UK pharmacy.")}
+              ${step("03", "confirm-step3.jpg", "Discreet delivery.", "It&rsquo;s sent to you in plain, private packaging.", true)}
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Reassurance CTA -->
+      <tr><td style="padding:14px 10px 22px">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:${BRAND};border-radius:14px">
+          <tr><td style="padding:30px 24px 28px;text-align:center">
+            <table role="presentation" class="meas" width="400" align="center" cellpadding="0" cellspacing="0" style="width:400px;max-width:100%;margin:0 auto"><tr><td style="text-align:center">
+              <p style="margin:0 0 12px;font-size:22px;line-height:28px;color:#ffffff">
+                <span style="font-family:${GIL};font-weight:700">We&rsquo;ll email you at each step, so you always </span><span style="font-family:${SER};font-style:italic;font-weight:400">know where things stand.</span>
+              </p>
+              <p style="margin:0 0 22px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.88)">
+                Any questions in the meantime? Just message our team.
+              </p>
+            </td></tr></table>
+            <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto"><tr>
+              <td class="btn" width="177" style="width:177px;border-radius:8px;background:#ffffff">
+                <a href="${trackUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:13px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Track My Order</a>
+              </td>
+              <td class="gap" width="12"></td>
+              <td class="btn" width="177" style="width:177px;border-radius:8px;border:1px solid rgba(255,255,255,.55)">
+                <a href="${supportUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Talk To Our Team</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Thank you, ${firstName} — your order is confirmed.
 
 Order ${opts.orderNumber}
 ${opts.items.map((it) => `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.quantity}`).join("\n")}
 Total: ${gbp(opts.total)}
 
-${nextStepText}
+What happens next
+1. Suitability check — our pharmacy team reviews your assessment to make sure your treatment is right for you.
+2. We prepare your order — once everything's confirmed, your treatment is dispensed by our UK pharmacy.
+3. Discreet delivery — it's sent to you in plain, private packaging.
 
-Order placed at ${url}. Questions? Just reply to this email.`;
+We'll email you at each step, so you always know where things stand.
+Track your order: ${trackUrl}
+Talk to our team: ${supportUrl}`;
 
   // Short product summary for the subject lines, e.g. "Mounjaro (5 mg)" or
   // "Wegovy Pills +1 more".
