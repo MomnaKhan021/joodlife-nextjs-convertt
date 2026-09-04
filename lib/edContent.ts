@@ -21,7 +21,8 @@ export async function getEdContent(): Promise<EdContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergeEd(doc);
-  } catch {
+  } catch (err) {
+    console.error("[edContent] falling back to shipped copy:", err);
     // Same merge with nothing stored, so the shipped copy comes back whole.
     return mergeEd(null);
   }

@@ -25,7 +25,8 @@ async function getCounts(): Promise<Record<string, number>> {
       counts[d.category] = (counts[d.category] ?? 0) + 1;
     }
     return counts;
-  } catch {
+  } catch (err) {
+    console.error("[cms/blog-categories] could not count posts:", err);
     return {};
   }
 }

@@ -23,7 +23,8 @@ export async function getWegovyContent(): Promise<WegovyContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergeWegovy(doc);
-  } catch {
+  } catch (err) {
+    console.error("[wegovyContent] falling back to shipped copy:", err);
     // Same merge with nothing stored, so the shipped copy comes back whole.
     return mergeWegovy(null);
   }

@@ -25,7 +25,8 @@ export async function getBlogCategories(): Promise<PostCategory[]> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergeCategories(doc);
-  } catch {
+  } catch (err) {
+    console.error("[blogCategories] falling back to shipped copy:", err);
     return mergeCategories(null);
   }
 }

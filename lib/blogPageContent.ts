@@ -24,7 +24,8 @@ export async function getBlogPageContent(): Promise<BlogPageContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergeBlogPage(doc);
-  } catch {
+  } catch (err) {
+    console.error("[blogPageContent] falling back to shipped copy:", err);
     // Same merge with nothing stored, so the shipped copy comes back whole.
     return mergeBlogPage(null);
   }

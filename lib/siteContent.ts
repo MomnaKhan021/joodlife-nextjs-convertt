@@ -55,7 +55,8 @@ export async function getHeaderContent(): Promise<HeaderContent> {
       logoDesktop: str(doc?.logoDesktop, DEFAULT_HEADER_LOGOS.logoDesktop),
       logoMobile: str(doc?.logoMobile, DEFAULT_HEADER_LOGOS.logoMobile),
     };
-  } catch {
+  } catch (err) {
+    console.error("[siteContent] falling back to shipped copy:", err);
     return headerFallback();
   }
 }
@@ -87,7 +88,8 @@ export async function getFooterContent(): Promise<FooterContent> {
       logo: str(doc?.logo, DEFAULT_FOOTER_TEXT.logo),
       contactIcon: str(doc?.contactIcon, DEFAULT_FOOTER_TEXT.contactIcon),
     };
-  } catch {
+  } catch (err) {
+    console.error("[siteContent] falling back to shipped copy:", err);
     return footerFallback();
   }
 }

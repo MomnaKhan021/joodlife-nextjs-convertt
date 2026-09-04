@@ -21,7 +21,8 @@ export async function getSupportContent(): Promise<SupportContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergeSupport(doc);
-  } catch {
+  } catch (err) {
+    console.error("[supportContent] falling back to shipped copy:", err);
     // Same merge with nothing stored, so the shipped copy comes back whole.
     return mergeSupport(null);
   }

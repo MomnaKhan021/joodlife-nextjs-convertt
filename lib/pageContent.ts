@@ -102,7 +102,8 @@ export async function getHomeContent(): Promise<HomeContent> {
       ctaSubtitle: str(doc?.ctaSubtitle, DEFAULT_CTA.ctaSubtitle),
       ctaImage: str(doc?.ctaImage, DEFAULT_CTA.ctaImage),
     };
-  } catch {
+  } catch (err) {
+    console.error("[pageContent] falling back to shipped copy:", err);
     return homeFallback();
   }
 }

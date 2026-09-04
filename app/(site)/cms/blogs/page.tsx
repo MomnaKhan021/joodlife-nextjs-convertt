@@ -31,9 +31,11 @@ async function listPosts(): Promise<PostRow[] | null> {
       overrideAccess: true,
     });
     return docs as PostRow[];
-  } catch {
-    // Table missing or the database is waking — show the empty state rather
-    // than a 500.
+  } catch (err) {
+    // Degrade to the empty state rather than a 500 — but say why in the
+    // server log. Swallowing this silently left the screen claiming the
+    // database was waking up when the real cause could be anything.
+    console.error("[cms/blogs] could not list posts:", err);
     return null;
   }
 }

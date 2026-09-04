@@ -24,7 +24,8 @@ export async function getCategoryPageContent(): Promise<CategoryPageContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergeCategoryPage(doc);
-  } catch {
+  } catch (err) {
+    console.error("[categoryPageContent] falling back to shipped copy:", err);
     // Same merge with nothing stored, so the shipped copy comes back whole.
     return mergeCategoryPage(null);
   }

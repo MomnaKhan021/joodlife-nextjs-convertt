@@ -30,7 +30,8 @@ export async function getTreatmentOverrides(): Promise<TreatmentOverride[]> {
       overrideAccess: true,
     })) as { categories?: unknown };
     return toTreatmentOverrides(doc?.categories);
-  } catch {
+  } catch (err) {
+    console.error("[treatmentContent] falling back to shipped copy:", err);
     return [];
   }
 }
@@ -41,7 +42,8 @@ export async function getCategoryDetails(): Promise<
 > {
   try {
     return mergeDetails(await getTreatmentOverrides());
-  } catch {
+  } catch (err) {
+    console.error("[treatmentContent] falling back to shipped copy:", err);
     return DEFAULT_DETAILS;
   }
 }
@@ -50,7 +52,8 @@ export async function getCategoryDetails(): Promise<
 export async function getCategories(): Promise<Record<CategoryKey, Category>> {
   try {
     return mergeCategories(await getTreatmentOverrides());
-  } catch {
+  } catch (err) {
+    console.error("[treatmentContent] falling back to shipped copy:", err);
     return CATEGORIES;
   }
 }

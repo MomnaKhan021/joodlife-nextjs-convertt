@@ -26,7 +26,8 @@ export async function getPolicy(slug: PolicySlug): Promise<PolicyDoc> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return mergePolicy(slug, doc?.[POLICY_FIELD[slug]]);
-  } catch {
+  } catch (err) {
+    console.error("[policyContent] falling back to shipped copy:", err);
     // Same merge with nothing stored, so the shipped copy comes back
     // complete — contact card and all — rather than a partial object.
     return mergePolicy(slug, null);
