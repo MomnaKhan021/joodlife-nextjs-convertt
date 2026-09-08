@@ -9,6 +9,7 @@
  * Body: { id: number, decision: "approved"|"rejected", reason: string }
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { realOrderPredicate } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -534,6 +535,9 @@ export async function GET(req: NextRequest) {
         reviewedAt: answers._reviewed_at ?? null,
         orderTotal: null as number | null,
         orderNumber: null as string | null,
+        // History-aware "returning customer" flag (set below from order count).
+        // Drives only the New Supply / Reorder PILL — not the tab placement.
+        isRepeatCustomer: isReorder,
         answers,
       };
     });
@@ -557,7 +561,7 @@ export async function GET(req: NextRequest) {
     if (emails.length > 0) {
       const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
       try {
-        const [userRes, orderRes] = await Promise.all([
+        const [userRes, orderRes, countRes] = await Promise.all([
           db.execute(
             sql.raw(
               `SELECT LOWER(email) AS email, name FROM users
@@ -574,7 +578,24 @@ export async function GET(req: NextRequest) {
                ORDER BY LOWER(customer_email), created_at DESC NULLS LAST, id DESC`,
             ),
           ),
+          // How many REAL orders each patient has (same rule as the Orders list
+          // and To Dispatch: paid, staff-raised, or synced Shopify/HubSpot;
+          // abandoned checkouts excluded). Two or more → a returning customer,
+          // so the card reads "Reorder" even for a new-supply questionnaire.
+          db.execute(
+            sql.raw(
+              `SELECT LOWER(customer_email) AS email, COUNT(*)::int AS n
+               FROM orders
+               WHERE LOWER(customer_email) IN (${inList})
+                 AND ${realOrderPredicate("orders")}
+               GROUP BY LOWER(customer_email)`,
+            ),
+          ),
         ]);
+        const realOrderCount: Record<string, number> = {};
+        for (const r of asRows(countRes)) {
+          realOrderCount[String(r.email ?? "").toLowerCase()] = Number(r.n ?? 0) || 0;
+        }
         const nameByEmail: Record<string, string> = {};
         const totalByEmail: Record<string, number> = {};
         const orderNumByEmail: Record<string, string> = {};
@@ -603,6 +624,8 @@ export async function GET(req: NextRequest) {
           if (typeof total === "number") c.orderTotal = total;
           const on = orderNumByEmail[key];
           if (on) c.orderNumber = on;
+          // Returning customer → Reorder pill (unless already a reorder form).
+          if ((realOrderCount[key] ?? 0) >= 2) c.isRepeatCustomer = true;
         }
       } catch {
         /* name / total lookup is best-effort — fall back to "Patient #id" */

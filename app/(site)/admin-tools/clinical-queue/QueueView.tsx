@@ -39,6 +39,9 @@ export type Consultation = {
   status: string;
   createdAt: string;
   isReorder: boolean;
+  /** Returning customer (has ordered before, incl. synced Shopify) — drives
+   *  the New Supply / Reorder pill only, not the tab. */
+  isRepeatCustomer?: boolean;
   redFlags: string[];
   hasRedFlags: boolean;
   reviewed: boolean;
@@ -844,7 +847,7 @@ export function ConsultationCard({
                 </span>
               ) : null}
               <StatusBadge status={c.status} decision={c.reviewDecision} />
-              {c.isReorder ? (
+              {(c.isReorder || c.isRepeatCustomer) ? (
                 <span className="rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[11px] font-semibold text-[#5c4813]">
                   Reorder
                 </span>
