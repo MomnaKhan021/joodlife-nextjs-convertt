@@ -35,6 +35,7 @@ type CustomerData = {
   };
   weightHistory?: WeightPoint[];
   weightChange?: number | null;
+  addressHistory?: { address: string; date: string | null }[];
   orders: CustomerOrder[];
   error?: string;
 };
@@ -319,21 +320,37 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                   <p className="mt-1 text-[13px] text-[#616161]">No phone number</p>
                 )}
 
-                {/* Delivery address — the latest one the customer used. Updates
-                    automatically as new orders come in, so a patient who ships
-                    to a different place each time shows their newest address. */}
+                {/* Delivery addresses — every address the customer has used,
+                    newest first, each with the date. The top one is current;
+                    older ones stay visible as history when they change address. */}
                 <div className="mt-3 border-t border-[#eef0eb] pt-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#9ca3af]">
                     Delivery address
                   </p>
-                  {(customer.latestAddress ?? "").trim() ? (
-                    <p className="mt-1 whitespace-pre-line text-[13px] leading-[19px] text-[#142e2a]">
-                      {(customer.latestAddress ?? "")
-                        .split(/\s*,\s*|\n/)
-                        .map((l) => l.trim())
-                        .filter(Boolean)
-                        .join("\n")}
-                    </p>
+                  {(data.addressHistory ?? []).length > 0 ? (
+                    <div className="mt-1.5 flex flex-col gap-2.5">
+                      {(data.addressHistory ?? []).map((a, i) => (
+                        <div key={i} className={i === 0 ? "" : "border-t border-[#f3f4f6] pt-2.5"}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-medium text-[#6b7280]">
+                              {a.date ? fmtDate(a.date) : "—"}
+                            </span>
+                            {i === 0 ? (
+                              <span className="rounded-full bg-[#e7efe0] px-2 py-0.5 text-[10px] font-semibold text-[#3f5c37]">
+                                Current
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-0.5 whitespace-pre-line text-[13px] leading-[19px] text-[#142e2a]">
+                            {a.address
+                              .split(/\s*,\s*|\n/)
+                              .map((l) => l.trim())
+                              .filter(Boolean)
+                              .join("\n")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <p className="mt-1 text-[13px] text-[#616161]">No delivery address on file</p>
                   )}
