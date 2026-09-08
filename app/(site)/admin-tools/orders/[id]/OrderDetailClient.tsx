@@ -44,6 +44,8 @@ type OrderRow = {
   stripe_payment_intent_id: string | null;
   admin_comments: unknown;
   created_at: string | null;
+  /** History-aware supply type from the server (record route). */
+  is_reorder?: boolean | string | null;
 };
 
 /* ------------------------------------------------------------------ */
@@ -546,7 +548,11 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 <h1 className="text-[23px] font-bold leading-none tracking-[-0.01em] text-[#0c2421]">
                   {orderNumberDisplay(order.order_number, order.id)}
                 </h1>
-                {supplyTypeOf(order.order_number) === "Reorder" ? (
+                {((order.is_reorder === true || order.is_reorder === "true")
+                  ? "Reorder"
+                  : (order.is_reorder === false || order.is_reorder === "false")
+                    ? "New Supply"
+                    : supplyTypeOf(order.order_number)) === "Reorder" ? (
                   <span className="inline-flex items-center rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[12px] font-semibold text-[#5c4813]">
                     Reorder
                   </span>

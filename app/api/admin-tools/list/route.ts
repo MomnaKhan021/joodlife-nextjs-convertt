@@ -16,6 +16,7 @@
  * underlying Payload collection page.
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { IS_REORDER_SQL } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -66,38 +67,8 @@ type SpecRow = {
   sortableColumns?: Record<string, string>;
 };
 
-/**
- * Is this order a REPEAT supply for the customer?
- *
- * Two signals, either is enough:
- *  1. HubSpot prefixes synced reorder deals in the name ("Reorder — #2948").
- *  2. The same customer email already has an earlier REAL order — which is the
- *     only signal for orders created at checkout (clean JLxxxx numbers had
- *     always shown "New Supply", even for repeat patients).
- *
- * "Real" excludes cancelled orders and never-paid checkouts (a declined card
- * is an abandoned checkout, not a previous supply), but keeps the £0
- * staff-raised orders created on clinical approval.
- */
-const IS_REORDER_SQL = `(
-  COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'
-  OR (
-    "orders".customer_email IS NOT NULL AND TRIM("orders".customer_email) <> ''
-    AND EXISTS (
-      SELECT 1 FROM "orders" o2
-      WHERE LOWER(o2.customer_email) = LOWER("orders".customer_email)
-        AND LOWER(COALESCE(o2.status::text,'')) <> 'cancelled'
-        AND (
-          LOWER(COALESCE(o2.payment_status::text,'')) = 'paid'
-          OR COALESCE(CAST(o2.notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'
-        )
-        AND (
-          o2.created_at < "orders".created_at
-          OR (o2.created_at = "orders".created_at AND o2.id < "orders".id)
-        )
-    )
-  )
-)`;
+// IS_REORDER_SQL now lives in lib/reorderSql.ts (shared with order detail
+// and To Dispatch so every screen agrees on Reorder vs New Supply).
 
   // An order only belongs in this collection once it is REAL: the customer
   // paid, or staff raised it on clinical approval (those are £0/unpaid by
