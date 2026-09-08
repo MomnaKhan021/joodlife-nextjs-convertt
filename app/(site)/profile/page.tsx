@@ -10,6 +10,8 @@ import {
   type ConsultationSummary,
 } from "@/lib/accountData";
 import SignOutButton from "@/components/account/SignOutButton";
+import ProfileEditor from "@/components/account/ProfileEditor";
+import { getPayloadInstance } from "@/lib/payload";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +65,34 @@ export default async function ProfilePage() {
     getOrdersForEmail(user.email),
     getConsultationsForEmail(user.email),
   ]);
+
+  // The account's current phone + saved default delivery address, for the
+  // editable "Your details" card. Best-effort — the page still renders if the
+  // lookup fails, and the address column is created lazily by the save route.
+  let acctPhone = "";
+  let acctAddress = "";
+  try {
+    const payload = await getPayloadInstance();
+    const drizzle = (payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }).drizzle;
+    if (drizzle?.execute) {
+      const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
+      await drizzle.execute(sql.raw(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_address text`));
+      const idNum = Number(user.id);
+      if (Number.isFinite(idNum)) {
+        const res = await drizzle.execute(
+          sql.raw(`SELECT phone, default_address FROM "users" WHERE id = ${idNum} LIMIT 1`),
+        );
+        const rows = Array.isArray(res)
+          ? (res as Array<Record<string, unknown>>)
+          : ((res as { rows?: Array<Record<string, unknown>> })?.rows ?? []);
+        const row = rows[0] ?? {};
+        acctPhone = String(row.phone ?? "").trim();
+        acctAddress = String(row.default_address ?? "").trim();
+      }
+    }
+  } catch {
+    /* non-fatal — editor still opens with what we have */
+  }
 
   const displayName = user.name ?? user.email.split("@")[0];
   const initial = displayName[0]?.toUpperCase() ?? "?";
@@ -133,6 +163,14 @@ export default async function ProfilePage() {
             </span>
           </Link>
         </div>
+
+        {/* Editable account details */}
+        <ProfileEditor
+          initialName={user.name ?? ""}
+          initialEmail={user.email}
+          initialPhone={acctPhone}
+          initialAddress={acctAddress}
+        />
 
         {/* Orders */}
         <section className="mt-6 rounded-2xl border border-[#142e2a]/10 bg-white p-6 md:p-8">
