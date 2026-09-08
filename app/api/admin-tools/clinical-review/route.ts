@@ -301,7 +301,11 @@ export async function GET(req: NextRequest) {
     // must not qualify a brand-new consultation for Clinical Check — only a
     // payment taken in the live era counts.
     const orderHide = hideBeforeSql("o.created_at");
-    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
+    // A paid order that has NOT already left for the customer. Clinical Check is
+    // pre-dispatch review, so once the order is shipped/dispatched/delivered
+    // (or was cancelled/refunded) the consultation no longer belongs here — it
+    // was lingering only because nothing excluded a fulfilled order.
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND LOWER(COALESCE(o.status::text, '')) NOT IN ('shipped','dispatched','delivered','cancelled','refunded') AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
     const queueCond =
       queue === "marketing"
         ? `(email IS NULL OR NOT ${paidOrderExists})`
@@ -376,13 +380,39 @@ export async function GET(req: NextRequest) {
       db.execute(
         sql.raw(
           `SELECT
-             COUNT(*) FILTER (WHERE product_slug = 'reorder' OR COALESCE((
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (WHERE product_slug = 'reorder' OR COALESCE((
                answers->>'reorder_side_effect_severity' = 'Severe'
                OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
                OR answers->>'reorder_new_clinical_event' = 'Yes'
                OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
              ), false))::int AS reorder,
-             COUNT(*) FILTER (
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
                  AND NOT COALESCE((
                    answers->>'reorder_side_effect_severity' = 'Severe'
@@ -393,7 +423,20 @@ export async function GET(req: NextRequest) {
                  AND COALESCE(answers->>'_meeting_start', '') ~ '^\\d{4}-\\d{2}-\\d{2}'
                  AND (answers->>'_meeting_start')::timestamptz >= created_at - interval '1 day'
              )::int AS booked,
-             COUNT(*) FILTER (
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
                  AND NOT COALESCE((
                    answers->>'reorder_side_effect_severity' = 'Severe'
@@ -406,7 +449,20 @@ export async function GET(req: NextRequest) {
                    AND (answers->>'_meeting_start')::timestamptz >= created_at - interval '1 day'
                  )
              )::int AS notbooked,
-             COUNT(*) FILTER (
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (
                WHERE answers->>'reorder_side_effect_severity' = 'Severe'
                  OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
                  OR answers->>'reorder_new_clinical_event' = 'Yes'
