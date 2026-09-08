@@ -204,7 +204,11 @@ const WEIGHT_LOSS_SLUGS = new Set([
 ]);
 function treatmentFamily(slug?: string | null): string {
   const s = (slug ?? "").trim().toLowerCase();
-  if (!s) return "";
+  // An empty/unknown slug is treated as weight loss — that is the default
+  // product, and the ED / period-delay / reorder flows always set their slug.
+  // This lets a duplicate row that lost its slug (it renders with no treatment
+  // label) still collapse into the patient's real weight-loss card.
+  if (!s) return "weight-loss";
   if (s === "reorder") return "reorder";
   if (WEIGHT_LOSS_SLUGS.has(s)) return "weight-loss";
   // Tolerate compound slugs like "mounjaro-2-5mg" or "weight-loss-uk".
@@ -1198,7 +1202,9 @@ export default function QueueView({
         continue;
       }
       const score = (x: Consultation) =>
-        (x.reviewed ? 0 : 2) +
+        (x.reviewed ? 0 : 16) +
+        ((x.productSlug ?? "").trim() ? 4 : 0) +
+        ((x.dose ?? "").trim() ? 2 : 0) +
         (x.answers.video_consultation_preference ? 1 : 0);
       const sc = score(c);
       const scCur = score(cur);
