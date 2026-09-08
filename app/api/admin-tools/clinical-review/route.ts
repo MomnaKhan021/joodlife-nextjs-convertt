@@ -307,10 +307,17 @@ export async function GET(req: NextRequest) {
     // (or was cancelled/refunded) the consultation no longer belongs here — it
     // was lingering only because nothing excluded a fulfilled order.
     const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND LOWER(COALESCE(o.status::text, '')) NOT IN ('shipped','dispatched','delivered','cancelled','refunded') AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
+    // A consultation that has already been dispatched has left the clinical
+    // pipeline entirely (Clinical Check -> To Dispatch -> Dispatched). Dispatch
+    // state is stamped on the CONSULTATION itself, so exclude any consultation
+    // carrying a dispatch/tracking stamp — the order's status column alone is
+    // not enough, because a consultation can be dispatched while its order row
+    // still reads "paid".
+    const notDispatched = `((answers->>'_dispatched_at') IS NULL AND (answers->>'_tracking_number') IS NULL)`;
     const queueCond =
       queue === "marketing"
         ? `(email IS NULL OR NOT ${paidOrderExists})`
-        : `(email IS NOT NULL AND ${paidOrderExists})`;
+        : `(email IS NOT NULL AND ${paidOrderExists} AND ${notDispatched})`;
 
     // Pending = submitted consultations (new patients) + reorder submissions
     // waiting review. Exclude drafts and already-decided ones unless showAll.
