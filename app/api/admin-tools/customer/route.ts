@@ -105,6 +105,7 @@ type OrderRow = {
   payment_status: string | null;
   total_amount: string | number | null;
   items_json: unknown;
+  hubspot_deal_id: string | null;
   created_at: string | null;
 };
 
@@ -135,7 +136,7 @@ export async function GET(req: NextRequest) {
     const [ordersRes, userRes] = await Promise.all([
       drizzle.execute(
         sql.raw(`
-          SELECT id, order_number, customer_name, customer_phone, shipping_address, status, payment_status, total_amount, items_json, created_at
+          SELECT id, order_number, customer_name, customer_phone, shipping_address, status, payment_status, total_amount, items_json, hubspot_deal_id, created_at
           FROM orders
           WHERE LOWER(customer_email) = '${esc}'
           ORDER BY created_at DESC NULLS LAST, id DESC
@@ -282,6 +283,13 @@ export async function GET(req: NextRequest) {
         const key = it.title ?? "Item";
         productCounts[key] = (productCounts[key] ?? 0) + (it.quantity || 1);
       }
+      // A synced historical purchase from the old Shopify site (it carries a
+      // HubSpot deal id, or its number is the deal-name format "JL2043: Name —
+      // Product"). These were already fulfilled there — they are history, not
+      // actionable work, so the profile must not present them as "Pending".
+      const isHistorical =
+        Boolean((o.hubspot_deal_id ?? "").trim()) ||
+        /:\s/.test(String(o.order_number ?? ""));
       return {
         id: o.id,
         orderNumber: o.order_number,
@@ -289,6 +297,7 @@ export async function GET(req: NextRequest) {
         paymentStatus: payment,
         total,
         createdAt: o.created_at,
+        isHistorical,
         items,
       };
     });
