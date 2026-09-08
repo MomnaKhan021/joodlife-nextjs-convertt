@@ -11,6 +11,8 @@ type CustomerOrder = {
   paymentStatus: string;
   total: number;
   createdAt: string | null;
+  /** True for orders synced from the old Shopify site — history, not work. */
+  isHistorical?: boolean;
   items: CustomerItem[];
 };
 type CustomerData = {
@@ -282,7 +284,16 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <StatusPill value={o.status} />
+                        {o.isHistorical && ["", "pending", "unfulfilled", "processing", "draft"].includes((o.status ?? "").toLowerCase()) ? (
+                          <span
+                            title="Order from the previous Shopify site — already fulfilled there. Kept as history; not actioned here."
+                            className="inline-flex items-center rounded-full bg-[#e7efe0] px-2 py-0.5 text-[12px] font-medium text-[#3f5c37]"
+                          >
+                            History
+                          </span>
+                        ) : (
+                          <StatusPill value={o.status} />
+                        )}
                         <span className="w-[80px] text-right text-[13px] font-semibold">{gbp(o.total)}</span>
                       </div>
                     </Link>
