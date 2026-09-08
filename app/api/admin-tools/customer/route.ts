@@ -243,11 +243,23 @@ export async function GET(req: NextRequest) {
       orderRows.find((o) => (o.customer_name ?? "").trim())?.customer_name ??
       null;
 
-    // Latest delivery address the customer used — the most recent order that
-    // has one. A patient who uses a different address each time therefore
-    // shows their newest address on the profile. Null if we have none on file.
-    const latestAddress =
-      orderRows.find((o) => (o.shipping_address ?? "").trim())?.shipping_address ?? null;
+    // Every DISTINCT delivery address the customer has used, newest first, each
+    // with the most recent date it was used. A patient who changes address
+    // between orders therefore shows a full history (e.g. 7 Sept: new address,
+    // 5 Sept: old address), with the top one being their current address.
+    const addressHistory: { address: string; date: string | null }[] = [];
+    {
+      const seen = new Set<string>();
+      for (const o of orderRows) {
+        const addr = (o.shipping_address ?? "").trim();
+        if (!addr) continue;
+        const key = addr.toLowerCase().replace(/\s+/g, " ");
+        if (seen.has(key)) continue;
+        seen.add(key);
+        addressHistory.push({ address: addr, date: o.created_at });
+      }
+    }
+    const latestAddress = addressHistory[0]?.address ?? null;
     // Phone: prefer the account, else the newest order that carries one.
     const phone =
       account?.phone ??
@@ -304,6 +316,7 @@ export async function GET(req: NextRequest) {
         accountId: account?.id ?? null,
         role: account?.role ?? null,
       },
+      addressHistory,
       stats: {
         totalOrders: orders.length,
         totalSpent,
