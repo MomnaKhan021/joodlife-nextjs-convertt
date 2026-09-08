@@ -225,6 +225,24 @@ export async function GET(req: NextRequest) {
 
   // Approved-for-supply is the gate into the pipeline.
   const hideCond = hideBeforeSql("created_at");
+  // Same treatment-family rule as the clinical queue: fold every weight-loss
+  // slug (and an empty/unknown slug — the default product) into one bucket, so
+  // one patient's duplicate weight-loss cards collapse to a single row here too.
+  const WL_SLUGS = new Set([
+    "weight-loss","weightloss","wl","mounjaro","tirzepatide",
+    "wegovy","wegovy-pills","ozempic","semaglutide","saxenda","liraglutide","foundayo",
+  ]);
+  const treatmentFamily = (slug: string | null | undefined): string => {
+    const x = String(slug ?? "").trim().toLowerCase();
+    if (!x) return "weight-loss";
+    if (x === "reorder") return "reorder";
+    if (WL_SLUGS.has(x)) return "weight-loss";
+    for (const w of WL_SLUGS) if (x.startsWith(w)) return "weight-loss";
+    if (x.startsWith("erectile") || x === "ed") return "erectile-dysfunction";
+    if (x.startsWith("period") || x === "pd") return "period-delay";
+    return x;
+  };
+
   const APPROVED_WHERE =
     `answers->>'_review_decision' = 'approved'` +
     // Records staff have removed from the queue (test data, duplicates)
@@ -309,6 +327,35 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // How many orders each patient has EVER placed (any era, incl. Shopify
+    // imports; only cancelled/refunded excluded). A patient with more than one
+    // is a returning customer, so their card reads "Reorder" rather than "New
+    // Supply" even when the new order number carries no "reorder" marker.
+    const ordersEverByEmail = new Map<string, number>();
+    if (emails.length > 0) {
+      const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
+      const nRes = await drizzle.execute(
+        sql.raw(`
+          SELECT LOWER(customer_email) AS email, COUNT(*)::int AS n
+          FROM orders
+          WHERE LOWER(customer_email) IN (${inList})
+            AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
+          GROUP BY LOWER(customer_email)
+        `),
+      );
+      for (const r of rowsOf<{ email: string; n: number }>(nRes)) {
+        ordersEverByEmail.set(String(r.email ?? "").toLowerCase(), Number(r.n) || 0);
+      }
+    }
+    const supplyTypeFor = (email: string | null, productSlug: string | null, hasOrder: boolean): "Reorder" | "New Supply" => {
+      if ((productSlug ?? "") === "reorder") return "Reorder";
+      const n = ordersEverByEmail.get((email ?? "").trim().toLowerCase()) ?? 0;
+      // Returning if they have a prior order besides this card's own, or if this
+      // card has no order of its own yet but the patient has ordered before.
+      if (n >= 2 || (!hasOrder && n >= 1)) return "Reorder";
+      return "New Supply";
+    };
+
     // Pair each consultation with the closest-in-time order that no other
     // consultation has already claimed, so two rows never show the same order
     // number. Consultations are processed newest-first (query order).
@@ -381,6 +428,7 @@ export async function GET(req: NextRequest) {
         dispatchedAt,
         trackingNumber: tracking,
         dispatched: Boolean(dispatchedAt),
+        supplyType: supplyTypeFor(c.email ?? o?.customer_email ?? null, c.product_slug, Boolean(o)),
         items: o ? normItems(o.items_json) : [],
         consultation: {
           fullName: c.full_name,
@@ -459,6 +507,7 @@ export async function GET(req: NextRequest) {
           batchNumber: parseBatch(o.notes ?? null),
           trackingNumber: tracking,
           dispatched: isDispatched,
+          supplyType: supplyTypeFor(o.customer_email ?? null, null, true),
           items: normItems(o.items_json),
           consultation: {
             fullName: o.customer_name ?? null,
@@ -513,9 +562,38 @@ export async function GET(req: NextRequest) {
       /* backfill is best-effort — never block the dispatch queue */
     }
 
+    // Collapse duplicate cards for the same patient + treatment among those
+    // still AWAITING dispatch, so one person no longer appears several times
+    // (e.g. two approved weight-loss consultations, or one with no linked order
+    // and one with). Keep the most useful card: one that can actually be
+    // dispatched, then one that has an order, then the newest. Dispatched cards
+    // are never collapsed — each shipped parcel stays visible.
+    const dedupeAwaiting = (list: typeof orders): typeof orders => {
+      const best = new Map<string, typeof orders[number]>();
+      const passthrough: typeof orders = [];
+      for (const o of list) {
+        const email = (o.customerEmail ?? "").trim().toLowerCase();
+        if (!email) { passthrough.push(o); continue; }
+        const key = `${email}|${treatmentFamily(o.consultation?.productSlug ?? null)}`;
+        const cur = best.get(key);
+        if (!cur) { best.set(key, o); continue; }
+        const score = (x: typeof orders[number]) =>
+          (x.canDispatch ? 4 : 0) + (x.hasOrder ? 2 : 0) + ((x.consultation?.productSlug ?? "") ? 1 : 0);
+        const t = (x: typeof orders[number]) => +new Date(x.orderCreatedAt ?? x.createdAt ?? 0) || 0;
+        const sc = score(o), scc = score(cur);
+        if (sc > scc || (sc === scc && t(o) > t(cur)) || (sc === scc && t(o) === t(cur) && o.id > cur.id)) {
+          best.set(key, o);
+        }
+      }
+      return [...passthrough, ...best.values()];
+    };
+    const awaitingRows = dedupeAwaiting(orders.filter((o) => !o.dispatched));
+    const dispatchedRows = orders.filter((o) => o.dispatched);
+    const merged = [...awaitingRows, ...dispatchedRows];
+
     // Drop individually removed test rows (lib/adminHiddenOrders) from both
     // To Dispatch and Dispatched.
-    const visible = orders.filter((e) => !isHiddenOrderNumber(e.orderNumber));
+    const visible = merged.filter((e) => !isHiddenOrderNumber(e.orderNumber));
 
     // Badge counts come from the SAME rows the page renders (hidden test rows
     // already removed), so the badge can never disagree with the list.
