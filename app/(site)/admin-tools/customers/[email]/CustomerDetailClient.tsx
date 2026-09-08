@@ -19,6 +19,8 @@ type CustomerData = {
     email: string;
     name: string | null;
     phone: string | null;
+    /** Most recent delivery address the customer used (from their orders). */
+    latestAddress?: string | null;
     joinedAt: string | null;
     hasAccount: boolean;
     accountId?: number | null;
@@ -316,6 +318,26 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                 ) : (
                   <p className="mt-1 text-[13px] text-[#616161]">No phone number</p>
                 )}
+
+                {/* Delivery address — the latest one the customer used. Updates
+                    automatically as new orders come in, so a patient who ships
+                    to a different place each time shows their newest address. */}
+                <div className="mt-3 border-t border-[#eef0eb] pt-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#9ca3af]">
+                    Delivery address
+                  </p>
+                  {(customer.latestAddress ?? "").trim() ? (
+                    <p className="mt-1 whitespace-pre-line text-[13px] leading-[19px] text-[#142e2a]">
+                      {(customer.latestAddress ?? "")
+                        .split(/\s*,\s*|\n/)
+                        .map((l) => l.trim())
+                        .filter(Boolean)
+                        .join("\n")}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[13px] text-[#616161]">No delivery address on file</p>
+                  )}
+                </div>
               </div>
             </Card>
 
