@@ -19,6 +19,7 @@
  * Accessible to role "admin" AND "staff".
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { realOrderPredicate } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -339,7 +340,7 @@ export async function GET(req: NextRequest) {
           SELECT LOWER(customer_email) AS email, COUNT(*)::int AS n
           FROM orders
           WHERE LOWER(customer_email) IN (${inList})
-            AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
+            AND ${realOrderPredicate("orders")}
           GROUP BY LOWER(customer_email)
         `),
       );

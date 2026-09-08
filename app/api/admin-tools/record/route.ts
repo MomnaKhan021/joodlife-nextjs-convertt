@@ -12,6 +12,7 @@
  * malicious request can't, say, escalate role=admin or wipe a hash.
  */
 import { NextResponse, after, type NextRequest } from "next/server";
+import { IS_REORDER_SQL } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -654,6 +655,21 @@ export async function GET(req: NextRequest) {
         });
       } catch {
         /* leave items_json as-is if enrichment fails */
+      }
+    }
+    // History-aware supply type: reuse the exact SQL the Orders list uses, so
+    // the order detail page shows the same "Reorder" / "New Supply" tag as the
+    // list and To Dispatch (a returning customer — including one whose prior
+    // purchase was a synced Shopify order — reads "Reorder").
+    if (row && type === "orders" && Number.isFinite(Number(row.id))) {
+      try {
+        const r = await drizzle.execute(
+          sql.raw(`SELECT (${IS_REORDER_SQL}) AS is_reorder FROM "orders" WHERE id = ${Number(row.id)} LIMIT 1;`),
+        );
+        const flag = readRows<{ is_reorder?: boolean | string | null }>(r)[0]?.is_reorder;
+        row.is_reorder = flag === true || flag === "true" || flag === "t";
+      } catch {
+        /* non-fatal — the tag falls back to the order-number heuristic */
       }
     }
     return NextResponse.json({
