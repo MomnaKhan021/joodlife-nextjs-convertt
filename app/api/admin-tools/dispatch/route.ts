@@ -588,8 +588,23 @@ export async function GET(req: NextRequest) {
       }
       return [...passthrough, ...best.values()];
     };
-    const awaitingRows = dedupeAwaiting(orders.filter((o) => !o.dispatched));
+    const dedupedAwaiting = dedupeAwaiting(orders.filter((o) => !o.dispatched));
     const dispatchedRows = orders.filter((o) => o.dispatched);
+    // A patient whose parcel has already gone out shouldn't linger in To
+    // Dispatch on a leftover card that can't be dispatched anyway (no linked
+    // order, or an unusable address). Those were already fulfilled — drop them.
+    // A genuine NEW order that can be dispatched (real order + good address) is
+    // kept even for a returning customer.
+    const dispatchedEmails = new Set(
+      dispatchedRows
+        .map((o) => (o.customerEmail ?? "").trim().toLowerCase())
+        .filter(Boolean),
+    );
+    const awaitingRows = dedupedAwaiting.filter((o) => {
+      const email = (o.customerEmail ?? "").trim().toLowerCase();
+      if (email && dispatchedEmails.has(email) && !o.canDispatch) return false;
+      return true;
+    });
     const merged = [...awaitingRows, ...dispatchedRows];
 
     // Drop individually removed test rows (lib/adminHiddenOrders) from both
