@@ -184,6 +184,36 @@ function meetingBelongsToConsult(
   return start >= submitted - 24 * 3600e3;
 }
 
+/**
+ * Collapse a product slug to its treatment "family", so the queue treats one
+ * patient's weight-loss submissions as the same episode however each was
+ * tagged. The site sells weight loss under several slugs (weight-loss, and the
+ * specific medicines mounjaro / wegovy / ozempic / saxenda / foundayo, plus
+ * the molecule names), and a patient who runs the questionnaire more than once
+ * can produce rows with different slugs for the SAME treatment — which is why
+ * "Helen Bevis · mounjaro" and "Helen Bevis · weight-loss" were showing as two
+ * separate cards. ED, period delay, reorder and anything unrecognised keep
+ * their own identity so genuinely different consultations never merge.
+ */
+const WEIGHT_LOSS_SLUGS = new Set([
+  "weight-loss", "weightloss", "wl",
+  "mounjaro", "tirzepatide",
+  "wegovy", "wegovy-pills", "ozempic", "semaglutide",
+  "saxenda", "liraglutide",
+  "foundayo",
+]);
+function treatmentFamily(slug?: string | null): string {
+  const s = (slug ?? "").trim().toLowerCase();
+  if (!s) return "";
+  if (s === "reorder") return "reorder";
+  if (WEIGHT_LOSS_SLUGS.has(s)) return "weight-loss";
+  // Tolerate compound slugs like "mounjaro-2-5mg" or "weight-loss-uk".
+  for (const w of WEIGHT_LOSS_SLUGS) if (s.startsWith(w)) return "weight-loss";
+  if (s.startsWith("erectile") || s === "ed") return "erectile-dysfunction";
+  if (s.startsWith("period") || s === "pd") return "period-delay";
+  return s;
+}
+
 function categorize(c: Consultation, meetingTime?: string | null): TabKey {
   if (c.isReorder || c.hasRedFlags) return "reorder";
   // Booked = an actual scheduled meeting that belongs to this consultation.
@@ -1126,12 +1156,27 @@ export default function QueueView({
   }, []);
 
   const handleDecision = useCallback((id: number, decision: string, reason: string) => {
-    setConsultations((prev) =>
+    void decision;
+    void reason;
+    setConsultations((prev) => {
       // A decided patient has left this queue: approved ones go to To
-      // Dispatch, rejected ones to the Rejected page. Drop the card so the
-      // list and the count agree instead of leaving a decided row behind.
-      prev.filter((c) => c.id !== id),
-    );
+      // Dispatch, rejected ones to the Rejected page. Drop the decided card —
+      // AND any pending duplicate of the same treatment for the same patient
+      // that the queue had collapsed behind it, so the twin doesn't pop back
+      // as a fresh card the moment this one leaves.
+      const decided = prev.find((c) => c.id === id);
+      if (!decided) return prev.filter((c) => c.id !== id);
+      const email = (decided.email ?? "").trim().toLowerCase();
+      const fam = treatmentFamily(decided.productSlug);
+      return prev.filter((c) => {
+        if (c.id === id) return false;
+        if (!email || c.reviewed) return true;
+        return !(
+          (c.email ?? "").trim().toLowerCase() === email &&
+          treatmentFamily(c.productSlug) === fam
+        );
+      });
+    });
   }, []);
 
   // Collapse duplicate consultations for the same customer. HubSpot syncs can
@@ -1144,7 +1189,9 @@ export default function QueueView({
     for (const c of consultations) {
       const email = (c.email ?? "").trim().toLowerCase();
       // No email → can't dedupe reliably; keep as-is under a unique key.
-      const key = email ? `${email}|${c.productSlug ?? ""}` : `id:${c.id}`;
+      // Key on the treatment FAMILY, not the raw slug, so the same weight-loss
+      // episode submitted twice under different slugs collapses to one card.
+      const key = email ? `${email}|${treatmentFamily(c.productSlug)}` : `id:${c.id}`;
       const cur = best.get(key);
       if (!cur) {
         best.set(key, c);
