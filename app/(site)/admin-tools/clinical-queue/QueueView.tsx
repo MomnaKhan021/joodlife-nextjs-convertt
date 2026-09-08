@@ -222,7 +222,9 @@ function treatmentFamily(slug?: string | null): string {
 }
 
 function categorize(c: Consultation, meetingTime?: string | null): TabKey {
-  if (c.isReorder || c.hasRedFlags) return "reorder";
+  // A returning customer (isRepeatCustomer) belongs in Reorder too, so the tab
+  // matches the "Reorder" pill on the card — not just the reorder questionnaire.
+  if (c.isReorder || c.hasRedFlags || c.isRepeatCustomer) return "reorder";
   // Booked = an actual scheduled meeting that belongs to this consultation.
   // Placing an order alone does NOT make someone "booked".
   return meetingBelongsToConsult(c, meetingTime) ? "booked" : "notbooked";
