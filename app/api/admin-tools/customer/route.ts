@@ -99,6 +99,8 @@ type OrderRow = {
   id: number;
   order_number: string | null;
   customer_name: string | null;
+  customer_phone: string | null;
+  shipping_address: string | null;
   status: string | null;
   payment_status: string | null;
   total_amount: string | number | null;
@@ -133,7 +135,7 @@ export async function GET(req: NextRequest) {
     const [ordersRes, userRes] = await Promise.all([
       drizzle.execute(
         sql.raw(`
-          SELECT id, order_number, customer_name, status, payment_status, total_amount, items_json, created_at
+          SELECT id, order_number, customer_name, customer_phone, shipping_address, status, payment_status, total_amount, items_json, created_at
           FROM orders
           WHERE LOWER(customer_email) = '${esc}'
           ORDER BY created_at DESC NULLS LAST, id DESC
@@ -241,6 +243,17 @@ export async function GET(req: NextRequest) {
       orderRows.find((o) => (o.customer_name ?? "").trim())?.customer_name ??
       null;
 
+    // Latest delivery address the customer used — the most recent order that
+    // has one. A patient who uses a different address each time therefore
+    // shows their newest address on the profile. Null if we have none on file.
+    const latestAddress =
+      orderRows.find((o) => (o.shipping_address ?? "").trim())?.shipping_address ?? null;
+    // Phone: prefer the account, else the newest order that carries one.
+    const phone =
+      account?.phone ??
+      orderRows.find((o) => (o.customer_phone ?? "").trim())?.customer_phone ??
+      null;
+
     let totalSpent = 0;
     let cancellations = 0;
     let refunds = 0;
@@ -282,7 +295,8 @@ export async function GET(req: NextRequest) {
       customer: {
         email,
         name,
-        phone: account?.phone ?? null,
+        phone,
+        latestAddress,
         joinedAt: account?.created_at ?? null,
         hasAccount: Boolean(account),
         // For the "Manage access" control on the customer page: link to the
