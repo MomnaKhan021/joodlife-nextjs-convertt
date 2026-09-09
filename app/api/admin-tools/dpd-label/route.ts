@@ -599,12 +599,17 @@ export async function POST(req: NextRequest) {
     after(async () => {
       try {
         await drizzle.execute(
-          sql.raw(`ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS dispatch_email_sent boolean`),
+          sql.raw(
+            `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS dispatch_email_sent boolean,
+                                  ADD COLUMN IF NOT EXISTS dispatched_at timestamptz`,
+          ),
         );
+        // dispatched_at feeds the delivery-day "how to use your pen" email
+        // (/api/cron/treatment-guides), which goes out the day after dispatch.
         const claim = rows<{ id: number }>(
           await drizzle.execute(
             sql.raw(
-              `UPDATE "orders" SET dispatch_email_sent = true
+              `UPDATE "orders" SET dispatch_email_sent = true, dispatched_at = COALESCE(dispatched_at, now())
                  WHERE id = ${orderId} AND COALESCE(dispatch_email_sent, false) = false
                  RETURNING id`,
             ),

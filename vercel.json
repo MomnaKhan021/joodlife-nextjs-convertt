@@ -16,6 +16,10 @@
     {
       "path": "/api/cron/assessment-nudge",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/treatment-guides",
+      "schedule": "0 17 * * *"
     }
   ],
   "functions": {
@@ -29,6 +33,9 @@
       "maxDuration": 60
     },
     "app/api/cron/assessment-nudge/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/treatment-guides/route.ts": {
       "maxDuration": 60
     }
   }
