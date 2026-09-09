@@ -6,10 +6,10 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   getOrdersForEmail,
   getConsultationsForEmail,
-  type OrderSummary,
   type ConsultationSummary,
 } from "@/lib/accountData";
 import SignOutButton from "@/components/account/SignOutButton";
+import OrderHistory from "@/components/account/OrderHistory";
 import ProfileEditor from "@/components/account/ProfileEditor";
 import { getPayloadInstance } from "@/lib/payload";
 
@@ -29,11 +29,6 @@ function fmtDate(iso: string) {
   } catch {
     return iso;
   }
-}
-
-function gbp(n: number | null) {
-  if (n == null) return "—";
-  return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
 function titleize(s: string | null) {
@@ -188,26 +183,7 @@ export default async function ProfilePage() {
               </Link>
             </div>
           ) : (
-            <ul className="mt-4 flex flex-col divide-y divide-[#142e2a]/8">
-              {orders.map((o: OrderSummary) => (
-                <li key={o.orderNumber} className="flex items-center justify-between gap-4 py-3.5">
-                  <div className="flex flex-col">
-                    <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                      {o.orderNumber}
-                    </span>
-                    <span className="font-ui text-[12px] text-[#142e2a]/60">
-                      {fmtDate(o.date)} · {o.itemCount} item{o.itemCount === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge status={o.paymentStatus ?? o.status} />
-                    <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                      {gbp(o.total)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <OrderHistory orders={orders} />
           )}
         </section>
 
