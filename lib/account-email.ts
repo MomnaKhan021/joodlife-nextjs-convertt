@@ -723,10 +723,44 @@ export async function sendOrderConfirmationEmail(
     total: number;
     items: OrderEmailItem[];
     isReorder?: boolean;
+    /** Contact phone shown in the "Your details" block. */
+    phone?: string | null;
+    /** Delivery address shown in the "Your details" block (billing = same). */
+    shippingAddress?: string | null;
   }
 ): Promise<void> {
   const url = siteUrl();
   const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+
+  // "Your details" block — the customer's own contact + delivery details, so
+  // they can spot any mistake before the parcel is dispatched. Billing is
+  // always the same as delivery on this store.
+  const addrHtml = (opts.shippingAddress ?? "")
+    .split(/\s*,\s*|\n/)
+    .map((l) => escapeHtml(l.trim()))
+    .filter(Boolean)
+    .join("<br/>");
+  const detailRow = (labelText: string, valueHtml: string) =>
+    `<tr>
+       <td style="padding:4px 12px 4px 0;font-size:13px;color:#142e2a;opacity:.65;white-space:nowrap;vertical-align:top">${labelText}</td>
+       <td style="padding:4px 0;font-size:13px;color:#142e2a;vertical-align:top">${valueHtml || "&mdash;"}</td>
+     </tr>`;
+  const detailsHtml = `
+     <div style="margin:22px 0 0;padding-top:18px;border-top:1px solid #e7e8e3">
+       <p style="font-size:13px;font-weight:700;margin:0 0 8px;color:#142e2a;text-transform:uppercase;letter-spacing:.04em">Your details</p>
+       <table style="width:100%;border-collapse:collapse">
+         ${detailRow("Name", escapeHtml(String(opts.name ?? "").trim()))}
+         ${detailRow("Email", escapeHtml(opts.email))}
+         ${detailRow("Phone", escapeHtml(String(opts.phone ?? "").trim()))}
+         ${detailRow("Delivery address", addrHtml)}
+         ${detailRow("Billing address", "Same as delivery address")}
+       </table>
+       <p style="font-size:13px;line-height:20px;margin:12px 0 0;color:#142e2a">
+         Please check these carefully. If anything here is incorrect, contact us
+         <strong>immediately</strong> so we can fix it before your order is dispatched.
+       </p>
+     </div>`;
+
   const gbp = (n: number) =>
     `£${Number(n || 0).toLocaleString("en-GB", {
       minimumFractionDigits: 2,
@@ -787,6 +821,7 @@ export async function sendOrderConfirmationEmail(
        Total: ${gbp(opts.total)}
      </p>
      ${nextStepHtml}
+     ${detailsHtml}
      <p style="font-size:14px;line-height:21px;margin:22px 0 0;padding-top:16px;border-top:1px solid #e7e8e3;color:#142e2a">
        Have an urgent question, or need to update any of your details?
        <a href="https://wa.me/447756099075" style="color:#142e2a;font-weight:700;text-decoration:underline">Message us on WhatsApp</a>.
@@ -806,6 +841,14 @@ ${opts.items.map((it) => `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.
 Total: ${gbp(opts.total)}
 
 ${nextStepText}
+
+YOUR DETAILS
+Name: ${String(opts.name ?? "").trim() || "—"}
+Email: ${opts.email}
+Phone: ${String(opts.phone ?? "").trim() || "—"}
+Delivery address: ${(opts.shippingAddress ?? "").replace(/\s*\n\s*/g, ", ").trim() || "—"}
+Billing address: Same as delivery address
+Please check these carefully. If anything is incorrect, contact us immediately so we can fix it before dispatch.
 
 Have an urgent question, or need to update any of your details? Message us on WhatsApp: https://wa.me/447756099075
 
