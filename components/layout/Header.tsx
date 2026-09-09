@@ -70,7 +70,7 @@ export default function Header() {
 
   return (
     <header
-      className="relative w-full border-b border-[#142e2a]/10 bg-white"
+      className="sticky top-0 z-40 w-full border-b border-[#142e2a]/10 bg-white"
       onMouseLeave={() => setMegaOpen(false)}
     >
       {/* Desktop Header: 80px tall */}
