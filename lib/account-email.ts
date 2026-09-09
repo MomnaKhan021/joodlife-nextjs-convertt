@@ -774,7 +774,13 @@ export async function sendOrderConfirmationEmail(
 <html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="color-scheme" content="light only"/>
-<style>${emailFontCss(url)}</style></head>
+<style>${emailFontCss(url)}
+    @media only screen and (max-width:620px){
+      td.bgcard{background-image:none !important;height:auto !important;padding:0 0 0 !important}
+      table.meas{width:100% !important}
+      table.meas td{padding:30px 20px 0 !important}
+      img.mob-art{display:block !important;width:100% !important;max-width:300px !important;max-height:none !important;height:auto !important;margin:18px auto 0 !important;border-radius:0 0 14px 14px}
+    }</style></head>
 <body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Order ${escapeHtml(opts.orderNumber)} confirmed &mdash; here&rsquo;s exactly what happens from here.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
@@ -789,8 +795,8 @@ export async function sendOrderConfirmationEmail(
       <!-- Hero -->
       <tr><td style="padding:12px 10px 0">
         <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#132c27;border-radius:14px">
-          <tr><td class="bgcard" height="234" background="${img}/confirm-hero-card.png" style="height:234px;background-color:#132c27;background-image:url('${img}/confirm-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:top left;border-radius:14px;padding:40px 18px 40px">
-            <table role="presentation" class="meas" width="300" cellpadding="0" cellspacing="0" style="width:300px"><tr><td>
+          <tr><td class="bgcard" height="314" valign="top" background="${img}/confirm-hero-card.png" style="height:314px;background-color:#132c27;background-image:url('${img}/confirm-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:left top;border-radius:14px;padding:0">
+            <table role="presentation" class="meas" width="318" cellpadding="0" cellspacing="0" style="width:318px"><tr><td style="padding:62px 0 0 18px">
               <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">Thank you</p>
               <p style="margin:0 0 10px;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Order Is<br/>Confirmed.</p>
               <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(opts.orderNumber)}</span></p>
