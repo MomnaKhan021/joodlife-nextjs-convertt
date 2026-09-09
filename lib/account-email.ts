@@ -748,6 +748,7 @@ export async function sendOrderConfirmationEmail(
   // /profile is where a signed-in customer sees their orders and status.
   const trackUrl = `${url}/profile`;
   const supportUrl = `${url}/support`;
+  const waLink = "https://wa.me/447756099075";
 
   const step = (n: string, thumb: string, title: string, body: string, last = false) => `
     <tr>
@@ -829,6 +830,13 @@ export async function sendOrderConfirmationEmail(
             </tr></table>
           </td></tr>
         </table>
+      </td></tr>
+
+      <!-- Urgent contact -->
+      <tr><td style="padding:0 10px 18px">
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND};text-align:center">
+          Have an urgent question, or need to update any of your details? <a href="${waLink}" style="color:${BRAND};font-weight:700;text-decoration:underline">Message us on WhatsApp</a>.
+        </p>
       </td></tr>
 
       ${emailFooterHtml(url)}
