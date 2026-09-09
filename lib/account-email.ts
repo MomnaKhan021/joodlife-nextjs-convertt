@@ -1605,3 +1605,168 @@ Delivery questions? Message us on WhatsApp: ${waLink}`;
     text,
   });
 }
+
+/**
+ * PHASE-2 ONBOARDING-4 — "How to use your pen", the delivery-day guide.
+ *
+ * Objective: help patients use their treatment correctly and confidently.
+ * Trigger: order delivered (DPD next-day, so the day after dispatch — see
+ * /api/cron/treatment-guides). Pen orders only; the Wegovy Pill has its own
+ * routine and is not covered here.
+ *
+ * Layout follows the Figma file (Xh8LkKbTS1e6wnuGu7gN03): strip, hero card
+ * with the pen, a 2x2 grid of step tiles, a Quick Tips card with two CTAs,
+ * then the shared footer. Everything stacks to one column under 620px.
+ */
+export async function sendTreatmentGuideEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null; orderNumber?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const guideUrl = `${url}/support`;
+  const waLink = "https://wa.me/447756099075";
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const orderNo = (opts.orderNumber ?? "").trim();
+
+  // One step tile: photo as the cell background, caption sitting bottom-left
+  // on top of it. Fixed 280px square on desktop; the media query lets it go
+  // full-width (cover) when the grid stacks.
+  const tile = (thumb: string, caption: string) => `
+    <td class="tile" width="280" height="280" valign="bottom" background="${img}/${thumb}" style="width:280px;height:280px;background-color:#e4eaed;background-image:url('${img}/${thumb}');background-size:cover;background-position:center;background-repeat:no-repeat;border-radius:10px;padding:0">
+      <table role="presentation" class="cap" width="100%" cellpadding="0" cellspacing="0"><tr><td valign="bottom" style="padding:0 16px 16px">
+        <p style="margin:0;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:#ffffff;text-shadow:0 1px 6px rgba(0,0,0,.55)">${caption}</p>
+      </td></tr></table>
+    </td>`;
+
+  const tip = (title: string, body: string, last = false) => `
+    <tr>
+      <td width="30" valign="top" style="width:30px;padding:2px 0 ${last ? 0 : 16}px">
+        <img src="${img}/guide-tick.png" alt="" width="18" height="18" style="width:18px;height:18px;display:block;border:0"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 16}px">
+        <p style="margin:0 0 3px;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND}">${body}</p>
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}
+    @media only screen and (max-width:620px){
+      td.bgcard{background-image:none !important;height:auto !important;padding:0 !important}
+      table.meas{width:100% !important}
+      table.meas td{padding:30px 20px 0 !important}
+      img.mob-art{display:block !important;width:100% !important;max-width:300px !important;max-height:none !important;height:auto !important;margin:18px auto 0 !important;border-radius:0 0 14px 14px}
+      td.tile{display:block !important;width:100% !important;height:260px !important;box-sizing:border-box !important;margin:0 0 12px !important}
+      td.tile table.cap{height:260px !important}
+      td.tile-gap,tr.tile-row-gap{display:none !important}
+    }</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your treatment has arrived. Here&rsquo;s a simple guide to help you feel confident every step of the way.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">A simple guide to help you feel confident.</span>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="padding:12px 10px 0">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#132c27;border-radius:14px">
+          <tr><td class="bgcard" height="314" valign="top" background="${img}/guide-hero-card.png" style="height:314px;background-color:#132c27;background-image:url('${img}/guide-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:left top;border-radius:14px;padding:0">
+            <table role="presentation" class="meas" width="318" cellpadding="0" cellspacing="0" style="width:318px"><tr><td style="padding:62px 0 0 18px">
+              <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">How To Use</p>
+              <p style="margin:0 0 12px;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Pen</p>
+              <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.9)">Your treatment has arrived. Here&rsquo;s a simple guide to help you feel confident every step of the way.</p>
+              ${orderNo ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(orderNo)}</span></p>` : ""}
+            </td></tr></table>
+            <img class="mob-art" src="${img}/guide-hero-m.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Step-by-step tiles -->
+      <tr><td style="padding:22px 10px 0">
+        <p style="margin:0 0 14px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
+          <span style="font-family:${GIL};font-weight:500">Step-by-Step </span><span style="font-family:${SER};font-style:italic;font-weight:400">Using Your Pen</span>
+        </p>
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%">
+          <tr>
+            ${tile("guide-step1.jpg", "1. Check your pen")}
+            <td class="tile-gap" width="20" style="width:20px;font-size:0;line-height:0">&nbsp;</td>
+            ${tile("guide-step2.jpg", "2. Attach the needle")}
+          </tr>
+          <tr class="tile-row-gap"><td colspan="3" height="20" style="height:20px;font-size:0;line-height:0">&nbsp;</td></tr>
+          <tr>
+            ${tile("guide-step3.jpg", "3. Select your dose")}
+            <td class="tile-gap" width="20" style="width:20px;font-size:0;line-height:0">&nbsp;</td>
+            ${tile("guide-step4.jpg", "4. Inject your dose")}
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Quick tips -->
+      <tr><td style="padding:22px 10px 22px">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:26px 22px 24px">
+            <p style="margin:0 0 18px;font-size:22px;line-height:28px;color:${BRAND}">
+              <span style="font-family:${GIL};font-weight:500">Quick Tips For </span><span style="font-family:${SER};font-style:italic;font-weight:400">Success</span>
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${tip("Stay consistent", "Take your dose on the same day each week.")}
+              ${tip("Store correctly", "Keep your pens in the fridge. Do not freeze.")}
+              ${tip("We&rsquo;re here to help", "Reach out anytime for support or guidance.", true)}
+            </table>
+            <p style="margin:18px 0 0;padding:12px 14px;background:#ffffff;border-radius:8px;font-family:${SANS};font-size:13px;line-height:19px;color:${BRAND}">If anything feels unclear, don&rsquo;t guess: just message our team and we&rsquo;ll talk you through it.</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px auto 0"><tr>
+              <td class="btn" style="border-radius:8px;background:${BRAND}">
+                <a href="${guideUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 22px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Full Step-By-Step Guide</a>
+              </td>
+              <td class="gap" width="12"></td>
+              <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 20px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Need Help? Talk To Us</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+How to use your pen — your treatment has arrived. Here's a simple guide to help you feel confident every step of the way.${orderNo ? `\n\nOrder #${orderNo}` : ""}
+
+Step-by-step:
+1. Check your pen
+2. Attach the needle
+3. Select your dose
+4. Inject your dose
+
+Quick tips for success:
+- Stay consistent: take your dose on the same day each week.
+- Store correctly: keep your pens in the fridge. Do not freeze.
+- We're here to help: reach out anytime for support or guidance.
+
+If anything feels unclear, don't guess: just message our team and we'll talk you through it.
+
+Full step-by-step guide: ${guideUrl}
+Need help? Talk to us on WhatsApp: ${waLink}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "How to use & store your pen",
+    html,
+    text,
+  });
+}
