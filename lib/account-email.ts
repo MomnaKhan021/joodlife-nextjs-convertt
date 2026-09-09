@@ -714,6 +714,198 @@ function absoluteImageUrl(src: string | null | undefined, base: string): string 
   return `${base}${src.startsWith("/") ? "" : "/"}${src}`;
 }
 
+/**
+ * "We're with you at every step" — the early-adjustment check-in.
+ *
+ * Objective: reassure through the early-adjustment period and reduce early
+ * drop-off. Trigger: ~day 2-3 after the estimated first dose.
+ *
+ * Built from the PHASE-2 POST-PURCHASE / ONBOARDING Figma
+ * (uOSw051KQzaNQzg29oxmag, node 1:348). Gradients, the Trustpilot lockup and
+ * the cut-out photography are baked into images because email clients can't
+ * be relied on for CSS gradients or SVG; the two content cards use real
+ * <img> columns so they stack on their own at narrow widths.
+ */
+export async function sendOnboardingCheckInEmail(
+  payload: Payload,
+  user: { email: string; name?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const img = `${url}/assets/email`;
+  const waLink = "https://wa.me/447756099075";
+  const tipsUrl = `${url}/support`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+
+  // Figma tracking is negative and emailFontCss() ships a global
+  // `*{letter-spacing:0 !important}`, so each run carries its own value with
+  // inline !important to outrank it.
+  const ls = (v: number) => `letter-spacing:${v}px !important`;
+
+  const fonts = `${emailFontCss(url)}
+    .m-only{display:none !important;max-height:0 !important;overflow:hidden !important;mso-hide:all}
+    @media only screen and (max-width:620px){
+      td.hero-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 0 !important}
+      td.hero-cell h1{font-size:34px !important;line-height:37px !important}
+      td.cta-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 24px !important}
+      td.p2-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:22px 20px 4px !important}
+      td.p2-art{display:block !important;width:100% !important;box-sizing:border-box !important;padding:0 !important;text-align:center !important}
+      td.p2-art img{width:100% !important;max-width:100% !important;height:auto !important;border-radius:0 0 12px 12px !important}
+      .m-only{display:block !important;max-height:none !important;overflow:visible !important}
+      .m-only img{width:100% !important;height:auto !important}
+    }
+  `;
+
+  /** One numbered reminder: 16px gradient circle + copy. */
+  const reminder = (n: string, text: string, last = false) => `
+    <tr>
+      <td width="20" valign="top" style="width:20px;padding:0 0 ${last ? 0 : 23}px;font-size:0;line-height:0">
+        <img src="${img}/p2-num-${n}.png" alt="${n}" width="16" height="16" style="width:16px;height:16px;display:block;border:0"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 23}px 15px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;${ls(-0.32)};color:#040404">
+        ${text}
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${fonts}</style></head>
+<body style="margin:0;padding:0;background:#eef1e9;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">The early days can take some adjusting &mdash; we&rsquo;ve got you.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
+
+      <!-- Strapline strip: Figma 600x41, text y12 -->
+      <tr><td style="padding:12px 24px;text-align:center">
+        <span style="font-family:${GIL};font-size:14px;font-weight:500;line-height:17px;${ls(-0.5)};color:${BRAND}">The early days can take some adjusting &mdash; we&rsquo;ve got you.</span>
+      </td></tr>
+
+      <!-- Hero 600x660: gradient + JOOD mark + Trustpilot lockup + cut-out
+           baked in; headline y124 and sub y216 sit on top as real text. -->
+      <tr><td class="hero-cell" background="${img}/p2-hero.jpg" bgcolor="#20463d" valign="top" height="660" style="height:660px;box-sizing:border-box;background-color:#20463d;background-image:url('${img}/p2-hero.jpg');background-repeat:no-repeat;background-position:top center;background-size:600px 660px;padding:124px 102px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:0 0 14px;font-size:0;line-height:0">
+          <img src="${img}/p2-m-top.jpg" alt="Trustpilot 4.4 (50+) reviews" width="335" style="width:335px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </td></tr></table>
+        <h1 style="margin:0 0 6px;font-family:${GIL};font-size:48px;font-weight:500;line-height:48px;${ls(-1.6)};color:#ffffff;text-align:center">We&rsquo;re with you at <span style="font-family:${SER};font-style:italic;font-weight:400">every step</span></h1>
+        <table role="presentation" width="286" cellpadding="0" cellspacing="0" align="center" class="stack" style="width:286px;max-width:100%"><tr><td>
+          <p style="margin:0;font-family:${SANS};font-size:15px;font-weight:400;line-height:17px;${ls(-0.488)};color:#ffffff;text-align:center">
+            You&rsquo;ve started &mdash; that&rsquo;s a big step, and you should feel good about it.
+          </p>
+        </td></tr></table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:18px 0 0;font-size:0;line-height:0">
+          <img src="${img}/p2-m-women.jpg" alt="" width="335" style="width:335px;max-width:100%;height:auto;display:block;border:0"/>
+        </td></tr></table>
+      </td></tr>
+
+      <!-- "That's completely normal" card. Figma 580x234 r12 cream, copy 344
+           wide at x26, clinician cut-out filling the right 268px. -->
+      <tr><td style="padding:32px 10px 0">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:12px">
+          <tr>
+            <td class="p2-copy" width="312" valign="middle" style="width:312px;padding:16px 0 16px 26px">
+              <p style="margin:0;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:${BRAND}">
+                The first few days can take a little adjusting as your body settles in.
+                <span style="font-family:${SER};font-style:italic;font-weight:400">That&rsquo;s completely normal.</span>
+              </p>
+            </td>
+            <td class="p2-art" width="268" valign="bottom" align="right" style="width:268px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/p2-clinician.jpg" alt="" width="268" height="234" style="width:268px;height:234px;display:block;border:0;border-radius:0 12px 12px 0"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- "A few gentle reminders" card. Figma 580x205 r12, two 280 columns. -->
+      <tr><td style="padding:32px 10px 0">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:12px">
+          <tr>
+            <td class="p2-copy" width="300" valign="top" style="width:300px;padding:0 10px 0 20px">
+              <h2 style="margin:0 0 24px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:${BRAND}">A few gentle reminders:</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                ${reminder("01", "Drink plenty of water.")}
+                ${reminder("02", "Eat slowly and listen to your body.")}
+                ${reminder("03", "Smaller, lighter meals can feel easier at first.", true)}
+              </table>
+            </td>
+            <td class="p2-art" width="280" valign="top" style="width:280px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/p2-reminders.jpg" alt="" width="280" height="205" style="width:280px;height:205px;display:block;border:0;border-radius:12px"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- "We're here to help" CTA. Figma panel 580x293 r12: heading y40,
+           body y80 (340 wide), reassurance y151, buttons y203 (50 tall). -->
+      <tr><td style="padding:32px 10px 24px">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;border-radius:12px">
+          <tr><td class="cta-cell" background="${img}/p2-cta.jpg" bgcolor="#20463d" valign="top" height="293" style="height:293px;box-sizing:border-box;border-radius:12px;background-color:#20463d;background-image:url('${img}/p2-cta.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 293px;padding:40px 8px 0">
+            <p style="margin:0 0 14px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:#ffffff;text-align:center">We&rsquo;re here to help.</p>
+            <table role="presentation" width="340" cellpadding="0" cellspacing="0" align="center" class="stack" style="width:340px;max-width:100%"><tr><td>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:16.3px;font-weight:400;line-height:20px;${ls(-0.32)};color:#ffffff;text-align:center">
+                If anything doesn&rsquo;t feel right, or you&rsquo;re just not sure about something, please don&rsquo;t sit on it. Message our team and we&rsquo;ll help.
+              </p>
+              <p style="margin:0 0 32px;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:20px;${ls(-0.32)};color:#ffffff;text-align:center">
+                You&rsquo;re not doing this alone.
+              </p>
+            </td></tr></table>
+            <table role="presentation" width="564" cellpadding="0" cellspacing="0" class="stack" align="center" style="width:564px;max-width:100%"><tr>
+              <td width="269" height="50" align="center" valign="middle" bgcolor="#ffffff" class="btn" style="width:269px;height:50px;box-sizing:border-box;background:#ffffff;border:1px solid #d3dabe;border-radius:8px">
+                <a href="${waLink}" style="display:block;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:48px;${ls(-0.32)};color:${BRAND};text-decoration:none">Message Our Team On WhatsApp</a>
+              </td>
+              <td width="6" class="gap">&nbsp;</td>
+              <td width="289" height="50" align="center" valign="middle" class="btn" style="width:289px;height:50px;box-sizing:border-box;border:1px solid #ffffff;border-radius:8px">
+                <a href="${tipsUrl}" style="display:block;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:48px;${ls(-0.32)};color:#ffffff;text-decoration:none">Read Our Getting-Started Tips</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Compliance line the Figma carries above the footer. -->
+      <tr><td style="padding:0 28px 22px">
+        <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;${ls(-0.32)};color:${BRAND};opacity:.75;text-align:center">
+          Treatment is subject to assessment and suitability.
+        </p>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `We're with you at every step
+
+You've started — that's a big step, and you should feel good about it.
+
+The first few days can take a little adjusting as your body settles in.
+That's completely normal.
+
+A few gentle reminders:
+1. Drink plenty of water.
+2. Eat slowly and listen to your body.
+3. Smaller, lighter meals can feel easier at first.
+
+We're here to help. If anything doesn't feel right, or you're just not sure
+about something, please don't sit on it. Message our team and we'll help.
+You're not doing this alone.
+
+Message our team on WhatsApp: ${waLink}
+Read our getting-started tips: ${tipsUrl}
+
+Questions? Email us at hello@joodlife.com
+Treatment is subject to assessment and suitability.`;
+
+  await payload.sendEmail({
+    to: user.email,
+    subject: "We're with you at every step",
+    html,
+    text,
+  });
+}
+
 export async function sendOrderConfirmationEmail(
   payload: Payload,
   opts: {
