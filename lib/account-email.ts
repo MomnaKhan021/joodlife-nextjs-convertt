@@ -726,6 +726,8 @@ export async function sendOrderConfirmationEmail(
     total: number;
     items: OrderEmailItem[];
     isReorder?: boolean;
+    phone?: string | null;
+    shippingAddress?: string | null;
   }
 ): Promise<void> {
   const url = siteUrl();
@@ -749,6 +751,16 @@ export async function sendOrderConfirmationEmail(
   const trackUrl = `${url}/profile`;
   const supportUrl = `${url}/support`;
   const waLink = "https://wa.me/447756099075";
+  const addrHtml = (opts.shippingAddress ?? "")
+    .split(/\s*,\s*|\n/)
+    .map((l) => escapeHtml(l.trim()))
+    .filter(Boolean)
+    .join("<br/>");
+  const detailRow = (labelText: string, valueHtml: string) =>
+    `<tr>
+       <td style="padding:4px 12px 4px 0;font-family:${SANS};font-size:13px;color:${BRAND};opacity:.65;white-space:nowrap;vertical-align:top">${labelText}</td>
+       <td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${BRAND};vertical-align:top">${valueHtml || "&mdash;"}</td>
+     </tr>`;
 
   const step = (n: string, thumb: string, title: string, body: string, last = false) => `
     <tr>
@@ -828,6 +840,25 @@ export async function sendOrderConfirmationEmail(
                 <a href="${supportUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Talk To Our Team</a>
               </td>
             </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Your details -->
+      <tr><td style="padding:0 10px 4px">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:22px 22px 20px">
+            <p style="margin:0 0 12px;font-family:${SANS};font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${BRAND}">Your details</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${detailRow("Name", escapeHtml(String(opts.name ?? "").trim()))}
+              ${detailRow("Email", escapeHtml(opts.email))}
+              ${detailRow("Phone", escapeHtml(String(opts.phone ?? "").trim()))}
+              ${detailRow("Delivery address", addrHtml)}
+              ${detailRow("Billing address", "Same as delivery address")}
+            </table>
+            <p style="margin:12px 0 0;font-family:${SANS};font-size:13px;line-height:19px;color:${BRAND}">
+              Please check these carefully. If anything here is incorrect, contact us <strong>immediately</strong> so we can fix it before your order is dispatched.
+            </p>
           </td></tr>
         </table>
       </td></tr>
