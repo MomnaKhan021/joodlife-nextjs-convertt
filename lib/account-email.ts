@@ -786,7 +786,11 @@ export async function sendOrderConfirmationEmail(
      <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right;color:#142e2a">
        Total: ${gbp(opts.total)}
      </p>
-     ${nextStepHtml}`,
+     ${nextStepHtml}
+     <p style="font-size:14px;line-height:21px;margin:22px 0 0;padding-top:16px;border-top:1px solid #e7e8e3;color:#142e2a">
+       Have an urgent question, or need to update any of your details?
+       <a href="https://wa.me/447756099075" style="color:#142e2a;font-weight:700;text-decoration:underline">Message us on WhatsApp</a>.
+     </p>`,
     { preheader: `Order ${opts.orderNumber} received — book your consultation` },
   );
 
@@ -802,6 +806,8 @@ ${opts.items.map((it) => `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.
 Total: ${gbp(opts.total)}
 
 ${nextStepText}
+
+Have an urgent question, or need to update any of your details? Message us on WhatsApp: https://wa.me/447756099075
 
 Order placed at ${url}. Questions? Just reply to this email.`;
 
