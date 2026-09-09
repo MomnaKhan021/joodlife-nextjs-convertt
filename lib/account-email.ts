@@ -808,7 +808,7 @@ export async function sendOrderConfirmationEmail(
         <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
           <tr><td style="padding:26px 20px 26px">
             <p style="margin:0 0 20px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
-              <span style="font-family:${GIL};font-weight:700">What Happens </span><span style="font-family:${SER};font-style:italic;font-weight:400">Next</span>
+              <span style="font-family:${GIL};font-weight:500">What Happens </span><span style="font-family:${SER};font-style:italic;font-weight:400">Next</span>
             </p>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               ${step("01", "confirm-step1.jpg", "Suitability check.", "Our pharmacy team reviews your assessment to make sure your treatment is right for you.")}
@@ -825,7 +825,7 @@ export async function sendOrderConfirmationEmail(
           <tr><td style="padding:30px 24px 28px;text-align:center">
             <table role="presentation" class="meas" width="400" align="center" cellpadding="0" cellspacing="0" style="width:400px;max-width:100%;margin:0 auto"><tr><td style="text-align:center">
               <p style="margin:0 0 12px;font-size:22px;line-height:28px;color:#ffffff">
-                <span style="font-family:${GIL};font-weight:700">We&rsquo;ll email you at each step, so you always </span><span style="font-family:${SER};font-style:italic;font-weight:400">know where things stand.</span>
+                <span style="font-family:${GIL};font-weight:500">We&rsquo;ll email you at each step, so you always </span><span style="font-family:${SER};font-style:italic;font-weight:400">know where things stand.</span>
               </p>
               <p style="margin:0 0 22px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.88)">
                 Any questions in the meantime? Just message our team.
