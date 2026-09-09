@@ -8,11 +8,12 @@
  *
  * Body: { id: number, decision: "approved"|"rejected", reason: string }
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { realOrderPredicate } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { sendSuitabilityApprovedEmail } from "@/lib/account-email";
 import { hideBeforeSql } from "@/lib/adminHide";
 import { nextOrderNumber } from "@/lib/orderNumber";
 import { backfillReorderBaseline } from "@/lib/reorderBackfill";
@@ -233,6 +234,23 @@ export async function POST(req: NextRequest) {
           addNoteToContact(email, decisionNote),
         );
       })().catch(() => { /* non-fatal */ });
+    }
+
+    // Green-light email — the pharmacy suitability check passed. Fire-and-forget
+    // AFTER the response so it never slows the approve action or fails it.
+    if (decision === "approved" && email) {
+      const orderNumber =
+        typeof updatedAnswers._linked_order_number === "string"
+          ? updatedAnswers._linked_order_number
+          : null;
+      after(async () => {
+        try {
+          const p = await getPayloadInstance();
+          await sendSuitabilityApprovedEmail(p, { email, name: fullName || null, orderNumber });
+        } catch (e) {
+          console.error("[clinical-review] suitability-approved email failed", e);
+        }
+      });
     }
 
     return NextResponse.json({ ok: true, id, decision, reviewedAt });

@@ -1167,3 +1167,243 @@ Questions? Talk to our team: ${supportUrl}`;
     text,
   });
 }
+
+/**
+ * "Good News — You're All Set" — the pharmacy green-light email.
+ *
+ * Sent once, the moment a pharmacist marks a patient's suitability check as
+ * approved in the Clinical Queue. Objective: deliver the green-light moment and
+ * build confidence — the treatment is suitable and the order is being prepared.
+ * Matches PHASE-2 onboarding template 2 (dark strip, green "Good News. You're
+ * All Set" hero with the pens + Jood tub artwork, cream "we're preparing your
+ * order" card with View My Order / Message Our Team, shared pharmacy footer).
+ */
+export async function sendSuitabilityApprovedEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null; orderNumber?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const orderUrl = `${url}/profile`;
+  const waLink = "https://wa.me/447756099075";
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const deliveryArt = "welcome-step3.jpg";
+  const orderLine = (opts.orderNumber ?? "").trim()
+    ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(String(opts.orderNumber).trim())}</span></p>`
+    : "";
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Good news &mdash; your treatment is suitable, and your order is on its way.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">You&rsquo;re cleared &mdash; treatment on its way.</span>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="padding:12px 12px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
+          <tr><td style="padding:26px 24px 0;text-align:center">
+            <img src="${img}/jood-logo.png" alt="JOOD" width="112" style="width:112px;max-width:46%;height:auto;display:inline-block;border:0;margin:0 0 12px"/>
+            <p style="margin:0 0 8px;font-size:33px;line-height:38px;color:#ffffff">
+              <span style="font-family:${GIL};font-weight:500">Good News. </span><span style="font-family:${SER};font-style:italic">You&rsquo;re All Set</span>
+            </p>
+            <p style="margin:0 0 4px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.86)">
+              Our pharmacy team has reviewed your assessment, and your treatment is suitable for you.
+            </p>
+            ${orderLine}
+          </td></tr>
+          <!-- Pens + Jood tub artwork, flush to the hero's bottom edge. -->
+          <tr><td style="padding:14px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/assessment-hero.png" alt="Wegovy and Ozempic pens beside a Jood tub" width="440" style="width:440px;max-width:88%;height:auto;display:inline-block;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Preparing your order -->
+      <tr><td style="padding:18px 12px 22px">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
+          <tr>
+            <td class="card-copy stack" valign="top" style="padding:26px 8px 26px 26px">
+              <p style="margin:0 0 14px;font-size:23px;line-height:29px;color:${BRAND}">
+                <span style="font-family:${GIL};font-weight:500">We&rsquo;re preparing your order now, and it&rsquo;ll </span><span style="font-family:${SER};font-style:italic">be on its way very soon.</span>
+              </p>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                We&rsquo;ll send you a tracking link the moment it&rsquo;s dispatched.
+              </p>
+              <p style="margin:0 0 22px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                This is the start of your journey &mdash; and we&rsquo;re with you for all of it. If anything comes up, our team is always one message away.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td class="btn" style="border-radius:8px;background:${BRAND}">
+                  <a href="${orderUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">View My Order</a>
+                </td>
+                <td class="gap" width="12"></td>
+                <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                  <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 17px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Message Our Team</a>
+                </td>
+              </tr></table>
+            </td>
+            <td class="card-art stack" width="196" valign="bottom" align="right" style="padding:0">
+              <img class="mob-art" src="${img}/${deliveryArt}" alt="" width="196" style="width:196px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+Good news — you're all set. Our pharmacy team has reviewed your assessment, and your treatment is suitable for you.${(opts.orderNumber ?? "").trim() ? `\n\nOrder #${String(opts.orderNumber).trim()}` : ""}
+
+We're preparing your order now, and it'll be on its way very soon — we'll send you a tracking link the moment it's dispatched.
+
+This is the start of your journey, and we're with you for all of it. If anything comes up, our team is always one message away.
+
+View your order: ${orderUrl}
+Message our team on WhatsApp: ${waLink}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Good news — you're all set",
+    html,
+    text,
+  });
+}
+
+/**
+ * "Your Order Is On Its Way" — the dispatch confirmation email.
+ *
+ * Sent once, the moment an order is dispatched (DPD label created / tracking
+ * number assigned). Objective: confirm dispatch and set delivery expectations.
+ * Matches PHASE-2 onboarding template 3 (dark strip, green hero with the
+ * circular delivery tracker — Pharmacy → Dispatched → Delivery around a Jood
+ * box — and a cream "Discreet Delivery, Clear Next Steps" three-step card with
+ * Track My Order / Delivery Questions? Message Us, shared pharmacy footer).
+ */
+export async function sendDispatchedEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null; orderNumber?: string | null; trackingUrl?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const orderUrl = `${url}/profile`;
+  const trackUrl = (opts.trackingUrl ?? "").trim() || orderUrl;
+  const waLink = "https://wa.me/447756099075";
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const orderLine = (opts.orderNumber ?? "").trim()
+    ? `<p style="margin:8px 0 0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(String(opts.orderNumber).trim())}</span></p>`
+    : "";
+
+  const step = (n: string, thumb: string, title: string, body: string, last = false) => `
+    <tr>
+      <td width="84" valign="top" style="width:84px;padding:0 12px ${last ? 0 : 18}px 0;font-size:0;line-height:0">
+        <img src="${img}/${thumb}" alt="" width="84" height="84" style="width:84px;height:84px;display:block;border:0;border-radius:6px"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 18}px">
+        <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0"/>
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND}">${body}</p>
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your treatment has left our pharmacy and is on its way to you.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">Track it every step of the way.</span>
+      </td></tr>
+
+      <!-- Hero with delivery tracker -->
+      <tr><td style="padding:12px 12px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
+          <tr><td style="padding:26px 24px 0;text-align:center">
+            <img src="${img}/jood-logo.png" alt="JOOD" width="112" style="width:112px;max-width:46%;height:auto;display:inline-block;border:0;margin:0 0 12px"/>
+            <p style="margin:0 0 8px;font-size:33px;line-height:38px;color:#ffffff">
+              <span style="font-family:${GIL};font-weight:500">Your Order Is </span><span style="font-family:${SER};font-style:italic">On Its Way</span>
+            </p>
+            <p style="margin:0 0 2px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.86)">
+              Your treatment has left our pharmacy and is heading to you.
+            </p>
+            ${orderLine}
+          </td></tr>
+          <tr><td style="padding:12px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/dispatch-tracker.png" alt="Delivery progress: pharmacy checked, dispatched and now in transit, delivery arriving soon" width="580" style="width:580px;max-width:100%;height:auto;display:block;border:0;border-radius:0 0 14px 14px"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Discreet delivery, clear next steps -->
+      <tr><td style="padding:18px 12px 22px">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:26px 22px 24px">
+            <p style="margin:0 0 20px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
+              <span style="font-family:${GIL};font-weight:500">Discreet Delivery, </span><span style="font-family:${SER};font-style:italic">Clear Next Steps</span>
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${step("01", "confirm-step3.jpg", "Discreet Packaging", "Your order arrives in plain packaging, with nothing on the outside giving anything away.")}
+              ${step("02", "dispatch-step-track.jpg", "Track Your Delivery", "Follow your order the whole way using the tracking link below.")}
+              ${step("03", "dispatch-step-guide.jpg", "Get Started Confidently", "Once it arrives, we&rsquo;ll send you a simple guide so you feel confident from day one.", true)}
+            </table>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px auto 0"><tr>
+              <td class="btn" style="border-radius:8px;background:${BRAND}">
+                <a href="${trackUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Track My Order</a>
+              </td>
+              <td class="gap" width="12"></td>
+              <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 16px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Delivery Questions? Message Us</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+Your order is on its way — your treatment has left our pharmacy and is heading to you.${(opts.orderNumber ?? "").trim() ? `\n\nOrder #${String(opts.orderNumber).trim()}` : ""}
+
+Delivery — what to expect:
+- Discreet packaging: your order arrives in plain packaging, with nothing on the outside giving anything away.
+- Track your delivery: follow your order the whole way using the tracking link.
+- Get started confidently: once it arrives, we'll send you a simple guide so you feel confident from day one.
+
+Track your order: ${trackUrl}
+Delivery questions? Message us on WhatsApp: ${waLink}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Your order is on its way",
+    html,
+    text,
+  });
+}
