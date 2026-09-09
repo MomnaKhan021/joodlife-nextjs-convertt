@@ -44,6 +44,8 @@ export type OrderItem = {
   title: string;
   dose: string | null;
   quantity: number;
+  /** Unit price the order was charged at, when the line recorded one. */
+  price: number | null;
 };
 
 export type OrderSummary = {
@@ -83,8 +85,13 @@ function parseItems(raw: unknown): OrderItem[] {
         .map((t) => {
           const m = t.match(/^(.*?)(?:\s*\(([^)]*)\))?\s*[x\u00d7]\s*(\d+)\s*$/i);
           return m
-            ? { title: m[1].trim(), dose: (m[2] ?? "").trim() || null, quantity: Number(m[3]) || 1 }
-            : { title: t, dose: null, quantity: 1 };
+            ? {
+                title: m[1].trim(),
+                dose: (m[2] ?? "").trim() || null,
+                quantity: Number(m[3]) || 1,
+                price: null,
+              }
+            : { title: t, dose: null, quantity: 1, price: null };
         });
     }
   }
@@ -101,6 +108,8 @@ function parseItems(raw: unknown): OrderItem[] {
     }
     const title = String(it.title ?? it.name ?? it.product ?? "").trim();
     if (!title) continue;
+    const rawPrice = it.price ?? it.unit_price ?? it.unitPrice;
+    const price = rawPrice == null ? null : Number(rawPrice);
     out.push({
       title,
       dose:
@@ -108,6 +117,9 @@ function parseItems(raw: unknown): OrderItem[] {
         (typeof it.variant === "string" && it.variant) ||
         null,
       quantity: Number(it.quantity ?? it.qty ?? 1) || 1,
+      // A recorded 0 is meaningful (clinical-approval orders are created at
+      // 0 pending payment), but NaN from a junk value is not.
+      price: price == null || Number.isNaN(price) ? null : price,
     });
   }
   return out;

@@ -159,10 +159,21 @@ function OrderRow({ order }: { order: OrderSummary }) {
                           {it.dose ? (
                             <span className="text-[#142e2a]/60"> &middot; {it.dose}</span>
                           ) : null}
+                          <span className="text-[#142e2a]/60">
+                            {" "}
+                            &times;{it.quantity}
+                          </span>
                         </span>
-                        <span className="shrink-0 font-ui text-[12px] font-semibold text-[#142e2a]/60">
-                          &times;{it.quantity}
-                        </span>
+                        {it.price != null ? (
+                          <span className="shrink-0 whitespace-nowrap font-ui text-[13px] font-semibold text-[#142e2a]">
+                            {gbp(it.price * it.quantity)}
+                            {it.quantity > 1 ? (
+                              <span className="block text-right font-normal text-[11px] text-[#142e2a]/55">
+                                {gbp(it.price)} each
+                              </span>
+                            ) : null}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
