@@ -30,6 +30,7 @@ import { NextResponse, after, type NextRequest } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import { getPayloadInstance } from "@/lib/payload";
+import { sendDispatchedEmail } from "@/lib/account-email";
 import {
   fireHubSpot,
   findDealsByContactEmail,
@@ -584,6 +585,37 @@ export async function POST(req: NextRequest) {
           jood_tracking_number: trackingNumber,
         });
       });
+    });
+  }
+
+  // Dispatch confirmation email — "Your order is on its way", with the DPD
+  // tracking link. Sent once per order (claimed atomically so a re-print of the
+  // label never re-sends), fire-and-forget AFTER the response so it can never
+  // slow or fail the dispatch itself.
+  if (email) {
+    const custName = (order.customer_name ?? "").trim() || null;
+    const orderNumber = order.order_number ?? null;
+    const trackingUrl = `https://track.dpd.co.uk/parcels/${encodeURIComponent(trackingNumber)}`;
+    after(async () => {
+      try {
+        await drizzle.execute(
+          sql.raw(`ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS dispatch_email_sent boolean`),
+        );
+        const claim = rows<{ id: number }>(
+          await drizzle.execute(
+            sql.raw(
+              `UPDATE "orders" SET dispatch_email_sent = true
+                 WHERE id = ${orderId} AND COALESCE(dispatch_email_sent, false) = false
+                 RETURNING id`,
+            ),
+          ),
+        );
+        if (claim.length === 0) return; // already sent for this order
+        const payload = await getPayloadInstance();
+        await sendDispatchedEmail(payload, { email, name: custName, orderNumber, trackingUrl });
+      } catch (e) {
+        console.error("[dpd-label] dispatch email failed", e);
+      }
     });
   }
 
