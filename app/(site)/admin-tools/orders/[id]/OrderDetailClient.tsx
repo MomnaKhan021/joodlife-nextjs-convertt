@@ -160,19 +160,23 @@ function HeaderBtn({
   children,
   primary,
   onClick,
+  disabled,
 }: {
   children: React.ReactNode;
   primary?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={
-        primary
+        (primary
           ? "inline-flex h-[34px] items-center justify-center rounded-[9px] bg-[#142e2a] px-4 text-[13px] font-semibold text-white shadow-[0_1px_2px_rgba(20,46,42,0.2)] transition-colors hover:bg-[#0c2421]"
-          : "inline-flex h-[34px] items-center justify-center rounded-[9px] border border-[#d3dabe] bg-white px-4 text-[13px] font-semibold text-[#142e2a] shadow-[0_1px_0_rgba(0,0,0,0.04)] transition-colors hover:bg-[#f7f9f2]"
+          : "inline-flex h-[34px] items-center justify-center rounded-[9px] border border-[#d3dabe] bg-white px-4 text-[13px] font-semibold text-[#142e2a] shadow-[0_1px_0_rgba(0,0,0,0.04)] transition-colors hover:bg-[#f7f9f2]") +
+        " disabled:cursor-not-allowed disabled:opacity-50"
       }
     >
       {children}
@@ -661,10 +665,10 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#e1e3e5] px-5 py-3">
-                <HeaderBtn onClick={markFulfilled}>
+                <HeaderBtn onClick={markFulfilled} disabled={printingDpd || savingFulfil}>
                   {savingFulfil ? "Saving…" : fulfilled ? "Mark as not dispatched" : "Mark as dispatched"}
                 </HeaderBtn>
-                <HeaderBtn primary onClick={printDispensingLabels}>
+                <HeaderBtn primary onClick={printDispensingLabels} disabled={printingDpd}>
                   Print dispensing label
                 </HeaderBtn>
                 {/* DPD dispatching label */}
@@ -674,12 +678,21 @@ export default function OrderDetailClient({ id }: { id: string }) {
                   title={dpdBlockedReason ?? undefined}
                   className="inline-flex items-center gap-1.5 rounded-[6px] border border-[#cc0000] bg-[#cc0000] px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#a80000] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {/* DPD red diamond logo mark */}
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
-                    <path d="M10 1 L19 10 L10 19 L1 10 Z" fill="white" opacity="0.9" />
-                    <path d="M10 5 L15 10 L10 15 L5 10 Z" fill="#cc0000" />
-                  </svg>
-                  {printingDpd ? "Generating…" : "Print dispatching label"}
+                  {printingDpd ? (
+                    /* Spinner while the DPD API request is in flight, so it is
+                       unmistakably in progress and the button can't be re-clicked. */
+                    <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <circle cx="12" cy="12" r="9" stroke="white" strokeOpacity="0.35" strokeWidth="3" />
+                      <path d="M21 12a9 9 0 0 0-9-9" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    /* DPD red diamond logo mark */
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+                      <path d="M10 1 L19 10 L10 19 L1 10 Z" fill="white" opacity="0.9" />
+                      <path d="M10 5 L15 10 L10 15 L5 10 Z" fill="#cc0000" />
+                    </svg>
+                  )}
+                  {printingDpd ? "Generating label…" : "Print dispatching label"}
                 </button>
               </div>
               {dpdBlockedReason && (
