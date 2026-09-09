@@ -749,7 +749,6 @@ export async function sendOrderConfirmationEmail(
   const img = `${url}/assets/email`;
   // /profile is where a signed-in customer sees their orders and status.
   const trackUrl = `${url}/profile`;
-  const supportUrl = `${url}/support`;
   const waLink = "https://wa.me/447756099075";
   const addrHtml = (opts.shippingAddress ?? "")
     .split(/\s*,\s*|\n/)
@@ -796,7 +795,8 @@ export async function sendOrderConfirmationEmail(
           <tr><td class="bgcard" height="234" background="${img}/confirm-hero-card.png" style="height:234px;background-color:#132c27;background-image:url('${img}/confirm-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:top left;border-radius:14px;padding:40px 18px 40px">
             <table role="presentation" class="meas" width="300" cellpadding="0" cellspacing="0" style="width:300px"><tr><td>
               <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">Thank you</p>
-              <p style="margin:0;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Order Is<br/>Confirmed.</p>
+              <p style="margin:0 0 10px;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Order Is<br/>Confirmed.</p>
+              <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(opts.orderNumber)}</span></p>
             </td></tr></table>
             <img class="mob-art" src="${img}/confirm-hero-m.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
           </td></tr>
@@ -837,7 +837,7 @@ export async function sendOrderConfirmationEmail(
               </td>
               <td class="gap" width="12"></td>
               <td class="btn" width="177" style="width:177px;border-radius:8px;border:1px solid rgba(255,255,255,.55)">
-                <a href="${supportUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Talk To Our Team</a>
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Talk To Our Team</a>
               </td>
             </tr></table>
           </td></tr>
@@ -889,7 +889,7 @@ What happens next
 
 We'll email you at each step, so you always know where things stand.
 Track your order: ${trackUrl}
-Talk to our team: ${supportUrl}`;
+Talk to our team on WhatsApp: ${waLink}`;
 
   // Short product summary for the subject lines, e.g. "Mounjaro (5 mg)" or
   // "Wegovy Pills +1 more".
