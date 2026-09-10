@@ -24,19 +24,12 @@ const cardBg = {
 } as const;
 const H = 288; // shared card height so the row aligns
 
-function Card({ w, children }: { w: number; children: React.ReactNode }) {
-  return (
-    <div className={cardBase} style={{ ...cardBg, width: w, minHeight: H }}>
-      {children}
-    </div>
-  );
-}
-
-function Row() {
-  return (
-    <div className="flex items-stretch gap-5">
-      {/* Cycle Window */}
-      <Card w={300}>
+// The six cards, as render functions so each can be placed on the arc.
+const CARDS: { w: number; body: React.ReactNode }[] = [
+  {
+    w: 300,
+    body: (
+      <>
         <p className="font-ui text-[15px] font-semibold">Cycle Window</p>
         <p className="mt-1 font-ui text-[12px] text-white/70">Your predicted cycle</p>
         <p className="mt-5 font-display text-[34px] font-semibold leading-none">
@@ -53,10 +46,13 @@ function Row() {
         </div>
         <p className="mt-5 font-ui text-[12px] text-white/70">Next period</p>
         <p className="font-ui text-[13px] font-medium">May 24 – May 28</p>
-      </Card>
-
-      {/* Event Date */}
-      <Card w={300}>
+      </>
+    ),
+  },
+  {
+    w: 300,
+    body: (
+      <>
         <p className="font-ui text-[15px] font-semibold">Event Date</p>
         <p className="mt-1 font-ui text-[12px] text-white/70">Your important date</p>
         <p className="mt-5 font-display text-[28px] font-semibold" style={{ color: PINK }}>
@@ -66,10 +62,13 @@ function Row() {
           <span className="mr-1" aria-hidden>🎉</span>
           You&rsquo;re all set! Your period is planned around it.
         </p>
-      </Card>
-
-      {/* Discreet Delivery */}
-      <Card w={216}>
+      </>
+    ),
+  },
+  {
+    w: 216,
+    body: (
+      <>
         <p className="font-ui text-[15px] font-semibold">Discreet Delivery</p>
         <p className="mt-1 font-ui text-[12px] leading-snug text-white/70">
           Private &amp; discreet delivery to your door.
@@ -88,10 +87,13 @@ function Row() {
             </li>
           ))}
         </ul>
-      </Card>
-
-      {/* Hormone Balance */}
-      <Card w={216}>
+      </>
+    ),
+  },
+  {
+    w: 216,
+    body: (
+      <>
         <p className="font-ui text-[15px] font-semibold">Hormone Balance</p>
         <p className="mt-1 font-ui text-[12px] text-white/70">Your cycle at a glance</p>
         <ul className="mt-5 flex flex-col gap-4">
@@ -111,10 +113,13 @@ function Row() {
             </li>
           ))}
         </ul>
-      </Card>
-
-      {/* Eligibility Check */}
-      <Card w={300}>
+      </>
+    ),
+  },
+  {
+    w: 300,
+    body: (
+      <>
         <div className="flex items-center justify-between">
           <p className="font-ui text-[15px] font-semibold">Eligibility Check</p>
           <span
@@ -141,10 +146,13 @@ function Row() {
             </li>
           ))}
         </ul>
-      </Card>
-
-      {/* Mini calendar */}
-      <Card w={300}>
+      </>
+    ),
+  },
+  {
+    w: 300,
+    body: (
+      <>
         <div className="flex items-center justify-between font-ui text-[12px] text-white/80">
           <span aria-hidden>‹</span>
           <span className="font-semibold text-white">May 2025</span>
@@ -177,37 +185,56 @@ function Row() {
             );
           })}
         </div>
-      </Card>
-    </div>
-  );
-}
+      </>
+    ),
+  },
+];
+
+// Band + arc geometry. Coordinates are in this fixed 1600×560 space; the
+// band is clipped by the section, so the arc's ends sit off-screen.
+const BAND_W = 1840;
+const BAND_H = 460;
+// Rising curve, bottom-left → top-right (matches the Figma card ascent:
+// left card ~y470, right card ~y90).
+const ARC = "path('M -120 360 C 480 320, 1360 170, 1960 130')";
+const DUR = 40; // seconds for one full traversal
 
 export default function PdFloatingCards() {
+  // Render each card twice so the arc stays populated end-to-end; 12 evenly
+  // delayed instances give continuous, well-spaced flow.
+  const instances = [...CARDS];
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute left-1/2 top-[46%] z-0 w-screen max-w-[1600px] -translate-x-1/2 -translate-y-1/2"
+      className="pointer-events-none absolute left-1/2 top-[46%] z-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+      style={{
+        width: BAND_W,
+        height: BAND_H,
+        maxWidth: "100vw",
+        // Generous fade on all four edges so cards dissolve into the section
+        // as they enter/leave the curve rather than hard-cutting.
+        maskImage:
+          "linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%)",
+        WebkitMaskImage:
+          "linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%)",
+      }}
     >
-      {/* Edge fade so cards dissolve into the section rather than hard-cut */}
-      <div
-        className="overflow-hidden"
-        style={{
-          maskImage:
-            "linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%)",
-        }}
-      >
-        {/* Two identical rows → a -50% marquee loops seamlessly. Reverse so
-            the cards drift LEFT → RIGHT. Slow drift. */}
+      {instances.map((card, idx) => (
         <div
-          className="animate-marquee flex w-max gap-5"
-          style={{ animationDuration: "50s", animationDirection: "reverse" }}
+          key={idx}
+          className={`pd-arc-card absolute left-0 top-0 ${cardBase}`}
+          style={{
+            ...cardBg,
+            width: card.w,
+            minHeight: H,
+            offsetPath: ARC,
+            // Even spacing around the loop (duration is in the .pd-arc-card class).
+            animationDelay: `-${(idx / instances.length) * DUR}s`,
+          }}
         >
-          <Row />
-          <Row />
+          {card.body}
         </div>
-      </div>
+      ))}
     </div>
   );
 }

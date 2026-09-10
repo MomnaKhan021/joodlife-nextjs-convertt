@@ -175,6 +175,22 @@ a[href] {
   will-change: transform;
 }
 
+/* Cards flowing along a curved path (period-delay hero). Each card sets its
+   own offset-path + a negative animation-delay so they space out evenly and
+   loop continuously. offset-rotate:0 keeps them upright, not tangent. */
+@keyframes pd-arc {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+.pd-arc-card {
+  offset-rotate: 0deg;
+  animation-name: pd-arc;
+  animation-duration: 44s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: offset-distance;
+}
+
 /* Legacy alias — kept so any residual .font-cairo usage stays on-brand
    (maps to the Outfit body font; Cairo is no longer loaded). */
 .font-cairo {
