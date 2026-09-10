@@ -15,7 +15,7 @@ const OK = "#5ee9b5";
 // Frosted pink-glass surface — Figma fill is a #000000→#f472a8 gradient
 // under a background blur, which over the section's pink reads as this.
 const cardBase =
-  "relative shrink-0 overflow-hidden rounded-[18px] border border-white/18 p-4 text-white shadow-[0_18px_40px_-20px_rgba(20,10,16,0.6)] backdrop-blur-[14px]";
+  "relative shrink-0 overflow-hidden rounded-[18px] border border-white/18 p-4 text-white shadow-[0_24px_50px_-12px_rgba(20,10,16,0.55)] backdrop-blur-[14px]";
 const cardBg = {
   background:
     "linear-gradient(180deg, rgba(16,10,13,0.60) 0%, rgba(244,114,168,0.32) 100%)",
@@ -188,9 +188,11 @@ export default function PdFloatingCards() {
         }}
       >
         {/* Two identical rows → a -50% marquee loops seamlessly. Slow drift. */}
+        {/* animation-direction:reverse makes the -50% keyframe play backwards,
+            so the cards drift LEFT → RIGHT across the screen. */}
         <div
           className="animate-marquee flex w-max gap-4 opacity-95"
-          style={{ animationDuration: "48s" }}
+          style={{ animationDuration: "48s", animationDirection: "reverse" }}
         >
           <Row />
           <Row />
