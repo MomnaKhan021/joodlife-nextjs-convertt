@@ -72,14 +72,14 @@ export default function TestimonialCarousel({
 
   return (
     <div
-      className={`relative flex min-h-[320px] flex-col rounded-[24px] bg-black/12 p-6 text-center backdrop-blur-[20px] md:min-h-[400px] md:p-8 ${className}`}
+      className={`relative flex min-h-[339px] flex-col rounded-[16px] bg-black/12 px-[22px] pb-[43px] pt-[62px] text-center backdrop-blur-[20px] md:min-h-[407px] md:rounded-[24px] md:pb-[30px] ${className}`}
     >
       {/* arrows */}
       <button
         type="button"
         aria-label="Previous testimonial"
         onClick={prev}
-        className="absolute left-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/40 text-white transition-colors hover:bg-white/10 md:left-4"
+        className="absolute left-[22px] top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border-2 border-white/40 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -89,7 +89,7 @@ export default function TestimonialCarousel({
         type="button"
         aria-label="Next testimonial"
         onClick={next}
-        className="absolute right-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/40 text-white transition-colors hover:bg-white/10 md:right-4"
+        className="absolute right-[22px] top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border-2 border-white/40 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -100,7 +100,7 @@ export default function TestimonialCarousel({
           The clip container is full-width so each slide (also full-width)
           translates exactly one viewport with no neighbour peeking through;
           px-10 lives on each slide to keep the copy clear of the arrows. */}
-      <div className="flex flex-1 items-center overflow-hidden">
+      <div className="flex flex-1 items-start overflow-hidden md:items-center">
         <div
           className={`flex w-full ${
             animate
@@ -111,27 +111,29 @@ export default function TestimonialCarousel({
           onTransitionEnd={handleTransitionEnd}
         >
           {slides.map((t, d) => (
-            <div key={d} className="flex w-full min-w-full shrink-0 basis-full flex-col justify-center px-10 md:px-12">
-              <p className="mx-auto max-w-[30ch] font-serif text-[15px] font-normal italic leading-snug text-white md:max-w-[34ch] md:text-[22px]">
+            <div key={d} className="flex w-full min-w-full shrink-0 basis-full flex-col justify-center px-2 md:px-14">
+              {/* Figma: Saans-Medium 25/26 (20/23 mobile), upright, 404 wide */}
+              <p className="mx-auto max-w-[324px] font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:max-w-[404px] md:text-[25px] md:leading-[26px]">
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <div className="mt-4 flex flex-col gap-0.5">
-                <span className="font-ui text-[14px] font-semibold text-white md:text-[16px]">{t.name}</span>
-                <span className="font-ui text-[12px] text-white/70 md:text-[14px]">{t.meta}</span>
+              <div className="mt-[59px] flex flex-col gap-[6px] md:mt-[55px] md:gap-2">
+                <span className="font-display text-[14px] font-semibold leading-[14px] tracking-[-0.57px] text-white md:font-ui md:text-[16px] md:font-medium md:leading-5 md:tracking-[-0.32px]">{t.name}</span>
+                <span className="font-display text-[14px] font-semibold leading-[14px] tracking-[-0.57px] text-white md:font-ui md:text-[16px] md:font-medium md:leading-5 md:tracking-[-0.32px]">{t.meta}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center gap-1.5">
+      {/* Dots: 12px active, 10px 25%-black inactive, on 16px centres */}
+      <div className="flex h-[26px] items-center justify-center gap-1">
         {items.map((_, d) => (
           <button
             key={d}
             type="button"
             aria-label={`Go to testimonial ${d + 1}`}
             onClick={() => goTo(d)}
-            className={`h-2 rounded-full transition-all ${d === active ? "w-5 bg-white" : "w-2 bg-white/40 hover:bg-white/60"}`}
+            className={`rounded-full transition-all ${d === active ? "h-3 w-3 bg-white" : "h-2.5 w-2.5 bg-black/25 hover:bg-black/40"}`}
           />
         ))}
       </div>

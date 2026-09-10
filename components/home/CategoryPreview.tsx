@@ -35,6 +35,16 @@ export default function CategoryPreview({
   const { theme } = category;
   const isHero = variant === "hero";
 
+  // The 2026 Figma home-page treatment (ED): sky backdrop, portrait
+  // dissolving into a solid lower block, content cards on the solid.
+  if (theme.lowerBg && !isHero) {
+    return (
+      <SkyPreview category={category} priority={priority} isReturningPatient={isReturningPatient}>
+        {children}
+      </SkyPreview>
+    );
+  }
+
   return (
     <section
       aria-label={`${category.eyebrow} — ${category.title} ${category.titleAccent}`}
@@ -186,6 +196,170 @@ export default function CategoryPreview({
               {category.blurb}
             </p>
           )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+/**
+ * Figma "Home Page - 2026" Component 295 (desktop, 1440×1596) / 296 (mobile,
+ * 390×1875). Measured geometry, not eyeballed:
+ *
+ *   desktop  title 48/57 ls-2.14 at y100 · portrait 622×584 at y197 ·
+ *            buttons 183×50 ×2, gap 11, foot 80px above the portrait's ·
+ *            cards from y735 (46px above the portrait's foot) · band
+ *            #b5cfe0→#5fb3d7 y699–801 blur 54 · side inset 107 → 1226 wide
+ *            content · bottom inset 100
+ *   mobile   title 36/39 ls-1 at y50 · portrait 376 wide at y183, the image
+ *            ending 18px below the card line · buttons 175×50 ×2, gap 8 ·
+ *            cards from y593 · band y565–743 blur 16 · inset 16 / 50
+ *
+ * The portrait is hidden below the card line by the solid lower block and
+ * the blurred band drawn over it — it must not show through the cards.
+ */
+function SkyPreview({
+  category,
+  priority,
+  isReturningPatient,
+  children,
+}: {
+  category: Category;
+  priority: boolean;
+  isReturningPatient: boolean;
+  children?: React.ReactNode;
+}) {
+  const { theme } = category;
+  const lower = theme.lowerBg ?? theme.base;
+  const fadeFrom = theme.fadeFrom ?? lower;
+  const box = category.heroImageBox ?? {
+    desktop: { w: 622, h: 584 },
+    mobile: { w: 376, h: 428 },
+  };
+  const tm = category.titleMetrics ?? {
+    desktop: { size: 48, lineHeight: 57, tracking: -2.14 },
+    mobile: { size: 36, lineHeight: 39, tracking: -1 },
+  };
+  const startHref =
+    isReturningPatient && category.key === "weight-loss"
+      ? "/reorder"
+      : `/consultation?product=${category.key}`;
+
+  return (
+    <section
+      aria-label={`${category.eyebrow} — ${category.title} ${category.titleAccent}`}
+      className="w-full bg-white px-0 py-[7px] md:py-10"
+      style={
+        {
+          "--cat-base": theme.base,
+          "--cat-soft": theme.soft,
+          "--cat-tint": theme.tint,
+          "--t-size-m": `${tm.mobile.size}px`,
+          "--t-lh-m": `${tm.mobile.lineHeight}px`,
+          "--t-ls-m": `${tm.mobile.tracking}px`,
+          "--t-size-d": `${tm.desktop.size}px`,
+          "--t-lh-d": `${tm.desktop.lineHeight}px`,
+          "--t-ls-d": `${tm.desktop.tracking}px`,
+          "--p-w-m": `${box.mobile.w}px`,
+          "--p-ar-m": `${box.mobile.w} / ${box.mobile.h}`,
+          "--p-w-d": `${box.desktop.w}px`,
+          "--p-ar-d": `${box.desktop.w} / ${box.desktop.h}`,
+        } as React.CSSProperties
+      }
+    >
+      <div
+        className="relative overflow-hidden rounded-[16px] md:rounded-[24px]"
+        style={{ background: lower, color: theme.onBase }}
+      >
+        {/* ── Hero: sky + title + portrait + CTAs ─────────────────────── */}
+        <div className="relative">
+          {category.heroBackdrop && (
+            <div aria-hidden className="absolute inset-0 z-0">
+              <Image
+                src={category.heroBackdrop}
+                alt=""
+                fill
+                priority={priority}
+                quality={90}
+                sizes="100vw"
+                className="object-cover object-top"
+              />
+            </div>
+          )}
+
+          <div className="relative z-10 mx-auto flex w-full max-w-[1226px] flex-col items-center px-4 pt-[50px] md:px-8 md:pt-[100px] lg:px-0">
+            <Reveal as="div" delay={60} className="w-full">
+              <h2 className="mx-auto max-w-[664px] text-center font-display text-[length:var(--t-size-m)] font-semibold leading-[var(--t-lh-m)] tracking-[var(--t-ls-m)] md:text-[length:var(--t-size-d)] md:leading-[var(--t-lh-d)] md:tracking-[var(--t-ls-d)]">
+                {category.title}{" "}
+                <em className="font-serif font-normal italic leading-[1]">{category.titleAccent}</em>
+              </h2>
+            </Reveal>
+
+            {/* Portrait stage. Its foot extends below the card line
+                (negative margin) and is covered there by the lower block. */}
+            <Reveal
+              as="div"
+              delay={160}
+              className="relative mb-[-18px] mt-[15px] aspect-[var(--p-ar-m)] w-[min(var(--p-w-m),calc(100vw-14px))] max-w-none translate-x-[7px] md:mb-[-46px] md:mt-[-18px] md:aspect-[var(--p-ar-d)] md:w-[var(--p-w-d)] md:translate-x-[30px]"
+            >
+              <Image
+                src={category.heroImageMobile ?? category.heroImage}
+                alt={category.imageAlt}
+                fill
+                priority={priority}
+                quality={90}
+                sizes="(max-width: 768px) 96vw, 622px"
+                className="object-contain object-top md:hidden"
+              />
+              <Image
+                src={category.heroImage}
+                alt={category.imageAlt}
+                fill
+                priority={priority}
+                quality={90}
+                sizes="622px"
+                className="hidden object-contain object-top md:block"
+              />
+
+              {/* Dual CTA over the lower torso. Figma: 175×50 ×2 gap 8 on
+                  mobile (spanning the 358 content width); 183×50 ×2 gap 11
+                  on desktop; white with a #0c2421 hairline / 6% white with
+                  a white hairline. */}
+              <div className="absolute bottom-[9.1%] left-1/2 z-20 flex w-[358px] max-w-[calc(100vw-32px)] -translate-x-[calc(50%+7px)] gap-2 md:bottom-[13.7%] md:w-auto md:max-w-none md:-translate-x-[calc(50%+30px)] md:gap-[11px]">
+                <Link
+                  href={startHref}
+                  className="btn-cta inline-flex h-[50px] flex-1 items-center justify-center rounded-lg border border-[#0c2421] bg-white px-4 text-center font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-[#142f2b] md:w-[183px] md:flex-none"
+                >
+                  {isReturningPatient && category.key === "weight-loss"
+                    ? "Reorder"
+                    : category.ctaLabel ?? "Get Started"}
+                </Link>
+                <Link
+                  href={category.learnMoreHref ?? category.href}
+                  className="btn-cta inline-flex h-[50px] flex-1 items-center justify-center rounded-lg border border-white bg-white/6 px-4 text-center font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-white hover:bg-white/12 md:w-[182px] md:flex-none"
+                >
+                  Learn More
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+
+        {/* ── Lower block: solid colour, blurred band, content cards ──── */}
+        <div className="relative z-20" style={{ background: lower }}>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-[-80px] top-[-28px] z-0 h-[178px] blur-[16px] md:top-[-36px] md:h-[102px] md:blur-[54px]"
+            style={{ background: `linear-gradient(180deg, ${fadeFrom} 0%, ${lower} 100%)` }}
+          />
+          <div className="relative z-10 mx-auto w-full max-w-[1226px] px-4 pb-[50px] md:px-8 md:pb-[100px] lg:px-0">
+            {children ?? (
+              <p className="mx-auto max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
+                {category.blurb}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </section>
