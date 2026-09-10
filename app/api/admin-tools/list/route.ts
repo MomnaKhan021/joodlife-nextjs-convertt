@@ -153,7 +153,7 @@ const SPECS: Record<string, SpecRow> = {
   discounts: {
     table: "discounts",
     columns:
-      "id, code, type, value, expiry_date, is_active, created_at",
+      "id, code, type, value, expiry_date, usage_limit, usage_count, once_per_customer, is_active, created_at",
     searchableColumns: ["code", "type"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
   },

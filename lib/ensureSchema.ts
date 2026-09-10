@@ -80,6 +80,10 @@ const STATEMENTS: string[] = [
   // number is a new-site order. Same number shows in the admin and all emails.
   "CREATE SEQUENCE IF NOT EXISTS \"orders_jl_seq\" START WITH 3000 INCREMENT BY 1 MINVALUE 3000",
   "CREATE INDEX IF NOT EXISTS discounts_created_at_idx ON public.discounts USING btree (created_at)",
+  // Discount usage rules + the code redeemed on each order (so single-use /
+  // once-per-customer limits count real, paid redemptions).
+  "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"once_per_customer\" boolean DEFAULT false",
+  "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"discount_code\" varchar",
   "CREATE TABLE IF NOT EXISTS \"media\" (\n  \"id\" serial,\n  \"alt\" varchar NOT NULL,\n  \"caption\" varchar,\n  \"url\" varchar NOT NULL,\n  \"filename\" varchar,\n  \"mime_type\" varchar,\n  \"filesize\" numeric,\n  \"width\" numeric,\n  \"height\" numeric,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"alt\" varchar",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"caption\" varchar",

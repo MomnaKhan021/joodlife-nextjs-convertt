@@ -511,6 +511,30 @@ const TABS: TabSpec[] = [
       { key: "type", label: "Type" },
       { key: "value", label: "Value" },
       {
+        key: "usage",
+        label: "Uses",
+        hint: "Paid redemptions so far / limit",
+        render: (r) => {
+          const used = Number(r.usage_count ?? 0) || 0;
+          const lim =
+            r.usage_limit == null || r.usage_limit === "" ? null : Number(r.usage_limit);
+          if (lim === 1) return <span className="db-nowrap">{used} / 1 · one time only</span>;
+          if (lim && Number.isFinite(lim)) return <span className="db-nowrap">{used} / {lim}</span>;
+          return <span className="db-nowrap">{used} · unlimited</span>;
+        },
+      },
+      {
+        key: "once_per_customer",
+        label: "Per customer",
+        render: (r) => (r.once_per_customer ? "Once each" : "—"),
+      },
+      {
+        key: "expiry_date",
+        label: "Expires",
+        hideBelow: 720,
+        render: (r) => (r.expiry_date ? String(r.expiry_date).slice(0, 10) : "—"),
+      },
+      {
         key: "is_active",
         label: "Active",
         render: (r) => <StatusPill value={r.is_active ? "active" : "inactive"} />,
