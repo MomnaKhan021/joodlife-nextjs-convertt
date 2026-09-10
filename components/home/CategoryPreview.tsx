@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import CategoryCurve from "@/components/home/CategoryCurve";
+import PdFloatingCards from "@/components/category/PdFloatingCards";
 import type { Category } from "@/lib/categories";
 
 /**
@@ -131,7 +132,9 @@ export default function CategoryPreview({
             >
               {/* Optional floating UI cards (PD) — fan out behind the
                   portrait, wider than the figure and centred on her. */}
-              {category.heroCards && (
+              {category.heroCardsMarquee ? (
+                <PdFloatingCards />
+              ) : category.heroCards ? (
                 <div
                   aria-hidden
                   className="pointer-events-none absolute left-1/2 top-[44%] z-0 w-[230%] max-w-[1240px] -translate-x-1/2 -translate-y-1/2"
@@ -141,12 +144,12 @@ export default function CategoryPreview({
                     alt=""
                     width={3632}
                     height={1489}
-                    quality={85}
+                    quality={90}
                     sizes="(max-width: 768px) 150vw, 1240px"
                     className="h-auto w-full"
                   />
                 </div>
-              )}
+              ) : null}
 
               <Image
                 src={category.heroImage}

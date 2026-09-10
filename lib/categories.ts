@@ -89,6 +89,12 @@ export type Category = {
    */
   heroCards?: string;
   /**
+   * When true, the hero cards behind the portrait are the live auto-scrolling
+   * <PdFloatingCards/> marquee instead of a static `heroCards` image (Figma
+   * "Home Page - 2026" Component 296 — the cards drift behind her).
+   */
+  heroCardsMarquee?: boolean;
+  /**
    * Optional scale factor applied to the hero portrait so a category can
    * present a more zoomed-in cut-out (e.g. ED's boy, per Figma) without
    * changing the shared layout box. Defaults to 1 (no zoom).
@@ -204,7 +210,7 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     cardImage: "/assets/home/hero-pd-woman.png",
     heroImage: "/assets/category/period-hero.png",
     heroImageScale: 1.18,
-    heroCards: "/assets/category/pd-cards.png",
+    heroCardsMarquee: true,
     heroBackdrop: "/assets/category/pd-backdrop.png",
     heroBackdropFade: "#e3a6bb",
     imageAlt: "Woman holding a clock and calendar, planning her cycle",

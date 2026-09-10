@@ -10,17 +10,29 @@ import Reveal from "@/components/ui/Reveal";
  *     hormone tag cloud + eligibility CTA
  */
 
-const TAGS = [
-  "Hormones",
-  "Period Delay",
-  "Hormone Balance",
-  "Progesterone",
-  "Cycle Tracker",
-  "Norethisterone",
-  "Follicle",
-  "Ovulation",
-  "Menstrual Health",
-  "Oestrogen",
+// Hormone / cycle vocabulary from the Figma tag cloud. Split across rows
+// that auto-scroll in alternating directions behind the portrait.
+const TAG_ROWS: { text: string; on?: boolean }[][] = [
+  [
+    { text: "Period Delay" },
+    { text: "Hormone Balance", on: true },
+    { text: "Progesterone" },
+    { text: "Ovulation" },
+    { text: "Hormones" },
+  ],
+  [
+    { text: "Cycle Tracker" },
+    { text: "Follicle", on: true },
+    { text: "Menstrual Health" },
+    { text: "Oestrogen" },
+    { text: "LH" },
+  ],
+  [
+    { text: "Norethisterone" },
+    { text: "Triiodothyronine (T3)" },
+    { text: "Thyroid-Stimulating Hormone", on: true },
+    { text: "Luteal phase" },
+  ],
 ];
 
 export default function PeriodDetail() {
@@ -60,20 +72,43 @@ export default function PeriodDetail() {
           Understand Your Cycle and Hormone Health
         </h3>
 
-        {/* hormone tag cloud — faint, fills the whole card */}
-        <ul
+        {/* Hormone tag cloud — rows auto-scroll in alternating directions
+            behind the portrait (Figma). Two copies per row so the -50%
+            marquee loops seamlessly; paused for prefers-reduced-motion. */}
+        <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 flex flex-wrap content-center justify-center gap-2 p-6 opacity-40"
+          className="pointer-events-none absolute inset-0 z-0 flex flex-col justify-center gap-2.5 overflow-hidden px-2 opacity-45"
+          style={{
+            maskImage:
+              "linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%)",
+          }}
         >
-          {TAGS.concat(TAGS, TAGS, TAGS).map((t, i) => (
-            <li
-              key={`${t}-${i}`}
-              className="rounded-full border border-white/25 px-3 py-1 font-ui text-[11px] text-white/80"
+          {TAG_ROWS.map((row, r) => (
+            <div
+              key={r}
+              className="animate-marquee flex w-max gap-2"
+              style={{
+                animationDuration: `${34 + r * 8}s`,
+                animationDirection: r % 2 === 1 ? "reverse" : "normal",
+              }}
             >
-              {t}
-            </li>
+              {[...row, ...row, ...row, ...row].map((t, i) => (
+                <span
+                  key={`${t.text}-${i}`}
+                  className={`whitespace-nowrap rounded-full border px-3 py-1 font-ui text-[11px] ${
+                    t.on
+                      ? "border-white/50 bg-white/15 text-white"
+                      : "border-white/25 text-white/80"
+                  }`}
+                >
+                  {t.text}
+                </span>
+              ))}
+            </div>
           ))}
-        </ul>
+        </div>
 
         {/* portrait at the bottom, sitting left of centre (Figma).
             Smaller + centred on mobile so she doesn't sink into the heading/tags. */}
