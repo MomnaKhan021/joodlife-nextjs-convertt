@@ -35,6 +35,8 @@ type DiscountRow = {
   code?: string;
   type?: "percentage" | "fixed";
   value?: number;
+  isActive?: boolean | null;
+  expiryDate?: string | null;
   usageLimit?: number | null;
   usageCount?: number | null;
   oncePerCustomer?: boolean | null;
@@ -63,6 +65,71 @@ function rowsOf<T>(r: unknown): T[] {
 
 const esc = (s: string) => "'" + s.replace(/'/g, "''") + "'";
 
+function drizzleOf(payload: Awaited<ReturnType<typeof getPayloadInstance>>): DrizzleLike | null {
+  const d = (payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } })
+    .drizzle;
+  return d?.execute ? (d as DrizzleLike) : null;
+}
+
+// The two newer columns are added on boot by ensureSchema, but a code check
+// must never depend on that having run yet — make sure once per process.
+let columnsReady: Promise<void> | null = null;
+function ensureColumns(drizzle: DrizzleLike, raw: (s: string) => unknown): Promise<void> {
+  if (!columnsReady) {
+    columnsReady = (async () => {
+      await drizzle.execute(
+        raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS once_per_customer boolean DEFAULT false`),
+      );
+      await drizzle.execute(raw(`ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS discount_code varchar`));
+    })().catch(() => {
+      columnsReady = null; // retry on the next check
+    });
+  }
+  return columnsReady;
+}
+
+/**
+ * Look the code up with plain SQL. Payload's local API selects every column
+ * the collection declares, so a column missing from the live table (e.g. a
+ * deploy whose schema repair hasn't run) would make every code check fail;
+ * reading the optional flag through to_jsonb keeps this working regardless.
+ */
+async function findDiscount(
+  payload: Awaited<ReturnType<typeof getPayloadInstance>>,
+  code: string,
+): Promise<DiscountRow | null> {
+  const drizzle = drizzleOf(payload);
+  if (!drizzle) return null;
+  const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
+  await ensureColumns(drizzle, sql.raw);
+  const res = await drizzle.execute(
+    sql.raw(`
+      SELECT code, type::text AS type, value, expiry_date, usage_limit, usage_count, is_active,
+             (to_jsonb(d) ->> 'once_per_customer') AS once_per_customer
+        FROM "discounts" d
+       WHERE upper(code) = ${esc(code)}
+       LIMIT 1
+    `),
+  );
+  const r = rowsOf<Record<string, unknown>>(res)[0];
+  if (!r) return null;
+  const num = (v: unknown): number | null => {
+    if (v === null || v === undefined || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  return {
+    code: String(r.code ?? code),
+    type: r.type === "fixed" ? "fixed" : "percentage",
+    value: num(r.value) ?? 0,
+    isActive: r.is_active === true || r.is_active === "true",
+    expiryDate: r.expiry_date ? String(r.expiry_date) : null,
+    usageLimit: num(r.usage_limit),
+    usageCount: num(r.usage_count) ?? 0,
+    oncePerCustomer: r.once_per_customer === "true" || r.once_per_customer === true,
+  };
+}
+
 /** Paid redemptions, active holds by other shoppers, and this customer's own paid uses. */
 async function countRedemptions(
   payload: Awaited<ReturnType<typeof getPayloadInstance>>,
@@ -70,10 +137,8 @@ async function countRedemptions(
   email: string | null,
 ): Promise<{ paid: number; reserved: number; mine: number }> {
   try {
-    const drizzle = (
-      payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }
-    ).drizzle as DrizzleLike | undefined;
-    if (!drizzle?.execute) return { paid: 0, reserved: 0, mine: 0 };
+    const drizzle = drizzleOf(payload);
+    if (!drizzle) return { paid: 0, reserved: 0, mine: 0 };
     const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
 
     const paidExpr =
@@ -122,14 +187,7 @@ export async function applyDiscountCode(
 
   try {
     const payload = await getPayloadInstance();
-    const res = await payload.find({
-      collection: "discounts",
-      where: { code: { equals: code } },
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    });
-    const doc = res.docs?.[0] as DiscountRow | undefined;
+    const doc = await findDiscount(payload, code);
     if (!doc) {
       return { valid: false, amount: 0, reason: FRIENDLY["Discount not found"] };
     }
