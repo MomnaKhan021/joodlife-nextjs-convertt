@@ -190,51 +190,64 @@ const CARDS: { w: number; body: React.ReactNode }[] = [
   },
 ];
 
-// Band + arc geometry. Coordinates are in this fixed 1600×560 space; the
-// band is clipped by the section, so the arc's ends sit off-screen.
-const BAND_W = 1840;
-const BAND_H = 460;
-// Rising curve, bottom-left → top-right (matches the Figma card ascent:
-// left card ~y470, right card ~y90).
-const ARC = "path('M -120 360 C 480 320, 1360 170, 1960 130')";
-const DUR = 40; // seconds for one full traversal
+// Card vertical offsets place the six cards on a gentle arch so the row is a
+// curve, not a straight line. The pattern is periodic over the six cards, so
+// the two-copy marquee loops seamlessly. Peak in the middle (index ~3).
+const N = 6;
+const ARCH = 96; // px peak height of the curve
+function yOffset(i: number) {
+  // 0 at the ends, -ARCH at the centre → an upward arch.
+  return -ARCH * (1 - Math.cos((2 * Math.PI * (i % N)) / N)) / 2;
+}
+const DUR = 42; // seconds for one full left→right loop
 
-export default function PdFloatingCards() {
-  // Render each card twice so the arc stays populated end-to-end; 12 evenly
-  // delayed instances give continuous, well-spaced flow.
-  const instances = [...CARDS];
+function Row() {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute left-1/2 top-[46%] z-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
-      style={{
-        width: BAND_W,
-        height: BAND_H,
-        maxWidth: "100vw",
-        // Generous fade on all four edges so cards dissolve into the section
-        // as they enter/leave the curve rather than hard-cutting.
-        maskImage:
-          "linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%)",
-        WebkitMaskImage:
-          "linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%)",
-      }}
-    >
-      {instances.map((card, idx) => (
+    <div className="flex items-end gap-6">
+      {CARDS.map((card, i) => (
         <div
-          key={idx}
-          className={`pd-arc-card absolute left-0 top-0 ${cardBase}`}
+          key={i}
+          className={cardBase}
           style={{
             ...cardBg,
             width: card.w,
             minHeight: H,
-            offsetPath: ARC,
-            // Even spacing around the loop (duration is in the .pd-arc-card class).
-            animationDelay: `-${(idx / instances.length) * DUR}s`,
+            transform: `translateY(${yOffset(i)}px)`,
           }}
         >
           {card.body}
         </div>
       ))}
+    </div>
+  );
+}
+
+export default function PdFloatingCards() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 top-[44%] z-0 w-screen max-w-[1700px] -translate-x-1/2 -translate-y-1/2"
+    >
+      {/* Edge fade so cards dissolve at the sides as they wrap. */}
+      <div
+        className="overflow-hidden py-24"
+        style={{
+          maskImage:
+            "linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%)",
+        }}
+      >
+        {/* Two identical rows → a -50% marquee. animation-direction:reverse
+            plays it backwards so the whole curved row drifts LEFT → RIGHT. */}
+        <div
+          className="animate-marquee flex w-max gap-6"
+          style={{ animationDuration: `${DUR}s`, animationDirection: "reverse" }}
+        >
+          <Row />
+          <Row />
+        </div>
+      </div>
     </div>
   );
 }
