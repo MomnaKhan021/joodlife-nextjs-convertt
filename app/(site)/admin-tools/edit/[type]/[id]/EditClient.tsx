@@ -36,6 +36,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 // Friendlier labels for snake_case columns.
 function fieldLabel(name: string): string {
+  if (name === "once_per_customer") return "Once per customer (each email can use it once)";
   return name
     .replace(/_/g, " ")
     .replace(/\b\w/g, (m) => m.toUpperCase())
@@ -298,6 +299,27 @@ export default function EditClient({
           <div className="ed-fields">
             {fields.map(([col, t]) => {
               const enumOpts = ENUM_OPTIONS[type]?.[col];
+
+              // Discount usage limit: a plain choice rather than a bare number.
+              // "One time only" stores 1; "Unlimited" stores NULL. Any other
+              // existing value is kept selectable so it isn't silently lost.
+              if (type === "discounts" && col === "usage_limit") {
+                const uv = values[col] ?? "";
+                const custom = uv !== "" && uv !== "1" ? uv : null;
+                return (
+                  <Field key={col} label="How many times can it be used?">
+                    <select
+                      value={uv}
+                      onChange={(e) => setField(col, e.target.value)}
+                      className="ed-input"
+                    >
+                      <option value="">Unlimited</option>
+                      <option value="1">One time only (single use)</option>
+                      {custom ? <option value={custom}>{custom} uses</option> : null}
+                    </select>
+                  </Field>
+                );
+              }
               const v = values[col] ?? "";
               // Staff permissions → checkbox group of dashboard sections.
               if (type === "users" && col === "permissions") {

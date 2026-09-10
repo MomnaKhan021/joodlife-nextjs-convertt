@@ -369,6 +369,8 @@ const SPECS: Record<string, Spec> = {
       type: "text",
       value: "number",
       expiry_date: "date",
+      usage_limit: "number",
+      once_per_customer: "boolean",
       is_active: "boolean",
     },
   },

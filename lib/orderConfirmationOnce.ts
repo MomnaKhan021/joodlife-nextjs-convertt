@@ -42,6 +42,7 @@ type OrderRow = {
   items_json: unknown;
   customer_phone: string | null;
   shipping_address: string | null;
+  discount_code: string | null;
 };
 
 export async function sendOrderConfirmationOnce(
@@ -63,7 +64,8 @@ export async function sendOrderConfirmationOnce(
 
     await drizzle.execute(
       sql.raw(
-        `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS confirmation_email_sent boolean`,
+        `ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS confirmation_email_sent boolean,
+                              ADD COLUMN IF NOT EXISTS discount_code varchar`,
       ),
     );
 
@@ -75,10 +77,27 @@ export async function sendOrderConfirmationOnce(
           WHERE ${cond}
             AND LOWER(COALESCE(payment_status::text, '')) = 'paid'
             AND COALESCE(confirmation_email_sent, false) = false
-          RETURNING id, order_number, customer_email, customer_name, customer_phone, shipping_address, total_amount, items_json`,
+          RETURNING id, order_number, customer_email, customer_name, customer_phone, shipping_address, total_amount, items_json, discount_code`,
       ),
     );
     const row = rowsOf<OrderRow>(res)[0];
+
+    // A paid order is a real redemption of its discount code — count it here
+    // (exactly once per order, thanks to the claim above) rather than at
+    // checkout, where an abandoned or declined order used to eat a
+    // single-use code.
+    if (row?.discount_code) {
+      try {
+        await drizzle.execute(
+          sql.raw(
+            `UPDATE "discounts" SET usage_count = COALESCE(usage_count, 0) + 1
+              WHERE upper(code) = upper(${esc(String(row.discount_code))})`,
+          ),
+        );
+      } catch {
+        /* non-fatal */
+      }
+    }
     if (!row?.customer_email || !row.order_number) return;
 
     // A reorder is any order beyond the customer's first non-cancelled one.

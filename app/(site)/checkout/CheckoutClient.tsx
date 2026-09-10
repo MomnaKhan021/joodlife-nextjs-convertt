@@ -214,6 +214,8 @@ function CheckoutForm() {
   const [appliedDiscount, setAppliedDiscount] = useState<{
     code: string;
     amount: number;
+    /** Email the code was validated against (once-per-customer codes). */
+    forEmail?: string;
   } | null>(null);
 
   const [busy, setBusy] = useState(false);
@@ -314,6 +316,10 @@ function CheckoutForm() {
     : 0;
   const total = Math.round(Math.max(0, subtotal - discount) * 100) / 100;
 
+  // Once-per-customer codes are checked against the email typed above, so the
+  // customer finds out before paying rather than at the last step.
+  const emailForDiscount = isValidEmail(email) ? email.trim().toLowerCase() : "";
+
   async function applyDiscount() {
     const code = discountCode.trim().toUpperCase();
     if (!code || discountBusy) return;
@@ -324,11 +330,19 @@ function CheckoutForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ code, subtotal }),
+        body: JSON.stringify({
+          code,
+          subtotal,
+          email: emailForDiscount || undefined,
+        }),
       });
       const json = await res.json();
       if (res.ok && json.valid) {
-        setAppliedDiscount({ code: json.code ?? code, amount: json.amount });
+        setAppliedDiscount({
+          code: json.code ?? code,
+          amount: json.amount,
+          forEmail: emailForDiscount,
+        });
         setDiscountMsg(null);
       } else {
         setAppliedDiscount(null);
@@ -354,13 +368,18 @@ function CheckoutForm() {
   useEffect(() => {
     const code = discountCode.trim().toUpperCase();
     if (!code) return;
-    if (appliedDiscount?.code === code) return; // already applied
+    if (
+      appliedDiscount?.code === code &&
+      (appliedDiscount.forEmail ?? "") === emailForDiscount
+    ) {
+      return; // already applied for this email
+    }
     const t = setTimeout(() => {
       void applyDiscount();
     }, 700);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [discountCode, subtotal]);
+  }, [discountCode, subtotal, emailForDiscount]);
 
   const emailValid = isValidEmail(email);
   // Gate payment on a valid UK postcode FORMAT (offline regex) — not on the

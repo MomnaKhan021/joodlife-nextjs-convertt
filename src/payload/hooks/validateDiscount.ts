@@ -36,6 +36,7 @@ export type DiscountDoc = {
   expiryDate?: string | Date | null;
   usageLimit?: number | null;
   usageCount?: number | null;
+  oncePerCustomer?: boolean | null;
   type?: "percentage" | "fixed" | string | null;
   value?: number | null;
 };
