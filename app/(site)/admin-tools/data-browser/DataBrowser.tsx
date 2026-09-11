@@ -218,9 +218,17 @@ function orderItemCount(raw: unknown): number {
  *  actually sits in the workflow, using the same names as the sidebar tabs:
  *    Dispatched      → already sent (shipped/delivered or has DPD tracking)
  *    To Dispatch     → supply approved, waiting to be dispensed + dispatched
- *    Clinical Check  → still awaiting clinical review */
-function fulfillmentOf(row: Row): "Dispatched" | "To Dispatch" | "Clinical Check" {
+ *    Clinical Check  → still awaiting clinical review
+ *    Cancelled / Refunded → no longer being fulfilled (kept on record) */
+function fulfillmentOf(
+  row: Row,
+): "Dispatched" | "To Dispatch" | "Clinical Check" | "Cancelled" | "Refunded" {
   const status = String(row.status ?? "").toLowerCase();
+  const payment = String(row.payment_status ?? "").toLowerCase();
+  // A cancelled/refunded order is shown as such wherever it appears (it may
+  // still sit in Dispatched history if it went out before the refund).
+  if (payment === "refunded") return "Refunded";
+  if (status === "cancelled") return "Cancelled";
   const notes = String(row.notes ?? "");
   const dispatched =
     ["shipped", "delivered", "dispatched"].includes(status) ||
@@ -610,9 +618,9 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
   // Sort: which column + direction. null = server default order.
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" } | null>(null);
   // Orders "job queue" fulfillment filter. Defaults to unfulfilled work.
-  const [fulfillment, setFulfillment] = useState<"unfulfilled" | "all" | "dispatched">(
-    "unfulfilled",
-  );
+  const [fulfillment, setFulfillment] = useState<
+    "unfulfilled" | "all" | "dispatched" | "cancelled"
+  >("unfulfilled");
   // Batch multi-select — set of selected row ids on the current page.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
@@ -851,6 +859,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           {([
             ["unfulfilled", "To do"],
             ["dispatched", "Dispatched"],
+            ["cancelled", "Cancelled"],
             ["all", "All"],
           ] as const).map(([val, label]) => (
             <button
@@ -868,6 +877,10 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           {fulfillment === "unfulfilled" ? (
             <span className="db-segment__note">
               Work queue — clear this to zero each day.
+            </span>
+          ) : fulfillment === "cancelled" ? (
+            <span className="db-segment__note">
+              Cancelled and refunded orders — kept on record, nothing is deleted.
             </span>
           ) : null}
         </div>
@@ -971,6 +984,8 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                         ? `No ${tab.label.toLowerCase()} match "${debouncedSearch}".`
                         : activeTab === "orders" && fulfillment === "unfulfilled"
                           ? "Nothing to do — the queue is clear."
+                          : activeTab === "orders" && fulfillment === "cancelled"
+                            ? "No cancelled or refunded orders."
                           : `No ${tab.label.toLowerCase()} yet.`}
                     </td>
                   </tr>
