@@ -26,6 +26,10 @@ import { hiddenOrdersSql } from "@/lib/adminHiddenOrders";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+/** An order that was cancelled or refunded (either flag counts). */
+const CANCELLED_EXPR =
+  "(LOWER(COALESCE(status::text,'')) = 'cancelled' OR LOWER(COALESCE(payment_status::text,'')) = 'refunded')";
+
 type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
 type SqlRaw = { raw: (s: string) => unknown };
 
@@ -255,6 +259,9 @@ export async function GET(req: NextRequest) {
   }
   // Individually removed test rows (lib/adminHiddenOrders).
   if (type === "orders" && hiddenOrdersSql()) conditions.push(hiddenOrdersSql());
+  // Cancelled / refunded orders leave the work queues but never disappear:
+  // they have their own view so staff can always find them.
+  if (type === "orders" && fulfillment === "cancelled") conditions.push(CANCELLED_EXPR);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
@@ -324,6 +331,7 @@ export async function GET(req: NextRequest) {
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
   if (type === "orders") safeConds.push(REAL_ORDER_SQL);
   if (type === "orders" && hiddenOrdersSql()) safeConds.push(hiddenOrdersSql());
+  if (type === "orders" && fulfillment === "cancelled") safeConds.push(CANCELLED_EXPR);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";

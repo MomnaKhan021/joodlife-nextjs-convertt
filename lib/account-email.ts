@@ -1770,3 +1770,133 @@ Need help? Talk to us on WhatsApp: ${waLink}`;
     text,
   });
 }
+
+/**
+ * Order cancelled / refunded — sent when staff cancel an order or refund it
+ * from the admin dashboard. Two messages go out:
+ *   - the customer: what happened, and (if refunded) how long the money takes;
+ *   - the team (ORDER_NOTIFY_EMAIL): who cancelled it and a link to the order,
+ *     so a cancellation never silently vanishes from view.
+ * Fire-and-forget by callers; never throws.
+ */
+export async function sendOrderCancelledEmail(
+  payload: Payload,
+  opts: {
+    email: string | null | undefined;
+    name?: string | null;
+    orderNumber: string;
+    orderId?: number | string | null;
+    total?: number | null;
+    refunded: boolean;
+    viaStripe?: boolean;
+    items?: Array<{ title?: unknown; dose?: unknown; quantity?: unknown }> | null;
+    /** Staff member who did it (email), for the team notification. */
+    actor?: string | null;
+  },
+): Promise<void> {
+  const url = siteUrl();
+  const waLink = "https://wa.me/447756099075";
+  const gbp = (n: number) =>
+    new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(n);
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const total = Number(opts.total ?? 0) || 0;
+  const items = Array.isArray(opts.items) ? opts.items : [];
+  const itemLines = items
+    .map((it) => {
+      const t = String(it?.title ?? "Item");
+      const d = it?.dose ? ` (${String(it.dose)})` : "";
+      const q = Math.max(1, Number(it?.quantity) || 1);
+      return `${t}${d} × ${q}`;
+    })
+    .filter(Boolean);
+  const itemsHtml = itemLines.length
+    ? `<ul style="margin:0 0 16px;padding:0 0 0 18px;font-size:14px;line-height:22px;color:${BRAND}">${itemLines
+        .map((l) => `<li>${escapeHtml(l)}</li>`)
+        .join("")}</ul>`
+    : "";
+
+  // Customer
+  const email = String(opts.email ?? "").trim();
+  if (email) {
+    const refundPara = opts.refunded
+      ? `<p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">
+           ${total > 0 ? `We&rsquo;ve refunded <strong>${gbp(total)}</strong> to your original payment method.` : "Any payment taken has been refunded to your original payment method."}
+           Refunds usually show on your statement within 5&ndash;10 working days, depending on your bank.
+         </p>`
+      : `<p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">No further payment will be taken for this order.</p>`;
+    const html = emailShell(
+      `<h1 style="font-size:22px;margin:0 0 10px;color:${BRAND}">Your order ${escapeHtml(opts.orderNumber)} has been cancelled</h1>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">Hi ${escapeHtml(firstName)},</p>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">
+         We&rsquo;re writing to confirm that order <strong>#${escapeHtml(opts.orderNumber)}</strong> has been cancelled${opts.refunded ? " and refunded" : ""}.
+       </p>
+       ${itemsHtml}
+       ${refundPara}
+       <p style="font-size:14px;line-height:22px;margin:0 0 18px;color:${BRAND}">
+         If you weren&rsquo;t expecting this, or you&rsquo;d like to place a new order, just reply to this email or message our team on WhatsApp and we&rsquo;ll sort it straight away.
+       </p>
+       ${btn(waLink, "Message Our Team on WhatsApp")}`,
+      { preheader: `Order ${opts.orderNumber} has been cancelled${opts.refunded ? " and refunded" : ""}.` },
+    );
+    const text = `Hi ${firstName},
+
+Your order #${opts.orderNumber} has been cancelled${opts.refunded ? " and refunded" : ""}.
+${itemLines.length ? "\n" + itemLines.map((l) => `- ${l}`).join("\n") + "\n" : ""}
+${
+  opts.refunded
+    ? `${total > 0 ? `We've refunded ${gbp(total)} to your original payment method. ` : "Any payment taken has been refunded. "}Refunds usually show within 5-10 working days, depending on your bank.`
+    : "No further payment will be taken for this order."
+}
+
+If you weren't expecting this, or you'd like to place a new order, reply to this email or message us on WhatsApp: ${waLink}`;
+    try {
+      await payload.sendEmail({
+        to: email,
+        subject: `Order ${opts.orderNumber} cancelled${opts.refunded ? " — refund on its way" : ""}`,
+        html,
+        text,
+      });
+    } catch (e) {
+      payload.logger?.error?.({ msg: "Order cancelled email (customer) failed", e });
+    }
+  }
+
+  // Team
+  const adminTo = (
+    process.env.ORDER_NOTIFY_EMAIL ||
+    process.env.SEED_ADMIN_EMAIL ||
+    "hello@joodlife.com"
+  ).trim();
+  if (adminTo) {
+    const orderLink = opts.orderId != null ? `${url}/admin-tools/orders/${opts.orderId}` : `${url}/admin-tools/data-browser?type=orders`;
+    const what = opts.refunded
+      ? `refunded in full${opts.viaStripe ? " via Stripe" : ""} and cancelled`
+      : "cancelled";
+    const adminHtml = emailShell(
+      `<h1 style="font-size:20px;margin:0 0 8px;color:${BRAND}">Order ${escapeHtml(opts.orderNumber)} ${escapeHtml(what)}</h1>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">
+         <strong>${escapeHtml(opts.name || "Customer")}</strong>${email ? ` (${escapeHtml(email)})` : ""}
+         &middot; ${gbp(total)}${opts.actor ? `<br/>By ${escapeHtml(opts.actor)}` : ""}
+       </p>
+       ${itemsHtml}
+       <p style="font-size:13px;line-height:20px;margin:0 0 18px;color:${BRAND}">The order stays on record under Orders &rarr; <strong>Cancelled</strong>. The customer has been emailed.</p>
+       ${btn(orderLink, "Open Order")}`,
+      { preheader: `Order ${opts.orderNumber} ${what}` },
+    );
+    const adminText = `Order ${opts.orderNumber} ${what}
+Customer: ${opts.name || "Customer"}${email ? ` (${email})` : ""}
+Total: ${gbp(total)}${opts.actor ? `\nBy: ${opts.actor}` : ""}
+${itemLines.map((l) => `- ${l}`).join("\n")}
+Order: ${orderLink}`;
+    try {
+      await payload.sendEmail({
+        to: adminTo,
+        subject: `Order ${opts.orderNumber} ${what} — ${gbp(total)}`,
+        html: adminHtml,
+        text: adminText,
+      });
+    } catch (e) {
+      payload.logger?.error?.({ msg: "Order cancelled email (team) failed", e });
+    }
+  }
+}
