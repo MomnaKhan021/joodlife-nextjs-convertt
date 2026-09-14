@@ -40,6 +40,7 @@ type DiscountRow = {
   usageLimit?: number | null;
   usageCount?: number | null;
   oncePerCustomer?: boolean | null;
+  allowedEmail?: string | null;
 };
 
 const CODE_RE = /^[A-Z0-9][A-Z0-9_-]{0,39}$/;
@@ -80,6 +81,7 @@ function ensureColumns(drizzle: DrizzleLike, raw: (s: string) => unknown): Promi
       await drizzle.execute(
         raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS once_per_customer boolean DEFAULT false`),
       );
+      await drizzle.execute(raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS allowed_email varchar`));
       await drizzle.execute(raw(`ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS discount_code varchar`));
     })().catch(() => {
       columnsReady = null; // retry on the next check
@@ -105,7 +107,8 @@ async function findDiscount(
   const res = await drizzle.execute(
     sql.raw(`
       SELECT code, type::text AS type, value, expiry_date, usage_limit, usage_count, is_active,
-             (to_jsonb(d) ->> 'once_per_customer') AS once_per_customer
+             (to_jsonb(d) ->> 'once_per_customer') AS once_per_customer,
+             (to_jsonb(d) ->> 'allowed_email') AS allowed_email
         FROM "discounts" d
        WHERE upper(code) = ${esc(code)}
        LIMIT 1
@@ -127,6 +130,7 @@ async function findDiscount(
     usageLimit: num(r.usage_limit),
     usageCount: num(r.usage_count) ?? 0,
     oncePerCustomer: r.once_per_customer === "true" || r.once_per_customer === true,
+    allowedEmail: r.allowed_email ? String(r.allowed_email) : null,
   };
 }
 
@@ -193,6 +197,24 @@ export async function applyDiscountCode(
     }
 
     const email = (opts.email ?? "").trim() || null;
+
+    // Code reserved for one customer: only that email may use it (as often as
+    // the usage limit allows). Without an email yet we can't tell, so ask for
+    // it — the checkout re-checks automatically once the email is typed.
+    const allowed = String(doc.allowedEmail ?? "").trim().toLowerCase();
+    if (allowed) {
+      if (!email) {
+        return {
+          valid: false,
+          amount: 0,
+          reason: "This code is linked to one customer — enter your email address above and it will apply automatically.",
+        };
+      }
+      if (email.toLowerCase() !== allowed) {
+        return { valid: false, amount: 0, reason: "This code isn’t valid for this email address." };
+      }
+    }
+
     const limit = typeof doc.usageLimit === "number" && doc.usageLimit > 0 ? doc.usageLimit : null;
     const perCustomer = doc.oncePerCustomer === true;
     const usage =

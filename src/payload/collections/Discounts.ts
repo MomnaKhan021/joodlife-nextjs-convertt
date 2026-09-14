@@ -83,6 +83,14 @@ export const Discounts: CollectionConfig = {
       },
     },
     {
+      name: "allowedEmail",
+      type: "email",
+      admin: {
+        description:
+          "Optional. Only this customer (by email) can use the code — as many times as the usage limit allows. Leave blank so anyone can use it.",
+      },
+    },
+    {
       name: "usageCount",
       type: "number",
       defaultValue: 0,

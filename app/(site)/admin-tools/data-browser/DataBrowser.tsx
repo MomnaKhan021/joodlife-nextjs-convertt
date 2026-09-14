@@ -537,6 +537,16 @@ const TABS: TabSpec[] = [
         render: (r) => (r.once_per_customer ? "Once each" : "—"),
       },
       {
+        key: "allowed_email",
+        label: "Who can use it",
+        render: (r) =>
+          r.allowed_email ? (
+            <span className="db-cell-meta">{String(r.allowed_email)}</span>
+          ) : (
+            "Anyone"
+          ),
+      },
+      {
         key: "expiry_date",
         label: "Expires",
         hideBelow: 720,
