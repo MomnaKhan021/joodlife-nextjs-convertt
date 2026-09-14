@@ -118,7 +118,19 @@ export const HOME_STYLE_KEYS = [
   "blog",
   "cta",
 ] as const;
-export type HomeStyleKey = (typeof HOME_STYLE_KEYS)[number];
+/**
+ * Everything stored in the Home global's `styles`.
+ *
+ * The announcement bar is in here because its text lives on the same global,
+ * but it is not a home-page section — it sits above the header on every page
+ * — so it has its own editor and is deliberately absent from the list above,
+ * which is what the home editor renders.
+ */
+export const HOME_STYLE_STORED_KEYS = [
+  ...HOME_STYLE_KEYS,
+  "announcement",
+] as const;
+export type HomeStyleKey = (typeof HOME_STYLE_STORED_KEYS)[number];
 
 /**
  * Which sections actually have two columns worth swapping.
@@ -138,6 +150,7 @@ export const HOME_STYLE_LABELS: Record<HomeStyleKey, string> = {
   faq: "FAQ",
   blog: "Blog posts",
   cta: "Closing banner",
+  announcement: "Announcement bar",
 };
 
 /* ── the other pages, same shape ─────────────────────────

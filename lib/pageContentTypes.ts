@@ -12,7 +12,7 @@
 
 import {
   mergeStyles,
-  HOME_STYLE_KEYS,
+  HOME_STYLE_STORED_KEYS,
   type HomeStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
@@ -236,7 +236,7 @@ export function toHeroFeatures(
 export function homeFallback(): HomeContent {
   return {
     // No stored styles, so every section keeps the design it ships with.
-    styles: mergeStyles(null, HOME_STYLE_KEYS),
+    styles: mergeStyles(null, HOME_STYLE_STORED_KEYS),
     faqs: DEFAULT_FAQS,
     hiwSteps: DEFAULT_HIW_STEPS,
     heroFeatures: DEFAULT_HERO_FEATURES,

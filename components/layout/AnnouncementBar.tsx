@@ -12,6 +12,7 @@ import AnnouncementBarView from "./AnnouncementBarView";
  */
 export default async function AnnouncementBar() {
   const {
+    styles,
     announcementBadge,
     announcementText,
     announcementHref,
@@ -20,6 +21,7 @@ export default async function AnnouncementBar() {
 
   return (
     <AnnouncementBarView
+      style={styles.announcement}
       badge={announcementBadge}
       text={announcementText}
       href={announcementHref}

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+
 /** Peach pill on the dark bar, per the Figma announcement bar. */
 function Badge({ label }: { label: string }) {
   return (
@@ -13,6 +15,8 @@ function Badge({ label }: { label: string }) {
 }
 
 export type AnnouncementContent = {
+  /** Background / text colour. Undefined keeps the shipped dark bar. */
+  style?: SectionStyle;
   badge?: string;
   text?: string;
   href?: string;
@@ -27,6 +31,7 @@ export type AnnouncementContent = {
  * Defaults are the copy that shipped, so rendering it bare is unchanged.
  */
 export default function AnnouncementBarView({
+  style,
   badge = "New",
   text = "Foundayo® (oral tirzepatide) – a new tablet option for weight management is now available",
   href = "/wegovy-pills",
@@ -35,14 +40,20 @@ export default function AnnouncementBarView({
   if (hidden || !text) return null;
 
   return (
-    <div className="w-full bg-[#142e2a] text-white">
+    /* The colours sit on this wrapper so a stored one can win: an inline
+       style beats a class on the same element, and the text below
+       inherits rather than setting its own. */
+    <div
+      {...styleProps(style)}
+      className="w-full bg-[#142e2a] text-white"
+    >
       {/* Desktop: 44px tall, padded horizontally */}
       <div className="hidden md:flex mx-auto h-11 w-full max-w-[1440px] items-center justify-center px-10 lg:px-20">
         <div className="flex items-center gap-3">
           {badge ? <Badge label={badge} /> : null}
           <Link
             href={href}
-            className="font-outfit text-sm leading-snug text-white hover:underline"
+            className="font-outfit text-sm leading-snug hover:underline"
           >
             {text}
           </Link>
@@ -55,7 +66,7 @@ export default function AnnouncementBarView({
           {badge ? <Badge label={badge} /> : null}
           <Link
             href={href}
-            className="font-outfit text-[13px] leading-snug text-white hover:underline"
+            className="font-outfit text-[13px] leading-snug hover:underline"
           >
             {text}
           </Link>

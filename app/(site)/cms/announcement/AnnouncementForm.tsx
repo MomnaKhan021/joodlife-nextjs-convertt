@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type { HomeContent } from "@/lib/pageContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import StyleFields from "../StyleFields";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * Editor for the announcement bar.
@@ -18,6 +20,9 @@ export default function AnnouncementForm({
 }: {
   initial: HomeContent;
 }) {
+  const [style, setStyle] = useState<SectionStyle>(
+    initial.styles.announcement,
+  );
   const [badge, setBadge] = useState(initial.announcementBadge);
   const [text, setText] = useState(initial.announcementText);
   const [href, setHref] = useState(initial.announcementHref);
@@ -33,6 +38,9 @@ export default function AnnouncementForm({
     setSaved(false);
     try {
       await saveGlobal("home-page", {
+        // The home editor keeps its section colours in this same object,
+        // so send it back whole — sending only ours would wipe them.
+        styles: { ...initial.styles, announcement: style },
         announcementBadge: badge,
         announcementText: text,
         announcementHref: href,
@@ -82,13 +90,16 @@ export default function AnnouncementForm({
             Hidden — the bar won&apos;t render.
           </p>
         ) : (
-          <div className="flex items-center justify-center gap-3 bg-[#142e2a] px-4 py-3">
+          <div
+            {...styleProps(style)}
+            className="flex items-center justify-center gap-3 bg-[#142e2a] px-4 py-3 text-white"
+          >
             {badge ? (
               <span className="rounded-md bg-[#ffcebf] px-2.5 py-0.5 text-[12px] font-semibold text-[#142e2a]">
                 {badge}
               </span>
             ) : null}
-            <span className="text-[13px] text-white">{text}</span>
+            <span className="text-[13px]">{text}</span>
           </div>
         )}
       </div>
@@ -113,6 +124,18 @@ export default function AnnouncementForm({
           <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
           Hide the announcement bar entirely
         </label>
+      </div>
+
+      <div className="mt-5 space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+        <div>
+          <h2 className="text-[15px] font-medium text-[#1a1a1a]">Colours</h2>
+          <p className="mt-1 text-[13px] text-[#616161]">
+            The preview above updates as you choose. Left on Default the bar
+            stays dark green with white text. The badge keeps its peach pill
+            either way.
+          </p>
+        </div>
+        <StyleFields sectionKey="announcement" value={style} onChange={setStyle} />
       </div>
 
       <div className="mt-5">
