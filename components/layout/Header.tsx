@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import CartDrawer from "@/components/layout/CartDrawer";
 import MegaMenu, { TREATMENTS } from "@/components/layout/MegaMenu";
-import { useCart } from "@/components/cart/CartContext";
 
 type NavLink = {
   label: string;
@@ -23,45 +22,28 @@ const NAV_LINKS: NavLink[] = [
   { label: "Support", href: "/support" },
 ];
 
-function PersonIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="8" r="3.4" stroke="#142e2a" strokeWidth="1.7" />
-      <path
-        d="M5.5 19.5c0-3.3 2.9-5.8 6.5-5.8s6.5 2.5 6.5 5.8"
-        stroke="#142e2a"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function BagIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M6 7h12l1 13H5L6 7z"
-        stroke="#142e2a"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9 9V6.5a3 3 0 0 1 6 0V9"
-        stroke="#142e2a"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   // Mobile drawer: which screen is showing — main menu or the treatments panel.
   const [mobileTreat, setMobileTreat] = useState(false);
-  const { itemCount, openDrawer } = useCart();
+  // Signed-in state, for the Log in / Account header button. Reads a readable
+  // cookie for an instant first paint, then confirms with the session API.
+  const [loggedIn, setLoggedIn] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const m = document.cookie.match(/(?:^|; )jl_auth=([01])/);
+    if (m) queueMicrotask(() => alive && setLoggedIn(m[1] === "1"));
+    fetch("/api/account/session", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive) setLoggedIn(Boolean(d?.loggedIn));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const closeMobile = () => {
     setMobileOpen(false);
@@ -128,17 +110,8 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-0.5">
-          {/* Account */}
-          <Link
-            href="/profile"
-            aria-label="Account"
-            className="grid h-10 w-10 cursor-pointer place-items-center transition-opacity hover:opacity-70"
-          >
-            <PersonIcon />
-          </Link>
-          {/* Cart trigger */}
-          <CartButton onClick={openDrawer} count={itemCount} />
+        <div className="flex items-center">
+          <AuthPill loggedIn={loggedIn} />
         </div>
       </div>
 
@@ -171,17 +144,8 @@ export default function Header() {
           />
         </Link>
 
-        <div className="flex items-center gap-1.5">
-          {/* Account (mobile) */}
-          <Link
-            href="/profile"
-            aria-label="Account"
-            className="grid h-10 w-10 place-items-center transition-opacity hover:opacity-70"
-          >
-            <PersonIcon />
-          </Link>
-          {/* Cart trigger (mobile) */}
-          <CartButton onClick={openDrawer} count={itemCount} />
+        <div className="flex items-center gap-2">
+          <AuthPill loggedIn={loggedIn} mobile />
 
           {/* Hamburger */}
           <button
@@ -287,27 +251,12 @@ export default function Header() {
                 )}
                 <li>
                   <Link
-                    href="/profile"
+                    href={loggedIn ? "/profile" : "/login"}
                     onClick={closeMobile}
                     className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                   >
-                    Account
+                    {loggedIn ? "Account" : "Log in"}
                   </Link>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeMobile();
-                      openDrawer();
-                    }}
-                    className="flex w-full items-center justify-between py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-                  >
-                    <span>Cart</span>
-                    <span className="rounded-full bg-[#142e2a] px-2 py-0.5 font-ui text-[11px] font-semibold text-white">
-                      {itemCount}
-                    </span>
-                  </button>
                 </li>
               </ul>
 
@@ -381,26 +330,17 @@ export default function Header() {
   );
 }
 
-function CartButton({
-  onClick,
-  count,
-}: {
-  onClick: () => void;
-  count: number;
-}) {
+/** Outlined pill in the header — "Log in" for guests, "Account" (→ profile)
+ *  once signed in. Branded (Jood green), responsive: smaller on mobile. */
+function AuthPill({ loggedIn, mobile = false }: { loggedIn: boolean; mobile?: boolean }) {
   return (
-    <button
-      type="button"
-      aria-label="Open cart"
-      onClick={onClick}
-      className="relative grid h-10 w-10 cursor-pointer place-items-center transition-opacity hover:opacity-70"
+    <Link
+      href={loggedIn ? "/profile" : "/login"}
+      className={`btn-cta inline-flex items-center justify-center rounded-full border border-[#142e2a]/25 font-ui font-medium text-[#142e2a] transition-colors hover:border-[#142e2a] hover:bg-[#142e2a] hover:text-white ${
+        mobile ? "h-9 px-4 text-[13.5px]" : "h-10 px-6 text-[15px]"
+      }`}
     >
-      <BagIcon />
-      {count > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 grid min-w-[18px] place-items-center rounded-full bg-[#142e2a] px-1 font-ui text-[10px] font-semibold leading-[18px] text-white">
-          {count > 99 ? "99+" : count}
-        </span>
-      ) : null}
-    </button>
+      {loggedIn ? "Account" : "Log in"}
+    </Link>
   );
 }
