@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import EdConfidenceStat from "@/components/category/EdConfidenceStat";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Erectile-dysfunction page sections — Figma "Joodlife - Next js (Erectile
@@ -187,9 +188,7 @@ function TreatmentPlan() {
             <Link href={START} className={CTA_PRIMARY}>
               Get Started
             </Link>
-            <Link href={START} className={CTA_GHOST}>
-              See If You Are Eligible
-            </Link>
+            <EligibilityCta product="erectile-dysfunction" label="See If You Are Eligible" className={CTA_GHOST} />
           </div>
         </Reveal>
 
@@ -214,9 +213,7 @@ function TreatmentPlan() {
             <Link href={START} className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}>
               Get Started
             </Link>
-            <Link href={START} className={`${CTA_GHOST} flex-1 min-w-[150px]`}>
-              See If You Are Eligible
-            </Link>
+            <EligibilityCta product="erectile-dysfunction" label="See If You Are Eligible" className={`${CTA_GHOST} flex-1 min-w-[150px]`} />
           </div>
         </Reveal>
       </div>
@@ -343,9 +340,7 @@ function EdConfidence() {
             <Link href={START} className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}>
               Get Started
             </Link>
-            <Link href={START} className={`${CTA_GHOST} flex-1 min-w-[150px] md:flex-none`}>
-              See If You Are Eligible
-            </Link>
+            <EligibilityCta product="erectile-dysfunction" label="See If You Are Eligible" className={`${CTA_GHOST} flex-1 min-w-[150px] md:flex-none`} />
           </div>
         </Reveal>
       </div>

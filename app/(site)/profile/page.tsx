@@ -89,6 +89,15 @@ export default async function ProfilePage() {
     /* non-fatal — editor still opens with what we have */
   }
 
+  // Any real order (not cancelled/refunded/failed) makes them a returning
+  // patient — mirror the site-wide reorder rule.
+  const hasOrdered = orders.some(
+    (o) =>
+      o.status !== "cancelled" &&
+      o.paymentStatus !== "refunded" &&
+      o.paymentStatus !== "failed",
+  );
+
   const displayName = user.name ?? user.email.split("@")[0];
   const initial = displayName[0]?.toUpperCase() ?? "?";
 
@@ -129,11 +138,19 @@ export default async function ProfilePage() {
               <p className="font-ui text-[14px] text-[#142e2a]/70">{user.email}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {hasOrdered ? (
+              <Link
+                href="/reorder"
+                className="btn-cta inline-flex h-11 items-center justify-center rounded-lg bg-[#142e2a] px-5 font-ui text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+              >
+                Reorder
+              </Link>
+            ) : null}
             {user.role === "admin" ? (
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#142e2a] px-5 font-ui text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
               >
                 Open CMS admin
               </Link>
