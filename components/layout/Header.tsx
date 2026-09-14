@@ -253,8 +253,17 @@ export default function Header() {
                   <Link
                     href={loggedIn ? "/profile" : "/login"}
                     onClick={closeMobile}
-                    className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                    className="flex items-center gap-2.5 py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                   >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+                      <circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.7" />
+                      <path
+                        d="M5.5 19.5c0-3.3 2.9-5.8 6.5-5.8s6.5 2.5 6.5 5.8"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                      />
+                    </svg>
                     {loggedIn ? "Account" : "Log in"}
                   </Link>
                 </li>
