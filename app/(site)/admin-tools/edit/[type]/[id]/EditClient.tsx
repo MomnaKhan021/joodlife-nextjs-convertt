@@ -36,7 +36,6 @@ const TYPE_LABELS: Record<string, string> = {
 
 // Friendlier labels for snake_case columns.
 function fieldLabel(name: string): string {
-  if (name === "once_per_customer") return "Once per customer (each email can use it once)";
   return name
     .replace(/_/g, " ")
     .replace(/\b\w/g, (m) => m.toUpperCase())
@@ -300,25 +299,82 @@ export default function EditClient({
             {fields.map(([col, t]) => {
               const enumOpts = ENUM_OPTIONS[type]?.[col];
 
-              // Discount usage limit: a plain choice rather than a bare number.
-              // "One time only" stores 1; "Unlimited" stores NULL. Any other
-              // existing value is kept selectable so it isn't silently lost.
+              // Discount rules, grouped like a shop admin would expect:
+              //   [x] limit total uses  [ 3 ]
+              //   [ ] one use per customer
+              //   restrict to one customer's email
+              // Rendered once (at usage_limit); the other two columns are
+              // skipped below so they don't also appear as bare fields.
               if (type === "discounts" && col === "usage_limit") {
-                const uv = values[col] ?? "";
-                const custom = uv !== "" && uv !== "1" ? uv : null;
+                const lim = values["usage_limit"] ?? "";
+                const limitOn = lim !== "";
+                const perCustomer = (values["once_per_customer"] ?? "") === "true";
+                const allowedEmail = values["allowed_email"] ?? "";
+                const row: React.CSSProperties = {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textTransform: "none",
+                  letterSpacing: 0,
+                  color: "#142e2a",
+                  cursor: "pointer",
+                };
                 return (
-                  <Field key={col} label="How many times can it be used?">
-                    <select
-                      value={uv}
-                      onChange={(e) => setField(col, e.target.value)}
-                      className="ed-input"
-                    >
-                      <option value="">Unlimited</option>
-                      <option value="1">One time only (single use)</option>
-                      {custom ? <option value={custom}>{custom} uses</option> : null}
-                    </select>
-                  </Field>
+                  <div key="discount-rules" className="ed-field ed-field--wide">
+                    <span className="ed-label">Maximum discount uses</span>
+                    <div style={{ display: "grid", gap: 12, padding: "6px 0 2px" }}>
+                      <label style={row}>
+                        <input
+                          type="checkbox"
+                          checked={limitOn}
+                          onChange={(e) => setField("usage_limit", e.target.checked ? lim || "1" : "")}
+                        />
+                        Limit number of times this discount can be used in total
+                      </label>
+                      {limitOn ? (
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={lim}
+                          onChange={(e) => setField("usage_limit", e.target.value)}
+                          className="ed-input"
+                          style={{ maxWidth: 160, marginLeft: 26 }}
+                          aria-label="Total number of uses"
+                        />
+                      ) : null}
+                      <label style={row}>
+                        <input
+                          type="checkbox"
+                          checked={perCustomer}
+                          onChange={(e) => setField("once_per_customer", e.target.checked ? "true" : "false")}
+                        />
+                        Limit to one use per customer
+                      </label>
+                      <div style={{ display: "grid", gap: 6, paddingTop: 4 }}>
+                        <span style={{ ...row, cursor: "default" }}>
+                          Only for one customer&rsquo;s email (optional)
+                        </span>
+                        <input
+                          type="email"
+                          value={allowedEmail}
+                          onChange={(e) => setField("allowed_email", e.target.value.trim().toLowerCase())}
+                          placeholder="customer@example.com — leave blank so anyone can use it"
+                          className="ed-input"
+                          style={{ maxWidth: 420, marginLeft: 26 }}
+                        />
+                        <span style={{ fontSize: 12, color: "#5f6b66", marginLeft: 26, textTransform: "none", letterSpacing: 0 }}>
+                          That customer can use the code as many times as the total limit allows (unlimited if no limit is set).
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 );
+              }
+              if (type === "discounts" && (col === "once_per_customer" || col === "allowed_email")) {
+                return null; // rendered inside the group above
               }
               const v = values[col] ?? "";
               // Staff permissions → checkbox group of dashboard sections.

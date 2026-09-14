@@ -372,6 +372,7 @@ const SPECS: Record<string, Spec> = {
       expiry_date: "date",
       usage_limit: "number",
       once_per_customer: "boolean",
+      allowed_email: "text",
       is_active: "boolean",
     },
   },

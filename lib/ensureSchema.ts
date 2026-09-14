@@ -83,6 +83,7 @@ const STATEMENTS: string[] = [
   // Discount usage rules + the code redeemed on each order (so single-use /
   // once-per-customer limits count real, paid redemptions).
   "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"once_per_customer\" boolean DEFAULT false",
+  "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"allowed_email\" varchar",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"discount_code\" varchar",
   "CREATE TABLE IF NOT EXISTS \"media\" (\n  \"id\" serial,\n  \"alt\" varchar NOT NULL,\n  \"caption\" varchar,\n  \"url\" varchar NOT NULL,\n  \"filename\" varchar,\n  \"mime_type\" varchar,\n  \"filesize\" numeric,\n  \"width\" numeric,\n  \"height\" numeric,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"alt\" varchar",
@@ -328,7 +329,8 @@ let ensured = false;
 // Bump whenever STATEMENTS gains anything — a matching stored version skips
 // the whole list, so a new column never appears until the version changes.
 // v5: discounts.once_per_customer + orders.discount_code.
-const SCHEMA_VERSION = "v5";
+// v6: discounts.allowed_email (code restricted to one customer).
+const SCHEMA_VERSION = "v6";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
