@@ -110,7 +110,7 @@ async function findDiscount(
              (to_jsonb(d) ->> 'once_per_customer') AS once_per_customer,
              (to_jsonb(d) ->> 'allowed_email') AS allowed_email
         FROM "discounts" d
-       WHERE upper(code) = ${esc(code)}
+       WHERE upper(TRIM(code)) = ${esc(code)}
        LIMIT 1
     `),
   );
