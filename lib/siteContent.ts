@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { mergeHeaderSettings } from "@/lib/headerLayout";
 import { mergeStyles } from "@/lib/sectionStyle";
 import {
   DEFAULT_FOOTER_TEXT,
@@ -46,6 +47,7 @@ export async function getHeaderContent(): Promise<HeaderContent> {
     })) as Record<string, unknown>;
     return {
       style: mergeStyles(doc?.styles, ["header"] as const).header,
+      settings: mergeHeaderSettings(doc?.settings),
       navLinks: toLinks(doc?.navLinks, DEFAULT_NAV_LINKS),
       megaTreatments: toTreatments(doc?.megaTreatments, DEFAULT_MEGA_TREATMENTS),
       megaPromoBullets: toStrings(doc?.megaPromoBullets, DEFAULT_MEGA_BULLETS),

@@ -72,6 +72,11 @@ export const Header: GlobalConfig = {
     { name: "megaPromoCta", type: "text" },
     { name: "megaPromoHref", type: "text" },
     {
+      name: "settings",
+      type: "json",
+      admin: { description: "Layout preset and sticky behaviour." },
+    },
+    {
       name: "styles",
       type: "json",
       admin: {

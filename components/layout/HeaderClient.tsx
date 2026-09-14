@@ -10,6 +10,10 @@ import MegaMenu, {
   type MegaMenuContent,
 } from "@/components/layout/MegaMenu";
 import { useCart } from "@/components/cart/CartContext";
+import {
+  DEFAULT_HEADER_SETTINGS,
+  type HeaderSettings,
+} from "@/lib/headerLayout";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 type NavLink = {
@@ -66,6 +70,7 @@ export default function HeaderClient({
   navLinks,
   mega,
   style,
+  settings = DEFAULT_HEADER_SETTINGS,
   logoDesktop = "/assets/icons/logo-wesmount.svg",
   logoMobile = "/assets/icons/logo-wesmount-mobile.svg",
 }: {
@@ -73,11 +78,14 @@ export default function HeaderClient({
   mega?: MegaMenuContent;
   /** Background / text colour. Undefined keeps the shipped white bar. */
   style?: SectionStyle;
+  /** Layout preset and whether the bar sticks on scroll. */
+  settings?: HeaderSettings;
   /** Logo image URLs; default to the assets that shipped with the design. */
   logoDesktop?: string;
   logoMobile?: string;
 } = {}) {
   const NAV_LINKS = navLinks?.length ? navLinks : DEFAULT_NAV_LINKS;
+  const { layout, sticky } = settings;
   // Mobile drawer lists the same treatments as the desktop mega panel.
   const TREATMENTS = mega?.megaTreatments?.length
     ? mega.megaTreatments
@@ -99,79 +107,133 @@ export default function HeaderClient({
     setMobileTreat(false);
   };
 
+  const toggleMobile = () => {
+    setMobileTreat(false);
+    setMobileOpen((v) => !v);
+  };
+
+  /* The three desktop arrangements share these pieces. Built once and then
+     placed, rather than three near-identical copies of the logo, the links
+     and the icons drifting apart over time. */
+
+  const desktopLogo = (
+    <Link href="/" aria-label="JoodLife home" className="flex items-center">
+      <Image
+        src={logoDesktop}
+        alt="JoodLife"
+        width={95}
+        height={30}
+        priority
+        className="h-[30px] w-auto"
+      />
+    </Link>
+  );
+
+  const desktopNav = (
+    <nav aria-label="Primary" className="flex items-center">
+      <ul className="flex items-center gap-2">
+        {NAV_LINKS.map((link, i) =>
+          link.mega ? (
+            <li key={link.label} onMouseEnter={() => setMegaIndex(i)}>
+              <Link
+                href={link.href}
+                className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+              >
+                {link.label}
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden
+                  className={`mt-0.5 transition-transform duration-200 ${megaOpen ? "rotate-180" : ""}`}
+                >
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            </li>
+          ) : (
+            <li key={link.label} onMouseEnter={() => setMegaIndex(null)}>
+              <Link
+                href={link.href}
+                className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ),
+        )}
+      </ul>
+    </nav>
+  );
+
+  const desktopIcons = (
+    <div className="flex items-center gap-0.5">
+      {/* Account */}
+      <Link
+        href="/profile"
+        aria-label="Account"
+        className="grid h-10 w-10 cursor-pointer place-items-center transition-opacity hover:opacity-70"
+      >
+        <PersonIcon />
+      </Link>
+      {/* Cart trigger */}
+      <CartButton onClick={openDrawer} count={itemCount} />
+    </div>
+  );
+
+  const desktopBurger = (
+    <button
+      type="button"
+      aria-label="Open menu"
+      aria-expanded={mobileOpen}
+      onClick={toggleMobile}
+      className="grid h-10 w-10 place-items-center"
+    >
+      <span className="flex w-[21px] flex-col items-start gap-[5px]">
+        <span className="h-[2.6px] w-full bg-[#142e2a]" />
+        <span className="h-[2.6px] w-full bg-[#142e2a]" />
+        <span className="h-[2.6px] w-[62%] bg-[#142e2a]" />
+      </span>
+    </button>
+  );
+
+  const centred = layout === "logo-centre" || layout === "drawer";
+  // The drawer preset shows the menu on desktop too, so the panel and its
+  // backdrop lose the md:hidden they carry for the other two.
+  const drawerVisibility = layout === "drawer" ? "" : "md:hidden";
+
   return (
     <header
       {...styleProps(style)}
-      className="relative w-full border-b border-[#142e2a]/10 bg-white"
+      className={
+        sticky
+          ? "sticky top-0 z-40 w-full border-b border-[#142e2a]/10 bg-white"
+          : "relative w-full border-b border-[#142e2a]/10 bg-white"
+      }
       onMouseLeave={() => setMegaIndex(null)}
     >
       {/* Desktop Header: 80px tall */}
       <div className="hidden md:flex mx-auto h-20 w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8">
-        <Link href="/" aria-label="JoodLife home" className="flex items-center">
-          <Image
-            src={logoDesktop}
-            alt="JoodLife"
-            width={95}
-            height={30}
-            priority
-            className="h-[30px] w-auto"
-          />
-        </Link>
-
-        <nav aria-label="Primary" className="flex items-center">
-          <ul className="flex items-center gap-2">
-            {NAV_LINKS.map((link, i) =>
-              link.mega ? (
-                <li
-                  key={link.label}
-                  onMouseEnter={() => setMegaIndex(i)}
-                >
-                  <Link
-                    href={link.href}
-                    className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-                  >
-                    {link.label}
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                      aria-hidden
-                      className={`mt-0.5 transition-transform duration-200 ${megaOpen ? "rotate-180" : ""}`}
-                    >
-                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </Link>
-                </li>
-              ) : (
-                <li
-                  key={link.label}
-                  onMouseEnter={() => setMegaIndex(null)}
-                >
-                  <Link
-                    href={link.href}
-                    className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ),
-            )}
-          </ul>
-        </nav>
-
-        <div className="flex items-center gap-0.5">
-          {/* Account */}
-          <Link
-            href="/profile"
-            aria-label="Account"
-            className="grid h-10 w-10 cursor-pointer place-items-center transition-opacity hover:opacity-70"
-          >
-            <PersonIcon />
-          </Link>
-          {/* Cart trigger */}
-          <CartButton onClick={openDrawer} count={itemCount} />
-        </div>
+        {centred ? (
+          <>
+            {/* Equal flexible sides keep the logo optically centred whatever
+                the links or the icons happen to weigh. */}
+            <div className="flex flex-1 items-center justify-start">
+              {layout === "drawer" ? desktopBurger : desktopNav}
+            </div>
+            {desktopLogo}
+            <div className="flex flex-1 items-center justify-end">
+              {desktopIcons}
+            </div>
+          </>
+        ) : (
+          <>
+            {desktopLogo}
+            {desktopNav}
+            {desktopIcons}
+          </>
+        )}
       </div>
 
       {/* Desktop mega menu — full-width panel below the header bar */}
@@ -220,10 +282,7 @@ export default function HeaderClient({
             type="button"
             aria-label="Open menu"
             aria-expanded={mobileOpen}
-            onClick={() => {
-              setMobileTreat(false);
-              setMobileOpen((v) => !v);
-            }}
+            onClick={toggleMobile}
             className="grid h-10 w-10 place-items-center"
           >
             <span className="flex w-[21px] flex-col items-end gap-[5px]">
@@ -237,7 +296,7 @@ export default function HeaderClient({
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`md:hidden fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ease-in-out ${
+        className={`${drawerVisibility} fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ease-in-out ${
           mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={closeMobile}
@@ -248,7 +307,7 @@ export default function HeaderClient({
       <nav
         aria-label="Mobile"
         aria-hidden={!mobileOpen}
-        className={`md:hidden fixed inset-y-0 right-0 z-50 flex h-full w-[85%] max-w-sm flex-col overflow-hidden bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        className={`${drawerVisibility} fixed inset-y-0 right-0 z-50 flex h-full w-[85%] max-w-sm flex-col overflow-hidden bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

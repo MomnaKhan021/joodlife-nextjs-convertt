@@ -13,11 +13,96 @@ import {
 import MegaEditor from "../MegaEditor";
 import MediaPicker from "../MediaPicker";
 import StyleFields from "../StyleFields";
+import {
+  DEFAULT_HEADER_SETTINGS,
+  HEADER_LAYOUTS,
+  type HeaderLayout,
+  type HeaderSettings,
+} from "@/lib/headerLayout";
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
+
+/**
+ * A little drawing of the bar, so the choice can be made by eye. The three
+ * shapes are the arrangement itself, not decoration: logo block, nav lines,
+ * account and basket dots.
+ */
+function LayoutThumb({ layout }: { layout: HeaderLayout }) {
+  const logo = <rect width="26" height="8" rx="2" fill="currentColor" />;
+  const line = (w: number) => <rect width={w} height="4" rx="2" fill="currentColor" opacity="0.35" />;
+  return (
+    <svg viewBox="0 0 120 28" className="h-8 w-full text-[#1a1a1a]" role="presentation">
+      <rect x="0.5" y="0.5" width="119" height="27" rx="4" fill="#fff" stroke="#e4e7de" />
+      <g transform="translate(0 10)">
+        {layout === "logo-left" ? (
+          <>
+            <g transform="translate(8 0)">{logo}</g>
+            <g transform="translate(40 2)">{line(14)}</g>
+            <g transform="translate(58 2)">{line(14)}</g>
+            <g transform="translate(76 2)">{line(10)}</g>
+          </>
+        ) : layout === "logo-centre" ? (
+          <>
+            <g transform="translate(8 2)">{line(14)}</g>
+            <g transform="translate(26 2)">{line(14)}</g>
+            <g transform="translate(47 0)">{logo}</g>
+          </>
+        ) : (
+          <>
+            <g transform="translate(8 -2)">{line(12)}</g>
+            <g transform="translate(8 2)">{line(12)}</g>
+            <g transform="translate(8 6)">{line(12)}</g>
+            <g transform="translate(47 0)">{logo}</g>
+          </>
+        )}
+        <circle cx="99" cy="4" r="3.5" fill="currentColor" opacity="0.55" />
+        <circle cx="110" cy="4" r="3.5" fill="currentColor" opacity="0.55" />
+      </g>
+    </svg>
+  );
+}
+
+function LayoutPicker({
+  value,
+  onChange,
+}: {
+  value: HeaderLayout;
+  onChange: (next: HeaderLayout) => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {HEADER_LAYOUTS.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(option.value)}
+            className={`rounded-lg border p-3 text-left transition-colors ${
+              active
+                ? "border-[#1a1a1a] bg-[#f7f8f4]"
+                : "border-[#e4e7de] hover:bg-[#fafbf7]"
+            }`}
+          >
+            <LayoutThumb layout={option.value} />
+            <span className="mt-2 block text-[13px] font-medium text-[#1a1a1a]">
+              {option.label}
+            </span>
+            <span className="mt-0.5 block text-[12px] leading-snug text-[#8a8a8a]">
+              {option.hint}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export type HeaderInitial = {
   /** Background / text colour for the header bar. */
   style?: SectionStyle;
+  /** Layout preset and sticky behaviour. */
+  settings?: HeaderSettings;
   navLinks: SiteLink[];
   megaHeading: string;
   megaTreatments: MegaTreatment[];
@@ -34,6 +119,9 @@ export type HeaderInitial = {
 export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
   const [style, setStyle] = useState<SectionStyle>(
     initial.style ?? EMPTY_STYLE,
+  );
+  const [settings, setSettings] = useState<HeaderSettings>(
+    initial.settings ?? DEFAULT_HEADER_SETTINGS,
   );
   const [navLinks, setNavLinks] = useState(initial.navLinks);
   const [megaHeading, setMegaHeading] = useState(initial.megaHeading);
@@ -68,6 +156,7 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
     try {
       await saveGlobal("header", {
         styles: { header: style },
+        settings,
         navLinks,
         megaHeading,
         megaTreatments: treatments,
@@ -113,6 +202,38 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Layout ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Layout</h2>
+            <p className="mt-1 text-[13px] text-[#616161]">
+              Where the logo and the links sit on desktop. Phones always use
+              the menu button, whichever you pick.
+            </p>
+          </div>
+          <LayoutPicker
+            value={settings.layout}
+            onChange={(layout) => setSettings({ ...settings, layout })}
+          />
+          <label className="flex items-start gap-2 text-[13px] text-[#1a1a1a]">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={settings.sticky}
+              onChange={(e) =>
+                setSettings({ ...settings, sticky: e.target.checked })
+              }
+            />
+            <span>
+              Keep the header on screen while the page scrolls
+              <span className="block text-[12px] text-[#8a8a8a]">
+                The bar stays at the top instead of scrolling away with the
+                page.
+              </span>
+            </span>
+          </label>
+        </div>
+
         {/* ---- Appearance ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div>

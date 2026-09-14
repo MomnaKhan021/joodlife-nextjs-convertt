@@ -495,6 +495,7 @@ const STATEMENTS: string[] = [
   // Per-section styling. One jsonb column on each surface that can be
   // styled; absent or empty means the design exactly as shipped.
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"settings\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
@@ -513,7 +514,7 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v25";
+const SCHEMA_VERSION = "v26";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

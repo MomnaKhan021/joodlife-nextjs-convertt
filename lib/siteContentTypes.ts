@@ -11,6 +11,10 @@
  * safe to deploy: an unfilled global renders the site exactly as before.
  */
 
+import {
+  DEFAULT_HEADER_SETTINGS,
+  type HeaderSettings,
+} from "@/lib/headerLayout";
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 
 export type MegaTreatment = {
@@ -127,6 +131,8 @@ export const DEFAULT_MEGA_BULLETS: string[] = [
 export type HeaderContent = {
   /** Background / text colour for the header bar. */
   style: SectionStyle;
+  /** Layout preset and sticky behaviour. */
+  settings: HeaderSettings;
   navLinks: SiteLink[];
   megaTreatments: MegaTreatment[];
   megaPromoBullets: string[];
@@ -200,6 +206,7 @@ export function str(value: unknown, fallback: string): string {
 export function headerFallback(): HeaderContent {
   return {
     style: EMPTY_STYLE,
+    settings: DEFAULT_HEADER_SETTINGS,
     navLinks: DEFAULT_NAV_LINKS,
     megaTreatments: DEFAULT_MEGA_TREATMENTS,
     megaPromoBullets: DEFAULT_MEGA_BULLETS,
