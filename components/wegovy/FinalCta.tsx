@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Closing CTA — Figma node 1:2132.
@@ -68,12 +69,10 @@ export default function FinalCta() {
 
               {/* RIGHT — outlined button: 183×50, border=#0c2421, px=50px, Saans w570 */}
               <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-0 md:py-0">
-                <a
-                  href="/consultation?product=weight-loss"
+                <EligibilityCta
+                  product="weight-loss"
                   className="inline-flex h-[50px] w-full max-w-[220px] cursor-pointer items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[24px] font-ui text-[16.3px] font-semibold tracking-[-0.02em] text-[#142f2b] transition-colors duration-200 hover:bg-[#142e2a] hover:text-white"
-                >
-                  Check Your Eligibility
-                </a>
+                />
               </div>
 
             </div>

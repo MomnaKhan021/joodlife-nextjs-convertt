@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * "How do Wegovy pills work?" — Figma node 1:1725.
@@ -203,12 +204,10 @@ export default function HowItWorks() {
             the other as a once-weekly injection.
           </p>
           <div className="mt-7 flex items-center justify-center gap-4">
-            <a
-              href="/consultation?product=weight-loss"
+            <EligibilityCta
+              product="weight-loss"
               className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
-            >
-              Check Your Eligibility
-            </a>
+            />
             {/* Keep the reader on the Wegovy tablet page — scroll down to the
                 tablet's own FAQs rather than sending them to the weight-loss
                 injection page. */}

@@ -6,6 +6,7 @@ import TestimonialCarousel, {
   type Testimonial,
 } from "@/components/category/TestimonialCarousel";
 import EdTimeline from "@/components/category/EdTimeline";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Top-of-page ED sections — Figma "Erectile dysfunction" (node 18:811):
@@ -178,12 +179,11 @@ export function EdHero() {
               >
                 Get Started
               </Link>
-              <Link
-                href={START}
+              <EligibilityCta
+                product="erectile-dysfunction"
+                label="See If You Are Eligible"
                 className="btn-cta inline-flex h-12 items-center justify-center rounded-lg border border-white/70 bg-white/10 px-8 font-ui text-[14px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-              >
-                See If You Are Eligible
-              </Link>
+              />
             </Reveal>
           </div>
         </div>

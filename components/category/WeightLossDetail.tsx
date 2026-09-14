@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Weight-loss section content (Figma Component 289, below the hero):
@@ -238,7 +239,10 @@ export default function WeightLossDetail() {
         </p>
 
         <div className="mt-6 w-full">
-          <GhostButton href="/consultation?product=weight-loss">Check Your Eligibility</GhostButton>
+          <EligibilityCta
+            product="weight-loss"
+            className="btn-cta inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white hover:bg-white/15"
+          />
         </div>
       </Reveal>
       </div>
