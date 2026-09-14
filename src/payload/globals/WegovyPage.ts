@@ -32,6 +32,14 @@ export const WegovyPage: GlobalConfig = {
     { name: "whyChoose", type: "json", admin: { description: "Benefits and safety notice." } },
     { name: "faq", type: "json", admin: { description: "Accordion questions." } },
     { name: "finalCta", type: "json", admin: { description: "Closing card and disclaimer." } },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour. Empty means the design as shipped.",
+      },
+    },
   ],
 };
 

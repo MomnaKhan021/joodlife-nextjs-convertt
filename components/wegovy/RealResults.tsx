@@ -5,6 +5,7 @@ import {
   WEGOVY_DEFAULT,
   type WegovyRealResults,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * "Real results with Wegovy" — Figma node 1:1948.
@@ -14,8 +15,11 @@ import {
 
 export default function RealResults({
   content = WEGOVY_DEFAULT.realResults,
+  style,
 }: {
   content?: WegovyRealResults;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   // The stat drives the count-up animation, so how many decimals to show is
   // derived from the value rather than stored as its own field.
@@ -23,6 +27,7 @@ export default function RealResults({
 
   return (
     <section
+      {...styleProps(style)}
       aria-label="Real results with Wegovy"
       className="w-full bg-white"
     >

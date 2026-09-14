@@ -4,6 +4,7 @@ import {
   WEGOVY_DEFAULT,
   type WegovyHowItWorks,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * "How do Wegovy pills work?" — Figma node 1:1725.
@@ -115,11 +116,15 @@ const CALLOUTS: Callout[] = [
 
 export default function HowItWorks({
   content = WEGOVY_DEFAULT.howItWorks,
+  style,
 }: {
   content?: WegovyHowItWorks;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="How Wegovy pills work"
       className="relative w-full overflow-hidden rounded-[32px] min-h-[600px] md:min-h-[889px]"
     >

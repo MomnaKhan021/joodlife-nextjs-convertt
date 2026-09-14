@@ -23,6 +23,13 @@ import {
   moved,
 } from "../FormKit";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import StyleFields from "../StyleFields";
+import {
+  ED_STYLE_KEYS,
+  ED_STYLE_LABELS,
+  type EdStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
 
 /**
  * Editor for /erectile-dysfunction — eight sections, in the order a reader
@@ -40,6 +47,11 @@ const BENEFIT_ICON_LABEL: Record<BenefitIcon, string> = {
 };
 
 export default function EdForm({ initial }: { initial: EdContent }) {
+  const [styles, setStyles] = useState<Record<EdStyleKey, SectionStyle>>(
+    initial.styles,
+  );
+  const setStyle = (k: EdStyleKey) => (next: SectionStyle) =>
+    setStyles((prev) => ({ ...prev, [k]: next }));
   const [hero, setHero] = useState(initial.hero);
   const [reviews, setReviews] = useState(initial.reviews);
   const [journey, setJourney] = useState(initial.journey);
@@ -59,6 +71,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
     setSaved(false);
     try {
       await saveGlobal("ed-page", {
+        styles,
         hero: { ...hero, checks: hero.checks.filter((c) => c.trim()) },
         reviews: {
           ...reviews,
@@ -134,6 +147,34 @@ export default function EdForm({ initial }: { initial: EdContent }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Section colours ---- */}
+        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
+          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
+            Section colours
+            <span className="ml-2 text-[13px] font-normal text-[#616161]">
+              backgrounds and text colour
+            </span>
+          </summary>
+          <p className="mt-2 text-[13px] text-[#616161]">
+            In the order the sections appear on the page. Anything left on
+            Default keeps the design exactly as it is today.
+          </p>
+          <div className="mt-4 space-y-5">
+            {ED_STYLE_KEYS.map((k) => (
+              <div key={k}>
+                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
+                  {ED_STYLE_LABELS[k]}
+                </p>
+                <StyleFields
+                  sectionKey={k}
+                  value={styles[k]}
+                  onChange={setStyle(k)}
+                />
+              </div>
+            ))}
+          </div>
+        </details>
+
         {/* 1. Hero */}
         <div className={cmsCard}>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 import TestimonialCarousel from "@/components/category/TestimonialCarousel";
 import EdTimeline from "@/components/category/EdTimeline";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import {
   ED_DEFAULT,
   type EdHeroContent,
@@ -61,11 +62,14 @@ function Trustpilot({
 /* ── 1. Hero photo banner ────────────────────────────────────────────── */
 export function EdHero({
   content = ED_DEFAULT.hero,
+  style,
 }: {
   content?: EdHeroContent;
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Erectile dysfunction treatment"
       className="w-full bg-white px-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]"
     >
@@ -153,11 +157,14 @@ export function EdHero({
 /* ── 2. "What to expect in your journey" (teal) ──────────────────────── */
 export function EdJourney({
   content = ED_DEFAULT.journey,
+  style,
 }: {
   content?: EdJourneyContent;
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-labelledby="ed-journey"
       className="w-full bg-white px-5 py-6 md:px-10 lg:px-[60px]"
     >

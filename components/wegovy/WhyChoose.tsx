@@ -4,6 +4,7 @@ import {
   WEGOVY_DEFAULT,
   type WegovyWhyChoose,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * "Why Choose Jood Life for Wegovy" — Figma node 1:2049.
@@ -13,11 +14,15 @@ import {
 
 export default function WhyChoose({
   content = WEGOVY_DEFAULT.whyChoose,
+  style,
 }: {
   content?: WegovyWhyChoose;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Why choose Jood Life for Wegovy"
       className="relative flex min-h-[560px] w-full items-end overflow-hidden md:min-h-[665px] md:items-center"
     >

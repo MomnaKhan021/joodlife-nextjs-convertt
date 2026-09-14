@@ -10,6 +10,7 @@ import {
   type ExplainerCard,
   type WegovyWhatIsPill,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * "What is the Wegovy pill?" — Figma node 1:1610.
@@ -56,11 +57,15 @@ function CardView({ c }: { c: ExplainerCard }) {
 
 export default function WhatIsPill({
   content = WEGOVY_DEFAULT.whatIsPill,
+  style,
 }: {
   content?: WegovyWhatIsPill;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="What is the Wegovy pill"
       className="w-full bg-white py-[30px] md:py-10"
     >

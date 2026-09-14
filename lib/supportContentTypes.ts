@@ -7,6 +7,13 @@
  * Every field falls back to the shipped value, so an empty global renders
  * /support exactly as it does today.
  */
+import {
+  mergeStyles,
+  SUPPORT_STYLE_KEYS,
+  type SupportStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+
 
 export type HelpPoint = { title: string; body: string };
 
@@ -57,6 +64,8 @@ export type SupportStories = {
 };
 
 export type SupportContent = {
+  /** Per-section background / text colour, keyed by section. */
+  styles: Record<SupportStyleKey, SectionStyle>;
   hero: SupportHero;
   faq: SupportFaqContent;
   stories: SupportStories;
@@ -244,6 +253,9 @@ export const SUPPORT_STORIES_DEFAULT: SupportStories = {
 };
 
 export const SUPPORT_DEFAULT: SupportContent = {
+  // Nothing styled: every section keeps the design it ships with.
+  styles: mergeStyles(null, SUPPORT_STYLE_KEYS),
+
   hero: SUPPORT_HERO_DEFAULT,
   faq: SUPPORT_FAQ_DEFAULT,
   stories: SUPPORT_STORIES_DEFAULT,
@@ -366,6 +378,7 @@ function toStories(value: unknown): SupportStories {
 export function mergeSupport(stored: unknown): SupportContent {
   const d = obj(stored);
   return {
+    styles: mergeStyles(obj(stored).styles, SUPPORT_STYLE_KEYS),
     hero: toHero(d.hero),
     faq: toFaq(d.faq),
     stories: toStories(d.stories),

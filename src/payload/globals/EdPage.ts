@@ -28,6 +28,14 @@ export const EdPage: GlobalConfig = {
     { name: "confidence", type: "json", admin: { description: "Confidence split." } },
     { name: "know", type: "json", admin: { description: "Let's get to know you." } },
     { name: "banner", type: "json", admin: { description: "Closing banner." } },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour. Empty means the design as shipped.",
+      },
+    },
   ],
 };
 

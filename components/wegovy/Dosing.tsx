@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { WEGOVY_DEFAULT, type WegovyDosing } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * "Wegovy pill Dosing & Pricing" — Figma node 1:1996.
@@ -9,11 +10,15 @@ import { WEGOVY_DEFAULT, type WegovyDosing } from "@/lib/wegovyContentTypes";
 
 export default function Dosing({
   content = WEGOVY_DEFAULT.dosing,
+  style,
 }: {
   content?: WegovyDosing;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Wegovy pill dosing and pricing"
       className="w-full bg-white py-[30px] md:py-10"
     >

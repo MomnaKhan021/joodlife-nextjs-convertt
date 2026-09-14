@@ -34,6 +34,14 @@ export const Support: GlobalConfig = {
       type: "json",
       admin: { description: "The success-story strip at the foot of the page." },
     },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour. Empty means the design as shipped.",
+      },
+    },
   ],
 };
 

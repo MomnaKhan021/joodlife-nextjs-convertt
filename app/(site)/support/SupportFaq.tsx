@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import {
   SUPPORT_FAQ_DEFAULT,
   type FaqItem as QA,
@@ -87,8 +88,11 @@ function AccordionItem({
 
 export default function SupportFaq({
   content = SUPPORT_FAQ_DEFAULT,
+  style,
 }: {
   content?: SupportFaqContent;
+  /** Background / text colour. Undefined keeps the shipped cream. */
+  style?: SectionStyle;
 }) {
   const SECTIONS = content.sections;
   const [activePill, setActivePill] = useState<string>("all");
@@ -107,6 +111,7 @@ export default function SupportFaq({
 
   return (
     <section
+      {...styleProps(style)}
       id="faq"
       aria-label="Support frequently asked questions"
       className="w-full scroll-mt-28 bg-[#f7f9f2] py-[30px] md:py-10"

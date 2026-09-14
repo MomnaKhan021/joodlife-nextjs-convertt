@@ -10,6 +10,13 @@
  * pricing, and the safety notice. The editor warns about that; this file
  * only guarantees that an empty global renders the page exactly as it ships.
  */
+import {
+  mergeStyles,
+  WEGOVY_STYLE_KEYS,
+  type WegovyStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+
 
 /* ── shared shapes ──────────────────────────────────────── */
 
@@ -150,6 +157,8 @@ export type WegovyFinalCta = {
 };
 
 export type WegovyContent = {
+  /** Per-section background / text colour, keyed by section. */
+  styles: Record<WegovyStyleKey, SectionStyle>;
   announcement: WegovyAnnouncement;
   hero: WegovyHero;
   uspBar: WegovyUspBar;
@@ -168,6 +177,9 @@ export type WegovyContent = {
 const ASSESS = "/consultation?product=weight-loss";
 
 export const WEGOVY_DEFAULT: WegovyContent = {
+  // Nothing styled: every section keeps the design it ships with.
+  styles: mergeStyles(null, WEGOVY_STYLE_KEYS),
+
   announcement: { text: "New Wegovy Pills treatment in the UK" },
 
   hero: {
@@ -456,6 +468,7 @@ export function mergeWegovy(stored: unknown): WegovyContent {
     );
 
   return {
+    styles: mergeStyles(obj(stored).styles, WEGOVY_STYLE_KEYS),
     announcement: { text: optStr(an.text, B.announcement.text) },
 
     hero: {

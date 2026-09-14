@@ -4,6 +4,7 @@ import {
   WEGOVY_DEFAULT,
   type WegovyHero,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * Wegovy Pills landing hero — Figma node 1:1506 (desktop) / 1:2362 (mobile).
@@ -86,11 +87,15 @@ function HeroCopy({ c }: { c: WegovyHero }) {
 
 export default function Hero({
   content = WEGOVY_DEFAULT.hero,
+  style,
 }: {
   content?: WegovyHero;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Wegovy Pills — a new way to lose weight"
       className="relative flex min-h-[620px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[700px] md:items-center"
     >

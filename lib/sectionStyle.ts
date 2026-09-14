@@ -139,3 +139,66 @@ export const HOME_STYLE_LABELS: Record<HomeStyleKey, string> = {
   blog: "Blog posts",
   cta: "Closing banner",
 };
+
+/* ── the other pages, same shape ─────────────────────────
+   Each page keeps its own key list so the editor can show its sections in
+   page order, and so a key can never be styled on a page that has no such
+   section. */
+
+export const SUPPORT_STYLE_KEYS = ["hero", "faq", "stories"] as const;
+export type SupportStyleKey = (typeof SUPPORT_STYLE_KEYS)[number];
+export const SUPPORT_STYLE_LABELS: Record<SupportStyleKey, string> = {
+  hero: "Hero and quick-help card",
+  faq: "Questions",
+  stories: "Success stories",
+};
+
+export const WEGOVY_STYLE_KEYS = [
+  "announcement",
+  "hero",
+  "uspBar",
+  "whatIsPill",
+  "comparison",
+  "howItWorks",
+  "realResults",
+  "dosing",
+  "whyChoose",
+  "faq",
+  "finalCta",
+] as const;
+export type WegovyStyleKey = (typeof WEGOVY_STYLE_KEYS)[number];
+export const WEGOVY_STYLE_LABELS: Record<WegovyStyleKey, string> = {
+  announcement: "Strip above the header",
+  hero: "Hero",
+  uspBar: "Trust strip",
+  whatIsPill: "What is the tablet",
+  comparison: "Tablet vs injection",
+  howItWorks: "How it works",
+  realResults: "Real results",
+  dosing: "Dosing & pricing",
+  whyChoose: "Why choose Jood",
+  faq: "Questions",
+  finalCta: "Closing card",
+};
+
+export const ED_STYLE_KEYS = [
+  "hero",
+  "reviews",
+  "journey",
+  "plan",
+  "steps",
+  "confidence",
+  "know",
+  "banner",
+] as const;
+export type EdStyleKey = (typeof ED_STYLE_KEYS)[number];
+export const ED_STYLE_LABELS: Record<EdStyleKey, string> = {
+  hero: "Hero",
+  reviews: "Review wall",
+  journey: "Journey timeline",
+  plan: "Treatment plan",
+  steps: "How it works",
+  confidence: "Confidence split",
+  know: "Let’s get to know you",
+  banner: "Closing banner",
+};

@@ -4,6 +4,7 @@ import Link from "next/link";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import { getSupportContent } from "@/lib/supportContent";
+import { styleProps } from "@/lib/sectionStyle";
 import Footer from "@/sections/home/Footer";
 
 import SupportFaq from "./SupportFaq";
@@ -31,7 +32,7 @@ export const dynamic = "force-dynamic";
 
 /** Content comes from the CMS, falling back to lib/supportContentTypes.ts. */
 export default async function SupportPage() {
-  const { hero, faq, stories } = await getSupportContent();
+  const { hero, faq, stories, styles } = await getSupportContent();
   const heroExternal = /^https?:\/\//i.test(hero.ctaHref);
 
   return (
@@ -41,7 +42,7 @@ export default async function SupportPage() {
 
       <main className="w-full bg-white">
         {/* ───── Hero ───── */}
-        <section className="w-full bg-white">
+        <section {...styleProps(styles.hero)} className="w-full bg-white">
           <div className="mx-auto w-full max-w-[1320px] px-6 pb-10 pt-12 md:px-10 md:pb-14 md:pt-16 lg:px-[60px]">
             <div className="mx-auto max-w-[720px] text-center">
               <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#142e2a] md:text-[56px]">
@@ -107,10 +108,11 @@ export default async function SupportPage() {
         </section>
 
         {/* ───── FAQ accordions ───── */}
-        <SupportFaq content={faq} />
+        <SupportFaq content={faq} style={styles.faq} />
 
         {/* ───── Success stories ───── */}
         <section
+          {...styleProps(styles.stories)}
           aria-label="Success stories"
           className="w-full bg-white py-[30px] md:py-10"
         >

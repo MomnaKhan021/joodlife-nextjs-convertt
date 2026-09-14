@@ -4,6 +4,7 @@ import {
   WEGOVY_DEFAULT,
   type WegovyFinalCta,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * Closing CTA — Figma node 1:2132.
@@ -15,11 +16,15 @@ import {
  */
 export default function FinalCta({
   content = WEGOVY_DEFAULT.finalCta,
+  style,
 }: {
   content?: WegovyFinalCta;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Ready to start the Wegovy Pill"
       className="w-full bg-white pb-14 md:pb-16 lg:pb-[80px]"
     >

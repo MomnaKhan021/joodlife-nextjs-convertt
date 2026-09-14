@@ -12,6 +12,13 @@ import {
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
+import StyleFields from "../StyleFields";
+import {
+  WEGOVY_STYLE_KEYS,
+  WEGOVY_STYLE_LABELS,
+  type WegovyStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
 
 /**
  * Editor for /wegovy-pills — eleven sections, in the order a reader meets
@@ -334,6 +341,11 @@ function RowEditor({
 }
 
 export default function WegovyForm({ initial }: { initial: WegovyContent }) {
+  const [styles, setStyles] = useState<Record<WegovyStyleKey, SectionStyle>>(
+    initial.styles,
+  );
+  const setStyle = (k: WegovyStyleKey) => (next: SectionStyle) =>
+    setStyles((prev) => ({ ...prev, [k]: next }));
   const [announcement, setAnnouncement] = useState(initial.announcement);
   const [hero, setHero] = useState(initial.hero);
   const [uspBar, setUspBar] = useState(initial.uspBar);
@@ -356,6 +368,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
     setSaved(false);
     try {
       await saveGlobal("wegovy-page", {
+        styles,
         announcement,
         hero: { ...hero, stats: hero.stats.filter((s) => s.trim()) },
         uspBar: { items: uspBar.items.filter((i) => i.label.trim()) },
@@ -426,6 +439,34 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Section colours ---- */}
+        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
+          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
+            Section colours
+            <span className="ml-2 text-[13px] font-normal text-[#616161]">
+              backgrounds and text colour
+            </span>
+          </summary>
+          <p className="mt-2 text-[13px] text-[#616161]">
+            In the order the sections appear on the page. Anything left on
+            Default keeps the design exactly as it is today.
+          </p>
+          <div className="mt-4 space-y-5">
+            {WEGOVY_STYLE_KEYS.map((k) => (
+              <div key={k}>
+                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
+                  {WEGOVY_STYLE_LABELS[k]}
+                </p>
+                <StyleFields
+                  sectionKey={k}
+                  value={styles[k]}
+                  onChange={setStyle(k)}
+                />
+              </div>
+            ))}
+          </div>
+        </details>
+
         {/* 1. Announcement */}
         <div className={card}>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">

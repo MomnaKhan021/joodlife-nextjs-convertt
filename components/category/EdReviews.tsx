@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import Reveal from "@/components/ui/Reveal";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import {
   ED_DEFAULT,
   type EdReviewsContent,
@@ -33,8 +34,11 @@ function Stars() {
 
 export default function EdReviews({
   content = ED_DEFAULT.reviews,
+  style,
 }: {
   content?: EdReviewsContent;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   const REVIEWS = content.reviews;
   const trackRef = useRef<HTMLUListElement>(null);
@@ -67,6 +71,7 @@ export default function EdReviews({
 
   return (
     <section
+      {...styleProps(style)}
       aria-labelledby="ed-reviews"
       className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]"
     >

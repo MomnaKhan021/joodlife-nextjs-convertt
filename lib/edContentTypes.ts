@@ -11,6 +11,13 @@
  * the page's client components can import it. `lib/edContent.ts` is the
  * server-side reader.
  */
+import {
+  mergeStyles,
+  ED_STYLE_KEYS,
+  type EdStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+
 
 /* ── shared shapes ──────────────────────────────────────── */
 
@@ -160,6 +167,8 @@ export type EdBannerContent = {
 };
 
 export type EdContent = {
+  /** Per-section background / text colour, keyed by section. */
+  styles: Record<EdStyleKey, SectionStyle>;
   hero: EdHeroContent;
   reviews: EdReviewsContent;
   journey: EdJourneyContent;
@@ -175,6 +184,9 @@ export type EdContent = {
 const START = "/consultation?product=erectile-dysfunction";
 
 export const ED_DEFAULT: EdContent = {
+  // Nothing styled: every section keeps the design it ships with.
+  styles: mergeStyles(null, ED_STYLE_KEYS),
+
   hero: {
     reviewsLabel: "4.4 (50+) Reviews",
     title: "Regain confidence &",
@@ -479,6 +491,7 @@ export function mergeEd(stored: unknown): EdContent {
   const bn = obj(d.banner);
 
   return {
+    styles: mergeStyles(obj(stored).styles, ED_STYLE_KEYS),
     hero: {
       reviewsLabel: str(he.reviewsLabel, B.hero.reviewsLabel),
       title: str(he.title, B.hero.title),

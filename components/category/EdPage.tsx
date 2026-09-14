@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import EdConfidenceStat from "@/components/category/EdConfidenceStat";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import {
   ED_DEFAULT,
   type BenefitIcon,
@@ -134,9 +135,16 @@ function StepVisual({ i }: { i: number }) {
 }
 
 /* ── 1. Benefits: "A treatment plan that works around you" ──────────── */
-function TreatmentPlan({ content }: { content: EdPlanContent }) {
+function TreatmentPlan({
+  content,
+  style,
+}: {
+  content: EdPlanContent;
+  style?: SectionStyle;
+}) {
   return (
-    <section aria-labelledby="ed-plan" className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-plan" className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]">
       <div className="mx-auto grid w-full max-w-[1200px] items-start gap-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-12">
         <Reveal as="div">
           <h2
@@ -208,9 +216,16 @@ function TreatmentPlan({ content }: { content: EdPlanContent }) {
 }
 
 /* ── 2. How it works (3 steps) ──────────────────────────────────────── */
-function EdHowItWorks({ content }: { content: EdStepsContent }) {
+function EdHowItWorks({
+  content,
+  style,
+}: {
+  content: EdStepsContent;
+  style?: SectionStyle;
+}) {
   return (
-    <section aria-labelledby="ed-how" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-how" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div" className="text-center">
           <h2
@@ -264,10 +279,17 @@ function EdHowItWorks({ content }: { content: EdStepsContent }) {
 }
 
 /* ── 3. "Confidence in the moments that matter most" ────────────────── */
-function EdConfidence({ content }: { content: EdConfidenceContent }) {
+function EdConfidence({
+  content,
+  style,
+}: {
+  content: EdConfidenceContent;
+  style?: SectionStyle;
+}) {
   const checks = content.checks;
   return (
-    <section aria-labelledby="ed-conf" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-conf" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto grid w-full max-w-[1200px] items-center gap-8 lg:grid-cols-2 lg:gap-12">
         <Reveal as="div" className="relative order-2 lg:order-1">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] sm:aspect-[4/3] lg:aspect-[16/13]">
@@ -345,10 +367,17 @@ function EdConfidence({ content }: { content: EdConfidenceContent }) {
 }
 
 /* ── 4. "Let's get to know you" ─────────────────────────────────────── */
-function EdGetToKnow({ content }: { content: EdKnowContent }) {
+function EdGetToKnow({
+  content,
+  style,
+}: {
+  content: EdKnowContent;
+  style?: SectionStyle;
+}) {
   const stages = content.progressStages;
   return (
-    <section aria-labelledby="ed-know" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-know" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div" className="text-center">
           <h2
@@ -433,11 +462,14 @@ function EdGetToKnow({ content }: { content: EdKnowContent }) {
 /* ── 5. Closing CTA banner ──────────────────────────────────────────── */
 function EdCtaBanner({
   content = ED_DEFAULT.banner,
+  style,
 }: {
   content?: EdBannerContent;
+  style?: SectionStyle;
 }) {
   return (
-    <section className="w-full bg-white px-5 pb-14 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} className="w-full bg-white px-5 pb-14 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div">
           <div
@@ -528,10 +560,13 @@ export default function EdPage({
 }) {
   return (
     <>
-      <TreatmentPlan content={content.plan} />
-      <EdHowItWorks content={content.steps} />
-      <EdConfidence content={content.confidence} />
-      <EdGetToKnow content={content.know} />
+      <TreatmentPlan content={content.plan} style={content.styles.plan} />
+      <EdHowItWorks content={content.steps} style={content.styles.steps} />
+      <EdConfidence
+        content={content.confidence}
+        style={content.styles.confidence}
+      />
+      <EdGetToKnow content={content.know} style={content.styles.know} />
     </>
   );
 }

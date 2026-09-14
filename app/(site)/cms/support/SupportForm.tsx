@@ -14,6 +14,13 @@ import {
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
+import StyleFields from "../StyleFields";
+import {
+  SUPPORT_STYLE_KEYS,
+  SUPPORT_STYLE_LABELS,
+  type SupportStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
 
 /**
  * Editor for the Support page, in page order: the hero and its quick-help
@@ -41,6 +48,11 @@ function moved<T>(list: T[], i: number, dir: -1 | 1): T[] {
 }
 
 export default function SupportForm({ initial }: { initial: SupportContent }) {
+  const [styles, setStyles] = useState<Record<SupportStyleKey, SectionStyle>>(
+    initial.styles,
+  );
+  const setStyle = (k: SupportStyleKey) => (next: SectionStyle) =>
+    setStyles((prev) => ({ ...prev, [k]: next }));
   const [hero, setHero] = useState<SupportHero>(initial.hero);
   const [faq, setFaq] = useState<SupportFaqContent>(initial.faq);
   const [stories, setStories] = useState<SupportStories>(initial.stories);
@@ -86,6 +98,7 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
     setSaved(false);
     try {
       await saveGlobal("support", {
+        styles,
         hero: {
           ...hero,
           helpPoints: hero.helpPoints.filter((p) => p.title.trim() || p.body.trim()),
@@ -143,6 +156,34 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Section colours ---- */}
+        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
+          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
+            Section colours
+            <span className="ml-2 text-[13px] font-normal text-[#616161]">
+              backgrounds and text colour
+            </span>
+          </summary>
+          <p className="mt-2 text-[13px] text-[#616161]">
+            In the order the sections appear on the page. Anything left on
+            Default keeps the design exactly as it is today.
+          </p>
+          <div className="mt-4 space-y-5">
+            {SUPPORT_STYLE_KEYS.map((k) => (
+              <div key={k}>
+                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
+                  {SUPPORT_STYLE_LABELS[k]}
+                </p>
+                <StyleFields
+                  sectionKey={k}
+                  value={styles[k]}
+                  onChange={setStyle(k)}
+                />
+              </div>
+            ))}
+          </div>
+        </details>
+
         {/* ─────────── 1. Hero ─────────── */}
         <div className={card}>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>

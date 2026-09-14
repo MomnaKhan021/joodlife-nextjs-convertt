@@ -4,6 +4,7 @@ import {
   type ComparisonRow,
   type WegovyComparison,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * "Wegovy pill vs Wegovy injection" — Figma node 1:1676.
@@ -126,11 +127,15 @@ function Card({
 
 export default function Comparison({
   content = WEGOVY_DEFAULT.comparison,
+  style,
 }: {
   content?: WegovyComparison;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Wegovy pill versus Wegovy injection"
       className="w-full bg-white py-[30px] md:py-10"
     >

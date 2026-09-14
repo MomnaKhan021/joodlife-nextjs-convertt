@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Header from "@/components/layout/Header";
 import { getWegovyContent } from "@/lib/wegovyContent";
+import { styleProps } from "@/lib/sectionStyle";
 import Footer from "@/sections/home/Footer";
 
 import Hero from "@/components/wegovy/Hero";
@@ -37,23 +38,26 @@ export default async function WegovyPillsPage() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
       {/* Announcement bar — sits above the header, per Figma */}
-      <div className="w-full bg-[#142e2a]">
+      <div
+        {...styleProps(c.styles.announcement)}
+        className="w-full bg-[#142e2a]"
+      >
         <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[13px] font-semibold leading-[16.9px] tracking-[-0.02em] text-white md:px-10 lg:px-[60px]">
           {c.announcement.text}
         </p>
       </div>
       <Header />
-      <Hero content={c.hero} />
-      <UspBar content={c.uspBar} />
-      <WhatIsPill content={c.whatIsPill} />
-      <Comparison content={c.comparison} />
-      <HowItWorks content={c.howItWorks} />
+      <Hero content={c.hero} style={c.styles.hero} />
+      <UspBar content={c.uspBar} style={c.styles.uspBar} />
+      <WhatIsPill content={c.whatIsPill} style={c.styles.whatIsPill} />
+      <Comparison content={c.comparison} style={c.styles.comparison} />
+      <HowItWorks content={c.howItWorks} style={c.styles.howItWorks} />
       <Reviews />
-      <RealResults content={c.realResults} />
-      <Dosing content={c.dosing} />
-      <WhyChoose content={c.whyChoose} />
-      <WegovyFaq content={c.faq} />
-      <FinalCta content={c.finalCta} />
+      <RealResults content={c.realResults} style={c.styles.realResults} />
+      <Dosing content={c.dosing} style={c.styles.dosing} />
+      <WhyChoose content={c.whyChoose} style={c.styles.whyChoose} />
+      <WegovyFaq content={c.faq} style={c.styles.faq} />
+      <FinalCta content={c.finalCta} style={c.styles.finalCta} />
       <Footer />
     </main>
   );

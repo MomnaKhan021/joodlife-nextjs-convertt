@@ -9,6 +9,7 @@ import {
   type UspIcon,
   type WegovyUspBar,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 const s = {
   fill: "none",
@@ -59,14 +60,18 @@ const ICONS: Record<UspIcon, React.ReactNode> = {
 
 export default function UspBar({
   content = WEGOVY_DEFAULT.uspBar,
+  style,
 }: {
   content?: WegovyUspBar;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   const items = content.items;
   const track = [...items, ...items];
 
   return (
-    <section aria-label="Why patients trust Jood" className="w-full bg-white">
+    <section
+      {...styleProps(style)} aria-label="Why patients trust Jood" className="w-full bg-white">
       <div className="relative overflow-hidden py-[10px]">
         <ul
           className="flex w-max animate-marquee items-center"

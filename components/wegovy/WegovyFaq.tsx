@@ -6,6 +6,7 @@ import {
   WEGOVY_DEFAULT,
   type WegovyFaqContent,
 } from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * Wegovy FAQ — Figma node 1:2097.
@@ -17,13 +18,17 @@ import {
 
 export default function WegovyFaq({
   content = WEGOVY_DEFAULT.faq,
+  style,
 }: {
   content?: WegovyFaqContent;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
 }) {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
     <section
+      {...styleProps(style)}
       id="faq"
       aria-label="Frequently asked questions"
       className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"
