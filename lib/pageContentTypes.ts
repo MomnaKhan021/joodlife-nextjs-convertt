@@ -10,6 +10,13 @@
  * renders the page exactly as it does today.
  */
 
+import {
+  mergeStyles,
+  HOME_STYLE_KEYS,
+  type HomeStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+
 export type Faq = { q: string; a: string };
 
 export const DEFAULT_ANNOUNCEMENT = {
@@ -133,6 +140,8 @@ export const DEFAULT_CTA = {
 };
 
 export type HomeContent = {
+  /** Per-section background / text colour, keyed by section. */
+  styles: Record<HomeStyleKey, SectionStyle>;
   faqs: Faq[];
   hiwSteps: HiwStep[];
   heroFeatures: HeroFeature[];
@@ -226,6 +235,8 @@ export function toHeroFeatures(
 
 export function homeFallback(): HomeContent {
   return {
+    // No stored styles, so every section keeps the design it ships with.
+    styles: mergeStyles(null, HOME_STYLE_KEYS),
     faqs: DEFAULT_FAQS,
     hiwSteps: DEFAULT_HIW_STEPS,
     heroFeatures: DEFAULT_HERO_FEATURES,

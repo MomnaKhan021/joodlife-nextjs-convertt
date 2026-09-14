@@ -12,8 +12,12 @@ import {
 } from "../LinkFields";
 import MegaEditor from "../MegaEditor";
 import MediaPicker from "../MediaPicker";
+import StyleFields from "../StyleFields";
+import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 
 export type HeaderInitial = {
+  /** Background / text colour for the header bar. */
+  style?: SectionStyle;
   navLinks: SiteLink[];
   megaHeading: string;
   megaTreatments: MegaTreatment[];
@@ -28,6 +32,9 @@ export type HeaderInitial = {
 
 /** Editor for everything in the site header, including the mega menu. */
 export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
+  const [style, setStyle] = useState<SectionStyle>(
+    initial.style ?? EMPTY_STYLE,
+  );
   const [navLinks, setNavLinks] = useState(initial.navLinks);
   const [megaHeading, setMegaHeading] = useState(initial.megaHeading);
   const [treatments, setTreatments] = useState(initial.megaTreatments);
@@ -60,6 +67,7 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
     setSaved(false);
     try {
       await saveGlobal("header", {
+        styles: { header: style },
         navLinks,
         megaHeading,
         megaTreatments: treatments,
@@ -105,6 +113,15 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
       )}
 
       <div className="space-y-5">
+        {/* ---- Appearance ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Appearance</h2>
+            <p className="mt-1 text-[13px] text-[#616161]">Colours for the header bar. Leave on Default to keep the design as it is.</p>
+          </div>
+          <StyleFields sectionKey="header" value={style} onChange={setStyle} />
+        </div>
+
         {/* ---- Logos ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div>

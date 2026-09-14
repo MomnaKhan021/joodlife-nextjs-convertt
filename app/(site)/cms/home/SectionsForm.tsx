@@ -15,6 +15,13 @@ import type { TreatmentRow } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import TreatmentsEditor from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
+import StyleFields from "../StyleFields";
+import {
+  HOME_STYLE_KEYS,
+  HOME_STYLE_LABELS,
+  type HomeStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
 
 /**
  * Editor for the home page sections.
@@ -30,6 +37,11 @@ export default function SectionsForm({
   initial: HomeContent;
   treatments: TreatmentRow[];
 }) {
+  const [styles, setStyles] = useState<Record<HomeStyleKey, SectionStyle>>(
+    initial.styles,
+  );
+  const setStyle = (k: HomeStyleKey) => (next: SectionStyle) =>
+    setStyles((s) => ({ ...s, [k]: next }));
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
@@ -123,6 +135,7 @@ export default function SectionsForm({
     setSaved(false);
     try {
       await saveGlobal("home-page", {
+        styles,
         faqHeading,
         faqHeadingEmphasis: faqEmphasis,
         faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
@@ -185,6 +198,37 @@ export default function SectionsForm({
       )}
 
       <div className="space-y-5">
+        {/* ---- Section colours ----
+             Kept together rather than threaded through each block below:
+             colour choices are made by comparing sections against each
+             other, which is hard to do when they're pages apart. */}
+        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
+          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
+            Section colours
+            <span className="ml-2 text-[13px] font-normal text-[#616161]">
+              backgrounds, text colour and column order
+            </span>
+          </summary>
+          <p className="mt-2 text-[13px] text-[#616161]">
+            In the order the sections appear on the page. Anything left on
+            Default keeps the design exactly as it is today.
+          </p>
+          <div className="mt-4 space-y-5">
+            {HOME_STYLE_KEYS.map((k) => (
+              <div key={k}>
+                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
+                  {HOME_STYLE_LABELS[k]}
+                </p>
+                <StyleFields
+                  sectionKey={k}
+                  value={styles[k]}
+                  onChange={setStyle(k)}
+                />
+              </div>
+            ))}
+          </div>
+        </details>
+
         {/* ---- Hero ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">

@@ -7,9 +7,10 @@ import HowItWorksView from "./HowItWorksView";
  * exactly as it shipped.
  */
 export default async function HowItWorks() {
-  const { hiwHeading, hiwHeadingEmphasis, hiwSteps } = await getHomeContent();
+  const { hiwHeading, hiwHeadingEmphasis, hiwSteps, styles } = await getHomeContent();
   return (
     <HowItWorksView
+      style={styles.howItWorks}
       heading={hiwHeading}
       headingEmphasis={hiwHeadingEmphasis}
       steps={hiwSteps}

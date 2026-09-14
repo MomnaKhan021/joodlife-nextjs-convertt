@@ -71,6 +71,14 @@ export const Header: GlobalConfig = {
     },
     { name: "megaPromoCta", type: "text" },
     { name: "megaPromoHref", type: "text" },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour and column order. Empty means the design as shipped.",
+      },
+    },
   ],
 };
 
@@ -137,6 +145,14 @@ export const Footer: GlobalConfig = {
         rows: 4,
         description:
           "Small print under the footer — pharmacy registration, superintendent pharmacist, etc. The © year is added automatically.",
+      },
+    },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour and column order. Empty means the design as shipped.",
       },
     },
   ],

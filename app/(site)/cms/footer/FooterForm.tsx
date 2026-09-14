@@ -11,9 +11,14 @@ import {
   saveGlobal,
 } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
+import StyleFields from "../StyleFields";
+import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 
 /** Editor for the site footer: link columns, contact card, newsletter, legal. */
 export default function FooterForm({ initial }: { initial: FooterContent }) {
+  const [style, setStyle] = useState<SectionStyle>(
+    initial.style ?? EMPTY_STYLE,
+  );
   const [joodLinks, setJoodLinks] = useState(initial.joodLinks);
   const [treatmentLinks, setTreatmentLinks] = useState(initial.treatmentLinks);
   const [policyLinks, setPolicyLinks] = useState(initial.policyLinks);
@@ -36,6 +41,7 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
     setSaved(false);
     try {
       await saveGlobal("footer", {
+        styles: { footer: style },
         joodLinks,
         treatmentLinks,
         policyLinks,
@@ -82,6 +88,14 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
 
       <div className="space-y-5">
         {/* ---- Images ---- */}
+        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Appearance</h2>
+            <p className="mt-1 text-[13px] text-[#616161]">Colours for the footer. Leave on Default to keep the design as it is.</p>
+          </div>
+          <StyleFields sectionKey="footer" value={style} onChange={setStyle} />
+        </div>
+
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">Images</h2>

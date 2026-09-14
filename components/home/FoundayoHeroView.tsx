@@ -3,6 +3,11 @@ import Link from "next/link";
 
 import { CATEGORIES, type Category, type CategoryKey } from "@/lib/categories";
 import { SecondaryCard } from "@/components/home/HeroGateway";
+import {
+  isReversed,
+  styleProps,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
 
 /**
  * Foundayo gateway hero — Figma "Home Page - Hero - Next.js", node 1:59.
@@ -157,23 +162,44 @@ function FoundayoCard({
  */
 export default function FoundayoHeroView({
   categories,
+  style,
   ...content
 }: HeroContent & {
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
   /** Merged treatment categories; falls back to the built-in ones. */
   categories?: Record<CategoryKey, Category>;
 } = {}) {
   const CATS = categories ?? CATEGORIES;
+  const swap = isReversed(style);
   return (
     <section
+      {...styleProps(style)}
       aria-label="Explore our treatments"
       className="w-full overflow-x-hidden bg-white"
     >
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 pt-6 md:px-10 md:pt-[30px] lg:px-[60px]">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]">
-          <div className="min-w-0">
+        {/* Swapping the columns flips the track widths as well as the order —
+            order alone would drop the wide card into the narrow column. Both
+            class strings are written out in full because Tailwind only
+            generates the classes it can see in the source. */}
+        <div
+          className={
+            swap
+              ? "grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.85fr]"
+              : "grid grid-cols-1 gap-4 lg:grid-cols-[1.85fr_1fr]"
+          }
+        >
+          <div className={swap ? "min-w-0 lg:order-2" : "min-w-0"}>
             <FoundayoCard {...content} />
           </div>
-          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <div
+            className={
+              swap
+                ? "grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:order-1 lg:grid-cols-1"
+                : "grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1"
+            }
+          >
             <SecondaryCard category={CATS["erectile-dysfunction"]} />
             <SecondaryCard category={CATS["period-delay"]} />
           </div>

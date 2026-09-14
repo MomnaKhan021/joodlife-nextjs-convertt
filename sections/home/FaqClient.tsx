@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { useState } from "react";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 const DEFAULT_FAQS = [
   {
@@ -34,15 +35,17 @@ export type FaqContent = {
 };
 
 export default function FaqClient({
+  style,
   heading = "Frequently asked",
   headingEmphasis = "questions",
   faqs,
-}: FaqContent = {}) {
+}: FaqContent & { style?: SectionStyle } = {}) {
   const FAQS = faqs?.length ? faqs : DEFAULT_FAQS;
   const [open, setOpen] = useState<number | null>(0);
 
   return (
     <section
+      {...styleProps(style)}
       id="faq"
       aria-label="FAQ"
       className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"

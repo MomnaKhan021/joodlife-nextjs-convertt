@@ -10,6 +10,7 @@ import MegaMenu, {
   type MegaMenuContent,
 } from "@/components/layout/MegaMenu";
 import { useCart } from "@/components/cart/CartContext";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 type NavLink = {
   label: string;
@@ -64,11 +65,14 @@ function BagIcon() {
 export default function HeaderClient({
   navLinks,
   mega,
+  style,
   logoDesktop = "/assets/icons/logo-wesmount.svg",
   logoMobile = "/assets/icons/logo-wesmount-mobile.svg",
 }: {
   navLinks?: NavLink[];
   mega?: MegaMenuContent;
+  /** Background / text colour. Undefined keeps the shipped white bar. */
+  style?: SectionStyle;
   /** Logo image URLs; default to the assets that shipped with the design. */
   logoDesktop?: string;
   logoMobile?: string;
@@ -97,6 +101,7 @@ export default function HeaderClient({
 
   return (
     <header
+      {...styleProps(style)}
       className="relative w-full border-b border-[#142e2a]/10 bg-white"
       onMouseLeave={() => setMegaIndex(null)}
     >

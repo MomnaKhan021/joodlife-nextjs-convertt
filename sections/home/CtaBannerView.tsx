@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * CTA banner — Figma node 141:2876 (Section).
@@ -23,14 +24,16 @@ export type CtaContent = {
 /** Presentational only, so it stays safe from a client boundary.
  *  CtaBanner.tsx is the server wrapper that feeds it from the CMS. */
 export default function CtaBannerView({
+  style,
   isReturningPatient,
   title = "Take the first step",
   titleEmphasis = "toward a better you",
   subtitle = "Simple support for your goals, your routine, and your confidence.",
   image = "/assets/figma/cta-bg.png",
-}: CtaContent = {}) {
+}: CtaContent & { style?: SectionStyle } = {}) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Call to action"
       className="w-full bg-white pb-6 pt-12 md:pb-8 md:pt-14 lg:pb-10 lg:pt-[56px]"
     >

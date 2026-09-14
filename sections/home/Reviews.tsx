@@ -17,6 +17,7 @@ export default async function Reviews() {
     reviewsIntro,
     trustpilotScore,
     trustpilotUrl,
+    styles,
   } = await getHomeContent();
 
   // The CMS shape omits `rating`; every displayed review is 5 stars.
@@ -24,6 +25,7 @@ export default async function Reviews() {
 
   return (
     <ReviewsClient
+      style={styles.reviews}
       heading={reviewsHeading}
       headingEmphasis={reviewsHeadingEmphasis}
       intro={reviewsIntro}

@@ -11,6 +11,8 @@
  * safe to deploy: an unfilled global renders the site exactly as before.
  */
 
+import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
+
 export type MegaTreatment = {
   label: string;
   desc: string;
@@ -123,6 +125,8 @@ export const DEFAULT_MEGA_BULLETS: string[] = [
 ];
 
 export type HeaderContent = {
+  /** Background / text colour for the header bar. */
+  style: SectionStyle;
   navLinks: SiteLink[];
   megaTreatments: MegaTreatment[];
   megaPromoBullets: string[];
@@ -130,6 +134,8 @@ export type HeaderContent = {
   typeof DEFAULT_HEADER_LOGOS;
 
 export type FooterContent = {
+  /** Background / text colour for the footer. */
+  style: SectionStyle;
   joodLinks: SiteLink[];
   treatmentLinks: SiteLink[];
   policyLinks: SiteLink[];
@@ -193,6 +199,7 @@ export function str(value: unknown, fallback: string): string {
 
 export function headerFallback(): HeaderContent {
   return {
+    style: EMPTY_STYLE,
     navLinks: DEFAULT_NAV_LINKS,
     megaTreatments: DEFAULT_MEGA_TREATMENTS,
     megaPromoBullets: DEFAULT_MEGA_BULLETS,
@@ -203,6 +210,7 @@ export function headerFallback(): HeaderContent {
 
 export function footerFallback(): FooterContent {
   return {
+    style: EMPTY_STYLE,
     joodLinks: DEFAULT_JOOD_LINKS,
     treatmentLinks: DEFAULT_TREATMENT_LINKS,
     policyLinks: DEFAULT_POLICY_LINKS,

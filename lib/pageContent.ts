@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { mergeStyles, HOME_STYLE_KEYS } from "@/lib/sectionStyle";
 import { str } from "@/lib/siteContentTypes";
 import {
   DEFAULT_ANNOUNCEMENT,
@@ -40,6 +41,7 @@ export async function getHomeContent(): Promise<HomeContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return {
+      styles: mergeStyles(doc?.styles, HOME_STYLE_KEYS),
       faqs: toFaqs(doc?.faqs, DEFAULT_FAQS),
       announcementBadge: str(
         doc?.announcementBadge,

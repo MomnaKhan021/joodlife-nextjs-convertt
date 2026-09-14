@@ -154,6 +154,14 @@ export const HomePage: GlobalConfig = {
       type: "text",
       admin: { description: "Background portrait image URL." },
     },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour and column order. Empty means the design as shipped.",
+      },
+    },
   ],
 };
 

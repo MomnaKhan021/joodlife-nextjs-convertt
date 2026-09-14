@@ -8,6 +8,7 @@ import "swiper/css/pagination";
 
 import Reveal from "@/components/ui/Reveal";
 import { REVIEWS, TRUSTPILOT, type Review } from "@/lib/reviews";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * Reviews — a slider of real, verified 5-star reviews pulled from the
@@ -92,13 +93,14 @@ export type ReviewsContent = {
 };
 
 export default function ReviewsClient({
+  style,
   heading = "Loved by our",
   headingEmphasis = "customers",
   intro = "Real reviews from real patients on Trustpilot. Our patients value the expert support, clear communication and fast, discreet delivery that make every journey unique.",
   reviews,
   trustpilotScore,
   trustpilotUrl,
-}: ReviewsContent = {}) {
+}: ReviewsContent & { style?: SectionStyle } = {}) {
   const ITEMS = reviews?.length ? reviews : REVIEWS;
   const TP = {
     score: trustpilotScore || TRUSTPILOT.score,
@@ -108,6 +110,7 @@ export default function ReviewsClient({
 
   return (
     <section
+      {...styleProps(style)}
       id="reviews"
       aria-label="Reviews"
       className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"

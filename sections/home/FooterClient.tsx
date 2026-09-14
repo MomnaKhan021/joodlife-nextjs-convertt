@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, type FormEvent } from "react";
 import PaymentBadges from "@/components/footer/PaymentBadges";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
  * Footer — Figma node 141:2887.
@@ -207,6 +208,8 @@ function SocialColumn() {
 }
 
 export type FooterProps = {
+  /** Background / text colour. Undefined keeps the shipped dark green. */
+  style?: SectionStyle;
   joodLinks?: FooterLink[];
   treatmentLinks?: FooterLink[];
   policyLinks?: FooterLink[];
@@ -260,7 +263,10 @@ export default function Footer(props: FooterProps = {}) {
   };
 
   return (
-    <footer className="w-full bg-[#142e2a] text-white">
+    <footer
+      {...styleProps(props.style)}
+      className="w-full bg-[#142e2a] text-white"
+    >
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <div>
           {/* ───── ROW 1 — logo + columns + Have-a-question card ───── */}

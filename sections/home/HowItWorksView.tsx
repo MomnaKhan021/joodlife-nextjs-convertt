@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 export type HiwStepProp = {
   step: string;
@@ -40,14 +41,16 @@ const DEFAULT_STEPS: HiwStepProp[] = [
  * client boundary. HowItWorks.tsx is the server wrapper that feeds it.
  */
 export default function HowItWorksView({
+  style,
   heading = "How it",
   headingEmphasis = "works",
   steps,
-}: HowItWorksContent = {}) {
+}: HowItWorksContent & { style?: SectionStyle } = {}) {
   const STEPS = steps?.length ? steps : DEFAULT_STEPS;
 
   return (
     <section
+      {...styleProps(style)}
       id="how-it-works"
       aria-label="How it works"
       className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"

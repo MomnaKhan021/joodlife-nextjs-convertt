@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { mergeStyles } from "@/lib/sectionStyle";
 import {
   DEFAULT_FOOTER_TEXT,
   DEFAULT_HEADER_LOGOS,
@@ -44,6 +45,7 @@ export async function getHeaderContent(): Promise<HeaderContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return {
+      style: mergeStyles(doc?.styles, ["header"] as const).header,
       navLinks: toLinks(doc?.navLinks, DEFAULT_NAV_LINKS),
       megaTreatments: toTreatments(doc?.megaTreatments, DEFAULT_MEGA_TREATMENTS),
       megaPromoBullets: toStrings(doc?.megaPromoBullets, DEFAULT_MEGA_BULLETS),
@@ -70,6 +72,7 @@ export async function getFooterContent(): Promise<FooterContent> {
       overrideAccess: true,
     })) as Record<string, unknown>;
     return {
+      style: mergeStyles(doc?.styles, ["footer"] as const).footer,
       joodLinks: toLinks(doc?.joodLinks, DEFAULT_JOOD_LINKS),
       treatmentLinks: toLinks(doc?.treatmentLinks, DEFAULT_TREATMENT_LINKS),
       policyLinks: toLinks(doc?.policyLinks, DEFAULT_POLICY_LINKS),

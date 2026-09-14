@@ -22,12 +22,14 @@ export default async function FoundayoHero({
     heroCtaLabel,
     heroCtaHref,
     heroImage,
+    styles,
   } = await getHomeContent();
   const categories = await getCategories();
 
   return (
     <FoundayoHeroView
       categories={categories}
+      style={styles.hero}
       badge={heroBadge}
       title={heroTitle}
       titleEmphasis={heroTitleEmphasis}

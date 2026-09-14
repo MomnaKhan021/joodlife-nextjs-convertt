@@ -12,10 +12,11 @@ export default async function CtaBanner({
 }: {
   isReturningPatient?: boolean;
 }) {
-  const { ctaTitle, ctaTitleEmphasis, ctaSubtitle, ctaImage } =
+  const { ctaTitle, ctaTitleEmphasis, ctaSubtitle, ctaImage, styles } =
     await getHomeContent();
   return (
     <CtaBannerView
+      style={styles.cta}
       isReturningPatient={isReturningPatient}
       title={ctaTitle}
       titleEmphasis={ctaTitleEmphasis}
