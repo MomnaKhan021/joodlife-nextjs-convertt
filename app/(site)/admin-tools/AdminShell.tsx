@@ -39,6 +39,13 @@ const NAV: NavItem[] = [
     icon: I("M4 20V10M10 20V4M16 20v-7M21 20H3"),
   },
   {
+    // Admin-only (no section key) — bookings calendar (preview).
+    label: "Calendar",
+    href: "/admin-tools/calendar",
+    match: (p) => p.startsWith("/admin-tools/calendar"),
+    icon: I("M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zM4 9h16M8 3v4M16 3v4"),
+  },
+  {
     label: "Orders",
     href: "/admin-tools/data-browser?type=orders",
     match: (_p, t) => t === "orders",
