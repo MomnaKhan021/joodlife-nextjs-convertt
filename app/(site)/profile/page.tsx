@@ -6,10 +6,12 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   getOrdersForEmail,
   getConsultationsForEmail,
-  type OrderSummary,
   type ConsultationSummary,
 } from "@/lib/accountData";
 import SignOutButton from "@/components/account/SignOutButton";
+import OrderHistory from "@/components/account/OrderHistory";
+import ProfileEditor from "@/components/account/ProfileEditor";
+import { getPayloadInstance } from "@/lib/payload";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +29,6 @@ function fmtDate(iso: string) {
   } catch {
     return iso;
   }
-}
-
-function gbp(n: number | null) {
-  if (n == null) return "—";
-  return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
 function titleize(s: string | null) {
@@ -63,6 +60,43 @@ export default async function ProfilePage() {
     getOrdersForEmail(user.email),
     getConsultationsForEmail(user.email),
   ]);
+
+  // The account's current phone + saved default delivery address, for the
+  // editable "Your details" card. Best-effort — the page still renders if the
+  // lookup fails, and the address column is created lazily by the save route.
+  let acctPhone = "";
+  let acctAddress = "";
+  try {
+    const payload = await getPayloadInstance();
+    const drizzle = (payload.db as unknown as { drizzle?: { execute?: (q: unknown) => Promise<unknown> } }).drizzle;
+    if (drizzle?.execute) {
+      const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
+      await drizzle.execute(sql.raw(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_address text`));
+      const idNum = Number(user.id);
+      if (Number.isFinite(idNum)) {
+        const res = await drizzle.execute(
+          sql.raw(`SELECT phone, default_address FROM "users" WHERE id = ${idNum} LIMIT 1`),
+        );
+        const rows = Array.isArray(res)
+          ? (res as Array<Record<string, unknown>>)
+          : ((res as { rows?: Array<Record<string, unknown>> })?.rows ?? []);
+        const row = rows[0] ?? {};
+        acctPhone = String(row.phone ?? "").trim();
+        acctAddress = String(row.default_address ?? "").trim();
+      }
+    }
+  } catch {
+    /* non-fatal — editor still opens with what we have */
+  }
+
+  // Any real order (not cancelled/refunded/failed) makes them a returning
+  // patient — mirror the site-wide reorder rule.
+  const hasOrdered = orders.some(
+    (o) =>
+      o.status !== "cancelled" &&
+      o.paymentStatus !== "refunded" &&
+      o.paymentStatus !== "failed",
+  );
 
   const displayName = user.name ?? user.email.split("@")[0];
   const initial = displayName[0]?.toUpperCase() ?? "?";
@@ -104,11 +138,19 @@ export default async function ProfilePage() {
               <p className="font-ui text-[14px] text-[#142e2a]/70">{user.email}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {hasOrdered ? (
+              <Link
+                href="/reorder"
+                className="btn-cta inline-flex h-11 items-center justify-center rounded-lg bg-[#142e2a] px-5 font-ui text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+              >
+                Reorder
+              </Link>
+            ) : null}
             {user.role === "admin" ? (
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#142e2a] px-5 font-ui text-[13px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
               >
                 Open CMS admin
               </Link>
@@ -134,6 +176,14 @@ export default async function ProfilePage() {
           </Link>
         </div>
 
+        {/* Editable account details */}
+        <ProfileEditor
+          initialName={user.name ?? ""}
+          initialEmail={user.email}
+          initialPhone={acctPhone}
+          initialAddress={acctAddress}
+        />
+
         {/* Orders */}
         <section className="mt-6 rounded-2xl border border-[#142e2a]/10 bg-white p-6 md:p-8">
           <h2 className="font-display text-[20px] font-semibold text-[#142e2a] md:text-[22px]">
@@ -150,26 +200,7 @@ export default async function ProfilePage() {
               </Link>
             </div>
           ) : (
-            <ul className="mt-4 flex flex-col divide-y divide-[#142e2a]/8">
-              {orders.map((o: OrderSummary) => (
-                <li key={o.orderNumber} className="flex items-center justify-between gap-4 py-3.5">
-                  <div className="flex flex-col">
-                    <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                      {o.orderNumber}
-                    </span>
-                    <span className="font-ui text-[12px] text-[#142e2a]/60">
-                      {fmtDate(o.date)} · {o.itemCount} item{o.itemCount === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge status={o.paymentStatus ?? o.status} />
-                    <span className="font-ui text-[14px] font-semibold text-[#142e2a]">
-                      {gbp(o.total)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <OrderHistory orders={orders} />
           )}
         </section>
 

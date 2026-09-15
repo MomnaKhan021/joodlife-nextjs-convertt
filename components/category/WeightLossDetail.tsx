@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import Highlight from "@/components/ui/Highlight";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Weight-loss section content (Figma Component 289, below the hero):
@@ -301,7 +302,11 @@ export default function WeightLossDetail({
         </p>
 
         <div className="mt-6 w-full">
-          <GhostButton href="/consultation?product=weight-loss">{ctaSecondary}</GhostButton>
+          <EligibilityCta
+            product="weight-loss"
+            label={ctaSecondary}
+            className="btn-cta inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white hover:bg-white/15"
+          />
         </div>
       </Reveal>
       </div>

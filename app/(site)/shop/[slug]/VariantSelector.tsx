@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
 import { dlViewItem, toDlItem } from "@/lib/dataLayer";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 export type Variant = {
   label?: string;
@@ -182,12 +182,10 @@ export default function VariantSelector({
           )}
         </button>
 
-        <Link
+        <EligibilityCta
           href={consultationHref}
           className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-all hover:bg-[#0c2421] hover:shadow-[0_8px_18px_rgba(20,46,42,0.16)]"
-        >
-          Check Your Eligibility
-        </Link>
+        />
       </div>
     </div>
   );

@@ -714,6 +714,198 @@ function absoluteImageUrl(src: string | null | undefined, base: string): string 
   return `${base}${src.startsWith("/") ? "" : "/"}${src}`;
 }
 
+/**
+ * "We're with you at every step" — the early-adjustment check-in.
+ *
+ * Objective: reassure through the early-adjustment period and reduce early
+ * drop-off. Trigger: ~day 2-3 after the estimated first dose.
+ *
+ * Built from the PHASE-2 POST-PURCHASE / ONBOARDING Figma
+ * (uOSw051KQzaNQzg29oxmag, node 1:348). Gradients, the Trustpilot lockup and
+ * the cut-out photography are baked into images because email clients can't
+ * be relied on for CSS gradients or SVG; the two content cards use real
+ * <img> columns so they stack on their own at narrow widths.
+ */
+export async function sendOnboardingCheckInEmail(
+  payload: Payload,
+  user: { email: string; name?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const img = `${url}/assets/email`;
+  const waLink = "https://wa.me/447756099075";
+  const tipsUrl = `${url}/support`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+
+  // Figma tracking is negative and emailFontCss() ships a global
+  // `*{letter-spacing:0 !important}`, so each run carries its own value with
+  // inline !important to outrank it.
+  const ls = (v: number) => `letter-spacing:${v}px !important`;
+
+  const fonts = `${emailFontCss(url)}
+    .m-only{display:none !important;max-height:0 !important;overflow:hidden !important;mso-hide:all}
+    @media only screen and (max-width:620px){
+      td.hero-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 0 !important}
+      td.hero-cell h1{font-size:34px !important;line-height:37px !important}
+      td.cta-cell{height:auto !important;background-image:none !important;background-color:#20463d !important;padding:26px 20px 24px !important}
+      td.p2-copy{display:block !important;width:100% !important;box-sizing:border-box !important;padding:22px 20px 4px !important}
+      td.p2-art{display:block !important;width:100% !important;box-sizing:border-box !important;padding:0 !important;text-align:center !important}
+      td.p2-art img{width:100% !important;max-width:100% !important;height:auto !important;border-radius:0 0 12px 12px !important}
+      .m-only{display:block !important;max-height:none !important;overflow:visible !important}
+      .m-only img{width:100% !important;height:auto !important}
+    }
+  `;
+
+  /** One numbered reminder: 16px gradient circle + copy. */
+  const reminder = (n: string, text: string, last = false) => `
+    <tr>
+      <td width="20" valign="top" style="width:20px;padding:0 0 ${last ? 0 : 23}px;font-size:0;line-height:0">
+        <img src="${img}/p2-num-${n}.png" alt="${n}" width="16" height="16" style="width:16px;height:16px;display:block;border:0"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 23}px 15px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;${ls(-0.32)};color:#040404">
+        ${text}
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${fonts}</style></head>
+<body style="margin:0;padding:0;background:#eef1e9;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">The early days can take some adjusting &mdash; we&rsquo;ve got you.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1e9;padding:24px 0">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-wrap" style="width:600px;max-width:96%;background:#ffffff;border-radius:16px;overflow:hidden;font-family:${SANS}">
+
+      <!-- Strapline strip: Figma 600x41, text y12 -->
+      <tr><td style="padding:12px 24px;text-align:center">
+        <span style="font-family:${GIL};font-size:14px;font-weight:500;line-height:17px;${ls(-0.5)};color:${BRAND}">The early days can take some adjusting &mdash; we&rsquo;ve got you.</span>
+      </td></tr>
+
+      <!-- Hero 600x660: gradient + JOOD mark + Trustpilot lockup + cut-out
+           baked in; headline y124 and sub y216 sit on top as real text. -->
+      <tr><td class="hero-cell" background="${img}/p2-hero.jpg" bgcolor="#20463d" valign="top" height="660" style="height:660px;box-sizing:border-box;background-color:#20463d;background-image:url('${img}/p2-hero.jpg');background-repeat:no-repeat;background-position:top center;background-size:600px 660px;padding:124px 102px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:0 0 14px;font-size:0;line-height:0">
+          <img src="${img}/p2-m-top.jpg" alt="Trustpilot 4.4 (50+) reviews" width="335" style="width:335px;max-width:100%;height:auto;display:inline-block;border:0"/>
+        </td></tr></table>
+        <h1 style="margin:0 0 6px;font-family:${GIL};font-size:48px;font-weight:500;line-height:48px;${ls(-1.6)};color:#ffffff;text-align:center">We&rsquo;re with you at <span style="font-family:${SER};font-style:italic;font-weight:400">every step</span></h1>
+        <table role="presentation" width="286" cellpadding="0" cellspacing="0" align="center" class="stack" style="width:286px;max-width:100%"><tr><td>
+          <p style="margin:0;font-family:${SANS};font-size:15px;font-weight:400;line-height:17px;${ls(-0.488)};color:#ffffff;text-align:center">
+            You&rsquo;ve started &mdash; that&rsquo;s a big step, and you should feel good about it.
+          </p>
+        </td></tr></table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="m-only"><tr><td align="center" style="padding:18px 0 0;font-size:0;line-height:0">
+          <img src="${img}/p2-m-women.jpg" alt="" width="335" style="width:335px;max-width:100%;height:auto;display:block;border:0"/>
+        </td></tr></table>
+      </td></tr>
+
+      <!-- "That's completely normal" card. Figma 580x234 r12 cream, copy 344
+           wide at x26, clinician cut-out filling the right 268px. -->
+      <tr><td style="padding:32px 10px 0">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:12px">
+          <tr>
+            <td class="p2-copy" width="312" valign="middle" style="width:312px;padding:16px 0 16px 26px">
+              <p style="margin:0;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:${BRAND}">
+                The first few days can take a little adjusting as your body settles in.
+                <span style="font-family:${SER};font-style:italic;font-weight:400">That&rsquo;s completely normal.</span>
+              </p>
+            </td>
+            <td class="p2-art" width="268" valign="bottom" align="right" style="width:268px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/p2-clinician.jpg" alt="" width="268" height="234" style="width:268px;height:234px;display:block;border:0;border-radius:0 12px 12px 0"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- "A few gentle reminders" card. Figma 580x205 r12, two 280 columns. -->
+      <tr><td style="padding:32px 10px 0">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;background:#f7f9f2;border-radius:12px">
+          <tr>
+            <td class="p2-copy" width="300" valign="top" style="width:300px;padding:0 10px 0 20px">
+              <h2 style="margin:0 0 24px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:${BRAND}">A few gentle reminders:</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                ${reminder("01", "Drink plenty of water.")}
+                ${reminder("02", "Eat slowly and listen to your body.")}
+                ${reminder("03", "Smaller, lighter meals can feel easier at first.", true)}
+              </table>
+            </td>
+            <td class="p2-art" width="280" valign="top" style="width:280px;padding:0;font-size:0;line-height:0">
+              <img src="${img}/p2-reminders.jpg" alt="" width="280" height="205" style="width:280px;height:205px;display:block;border:0;border-radius:12px"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- "We're here to help" CTA. Figma panel 580x293 r12: heading y40,
+           body y80 (340 wide), reassurance y151, buttons y203 (50 tall). -->
+      <tr><td style="padding:32px 10px 24px">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" class="em-card" style="width:580px;max-width:100%;border-radius:12px">
+          <tr><td class="cta-cell" background="${img}/p2-cta.jpg" bgcolor="#20463d" valign="top" height="293" style="height:293px;box-sizing:border-box;border-radius:12px;background-color:#20463d;background-image:url('${img}/p2-cta.jpg');background-repeat:no-repeat;background-position:top left;background-size:580px 293px;padding:40px 8px 0">
+            <p style="margin:0 0 14px;font-family:${GIL};font-size:25px;font-weight:700;line-height:26px;${ls(-0.488)};color:#ffffff;text-align:center">We&rsquo;re here to help.</p>
+            <table role="presentation" width="340" cellpadding="0" cellspacing="0" align="center" class="stack" style="width:340px;max-width:100%"><tr><td>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:16.3px;font-weight:400;line-height:20px;${ls(-0.32)};color:#ffffff;text-align:center">
+                If anything doesn&rsquo;t feel right, or you&rsquo;re just not sure about something, please don&rsquo;t sit on it. Message our team and we&rsquo;ll help.
+              </p>
+              <p style="margin:0 0 32px;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:20px;${ls(-0.32)};color:#ffffff;text-align:center">
+                You&rsquo;re not doing this alone.
+              </p>
+            </td></tr></table>
+            <table role="presentation" width="564" cellpadding="0" cellspacing="0" class="stack" align="center" style="width:564px;max-width:100%"><tr>
+              <td width="269" height="50" align="center" valign="middle" bgcolor="#ffffff" class="btn" style="width:269px;height:50px;box-sizing:border-box;background:#ffffff;border:1px solid #d3dabe;border-radius:8px">
+                <a href="${waLink}" style="display:block;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:48px;${ls(-0.32)};color:${BRAND};text-decoration:none">Message Our Team On WhatsApp</a>
+              </td>
+              <td width="6" class="gap">&nbsp;</td>
+              <td width="289" height="50" align="center" valign="middle" class="btn" style="width:289px;height:50px;box-sizing:border-box;border:1px solid #ffffff;border-radius:8px">
+                <a href="${tipsUrl}" style="display:block;font-family:${SANS};font-size:16.3px;font-weight:500;line-height:48px;${ls(-0.32)};color:#ffffff;text-decoration:none">Read Our Getting-Started Tips</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Compliance line the Figma carries above the footer. -->
+      <tr><td style="padding:0 28px 22px">
+        <p style="margin:0;font-family:${SANS};font-size:14px;font-weight:400;line-height:18px;${ls(-0.32)};color:${BRAND};opacity:.75;text-align:center">
+          Treatment is subject to assessment and suitability.
+        </p>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `We're with you at every step
+
+You've started — that's a big step, and you should feel good about it.
+
+The first few days can take a little adjusting as your body settles in.
+That's completely normal.
+
+A few gentle reminders:
+1. Drink plenty of water.
+2. Eat slowly and listen to your body.
+3. Smaller, lighter meals can feel easier at first.
+
+We're here to help. If anything doesn't feel right, or you're just not sure
+about something, please don't sit on it. Message our team and we'll help.
+You're not doing this alone.
+
+Message our team on WhatsApp: ${waLink}
+Read our getting-started tips: ${tipsUrl}
+
+Questions? Email us at hello@joodlife.com
+Treatment is subject to assessment and suitability.`;
+
+  await payload.sendEmail({
+    to: user.email,
+    subject: "We're with you at every step",
+    html,
+    text,
+  });
+}
+
 export async function sendOrderConfirmationEmail(
   payload: Payload,
   opts: {
@@ -723,6 +915,8 @@ export async function sendOrderConfirmationEmail(
     total: number;
     items: OrderEmailItem[];
     isReorder?: boolean;
+    phone?: string | null;
+    shippingAddress?: string | null;
   }
 ): Promise<void> {
   const url = siteUrl();
@@ -733,77 +927,164 @@ export async function sendOrderConfirmationEmail(
       maximumFractionDigits: 2,
     })}`;
 
-  const rows = opts.items
-    .map((it) => {
-      const name = escapeHtml(
-        `${it.title}${it.dose ? ` — ${it.dose}` : ""}`
-      );
-      const qty = Math.max(1, Number(it.quantity) || 1);
-      const line =
-        it.price != null ? gbp(Number(it.price) * qty) : "";
-      const img = absoluteImageUrl(it.imageUrl, url);
-      const imgCell = img
-        ? `<td width="56" style="padding:8px 12px 8px 0;vertical-align:middle"><img src="${img}" width="48" height="48" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;display:block;background:#f2ecf2" /></td>`
-        : "";
-      return `<tr>
-        ${imgCell}
-        <td style="padding:8px 0;font-size:14px;color:#142e2a;vertical-align:middle">${name} × ${qty}</td>
-        <td style="padding:8px 0;font-size:14px;color:#142e2a;text-align:right;vertical-align:middle">${line}</td>
-      </tr>`;
-    })
-    .join("");
 
-  // The "Book consultation" CTA appears on every order-confirmation email
-  // (both first orders and reorders) and books via the HubSpot scheduler.
-  const bookConsultationBtn = `<p style="margin:0 0 24px">
-        <a href="${BOOKING_URL}" style="display:inline-block;background:#142e2a;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-size:14px;font-weight:600">
-          Book consultation
-        </a>
-      </p>`;
+  // PHASE-2 Figma "Order Confirmation — What Happens Next": dark strip, green
+  // hero with the two-women cut-out bleeding off the card, cream "What Happens
+  // Next" steps, green reassurance CTA, shared pharmacy footer. The photos sit
+  // behind the copy as full-card background art (same technique as the
+  // assessment nudge) so they can bleed to the card edges; narrow screens drop
+  // the background and stack the photo instead.
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const img = `${url}/assets/email`;
+  // /profile is where a signed-in customer sees their orders and status.
+  const trackUrl = `${url}/profile`;
+  const waLink = "https://wa.me/447756099075";
+  const addrHtml = (opts.shippingAddress ?? "")
+    .split(/\s*,\s*|\n/)
+    .map((l) => escapeHtml(l.trim()))
+    .filter(Boolean)
+    .join("<br/>");
+  const detailRow = (labelText: string, valueHtml: string) =>
+    `<tr>
+       <td style="padding:4px 12px 4px 0;font-family:${SANS};font-size:13px;color:${BRAND};opacity:.65;white-space:nowrap;vertical-align:top">${labelText}</td>
+       <td style="padding:4px 0;font-family:${SANS};font-size:13px;color:${BRAND};vertical-align:top">${valueHtml || "&mdash;"}</td>
+     </tr>`;
 
-  const nextStepHtml = opts.isReorder
-    ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        Our pharmacist will review your resupply questionnaire and be in touch shortly.
-        <strong>You need to book a consultation to get your medication.</strong>
-        Click the button below to book your consultation.
-      </p>
-      ${bookConsultationBtn}`
-    : `<p style="font-size:15px;line-height:22px;margin:0 0 16px">
-        <strong>You need to book a consultation to get your medication.</strong>
-        Click the button below to book your consultation.
-      </p>
-      ${bookConsultationBtn}`;
+  const step = (n: string, thumb: string, title: string, body: string, last = false) => `
+    <tr>
+      <td width="84" valign="top" style="width:84px;padding:0 12px ${last ? 0 : 18}px 0;font-size:0;line-height:0">
+        <img src="${img}/${thumb}" alt="" width="84" height="84" style="width:84px;height:84px;display:block;border:0;border-radius:6px"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 18}px">
+        <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0"/>
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND}">${body}</p>
+      </td>
+    </tr>`;
 
-  const html = emailShell(
-    `<h1 style="font-size:22px;margin:0 0 8px;color:#142e2a">Thank you for your order, ${escapeHtml(firstName)}</h1>
-     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
-       We've received your order <strong>${escapeHtml(opts.orderNumber)}</strong>.
-       A clinician will review it before anything is dispatched.
-     </p>
-     <table style="width:100%;border-collapse:collapse;border-top:1px solid #e7e8e3;border-bottom:1px solid #e7e8e3;margin:0 0 12px">
-       ${rows}
-     </table>
-     <p style="font-size:15px;font-weight:600;margin:0 0 20px;text-align:right;color:#142e2a">
-       Total: ${gbp(opts.total)}
-     </p>
-     ${nextStepHtml}`,
-    { preheader: `Order ${opts.orderNumber} received — book your consultation` },
-  );
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}
+    @media only screen and (max-width:620px){
+      td.bgcard{background-image:none !important;height:auto !important;padding:0 0 0 !important}
+      table.meas{width:100% !important}
+      table.meas td{padding:30px 20px 0 !important}
+      img.mob-art{display:block !important;width:100% !important;max-width:300px !important;max-height:none !important;height:auto !important;margin:18px auto 0 !important;border-radius:0 0 14px 14px}
+    }</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Order ${escapeHtml(opts.orderNumber)} confirmed &mdash; here&rsquo;s exactly what happens from here.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
 
-  const bookText = `Book your consultation: ${BOOKING_URL}`;
-  const nextStepText = opts.isReorder
-    ? `Our pharmacist will review your resupply questionnaire and be in touch shortly. You need to book a consultation to get your medication.\n${bookText}`
-    : `You need to book a consultation to get your medication. Click below to book.\n${bookText}`;
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">Here&rsquo;s exactly what happens from here.</span>
+      </td></tr>
 
-  const text = `Thank you for your order, ${firstName}!
+      <!-- Hero -->
+      <tr><td style="padding:12px 10px 0">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#132c27;border-radius:14px">
+          <tr><td class="bgcard" height="314" valign="top" background="${img}/confirm-hero-card.png" style="height:314px;background-color:#132c27;background-image:url('${img}/confirm-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:left top;border-radius:14px;padding:0">
+            <table role="presentation" class="meas" width="318" cellpadding="0" cellspacing="0" style="width:318px"><tr><td style="padding:62px 0 0 18px">
+              <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">Thank you</p>
+              <p style="margin:0 0 10px;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Order Is<br/>Confirmed.</p>
+              <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(opts.orderNumber)}</span></p>
+            </td></tr></table>
+            <img class="mob-art" src="${img}/confirm-hero-m.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- What happens next -->
+      <tr><td style="padding:14px 10px 0">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:26px 20px 26px">
+            <p style="margin:0 0 20px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
+              <span style="font-family:${GIL};font-weight:500">What Happens </span><span style="font-family:${SER};font-style:italic;font-weight:400">Next</span>
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${step("01", "confirm-step1.jpg", "Suitability check.", "Our pharmacy team reviews your assessment to make sure your treatment is right for you.")}
+              ${step("02", "confirm-step2.jpg", "We prepare your order.", "Once everything&rsquo;s confirmed, your treatment is dispensed by our UK pharmacy.")}
+              ${step("03", "confirm-step3.jpg", "Discreet delivery.", "It&rsquo;s sent to you in plain, private packaging.", true)}
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Reassurance CTA -->
+      <tr><td style="padding:14px 10px 22px">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:${BRAND};border-radius:14px">
+          <tr><td style="padding:30px 24px 28px;text-align:center">
+            <table role="presentation" class="meas" width="400" align="center" cellpadding="0" cellspacing="0" style="width:400px;max-width:100%;margin:0 auto"><tr><td style="text-align:center">
+              <p style="margin:0 0 12px;font-size:22px;line-height:28px;color:#ffffff">
+                <span style="font-family:${GIL};font-weight:500">We&rsquo;ll email you at each step, so you always </span><span style="font-family:${SER};font-style:italic;font-weight:400">know where things stand.</span>
+              </p>
+              <p style="margin:0 0 22px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.88)">
+                Any questions in the meantime? Just message our team.
+              </p>
+            </td></tr></table>
+            <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto"><tr>
+              <td class="btn" width="177" style="width:177px;border-radius:8px;background:#ffffff">
+                <a href="${trackUrl}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:13px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Track My Order</a>
+              </td>
+              <td class="gap" width="12"></td>
+              <td class="btn" width="177" style="width:177px;border-radius:8px;border:1px solid rgba(255,255,255,.55)">
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 8px;font-size:13px;font-weight:600;line-height:18px;text-align:center;white-space:nowrap">Talk To Our Team</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Your details -->
+      <tr><td style="padding:0 10px 4px">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:22px 22px 20px">
+            <p style="margin:0 0 12px;font-family:${SANS};font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${BRAND}">Your details</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${detailRow("Name", escapeHtml(String(opts.name ?? "").trim()))}
+              ${detailRow("Email", escapeHtml(opts.email))}
+              ${detailRow("Phone", escapeHtml(String(opts.phone ?? "").trim()))}
+              ${detailRow("Delivery address", addrHtml)}
+              ${detailRow("Billing address", "Same as delivery address")}
+            </table>
+            <p style="margin:12px 0 0;font-family:${SANS};font-size:13px;line-height:19px;color:${BRAND}">
+              Please check these carefully. If anything here is incorrect, contact us <strong>immediately</strong> so we can fix it before your order is dispatched.
+            </p>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Urgent contact -->
+      <tr><td style="padding:0 10px 18px">
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND};text-align:center">
+          Have an urgent question, or need to update any of your details? <a href="${waLink}" style="color:${BRAND};font-weight:700;text-decoration:underline">Message us on WhatsApp</a>.
+        </p>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Thank you, ${firstName} — your order is confirmed.
 
 Order ${opts.orderNumber}
 ${opts.items.map((it) => `- ${it.title}${it.dose ? ` (${it.dose})` : ""} x ${it.quantity}`).join("\n")}
 Total: ${gbp(opts.total)}
 
-${nextStepText}
+What happens next
+1. Suitability check — our pharmacy team reviews your assessment to make sure your treatment is right for you.
+2. We prepare your order — once everything's confirmed, your treatment is dispensed by our UK pharmacy.
+3. Discreet delivery — it's sent to you in plain, private packaging.
 
-Order placed at ${url}. Questions? Just reply to this email.`;
+We'll email you at each step, so you always know where things stand.
+Track your order: ${trackUrl}
+Talk to our team on WhatsApp: ${waLink}`;
 
   // Short product summary for the subject lines, e.g. "Mounjaro (5 mg)" or
   // "Wegovy Pills +1 more".
@@ -1083,4 +1364,539 @@ Questions? Talk to our team: ${supportUrl}`;
     html,
     text,
   });
+}
+
+/**
+ * "Good News — You're All Set" — the pharmacy green-light email.
+ *
+ * Sent once, the moment a pharmacist marks a patient's suitability check as
+ * approved in the Clinical Queue. Objective: deliver the green-light moment and
+ * build confidence — the treatment is suitable and the order is being prepared.
+ * Matches PHASE-2 onboarding template 2 (dark strip, green "Good News. You're
+ * All Set" hero with the pens + Jood tub artwork, cream "we're preparing your
+ * order" card with View My Order / Message Our Team, shared pharmacy footer).
+ */
+export async function sendSuitabilityApprovedEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null; orderNumber?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const orderUrl = `${url}/profile`;
+  const waLink = "https://wa.me/447756099075";
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const deliveryArt = "welcome-step3.jpg";
+  const orderLine = (opts.orderNumber ?? "").trim()
+    ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(String(opts.orderNumber).trim())}</span></p>`
+    : "";
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Good news &mdash; your treatment is suitable, and your order is on its way.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">You&rsquo;re cleared &mdash; treatment on its way.</span>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="padding:12px 12px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
+          <tr><td style="padding:26px 24px 0;text-align:center">
+            <img src="${img}/jood-logo.png" alt="JOOD" width="112" style="width:112px;max-width:46%;height:auto;display:inline-block;border:0;margin:0 0 12px"/>
+            <p style="margin:0 0 8px;font-size:33px;line-height:38px;color:#ffffff">
+              <span style="font-family:${GIL};font-weight:500">Good News. </span><span style="font-family:${SER};font-style:italic">You&rsquo;re All Set</span>
+            </p>
+            <p style="margin:0 0 4px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.86)">
+              Our pharmacy team has reviewed your assessment, and your treatment is suitable for you.
+            </p>
+            ${orderLine}
+          </td></tr>
+          <!-- Pens + Jood tub artwork, flush to the hero's bottom edge. -->
+          <tr><td style="padding:14px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/assessment-hero.png" alt="Wegovy and Ozempic pens beside a Jood tub" width="440" style="width:440px;max-width:88%;height:auto;display:inline-block;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Preparing your order -->
+      <tr><td style="padding:18px 12px 22px">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
+          <tr>
+            <td class="card-copy stack" valign="top" style="padding:26px 8px 26px 26px">
+              <p style="margin:0 0 14px;font-size:23px;line-height:29px;color:${BRAND}">
+                <span style="font-family:${GIL};font-weight:500">We&rsquo;re preparing your order now, and it&rsquo;ll </span><span style="font-family:${SER};font-style:italic">be on its way very soon.</span>
+              </p>
+              <p style="margin:0 0 12px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                We&rsquo;ll send you a tracking link the moment it&rsquo;s dispatched.
+              </p>
+              <p style="margin:0 0 22px;font-family:${SANS};font-size:14px;font-weight:400;line-height:20px;color:${BRAND}">
+                This is the start of your journey &mdash; and we&rsquo;re with you for all of it. If anything comes up, our team is always one message away.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td class="btn" style="border-radius:8px;background:${BRAND}">
+                  <a href="${orderUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">View My Order</a>
+                </td>
+                <td class="gap" width="12"></td>
+                <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                  <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 17px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Message Our Team</a>
+                </td>
+              </tr></table>
+            </td>
+            <td class="card-art stack" width="196" valign="bottom" align="right" style="padding:0">
+              <img class="mob-art" src="${img}/${deliveryArt}" alt="" width="196" style="width:196px;max-width:100%;height:auto;display:block;border:0;border-radius:0 14px 14px 0"/>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+Good news — you're all set. Our pharmacy team has reviewed your assessment, and your treatment is suitable for you.${(opts.orderNumber ?? "").trim() ? `\n\nOrder #${String(opts.orderNumber).trim()}` : ""}
+
+We're preparing your order now, and it'll be on its way very soon — we'll send you a tracking link the moment it's dispatched.
+
+This is the start of your journey, and we're with you for all of it. If anything comes up, our team is always one message away.
+
+View your order: ${orderUrl}
+Message our team on WhatsApp: ${waLink}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Good news — you're all set",
+    html,
+    text,
+  });
+}
+
+/**
+ * "Your Order Is On Its Way" — the dispatch confirmation email.
+ *
+ * Sent once, the moment an order is dispatched (DPD label created / tracking
+ * number assigned). Objective: confirm dispatch and set delivery expectations.
+ * Matches PHASE-2 onboarding template 3 (dark strip, green hero with the
+ * circular delivery tracker — Pharmacy → Dispatched → Delivery around a Jood
+ * box — and a cream "Discreet Delivery, Clear Next Steps" three-step card with
+ * Track My Order / Delivery Questions? Message Us, shared pharmacy footer).
+ */
+export async function sendDispatchedEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null; orderNumber?: string | null; trackingUrl?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const orderUrl = `${url}/profile`;
+  const trackUrl = (opts.trackingUrl ?? "").trim() || orderUrl;
+  const waLink = "https://wa.me/447756099075";
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const orderLine = (opts.orderNumber ?? "").trim()
+    ? `<p style="margin:8px 0 0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(String(opts.orderNumber).trim())}</span></p>`
+    : "";
+
+  const step = (n: string, thumb: string, title: string, body: string, last = false) => `
+    <tr>
+      <td width="84" valign="top" style="width:84px;padding:0 12px ${last ? 0 : 18}px 0;font-size:0;line-height:0">
+        <img src="${img}/${thumb}" alt="" width="84" height="84" style="width:84px;height:84px;display:block;border:0;border-radius:6px"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 18}px">
+        <img src="${img}/num-${n}.png" alt="${n}" width="20" height="20" style="width:20px;height:20px;display:block;border:0"/>
+        <p style="margin:8px 0 4px;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND}">${body}</p>
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your treatment has left our pharmacy and is on its way to you.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">Track it every step of the way.</span>
+      </td></tr>
+
+      <!-- Hero with delivery tracker -->
+      <tr><td style="padding:12px 12px 0">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND};border-radius:14px">
+          <tr><td style="padding:26px 24px 0;text-align:center">
+            <img src="${img}/jood-logo.png" alt="JOOD" width="112" style="width:112px;max-width:46%;height:auto;display:inline-block;border:0;margin:0 0 12px"/>
+            <p style="margin:0 0 8px;font-size:33px;line-height:38px;color:#ffffff">
+              <span style="font-family:${GIL};font-weight:500">Your Order Is </span><span style="font-family:${SER};font-style:italic">On Its Way</span>
+            </p>
+            <p style="margin:0 0 2px;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.86)">
+              Your treatment has left our pharmacy and is heading to you.
+            </p>
+            ${orderLine}
+          </td></tr>
+          <tr><td style="padding:12px 0 0;font-size:0;line-height:0;text-align:center">
+            <img src="${img}/dispatch-tracker.png" alt="Delivery progress: pharmacy checked, dispatched and now in transit, delivery arriving soon" width="580" style="width:580px;max-width:100%;height:auto;display:block;border:0;border-radius:0 0 14px 14px"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Discreet delivery, clear next steps -->
+      <tr><td style="padding:18px 12px 22px">
+        <table role="presentation" class="em-card" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:26px 22px 24px">
+            <p style="margin:0 0 20px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
+              <span style="font-family:${GIL};font-weight:500">Discreet Delivery, </span><span style="font-family:${SER};font-style:italic">Clear Next Steps</span>
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${step("01", "confirm-step3.jpg", "Discreet Packaging", "Your order arrives in plain packaging, with nothing on the outside giving anything away.")}
+              ${step("02", "dispatch-step-track.jpg", "Track Your Delivery", "Follow your order the whole way using the tracking link below.")}
+              ${step("03", "dispatch-step-guide.jpg", "Get Started Confidently", "Once it arrives, we&rsquo;ll send you a simple guide so you feel confident from day one.", true)}
+            </table>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px auto 0"><tr>
+              <td class="btn" style="border-radius:8px;background:${BRAND}">
+                <a href="${trackUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Track My Order</a>
+              </td>
+              <td class="gap" width="12"></td>
+              <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 16px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Delivery Questions? Message Us</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+Your order is on its way — your treatment has left our pharmacy and is heading to you.${(opts.orderNumber ?? "").trim() ? `\n\nOrder #${String(opts.orderNumber).trim()}` : ""}
+
+Delivery — what to expect:
+- Discreet packaging: your order arrives in plain packaging, with nothing on the outside giving anything away.
+- Track your delivery: follow your order the whole way using the tracking link.
+- Get started confidently: once it arrives, we'll send you a simple guide so you feel confident from day one.
+
+Track your order: ${trackUrl}
+Delivery questions? Message us on WhatsApp: ${waLink}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Your order is on its way",
+    html,
+    text,
+  });
+}
+
+/**
+ * PHASE-2 ONBOARDING-4 — "How to use your pen", the delivery-day guide.
+ *
+ * Objective: help patients use their treatment correctly and confidently.
+ * Trigger: order delivered (DPD next-day, so the day after dispatch — see
+ * /api/cron/treatment-guides). Pen orders only; the Wegovy Pill has its own
+ * routine and is not covered here.
+ *
+ * Layout follows the Figma file (Xh8LkKbTS1e6wnuGu7gN03): strip, hero card
+ * with the pen, a 2x2 grid of step tiles, a Quick Tips card with two CTAs,
+ * then the shared footer. Everything stacks to one column under 620px.
+ */
+export async function sendTreatmentGuideEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null; orderNumber?: string | null },
+): Promise<void> {
+  const url = siteUrl();
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const guideUrl = `${url}/support`;
+  const waLink = "https://wa.me/447756099075";
+  const img = `${url}/assets/email`;
+  const { GIL, SER, SANS } = EMAIL_FONTS;
+  const orderNo = (opts.orderNumber ?? "").trim();
+
+  // One step tile: photo as the cell background, caption sitting bottom-left
+  // on top of it. Fixed 280px square on desktop; the media query lets it go
+  // full-width (cover) when the grid stacks.
+  const tile = (thumb: string, caption: string) => `
+    <td class="tile" width="280" height="280" valign="bottom" background="${img}/${thumb}" style="width:280px;height:280px;background-color:#e4eaed;background-image:url('${img}/${thumb}');background-size:cover;background-position:center;background-repeat:no-repeat;border-radius:10px;padding:0">
+      <table role="presentation" class="cap" width="100%" cellpadding="0" cellspacing="0"><tr><td valign="bottom" style="padding:0 16px 16px">
+        <p style="margin:0;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:#ffffff;text-shadow:0 1px 6px rgba(0,0,0,.55)">${caption}</p>
+      </td></tr></table>
+    </td>`;
+
+  const tip = (title: string, body: string, last = false) => `
+    <tr>
+      <td width="30" valign="top" style="width:30px;padding:2px 0 ${last ? 0 : 16}px">
+        <img src="${img}/guide-tick.png" alt="" width="18" height="18" style="width:18px;height:18px;display:block;border:0"/>
+      </td>
+      <td valign="top" style="padding:0 0 ${last ? 0 : 16}px">
+        <p style="margin:0 0 3px;font-family:${SANS};font-size:15px;font-weight:600;line-height:20px;color:${BRAND}">${title}</p>
+        <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:${BRAND}">${body}</p>
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="light only"/>
+<style>${emailFontCss(url)}
+    @media only screen and (max-width:620px){
+      td.bgcard{background-image:none !important;height:auto !important;padding:0 !important}
+      table.meas{width:100% !important}
+      table.meas td{padding:30px 20px 0 !important}
+      img.mob-art{display:block !important;width:100% !important;max-width:300px !important;max-height:none !important;height:auto !important;margin:18px auto 0 !important;border-radius:0 0 14px 14px}
+      td.tile{display:block !important;width:100% !important;height:260px !important;box-sizing:border-box !important;margin:0 0 12px !important}
+      td.tile table.cap{height:260px !important}
+      td.tile-gap,tr.tile-row-gap{display:none !important}
+    }</style></head>
+<body style="margin:0;padding:0;background:#ffffff;letter-spacing:0;-webkit-font-smoothing:antialiased">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Your treatment has arrived. Here&rsquo;s a simple guide to help you feel confident every step of the way.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+  <tr><td align="center">
+    <table role="presentation" class="em-wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;font-family:${SANS}">
+
+      <!-- Strip -->
+      <tr><td style="background:#1b3f37;padding:10px 18px;text-align:center">
+        <span style="font-family:${SANS};font-size:11px;font-weight:500;line-height:15px;color:#fcfbf8;text-transform:uppercase">A simple guide to help you feel confident.</span>
+      </td></tr>
+
+      <!-- Hero -->
+      <tr><td style="padding:12px 10px 0">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#132c27;border-radius:14px">
+          <tr><td class="bgcard" height="314" valign="top" background="${img}/guide-hero-card.png" style="height:314px;background-color:#132c27;background-image:url('${img}/guide-hero-card-2x.png');background-size:580px 314px;background-repeat:no-repeat;background-position:left top;border-radius:14px;padding:0">
+            <table role="presentation" class="meas" width="318" cellpadding="0" cellspacing="0" style="width:318px"><tr><td style="padding:62px 0 0 18px">
+              <p style="margin:0;font-family:${GIL};font-size:26px;font-weight:500;line-height:32px;color:#ffffff">How To Use</p>
+              <p style="margin:0 0 12px;font-family:${SER};font-style:italic;font-size:40px;line-height:44px;color:#ffffff">Your Pen</p>
+              <p style="margin:0;font-family:${SANS};font-size:13px;font-weight:400;line-height:19px;color:rgba(255,255,255,.9)">Your treatment has arrived. Here&rsquo;s a simple guide to help you feel confident every step of the way.</p>
+              ${orderNo ? `<p style="margin:10px 0 0;font-family:${SANS};font-size:13px;font-weight:600;line-height:18px;color:#ffffff">Order <span style="font-weight:700">#${escapeHtml(orderNo)}</span></p>` : ""}
+            </td></tr></table>
+            <img class="mob-art" src="${img}/guide-hero-m.png" alt="" width="260" style="display:none;width:0;max-height:0;overflow:hidden;border:0"/>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Step-by-step tiles -->
+      <tr><td style="padding:22px 10px 0">
+        <p style="margin:0 0 14px;font-size:22px;line-height:28px;color:${BRAND};text-align:center">
+          <span style="font-family:${GIL};font-weight:500">Step-by-Step </span><span style="font-family:${SER};font-style:italic;font-weight:400">Using Your Pen</span>
+        </p>
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%">
+          <tr>
+            ${tile("guide-step1.jpg", "1. Check your pen")}
+            <td class="tile-gap" width="20" style="width:20px;font-size:0;line-height:0">&nbsp;</td>
+            ${tile("guide-step2.jpg", "2. Attach the needle")}
+          </tr>
+          <tr class="tile-row-gap"><td colspan="3" height="20" style="height:20px;font-size:0;line-height:0">&nbsp;</td></tr>
+          <tr>
+            ${tile("guide-step3.jpg", "3. Select your dose")}
+            <td class="tile-gap" width="20" style="width:20px;font-size:0;line-height:0">&nbsp;</td>
+            ${tile("guide-step4.jpg", "4. Inject your dose")}
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Quick tips -->
+      <tr><td style="padding:22px 10px 22px">
+        <table role="presentation" class="em-card" width="580" cellpadding="0" cellspacing="0" style="width:580px;max-width:100%;background:#f4f7ee;border-radius:14px">
+          <tr><td style="padding:26px 22px 24px">
+            <p style="margin:0 0 18px;font-size:22px;line-height:28px;color:${BRAND}">
+              <span style="font-family:${GIL};font-weight:500">Quick Tips For </span><span style="font-family:${SER};font-style:italic;font-weight:400">Success</span>
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${tip("Stay consistent", "Take your dose on the same day each week.")}
+              ${tip("Store correctly", "Keep your pens in the fridge. Do not freeze.")}
+              ${tip("We&rsquo;re here to help", "Reach out anytime for support or guidance.", true)}
+            </table>
+            <p style="margin:18px 0 0;padding:12px 14px;background:#ffffff;border-radius:8px;font-family:${SANS};font-size:13px;line-height:19px;color:${BRAND}">If anything feels unclear, don&rsquo;t guess: just message our team and we&rsquo;ll talk you through it.</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px auto 0"><tr>
+              <td class="btn" style="border-radius:8px;background:${BRAND}">
+                <a href="${guideUrl}" style="display:block;font-family:${SANS};color:#ffffff;text-decoration:none;padding:12px 22px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Full Step-By-Step Guide</a>
+              </td>
+              <td class="gap" width="12"></td>
+              <td class="btn" style="border-radius:8px;background:#ffffff;border:1px solid rgba(20,46,42,.35)">
+                <a href="${waLink}" style="display:block;font-family:${SANS};color:${BRAND};text-decoration:none;padding:11px 20px;font-size:13px;font-weight:600;text-align:center;white-space:nowrap">Need Help? Talk To Us</a>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      ${emailFooterHtml(url)}
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Hi ${firstName},
+
+How to use your pen — your treatment has arrived. Here's a simple guide to help you feel confident every step of the way.${orderNo ? `\n\nOrder #${orderNo}` : ""}
+
+Step-by-step:
+1. Check your pen
+2. Attach the needle
+3. Select your dose
+4. Inject your dose
+
+Quick tips for success:
+- Stay consistent: take your dose on the same day each week.
+- Store correctly: keep your pens in the fridge. Do not freeze.
+- We're here to help: reach out anytime for support or guidance.
+
+If anything feels unclear, don't guess: just message our team and we'll talk you through it.
+
+Full step-by-step guide: ${guideUrl}
+Need help? Talk to us on WhatsApp: ${waLink}`;
+
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "How to use & store your pen",
+    html,
+    text,
+  });
+}
+
+/**
+ * Order cancelled / refunded — sent when staff cancel an order or refund it
+ * from the admin dashboard. Two messages go out:
+ *   - the customer: what happened, and (if refunded) how long the money takes;
+ *   - the team (ORDER_NOTIFY_EMAIL): who cancelled it and a link to the order,
+ *     so a cancellation never silently vanishes from view.
+ * Fire-and-forget by callers; never throws.
+ */
+export async function sendOrderCancelledEmail(
+  payload: Payload,
+  opts: {
+    email: string | null | undefined;
+    name?: string | null;
+    orderNumber: string;
+    orderId?: number | string | null;
+    total?: number | null;
+    refunded: boolean;
+    viaStripe?: boolean;
+    items?: Array<{ title?: unknown; dose?: unknown; quantity?: unknown }> | null;
+    /** Staff member who did it (email), for the team notification. */
+    actor?: string | null;
+  },
+): Promise<void> {
+  const url = siteUrl();
+  const waLink = "https://wa.me/447756099075";
+  const gbp = (n: number) =>
+    new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(n);
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const total = Number(opts.total ?? 0) || 0;
+  const items = Array.isArray(opts.items) ? opts.items : [];
+  const itemLines = items
+    .map((it) => {
+      const t = String(it?.title ?? "Item");
+      const d = it?.dose ? ` (${String(it.dose)})` : "";
+      const q = Math.max(1, Number(it?.quantity) || 1);
+      return `${t}${d} × ${q}`;
+    })
+    .filter(Boolean);
+  const itemsHtml = itemLines.length
+    ? `<ul style="margin:0 0 16px;padding:0 0 0 18px;font-size:14px;line-height:22px;color:${BRAND}">${itemLines
+        .map((l) => `<li>${escapeHtml(l)}</li>`)
+        .join("")}</ul>`
+    : "";
+
+  // Customer
+  const email = String(opts.email ?? "").trim();
+  if (email) {
+    const refundPara = opts.refunded
+      ? `<p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">
+           ${total > 0 ? `We&rsquo;ve refunded <strong>${gbp(total)}</strong> to your original payment method.` : "Any payment taken has been refunded to your original payment method."}
+           Refunds usually show on your statement within 5&ndash;10 working days, depending on your bank.
+         </p>`
+      : `<p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">No further payment will be taken for this order.</p>`;
+    const html = emailShell(
+      `<h1 style="font-size:22px;margin:0 0 10px;color:${BRAND}">Your order ${escapeHtml(opts.orderNumber)} has been cancelled</h1>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">Hi ${escapeHtml(firstName)},</p>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">
+         We&rsquo;re writing to confirm that order <strong>#${escapeHtml(opts.orderNumber)}</strong> has been cancelled${opts.refunded ? " and refunded" : ""}.
+       </p>
+       ${itemsHtml}
+       ${refundPara}
+       <p style="font-size:14px;line-height:22px;margin:0 0 18px;color:${BRAND}">
+         If you weren&rsquo;t expecting this, or you&rsquo;d like to place a new order, just reply to this email or message our team on WhatsApp and we&rsquo;ll sort it straight away.
+       </p>
+       ${btn(waLink, "Message Our Team on WhatsApp")}`,
+      { preheader: `Order ${opts.orderNumber} has been cancelled${opts.refunded ? " and refunded" : ""}.` },
+    );
+    const text = `Hi ${firstName},
+
+Your order #${opts.orderNumber} has been cancelled${opts.refunded ? " and refunded" : ""}.
+${itemLines.length ? "\n" + itemLines.map((l) => `- ${l}`).join("\n") + "\n" : ""}
+${
+  opts.refunded
+    ? `${total > 0 ? `We've refunded ${gbp(total)} to your original payment method. ` : "Any payment taken has been refunded. "}Refunds usually show within 5-10 working days, depending on your bank.`
+    : "No further payment will be taken for this order."
+}
+
+If you weren't expecting this, or you'd like to place a new order, reply to this email or message us on WhatsApp: ${waLink}`;
+    try {
+      await payload.sendEmail({
+        to: email,
+        subject: `Order ${opts.orderNumber} cancelled${opts.refunded ? " — refund on its way" : ""}`,
+        html,
+        text,
+      });
+    } catch (e) {
+      payload.logger?.error?.({ msg: "Order cancelled email (customer) failed", e });
+    }
+  }
+
+  // Team
+  const adminTo = (
+    process.env.ORDER_NOTIFY_EMAIL ||
+    process.env.SEED_ADMIN_EMAIL ||
+    "hello@joodlife.com"
+  ).trim();
+  if (adminTo) {
+    const orderLink = opts.orderId != null ? `${url}/admin-tools/orders/${opts.orderId}` : `${url}/admin-tools/data-browser?type=orders`;
+    const what = opts.refunded
+      ? `refunded in full${opts.viaStripe ? " via Stripe" : ""} and cancelled`
+      : "cancelled";
+    const adminHtml = emailShell(
+      `<h1 style="font-size:20px;margin:0 0 8px;color:${BRAND}">Order ${escapeHtml(opts.orderNumber)} ${escapeHtml(what)}</h1>
+       <p style="font-size:14px;line-height:22px;margin:0 0 14px;color:${BRAND}">
+         <strong>${escapeHtml(opts.name || "Customer")}</strong>${email ? ` (${escapeHtml(email)})` : ""}
+         &middot; ${gbp(total)}${opts.actor ? `<br/>By ${escapeHtml(opts.actor)}` : ""}
+       </p>
+       ${itemsHtml}
+       <p style="font-size:13px;line-height:20px;margin:0 0 18px;color:${BRAND}">The order stays on record under Orders &rarr; <strong>Cancelled</strong>. The customer has been emailed.</p>
+       ${btn(orderLink, "Open Order")}`,
+      { preheader: `Order ${opts.orderNumber} ${what}` },
+    );
+    const adminText = `Order ${opts.orderNumber} ${what}
+Customer: ${opts.name || "Customer"}${email ? ` (${email})` : ""}
+Total: ${gbp(total)}${opts.actor ? `\nBy: ${opts.actor}` : ""}
+${itemLines.map((l) => `- ${l}`).join("\n")}
+Order: ${orderLink}`;
+    try {
+      await payload.sendEmail({
+        to: adminTo,
+        subject: `Order ${opts.orderNumber} ${what} — ${gbp(total)}`,
+        html: adminHtml,
+        text: adminText,
+      });
+    } catch (e) {
+      payload.logger?.error?.({ msg: "Order cancelled email (team) failed", e });
+    }
+  }
 }

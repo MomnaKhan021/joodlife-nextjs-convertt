@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import AnimatedLbsBadge from "./AnimatedLbsBadge";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Hero banner — matches Figma node 141:1688 (Updated Home Page,
@@ -125,12 +126,11 @@ export default function HeroBanner() {
                 >
                   Get started
                 </a>
-                <a
+                <EligibilityCta
                   href="#eligibility"
+                  label="See if you are eligible"
                   className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
-                >
-                  See if you are eligible
-                </a>
+                />
               </div>
             </div>
 

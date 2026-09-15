@@ -28,6 +28,16 @@ export type CategoryTheme = {
    * decorative ray lines. Weight loss has none and uses the solid `base`.
    */
   sectionBg?: string;
+  /**
+   * Figma "sky → solid" hero treatment (the 2026 home-page ED section).
+   * The portrait stands on a sky backdrop and dissolves into this solid
+   * colour at the content-card line, via a blurred gradient band drawn over
+   * the portrait — rather than the portrait showing through frosted cards.
+   * Setting it switches CategoryPreview to that layout.
+   */
+  lowerBg?: string;
+  /** Top colour of the blurred band that fades the portrait into `lowerBg`. */
+  fadeFrom?: string;
 };
 
 export type CategoryKey = "weight-loss" | "erectile-dysfunction" | "period-delay";
@@ -84,6 +94,21 @@ export type Category = {
    * changing the shared layout box. Defaults to 1 (no zoom).
    */
   heroImageScale?: number;
+  /**
+   * Portrait for viewports below `md`. The Figma crops the ED cut-out
+   * tighter on mobile, so it is a separate export rather than a scaled one.
+   */
+  heroImageMobile?: string;
+  /** Exact Figma portrait box per breakpoint (px). Used by the sky layout. */
+  heroImageBox?: {
+    desktop: { w: number; h: number };
+    mobile: { w: number; h: number };
+  };
+  /** Exact Figma title metrics per breakpoint (px). Used by the sky layout. */
+  titleMetrics?: {
+    desktop: { size: number; lineHeight: number; tracking: number };
+    mobile: { size: number; lineHeight: number; tracking: number };
+  };
   theme: CategoryTheme;
 };
 
@@ -120,21 +145,33 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     href: "/erectile-dysfunction",
     eyebrow: "Men's health",
     cardTitle: "Erectile dysfunction",
-    title: "Take Control of Your Erectile Health",
-    titleAccent: "Safely and Confidently",
-    ctaLabel: "Start Your Assessment",
+    // Home-page section copy — Figma "Home Page - 2026" Component 295/296.
+    title: "Take control of erectile health",
+    titleAccent: "safely and confidently",
+    ctaLabel: "Get Started",
     blurb:
-      "Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.",
+      "Take control of erectile health safely and discreetly. Clinically approved treatments are delivered to your door, helping you regain confidence and performance.",
     bullets: [
       "Clinically approved treatments",
       "Discreet, next-day delivery",
       "Regain confidence & performance",
     ],
     cardImage: "/assets/home/hero-ed-man.png",
-    heroImage: "/assets/category/ed-hero.png",
-    heroBackdrop: "/assets/category/ed-clouds.png",
-    heroImageScale: 1.45,
-    imageAlt: "Man considering his options for erectile-dysfunction treatment",
+    // Cut-outs exported from the Figma fill at its exact crop transforms:
+    // desktop shows the figure to the waist (622×584); mobile crops tighter
+    // and includes the full lower edge (376×428 of a 376×503 box).
+    heroImage: "/assets/category/ed-man-d.webp",
+    heroImageMobile: "/assets/category/ed-man-m.webp",
+    heroImageBox: { desktop: { w: 622, h: 584 }, mobile: { w: 376, h: 428 } },
+    // The Figma sky is a non-exportable fill; this is the section render with
+    // the headline/portrait regions filled from the surrounding sky (both sit
+    // under real content in the build).
+    heroBackdrop: "/assets/category/ed-sky.jpg",
+    titleMetrics: {
+      desktop: { size: 48, lineHeight: 57, tracking: -2.14 },
+      mobile: { size: 36, lineHeight: 39, tracking: -1 },
+    },
+    imageAlt: "Man giving a thumbs up, happy with his erectile-dysfunction treatment",
     theme: {
       base: "#1a8ec1",
       soft: "#4eabd2",
@@ -143,6 +180,10 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
       glow: "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
       sectionBg:
         "linear-gradient(180deg, #2293c6 0%, #3ea4ce 28%, #5eb3d7 58%, #74bedd 100%)",
+      // Figma: solid #5fb3d7 below the card line, with a #b5cfe0→#5fb3d7
+      // band (layer blur 54 desktop / 16 mobile) dissolving the portrait.
+      lowerBg: "#5fb3d7",
+      fadeFrom: "#b5cfe0",
     },
   },
   "period-delay": {

@@ -12,9 +12,11 @@
  * malicious request can't, say, escalate role=admin or wipe a hash.
  */
 import { NextResponse, after, type NextRequest } from "next/server";
+import { IS_REORDER_SQL } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { sendOrderCancelledEmail } from "@/lib/account-email";
 import {
   fireHubSpot,
   mapOrderStageId,
@@ -368,6 +370,9 @@ const SPECS: Record<string, Spec> = {
       type: "text",
       value: "number",
       expiry_date: "date",
+      usage_limit: "number",
+      once_per_customer: "boolean",
+      allowed_email: "text",
       is_active: "boolean",
     },
   },
@@ -656,6 +661,21 @@ export async function GET(req: NextRequest) {
         /* leave items_json as-is if enrichment fails */
       }
     }
+    // History-aware supply type: reuse the exact SQL the Orders list uses, so
+    // the order detail page shows the same "Reorder" / "New Supply" tag as the
+    // list and To Dispatch (a returning customer — including one whose prior
+    // purchase was a synced Shopify order — reads "Reorder").
+    if (row && type === "orders" && Number.isFinite(Number(row.id))) {
+      try {
+        const r = await drizzle.execute(
+          sql.raw(`SELECT (${IS_REORDER_SQL}) AS is_reorder FROM "orders" WHERE id = ${Number(row.id)} LIMIT 1;`),
+        );
+        const flag = readRows<{ is_reorder?: boolean | string | null }>(r)[0]?.is_reorder;
+        row.is_reorder = flag === true || flag === "true" || flag === "t";
+      } catch {
+        /* non-fatal — the tag falls back to the order-number heuristic */
+      }
+    }
     return NextResponse.json({
       ok: true,
       row,
@@ -804,6 +824,35 @@ export async function POST(req: NextRequest) {
       noteOrderNumber = (prevRow?.order_number ?? `#${id}`).trim();
     }
 
+    // Cancelling from the order page ("Cancel order") lands here as a plain
+    // status write. Capture the row first so we only email on the actual
+    // transition into cancelled — not on every save of an already-cancelled
+    // order — and not when the refund route already handled it.
+    type CancelRow = {
+      status: string | null;
+      payment_status: string | null;
+      order_number: string | null;
+      customer_name: string | null;
+      customer_email: string | null;
+      total_amount: number | string | null;
+      items_json: unknown;
+    };
+    let cancelPrev: CancelRow | null = null;
+    const becomingCancelled =
+      type === "orders" &&
+      "status" in fields &&
+      String(fields.status ?? "").toLowerCase() === "cancelled";
+    if (becomingCancelled) {
+      cancelPrev =
+        readRows<CancelRow>(
+          await drizzle.execute(
+            sql.raw(
+              `SELECT status, payment_status, order_number, customer_name, customer_email, total_amount, items_json FROM orders WHERE ${where} LIMIT 1`,
+            ),
+          ),
+        )[0] ?? null;
+    }
+
     const setClause = writePairs
       .map(([c, t, v]) => `${c} = ${literalFor(c, t, v)}`)
       .join(", ");
@@ -828,6 +877,34 @@ export async function POST(req: NextRequest) {
     // (mark dispatched, cancel, etc.) — fire-and-forget after the response.
     if (type === "orders" && "status" in fields && Number.isFinite(Number(row.id))) {
       after(() => mirrorOrderStageToHubSpot(drizzle, sql, Number(row.id)));
+    }
+    // Order just cancelled → tell the customer and the team.
+    if (
+      becomingCancelled &&
+      cancelPrev &&
+      String(cancelPrev.status ?? "").toLowerCase() !== "cancelled"
+    ) {
+      const prev = cancelPrev;
+      const actor = String((user as { email?: string }).email ?? "").trim() || null;
+      after(async () => {
+        try {
+          const payload = await getPayloadInstance();
+          await sendOrderCancelledEmail(payload, {
+            email: prev.customer_email,
+            name: prev.customer_name,
+            orderNumber: String(prev.order_number ?? `#${row.id}`),
+            orderId: row.id,
+            total: Number(prev.total_amount ?? 0) || 0,
+            refunded: String(prev.payment_status ?? "").toLowerCase() === "refunded",
+            items: Array.isArray(prev.items_json)
+              ? (prev.items_json as Array<{ title?: unknown; dose?: unknown; quantity?: unknown }>)
+              : null,
+            actor,
+          });
+        } catch (e) {
+          console.error("[record] order cancelled emails failed", e);
+        }
+      });
     }
     // Mirror newly-added timeline comments/events to the HubSpot contact.
     if (type === "orders" && "admin_comments" in fields && noteEmail) {

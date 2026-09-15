@@ -9,15 +9,32 @@ import { usePathname } from "next/navigation";
  * - Centers the JoodLife logo mark inside a circular dotted ring.
  * - Ring rotates and uses a sage→dark gradient so the dots appear to fade
  *   into a trail, matching the brand reference.
- * - Always displays for ~2 seconds (deliberate brand moment), then fades
- *   out over 300ms and unmounts so it never blocks interaction.
+ * - Shows for at most ~1.2s measured from when the page STARTED loading,
+ *   then fades out and unmounts so it never blocks interaction. The budget
+ *   is anchored to navigation start rather than to hydration: the old
+ *   version started its 2s timer only once the JS had loaded, so on a slow
+ *   connection people saw load time + 2s. Now the slower the load, the
+ *   shorter the splash - if hydration itself takes over 1.2s it goes at once.
  * - Server-renders into the initial HTML so users see it during FOUC too;
- *   the client effect then dismisses it after hydration.
+ *   a pure-CSS backstop fades it out at 1.5s even if the JS never arrives,
+ *   so the splash can never hold the site hostage.
  * - Skipped on app/account/admin/checkout routes — a marketing splash there
  *   reads as a glitch (e.g. on /profile/weight-logs).
  */
-const PRELOADER_VISIBLE_MS = 2_000;
-const PRELOADER_FADE_MS = 300;
+const PRELOADER_VISIBLE_MS = 1_200;
+const PRELOADER_FADE_MS = 250;
+/** CSS-only ceiling, in case hydration is slow or JS fails: fade at 1.5s. */
+const PRELOADER_HARD_STOP_MS = 1_500;
+
+/** ms since the document started loading (0 if the API is unavailable). */
+function sinceNavigationStart(): number {
+  try {
+    const t = performance.now();
+    return Number.isFinite(t) ? t : 0;
+  } catch {
+    return 0;
+  }
+}
 
 /** Utility/app routes that must NOT show the marketing splash. */
 const SKIP_PREFIXES = [
@@ -57,14 +74,15 @@ export default function SitePreloader() {
     } catch {
       /* ignore */
     }
-    // First view of the session: keep the brand moment for the fixed duration.
-    const fadeTimer = window.setTimeout(
-      () => setVisible(false),
-      PRELOADER_VISIBLE_MS,
-    );
+    // First view of the session: the brand moment lasts PRELOADER_VISIBLE_MS
+    // from navigation start, minus however long the page already took to get
+    // here - never longer than the budget, and immediate if we're already
+    // past it.
+    const remaining = Math.max(0, PRELOADER_VISIBLE_MS - sinceNavigationStart());
+    const fadeTimer = window.setTimeout(() => setVisible(false), remaining);
     const unmountTimer = window.setTimeout(
       () => setRemoved(true),
-      PRELOADER_VISIBLE_MS + PRELOADER_FADE_MS,
+      remaining + PRELOADER_FADE_MS,
     );
     return () => {
       window.clearTimeout(fadeTimer);
@@ -78,10 +96,16 @@ export default function SitePreloader() {
     <div
       aria-hidden="true"
       role="presentation"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-300 ${
+      className={`jood-preloader fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-300 ${
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
+      {/* Backstop that needs no JavaScript: whatever happens with hydration,
+          the overlay fades and stops catching clicks at the hard-stop mark. */}
+      <style>{`
+        @keyframes jood-preloader-out { to { opacity: 0; visibility: hidden; } }
+        .jood-preloader { animation: jood-preloader-out ${PRELOADER_FADE_MS}ms ease ${PRELOADER_HARD_STOP_MS}ms forwards; }
+      `}</style>
       <div className="relative h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48">
         {/* Rotating dotted ring. */}
         <svg

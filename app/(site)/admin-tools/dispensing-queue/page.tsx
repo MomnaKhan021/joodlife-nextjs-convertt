@@ -58,6 +58,9 @@ type DispatchOrder = {
   trackingNumber: string | null;
   dispatched: boolean;
   dispatchNote: string | null;
+  /** "Reorder" for a returning customer (has ordered before, incl. Shopify),
+   *  "New Supply" for a first order. Computed server-side from order history. */
+  supplyType?: "Reorder" | "New Supply";
   items: DispatchItem[];
   consultation: Consultation | null;
 };
@@ -401,8 +404,10 @@ function OrderCard({
             <span className="rounded-full bg-[#eef3e6] px-2.5 py-0.5 text-[12px] font-semibold text-[#4a5c46]">
               Awaiting dispatch
             </span>
-            {/* Supply-type tag — Reorder vs New Supply, as a pill (not inline text). */}
-            {supplyTypeOf(o.orderNumber) === "Reorder" ? (
+            {/* Supply-type tag — Reorder vs New Supply. Prefer the server's
+                order-history-based value; fall back to the order-number
+                heuristic only if it is absent. */}
+            {(o.supplyType ?? supplyTypeOf(o.orderNumber)) === "Reorder" ? (
               <span className="rounded-full bg-[#ffea8a] px-2.5 py-0.5 text-[12px] font-semibold text-[#5c4813]">
                 Reorder
               </span>

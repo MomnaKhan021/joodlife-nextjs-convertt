@@ -80,6 +80,19 @@ html, body {
 }
 
 /*
+ * Softer display headings. The brand's Gilroy display face reads heavy at
+ * semibold (600) — the site felt "too bold" with it on every heading — so
+ * headings render at medium (500) for a lighter, more editorial feel.
+ * Unlayered, so it overrides the font-semibold / font-bold Tailwind utilities
+ * on headings; the Clearface italic accents keep their own font-normal weight,
+ * preserving the light/dark contrast within a heading. Buttons, badges, prices
+ * and other UI keep their own weights (they use spans/utility classes, not
+ * heading tags), so calls to action stay prominent.
+ */
+h1, h2, h3, h4 { font-weight: 500; }
+
+
+/*
  * Safari-specific navigation paint fix.
  * Safari on macOS briefly repaints the <body> during App Router client
  * navigations. Without this, going from the white homepage to /profile

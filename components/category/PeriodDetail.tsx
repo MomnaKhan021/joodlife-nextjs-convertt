@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Period-delay section content (Figma Component 291, below the hero):
@@ -105,12 +105,11 @@ export default function PeriodDetail({
 
         {/* CTA centred at the bottom, above the portrait */}
         <div className="relative z-10 mt-auto pt-6">
-          <Link
-            href="/consultation?product=period-delay"
+          <EligibilityCta
+            product="period-delay"
             className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#3a0d20] px-7 font-ui text-[14px] font-semibold text-white hover:bg-[#2d0a19]"
-          >
-            {ctaSecondary}
-          </Link>
+            label={ctaSecondary}
+          />
         </div>
       </Reveal>
     </div>

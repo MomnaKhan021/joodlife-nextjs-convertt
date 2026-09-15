@@ -5,9 +5,10 @@
  * PaymentIntent, then marks the order payment_status=refunded /
  * status=cancelled. Never trusts a client-supplied amount.
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
+import { sendOrderCancelledEmail } from "@/lib/account-email";
 import { getPayloadInstance } from "@/lib/payload";
 import { isStripeConfigured, stripeRest } from "@/lib/stripe";
 
@@ -69,7 +70,8 @@ export async function POST(req: NextRequest) {
 
   const res = await drizzle.execute(
     sql.raw(
-      `SELECT id, stripe_payment_intent_id, payment_status, payment_method, total_amount
+      `SELECT id, order_number, customer_name, customer_email, items_json,
+              stripe_payment_intent_id, payment_status, payment_method, total_amount
        FROM "orders" WHERE id = ${orderId} LIMIT 1`,
     ),
   );
@@ -77,6 +79,31 @@ export async function POST(req: NextRequest) {
   if (!order) {
     return NextResponse.json({ ok: false, error: "Order not found" }, { status: 404 });
   }
+
+  // Tell the customer and the team once the refund is recorded. Runs after the
+  // response so a mail hiccup can never undo or delay the refund itself.
+  const actor = String((user as { email?: string }).email ?? "").trim() || null;
+  const notify = (viaStripe: boolean) =>
+    after(async () => {
+      try {
+        const payload = await getPayloadInstance();
+        await sendOrderCancelledEmail(payload, {
+          email: order.customer_email as string | null,
+          name: order.customer_name as string | null,
+          orderNumber: String(order.order_number ?? `#${orderId}`),
+          orderId,
+          total: Number(order.total_amount ?? 0) || 0,
+          refunded: true,
+          viaStripe,
+          items: Array.isArray(order.items_json)
+            ? (order.items_json as Array<{ title?: unknown; dose?: unknown; quantity?: unknown }>)
+            : null,
+          actor,
+        });
+      } catch (e) {
+        console.error("[refund] cancellation emails failed", e);
+      }
+    });
   if (order.payment_status === "refunded") {
     return NextResponse.json({ ok: false, error: "Order is already refunded" }, { status: 409 });
   }
@@ -87,6 +114,7 @@ export async function POST(req: NextRequest) {
         `UPDATE "orders" SET payment_status='refunded', status='cancelled', updated_at=now() WHERE id=${orderId}`,
       ),
     );
+    notify(false);
     return NextResponse.json({ ok: true, refunded: true, viaStripe: false });
   }
   if (order.payment_status !== "paid") {
@@ -105,6 +133,7 @@ export async function POST(req: NextRequest) {
         `UPDATE "orders" SET payment_status='refunded', status='cancelled', updated_at=now() WHERE id=${orderId}`,
       ),
     );
+    notify(true);
     return NextResponse.json({ ok: true, refunded: true, viaStripe: true, refundId: refund.id });
   } catch (err) {
     return NextResponse.json(

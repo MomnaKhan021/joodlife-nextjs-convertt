@@ -5,6 +5,7 @@ import {
   type WegovyHowItWorks,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * "How do Wegovy pills work?" — Figma node 1:1725.
@@ -209,15 +210,16 @@ export default function HowItWorks({
           </p>
           <div className="mt-7 flex items-center justify-center gap-4">
             {content.ctaLabel ? (
-              <a
+              <EligibilityCta
+                product="weight-loss"
                 href={content.ctaHref}
+                label={content.ctaLabel}
                 className="inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
-              >
-                {content.ctaLabel}
-              </a>
+              />
             ) : null}
-            {/* Second button defaults to #faq — the tablet's own questions,
-                further down this page, rather than the injection page. */}
+            {/* Keep the reader on the Wegovy tablet page — the second button
+                defaults to #faq, the tablet's own questions further down,
+                rather than the weight-loss injection page. */}
             {content.secondaryLabel ? (
               <a
                 href={content.secondaryHref}

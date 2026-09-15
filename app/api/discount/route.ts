@@ -22,6 +22,8 @@ export const runtime = "nodejs";
 const BodySchema = z.object({
   code: z.string().min(1).max(40),
   subtotal: z.number().nonnegative().max(1_000_000),
+  // Optional: lets a once-per-customer code be checked before checkout.
+  email: z.string().email().max(200).optional(),
 });
 
 function isSameOrigin(req: NextRequest): boolean {
@@ -64,6 +66,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const result = await applyDiscountCode(parsed.data.code, parsed.data.subtotal);
+  const result = await applyDiscountCode(parsed.data.code, parsed.data.subtotal, {
+    email: parsed.data.email ?? null,
+  });
   return NextResponse.json(result);
 }

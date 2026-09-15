@@ -80,6 +80,11 @@ const STATEMENTS: string[] = [
   // number is a new-site order. Same number shows in the admin and all emails.
   "CREATE SEQUENCE IF NOT EXISTS \"orders_jl_seq\" START WITH 3000 INCREMENT BY 1 MINVALUE 3000",
   "CREATE INDEX IF NOT EXISTS discounts_created_at_idx ON public.discounts USING btree (created_at)",
+  // Discount usage rules + the code redeemed on each order (so single-use /
+  // once-per-customer limits count real, paid redemptions).
+  "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"once_per_customer\" boolean DEFAULT false",
+  "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"allowed_email\" varchar",
+  "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"discount_code\" varchar",
   "CREATE TABLE IF NOT EXISTS \"media\" (\n  \"id\" serial,\n  \"alt\" varchar NOT NULL,\n  \"caption\" varchar,\n  \"url\" varchar NOT NULL,\n  \"filename\" varchar,\n  \"mime_type\" varchar,\n  \"filesize\" numeric,\n  \"width\" numeric,\n  \"height\" numeric,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"alt\" varchar",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"caption\" varchar",
@@ -514,7 +519,14 @@ let ensured = false;
  * on every cold start, adding several seconds before the first request
  * (users saw login "taking forever" after the site had been idle).
  */
-const SCHEMA_VERSION = "v26";
+// Bump whenever STATEMENTS gains anything — a matching stored version skips
+// the whole list, so a new column never appears until the version changes.
+// main v5: discounts.once_per_customer + orders.discount_code.
+// main v6: discounts.allowed_email (code restricted to one customer).
+// The CMS branch had reached v26 separately. v27 is the merge of both lists
+// and sits above either side, so a database on either re-applies the full
+// additive set once.
+const SCHEMA_VERSION = "v27";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

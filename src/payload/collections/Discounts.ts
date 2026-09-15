@@ -69,10 +69,26 @@ export const Discounts: CollectionConfig = {
           min: 0,
           admin: {
             width: "50%",
-            description: "Leave empty for unlimited uses.",
+            description: "Total redemptions allowed. 1 = one time only (single use). Leave empty for unlimited.",
           },
         },
       ],
+    },
+    {
+      name: "oncePerCustomer",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Each customer (by email) can redeem this code once.",
+      },
+    },
+    {
+      name: "allowedEmail",
+      type: "email",
+      admin: {
+        description:
+          "Optional. Only this customer (by email) can use the code — as many times as the usage limit allows. Leave blank so anyone can use it.",
+      },
     },
     {
       name: "usageCount",

@@ -104,40 +104,39 @@ export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
   },
   "erectile-dysfunction": {
     card1Body:
-      "Take control of your erectile health with safe, discreet, clinician-led care. Treatments are prescribed where appropriate and delivered directly to your door.",
-    card1Cta: "Start Your Assessment",
-    card1Image: "/assets/category/ed-pill.png",
-    card2Image: "/assets/category/ed-goals.png",
+      "Take control of erectile health safely and discreetly. Clinically approved treatments are delivered to your door, helping you regain confidence and performance.",
+    card1Cta: "Get Started",
+    card1Image: "/assets/category/ed-pill-2.webp",
+    card2Image: "/assets/category/ed-goals-d.jpg",
     goalsTitle: "What are your goals?",
     goals: [
-      "Improve erections",
-      "Boost sexual confidence",
-      "Improve intimacy",
-      "All of the above",
+      "Address erectile difficulties",
+      "Improve sexual confidence",
+      "All the above",
     ],
     testimonials: [
       {
         quote:
-          "Treatment helped restore my confidence. I feel more in control and no longer worry about my erections.",
-        name: "Jordan, 42",
-        meta: "2 months into treatment",
+          "This treatment completely restored my confidence. I no longer worry about performance, and I feel in control",
+        name: "Jordan, 42,",
+        meta: "2 month completed",
       },
       {
         quote:
           "I feel like myself again. My confidence has improved, and intimacy no longer feels stressful.",
-        name: "Michael, 46",
+        name: "Michael, 46,",
         meta: "6 weeks completed",
       },
       {
         quote:
-          "I noticed a real difference in my performance and confidence. It's helped me feel more in control again.",
-        name: "David, 39",
+          "I noticed a real difference in my performance and confidence. It’s helped me feel more in control again.",
+        name: "David, 39,",
         meta: "1 month completed",
       },
       {
         quote:
           "This has made a big impact on both my confidence and my relationship. I feel much more relaxed and reassured now.",
-        name: "Chris, 51",
+        name: "Chris, 51,",
         meta: "7 weeks completed",
       },
     ],

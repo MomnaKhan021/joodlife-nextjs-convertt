@@ -16,6 +16,7 @@
  * underlying Payload collection page.
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { IS_REORDER_SQL } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
@@ -24,6 +25,10 @@ import { hiddenOrdersSql } from "@/lib/adminHiddenOrders";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+/** An order that was cancelled or refunded (either flag counts). */
+const CANCELLED_EXPR =
+  "(LOWER(COALESCE(status::text,'')) = 'cancelled' OR LOWER(COALESCE(payment_status::text,'')) = 'refunded')";
 
 type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
 type SqlRaw = { raw: (s: string) => unknown };
@@ -66,38 +71,8 @@ type SpecRow = {
   sortableColumns?: Record<string, string>;
 };
 
-/**
- * Is this order a REPEAT supply for the customer?
- *
- * Two signals, either is enough:
- *  1. HubSpot prefixes synced reorder deals in the name ("Reorder — #2948").
- *  2. The same customer email already has an earlier REAL order — which is the
- *     only signal for orders created at checkout (clean JLxxxx numbers had
- *     always shown "New Supply", even for repeat patients).
- *
- * "Real" excludes cancelled orders and never-paid checkouts (a declined card
- * is an abandoned checkout, not a previous supply), but keeps the £0
- * staff-raised orders created on clinical approval.
- */
-const IS_REORDER_SQL = `(
-  COALESCE(CAST(order_number AS TEXT),'') ILIKE '%reorder%'
-  OR (
-    "orders".customer_email IS NOT NULL AND TRIM("orders".customer_email) <> ''
-    AND EXISTS (
-      SELECT 1 FROM "orders" o2
-      WHERE LOWER(o2.customer_email) = LOWER("orders".customer_email)
-        AND LOWER(COALESCE(o2.status::text,'')) <> 'cancelled'
-        AND (
-          LOWER(COALESCE(o2.payment_status::text,'')) = 'paid'
-          OR COALESCE(CAST(o2.notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'
-        )
-        AND (
-          o2.created_at < "orders".created_at
-          OR (o2.created_at = "orders".created_at AND o2.id < "orders".id)
-        )
-    )
-  )
-)`;
+// IS_REORDER_SQL now lives in lib/reorderSql.ts (shared with order detail
+// and To Dispatch so every screen agrees on Reorder vs New Supply).
 
   // An order only belongs in this collection once it is REAL: the customer
   // paid, or staff raised it on clinical approval (those are £0/unpaid by
@@ -182,7 +157,7 @@ const SPECS: Record<string, SpecRow> = {
   discounts: {
     table: "discounts",
     columns:
-      "id, code, type, value, expiry_date, is_active, created_at",
+      "id, code, type, value, expiry_date, usage_limit, usage_count, once_per_customer, allowed_email, is_active, created_at",
     searchableColumns: ["code", "type"],
     defaultOrderBy: "created_at DESC NULLS LAST, id DESC",
   },
@@ -284,6 +259,9 @@ export async function GET(req: NextRequest) {
   }
   // Individually removed test rows (lib/adminHiddenOrders).
   if (type === "orders" && hiddenOrdersSql()) conditions.push(hiddenOrdersSql());
+  // Cancelled / refunded orders leave the work queues but never disappear:
+  // they have their own view so staff can always find them.
+  if (type === "orders" && fulfillment === "cancelled") conditions.push(CANCELLED_EXPR);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
@@ -353,6 +331,7 @@ export async function GET(req: NextRequest) {
   if (validDate) safeConds.push(`created_at::date = '${validDate}'`);
   if (type === "orders") safeConds.push(REAL_ORDER_SQL);
   if (type === "orders" && hiddenOrdersSql()) safeConds.push(hiddenOrdersSql());
+  if (type === "orders" && fulfillment === "cancelled") safeConds.push(CANCELLED_EXPR);
   if (type === "orders" && (fulfillment === "unfulfilled" || fulfillment === "dispatched")) {
     const dispatchedExpr =
       "(LOWER(COALESCE(status::text,'')) IN ('shipped','delivered') OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";

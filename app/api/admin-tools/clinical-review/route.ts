@@ -8,10 +8,12 @@
  *
  * Body: { id: number, decision: "approved"|"rejected", reason: string }
  */
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
+import { realOrderPredicate } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { sendSuitabilityApprovedEmail } from "@/lib/account-email";
 import { hideBeforeSql } from "@/lib/adminHide";
 import { nextOrderNumber } from "@/lib/orderNumber";
 import { backfillReorderBaseline } from "@/lib/reorderBackfill";
@@ -234,6 +236,23 @@ export async function POST(req: NextRequest) {
       })().catch(() => { /* non-fatal */ });
     }
 
+    // Green-light email — the pharmacy suitability check passed. Fire-and-forget
+    // AFTER the response so it never slows the approve action or fails it.
+    if (decision === "approved" && email) {
+      const orderNumber =
+        typeof updatedAnswers._linked_order_number === "string"
+          ? updatedAnswers._linked_order_number
+          : null;
+      after(async () => {
+        try {
+          const p = await getPayloadInstance();
+          await sendSuitabilityApprovedEmail(p, { email, name: fullName || null, orderNumber });
+        } catch (e) {
+          console.error("[clinical-review] suitability-approved email failed", e);
+        }
+      });
+    }
+
     return NextResponse.json({ ok: true, id, decision, reviewedAt });
   } catch (err) {
     return NextResponse.json(
@@ -301,11 +320,22 @@ export async function GET(req: NextRequest) {
     // must not qualify a brand-new consultation for Clinical Check — only a
     // payment taken in the live era counts.
     const orderHide = hideBeforeSql("o.created_at");
-    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
+    // A paid order that has NOT already left for the customer. Clinical Check is
+    // pre-dispatch review, so once the order is shipped/dispatched/delivered
+    // (or was cancelled/refunded) the consultation no longer belongs here — it
+    // was lingering only because nothing excluded a fulfilled order.
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND LOWER(COALESCE(o.status::text, '')) NOT IN ('shipped','dispatched','delivered','cancelled','refunded') AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
+    // A consultation that has already been dispatched has left the clinical
+    // pipeline entirely (Clinical Check -> To Dispatch -> Dispatched). Dispatch
+    // state is stamped on the CONSULTATION itself, so exclude any consultation
+    // carrying a dispatch/tracking stamp — the order's status column alone is
+    // not enough, because a consultation can be dispatched while its order row
+    // still reads "paid".
+    const notDispatched = `((answers->>'_dispatched_at') IS NULL AND (answers->>'_tracking_number') IS NULL)`;
     const queueCond =
       queue === "marketing"
         ? `(email IS NULL OR NOT ${paidOrderExists})`
-        : `(email IS NOT NULL AND ${paidOrderExists})`;
+        : `(email IS NOT NULL AND ${paidOrderExists} AND ${notDispatched})`;
 
     // Pending = submitted consultations (new patients) + reorder submissions
     // waiting review. Exclude drafts and already-decided ones unless showAll.
@@ -376,13 +406,39 @@ export async function GET(req: NextRequest) {
       db.execute(
         sql.raw(
           `SELECT
-             COUNT(*) FILTER (WHERE product_slug = 'reorder' OR COALESCE((
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (WHERE product_slug = 'reorder' OR COALESCE((
                answers->>'reorder_side_effect_severity' = 'Severe'
                OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
                OR answers->>'reorder_new_clinical_event' = 'Yes'
                OR (answers->'reorder_side_effects') ?| array['Severe stomach pain','Pain under the ribs or yellow skin/eyes','Severe dehydration','Rash, swelling or difficulty breathing','New or worsening low mood','Something else that feels serious']
              ), false))::int AS reorder,
-             COUNT(*) FILTER (
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
                  AND NOT COALESCE((
                    answers->>'reorder_side_effect_severity' = 'Severe'
@@ -393,7 +449,20 @@ export async function GET(req: NextRequest) {
                  AND COALESCE(answers->>'_meeting_start', '') ~ '^\\d{4}-\\d{2}-\\d{2}'
                  AND (answers->>'_meeting_start')::timestamptz >= created_at - interval '1 day'
              )::int AS booked,
-             COUNT(*) FILTER (
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (
                WHERE COALESCE(product_slug, '') <> 'reorder'
                  AND NOT COALESCE((
                    answers->>'reorder_side_effect_severity' = 'Severe'
@@ -406,7 +475,20 @@ export async function GET(req: NextRequest) {
                    AND (answers->>'_meeting_start')::timestamptz >= created_at - interval '1 day'
                  )
              )::int AS notbooked,
-             COUNT(*) FILTER (
+             COUNT(DISTINCT (LOWER(COALESCE(email,'')) || '|' || CASE
+                 WHEN product_slug = 'reorder' THEN 'reorder'
+                 WHEN COALESCE(product_slug,'') = '' THEN 'weight-loss'
+                 WHEN LOWER(product_slug) IN ('weight-loss','weightloss','wl','mounjaro','tirzepatide','wegovy','wegovy-pills','ozempic','semaglutide','saxenda','liraglutide','foundayo')
+                      OR LOWER(product_slug) LIKE 'weight-loss%' OR LOWER(product_slug) LIKE 'weightloss%'
+                      OR LOWER(product_slug) LIKE 'mounjaro%' OR LOWER(product_slug) LIKE 'wegovy%'
+                      OR LOWER(product_slug) LIKE 'ozempic%'   OR LOWER(product_slug) LIKE 'saxenda%'
+                      OR LOWER(product_slug) LIKE 'foundayo%'  OR LOWER(product_slug) LIKE 'tirzepatide%'
+                      OR LOWER(product_slug) LIKE 'semaglutide%' OR LOWER(product_slug) LIKE 'liraglutide%'
+                   THEN 'weight-loss'
+                 WHEN LOWER(product_slug) LIKE 'erectile%' OR LOWER(product_slug) = 'ed' THEN 'erectile-dysfunction'
+                 WHEN LOWER(product_slug) LIKE 'period%'   OR LOWER(product_slug) = 'pd' THEN 'period-delay'
+                 ELSE LOWER(product_slug)
+               END)) FILTER (
                WHERE answers->>'reorder_side_effect_severity' = 'Severe'
                  OR answers->>'reorder_pregnancy_flag' IN ('Pregnant','Trying for a baby','Breastfeeding')
                  OR answers->>'reorder_new_clinical_event' = 'Yes'
@@ -478,6 +560,9 @@ export async function GET(req: NextRequest) {
         reviewedAt: answers._reviewed_at ?? null,
         orderTotal: null as number | null,
         orderNumber: null as string | null,
+        // History-aware "returning customer" flag (set below from order count).
+        // Drives only the New Supply / Reorder PILL — not the tab placement.
+        isRepeatCustomer: isReorder,
         answers,
       };
     });
@@ -501,7 +586,7 @@ export async function GET(req: NextRequest) {
     if (emails.length > 0) {
       const inList = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(",");
       try {
-        const [userRes, orderRes] = await Promise.all([
+        const [userRes, orderRes, countRes] = await Promise.all([
           db.execute(
             sql.raw(
               `SELECT LOWER(email) AS email, name FROM users
@@ -518,7 +603,24 @@ export async function GET(req: NextRequest) {
                ORDER BY LOWER(customer_email), created_at DESC NULLS LAST, id DESC`,
             ),
           ),
+          // How many REAL orders each patient has (same rule as the Orders list
+          // and To Dispatch: paid, staff-raised, or synced Shopify/HubSpot;
+          // abandoned checkouts excluded). Two or more → a returning customer,
+          // so the card reads "Reorder" even for a new-supply questionnaire.
+          db.execute(
+            sql.raw(
+              `SELECT LOWER(customer_email) AS email, COUNT(*)::int AS n
+               FROM orders
+               WHERE LOWER(customer_email) IN (${inList})
+                 AND ${realOrderPredicate("orders")}
+               GROUP BY LOWER(customer_email)`,
+            ),
+          ),
         ]);
+        const realOrderCount: Record<string, number> = {};
+        for (const r of asRows(countRes)) {
+          realOrderCount[String(r.email ?? "").toLowerCase()] = Number(r.n ?? 0) || 0;
+        }
         const nameByEmail: Record<string, string> = {};
         const totalByEmail: Record<string, number> = {};
         const orderNumByEmail: Record<string, string> = {};
@@ -547,6 +649,8 @@ export async function GET(req: NextRequest) {
           if (typeof total === "number") c.orderTotal = total;
           const on = orderNumByEmail[key];
           if (on) c.orderNumber = on;
+          // Returning customer → Reorder pill (unless already a reorder form).
+          if ((realOrderCount[key] ?? 0) >= 2) c.isRepeatCustomer = true;
         }
       } catch {
         /* name / total lookup is best-effort — fall back to "Patient #id" */

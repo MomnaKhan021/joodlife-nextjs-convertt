@@ -11,6 +11,8 @@ type CustomerOrder = {
   paymentStatus: string;
   total: number;
   createdAt: string | null;
+  /** True for orders synced from the old Shopify site — history, not work. */
+  isHistorical?: boolean;
   items: CustomerItem[];
 };
 type CustomerData = {
@@ -19,6 +21,8 @@ type CustomerData = {
     email: string;
     name: string | null;
     phone: string | null;
+    /** Most recent delivery address the customer used (from their orders). */
+    latestAddress?: string | null;
     joinedAt: string | null;
     hasAccount: boolean;
     accountId?: number | null;
@@ -33,6 +37,7 @@ type CustomerData = {
   };
   weightHistory?: WeightPoint[];
   weightChange?: number | null;
+  addressHistory?: { address: string; date: string | null }[];
   orders: CustomerOrder[];
   error?: string;
 };
@@ -279,7 +284,16 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <StatusPill value={o.status} />
+                        {o.isHistorical && ["", "pending", "unfulfilled", "processing", "draft"].includes((o.status ?? "").toLowerCase()) ? (
+                          <span
+                            title="Order from the previous Shopify site — already fulfilled there. Kept as history; not actioned here."
+                            className="inline-flex items-center rounded-full bg-[#e7efe0] px-2 py-0.5 text-[12px] font-medium text-[#3f5c37]"
+                          >
+                            History
+                          </span>
+                        ) : (
+                          <StatusPill value={o.status} />
+                        )}
                         <span className="w-[80px] text-right text-[13px] font-semibold">{gbp(o.total)}</span>
                       </div>
                     </Link>
@@ -316,6 +330,42 @@ export default function CustomerDetailClient({ email }: { email: string }) {
                 ) : (
                   <p className="mt-1 text-[13px] text-[#616161]">No phone number</p>
                 )}
+
+                {/* Delivery addresses — every address the customer has used,
+                    newest first, each with the date. The top one is current;
+                    older ones stay visible as history when they change address. */}
+                <div className="mt-3 border-t border-[#eef0eb] pt-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#9ca3af]">
+                    Delivery address
+                  </p>
+                  {(data.addressHistory ?? []).length > 0 ? (
+                    <div className="mt-1.5 flex flex-col gap-2.5">
+                      {(data.addressHistory ?? []).map((a, i) => (
+                        <div key={i} className={i === 0 ? "" : "border-t border-[#f3f4f6] pt-2.5"}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-medium text-[#6b7280]">
+                              {a.date ? fmtDate(a.date) : "—"}
+                            </span>
+                            {i === 0 ? (
+                              <span className="rounded-full bg-[#e7efe0] px-2 py-0.5 text-[10px] font-semibold text-[#3f5c37]">
+                                Current
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-0.5 whitespace-pre-line text-[13px] leading-[19px] text-[#142e2a]">
+                            {a.address
+                              .split(/\s*,\s*|\n/)
+                              .map((l) => l.trim())
+                              .filter(Boolean)
+                              .join("\n")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-[13px] text-[#616161]">No delivery address on file</p>
+                  )}
+                </div>
               </div>
             </Card>
 

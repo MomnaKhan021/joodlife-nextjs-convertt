@@ -5,6 +5,7 @@ import {
   type WegovyHero,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Wegovy Pills landing hero — Figma node 1:1506 (desktop) / 1:2362 (mobile).
@@ -63,12 +64,12 @@ function HeroCopy({ c }: { c: WegovyHero }) {
       </p>
 
       {c.ctaLabel ? (
-        <a
+        <EligibilityCta
+          product="weight-loss"
           href={c.ctaHref}
+          label={c.ctaLabel}
           className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-white px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-[#142e2a] transition-colors hover:bg-[#daffe0] sm:w-auto"
-        >
-          {c.ctaLabel}
-        </a>
+        />
       ) : null}
 
       <ul className="mt-7 flex flex-col gap-3">

@@ -505,7 +505,9 @@ export async function POST(req: NextRequest) {
   const rawDiscountCode = parsed.data.discountCode?.trim();
   if (rawDiscountCode) {
     const { applyDiscountCode } = await import("@/lib/discounts");
-    const applied = await applyDiscountCode(rawDiscountCode, repriced.total);
+    const applied = await applyDiscountCode(rawDiscountCode, repriced.total, {
+      email: customer.email,
+    });
     if (!applied.valid) {
       return NextResponse.json(
         { ok: false, error: applied.reason ?? "This discount code isn’t valid." },
@@ -543,10 +545,15 @@ export async function POST(req: NextRequest) {
   const ipForAudit = ip; // already clientIp(req)
 
   try {
+    // discount_code is newer than the orders table itself — make sure it exists
+    // before the INSERT names it (idempotent and cheap).
+    await drizzle.execute(
+      sql.raw(`ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS discount_code varchar`)
+    );
     const stmt = `
       INSERT INTO "orders"
         (order_number, user_id, customer_name, customer_email, customer_phone,
-         shipping_address, items_json, total_amount, discount_amount,
+         shipping_address, items_json, total_amount, discount_amount, discount_code,
          status, payment_method, payment_status, ip_address, user_agent,
          notes, updated_at, created_at)
       VALUES
@@ -554,7 +561,7 @@ export async function POST(req: NextRequest) {
          ${esc(customer.name)}, ${esc(customer.email)}, ${esc(customer.phone)},
          ${esc(customer.address)},
          ${esc(JSON.stringify(repriced.items))}::jsonb,
-         ${finalTotal}, ${discountAmount},
+         ${finalTotal}, ${discountAmount}, ${appliedCode ? esc(appliedCode) : "NULL"},
          ${esc(orderStatus)}, ${esc(payMethod)}, ${esc(payStatus)},
          ${esc(ipForAudit)}, ${esc(userAgent)},
          ${esc(customer.notes)},
@@ -582,21 +589,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Best-effort: increment the discount's redemption counter. Never let a
-    // counter failure break the order.
-    if (appliedCode) {
-      try {
-        await drizzle.execute(
-          sql.raw(
-            `UPDATE "discounts"
-             SET usage_count = COALESCE(usage_count, 0) + 1
-             WHERE upper(code) = upper(${esc(appliedCode)})`
-          )
-        );
-      } catch {
-        /* ignore */
-      }
-    }
+    // The discount's redemption counter is incremented when the order is PAID
+    // (lib/orderConfirmationOnce), not here — otherwise an abandoned or
+    // declined checkout would consume a single-use code. Unpaid orders still
+    // hold the code for 30 minutes via lib/discounts so two shoppers can't
+    // both take the last use at the same moment.
 
     // ── HubSpot mirror ───────────────────────────────────────────
     // Upsert the contact + create a Deal worth the order total. Runs via

@@ -218,9 +218,17 @@ function orderItemCount(raw: unknown): number {
  *  actually sits in the workflow, using the same names as the sidebar tabs:
  *    Dispatched      → already sent (shipped/delivered or has DPD tracking)
  *    To Dispatch     → supply approved, waiting to be dispensed + dispatched
- *    Clinical Check  → still awaiting clinical review */
-function fulfillmentOf(row: Row): "Dispatched" | "To Dispatch" | "Clinical Check" {
+ *    Clinical Check  → still awaiting clinical review
+ *    Cancelled / Refunded → no longer being fulfilled (kept on record) */
+function fulfillmentOf(
+  row: Row,
+): "Dispatched" | "To Dispatch" | "Clinical Check" | "Cancelled" | "Refunded" {
   const status = String(row.status ?? "").toLowerCase();
+  const payment = String(row.payment_status ?? "").toLowerCase();
+  // A cancelled/refunded order is shown as such wherever it appears (it may
+  // still sit in Dispatched history if it went out before the refund).
+  if (payment === "refunded") return "Refunded";
+  if (status === "cancelled") return "Cancelled";
   const notes = String(row.notes ?? "");
   const dispatched =
     ["shipped", "delivered", "dispatched"].includes(status) ||
@@ -511,6 +519,40 @@ const TABS: TabSpec[] = [
       { key: "type", label: "Type" },
       { key: "value", label: "Value" },
       {
+        key: "usage",
+        label: "Uses",
+        hint: "Paid redemptions so far / limit",
+        render: (r) => {
+          const used = Number(r.usage_count ?? 0) || 0;
+          const lim =
+            r.usage_limit == null || r.usage_limit === "" ? null : Number(r.usage_limit);
+          if (lim === 1) return <span className="db-nowrap">{used} / 1 · one time only</span>;
+          if (lim && Number.isFinite(lim)) return <span className="db-nowrap">{used} / {lim}</span>;
+          return <span className="db-nowrap">{used} · unlimited</span>;
+        },
+      },
+      {
+        key: "once_per_customer",
+        label: "Per customer",
+        render: (r) => (r.once_per_customer ? "Once each" : "—"),
+      },
+      {
+        key: "allowed_email",
+        label: "Who can use it",
+        render: (r) =>
+          r.allowed_email ? (
+            <span className="db-cell-meta">{String(r.allowed_email)}</span>
+          ) : (
+            "Anyone"
+          ),
+      },
+      {
+        key: "expiry_date",
+        label: "Expires",
+        hideBelow: 720,
+        render: (r) => (r.expiry_date ? String(r.expiry_date).slice(0, 10) : "—"),
+      },
+      {
         key: "is_active",
         label: "Active",
         render: (r) => <StatusPill value={r.is_active ? "active" : "inactive"} />,
@@ -586,9 +628,9 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
   // Sort: which column + direction. null = server default order.
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" } | null>(null);
   // Orders "job queue" fulfillment filter. Defaults to unfulfilled work.
-  const [fulfillment, setFulfillment] = useState<"unfulfilled" | "all" | "dispatched">(
-    "unfulfilled",
-  );
+  const [fulfillment, setFulfillment] = useState<
+    "unfulfilled" | "all" | "dispatched" | "cancelled"
+  >("unfulfilled");
   // Batch multi-select — set of selected row ids on the current page.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchBusy, setBatchBusy] = useState(false);
@@ -827,6 +869,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           {([
             ["unfulfilled", "To do"],
             ["dispatched", "Dispatched"],
+            ["cancelled", "Cancelled"],
             ["all", "All"],
           ] as const).map(([val, label]) => (
             <button
@@ -844,6 +887,10 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           {fulfillment === "unfulfilled" ? (
             <span className="db-segment__note">
               Work queue — clear this to zero each day.
+            </span>
+          ) : fulfillment === "cancelled" ? (
+            <span className="db-segment__note">
+              Cancelled and refunded orders — kept on record, nothing is deleted.
             </span>
           ) : null}
         </div>
@@ -947,6 +994,8 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
                         ? `No ${tab.label.toLowerCase()} match "${debouncedSearch}".`
                         : activeTab === "orders" && fulfillment === "unfulfilled"
                           ? "Nothing to do — the queue is clear."
+                          : activeTab === "orders" && fulfillment === "cancelled"
+                            ? "No cancelled or refunded orders."
                           : `No ${tab.label.toLowerCase()} yet.`}
                     </td>
                   </tr>

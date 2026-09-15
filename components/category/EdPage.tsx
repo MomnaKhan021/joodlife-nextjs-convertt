@@ -14,6 +14,7 @@ import {
   type EdPlanContent,
   type EdStepsContent,
 } from "@/lib/edContentTypes";
+import EligibilityCta from "@/components/ui/EligibilityCta";
 
 /**
  * Erectile-dysfunction page sections — Figma "Joodlife - Next js (Erectile
@@ -167,9 +168,12 @@ function TreatmentPlan({
               </Link>
             ) : null}
             {content.secondaryLabel ? (
-              <Link href={content.secondaryHref} className={CTA_GHOST}>
-                {content.secondaryLabel}
-              </Link>
+              <EligibilityCta
+                product="erectile-dysfunction"
+                href={content.secondaryHref}
+                label={content.secondaryLabel}
+                className={CTA_GHOST}
+              />
             ) : null}
           </div>
         </Reveal>
@@ -193,20 +197,17 @@ function TreatmentPlan({
           </ul>
           <div className="mt-6 flex flex-wrap gap-3 lg:hidden">
             {content.ctaLabel ? (
-              <Link
-                href={content.ctaHref}
-                className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}
-              >
+              <Link href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}>
                 {content.ctaLabel}
               </Link>
             ) : null}
             {content.secondaryLabel ? (
-              <Link
+              <EligibilityCta
+                product="erectile-dysfunction"
                 href={content.secondaryHref}
+                label={content.secondaryLabel}
                 className={`${CTA_GHOST} flex-1 min-w-[150px]`}
-              >
-                {content.secondaryLabel}
-              </Link>
+              />
             ) : null}
           </div>
         </Reveal>
@@ -344,20 +345,17 @@ function EdConfidence({
           </ul>
           <div className="mt-6 flex flex-wrap gap-3">
             {content.ctaLabel ? (
-              <Link
-                href={content.ctaHref}
-                className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}
-              >
+              <Link href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}>
                 {content.ctaLabel}
               </Link>
             ) : null}
             {content.secondaryLabel ? (
-              <Link
+              <EligibilityCta
+                product="erectile-dysfunction"
                 href={content.secondaryHref}
+                label={content.secondaryLabel}
                 className={`${CTA_GHOST} flex-1 min-w-[150px] md:flex-none`}
-              >
-                {content.secondaryLabel}
-              </Link>
+              />
             ) : null}
           </div>
         </Reveal>

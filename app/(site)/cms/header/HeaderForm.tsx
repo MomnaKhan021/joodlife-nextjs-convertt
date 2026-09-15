@@ -24,7 +24,7 @@ import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 /**
  * A little drawing of the bar, so the choice can be made by eye. The three
  * shapes are the arrangement itself, not decoration: logo block, nav lines,
- * account and basket dots.
+ * and the Log in pill.
  */
 function LayoutThumb({ layout }: { layout: HeaderLayout }) {
   const logo = <rect width="26" height="8" rx="2" fill="currentColor" />;
@@ -54,8 +54,7 @@ function LayoutThumb({ layout }: { layout: HeaderLayout }) {
             <g transform="translate(47 0)">{logo}</g>
           </>
         )}
-        <circle cx="99" cy="4" r="3.5" fill="currentColor" opacity="0.55" />
-        <circle cx="110" cy="4" r="3.5" fill="currentColor" opacity="0.55" />
+        <rect x="92" y="0" width="22" height="8" rx="4" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.6" />
       </g>
     </svg>
   );

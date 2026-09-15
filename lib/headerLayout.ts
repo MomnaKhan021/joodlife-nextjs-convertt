@@ -11,9 +11,9 @@
  */
 
 export type HeaderLayout =
-  /** Logo left, links beside it, account and basket right. As shipped. */
+  /** Logo left, links beside it, Log in button right. As shipped. */
   | "logo-left"
-  /** Links left, logo centred, account and basket right. */
+  /** Links left, logo centred, Log in button right. */
   | "logo-centre"
   /** Menu button left, logo centred — the mobile drawer, on desktop too. */
   | "drawer";
@@ -26,12 +26,12 @@ export const HEADER_LAYOUTS: {
   {
     value: "logo-left",
     label: "Logo left",
-    hint: "Logo, then the links, with account and basket on the right.",
+    hint: "Logo, then the links, with the Log in button on the right.",
   },
   {
     value: "logo-centre",
     label: "Logo centred",
-    hint: "Links on the left, logo in the middle, account and basket right.",
+    hint: "Links on the left, logo in the middle, Log in button right.",
   },
   {
     value: "drawer",
@@ -48,7 +48,7 @@ export type HeaderSettings = {
 
 export const DEFAULT_HEADER_SETTINGS: HeaderSettings = {
   layout: "logo-left",
-  sticky: false,
+  sticky: true,
 };
 
 const LAYOUTS = new Set<string>(HEADER_LAYOUTS.map((l) => l.value));
@@ -65,6 +65,7 @@ export function mergeHeaderSettings(stored: unknown): HeaderSettings {
     layout: LAYOUTS.has(String(v.layout))
       ? (v.layout as HeaderLayout)
       : DEFAULT_HEADER_SETTINGS.layout,
-    sticky: v.sticky === true,
+    sticky:
+      typeof v.sticky === "boolean" ? v.sticky : DEFAULT_HEADER_SETTINGS.sticky,
   };
 }
