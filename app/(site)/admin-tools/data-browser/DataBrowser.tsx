@@ -869,7 +869,7 @@ export default function DataBrowser({ allowedTypes }: { allowedTypes?: string[] 
           {([
             ["unfulfilled", "To do"],
             ["dispatched", "Dispatched"],
-            ["cancelled", "Cancelled"],
+            ["cancelled", "Cancelled / Refunded"],
             ["all", "All"],
           ] as const).map(([val, label]) => (
             <button
