@@ -44,10 +44,11 @@ type Ev = {
 
 type Range = "today" | "yesterday" | "week" | "month" | "all";
 
-const DAY_START = 8;
-const DAY_END = 20;
 const HOUR_PX = 56;
-const HOURS = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i);
+// Base window; extended per week to include any events outside it so nothing
+// is ever hidden off-grid (Google-Calendar style).
+const BASE_START = 8;
+const BASE_END = 19;
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const RANGES: { key: Range; label: string }[] = [
@@ -110,26 +111,55 @@ function fmtTime(d: Date): string {
   return `${h}:${String(m).padStart(2, "0")}${period}`;
 }
 
+async function fetchQueue(mode: "clinical" | "marketing"): Promise<Consultation[]> {
+  try {
+    const r = await fetch(
+      `/api/admin-tools/clinical-review?status=all&queue=${mode}&offset=0`,
+      { cache: "no-store" },
+    );
+    if (!r.ok) return [];
+    const d = (await r.json()) as { consultations?: Consultation[] };
+    return d.consultations ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** A consultation that looks like it has (or wants) a video booking. The
+ *  scheduled time may be stamped in the answers or held only in HubSpot, so
+ *  we treat any of these as a signal and confirm the time below. */
+function hasBookingSignal(a: Record<string, unknown> | undefined): boolean {
+  if (!a) return false;
+  const s = a._meeting_start;
+  if (typeof s === "string" && /^\d{4}-\d{2}-\d{2}/.test(s)) return true;
+  if (typeof a._meeting_start_time === "string" && a._meeting_start_time) return true;
+  if (typeof a._meeting_join === "string" && a._meeting_join) return true;
+  if (a.video_consultation_preference != null && String(a.video_consultation_preference)) return true;
+  if (a._callback != null || a._callback_request != null) return true;
+  return false;
+}
+
+function parseStart(v: unknown): Date | null {
+  if (typeof v !== "string" || !v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 async function loadEvents(): Promise<Ev[]> {
-  // 1) Consultations from the Clinical Check (all statuses → booked + attended).
-  const res = await fetch(
-    "/api/admin-tools/clinical-review?status=all&queue=clinical&offset=0",
-    { cache: "no-store" },
-  );
-  if (!res.ok) throw new Error(`clinical-review ${res.status}`);
-  const data = (await res.json()) as { consultations?: Consultation[] };
-  const consults = data.consultations ?? [];
+  // Pull from BOTH clinical (paid) and marketing (not-yet-paid) queues so no
+  // booked consultation is missed.
+  const [clinical, marketing] = await Promise.all([
+    fetchQueue("clinical"),
+    fetchQueue("marketing"),
+  ]);
+  const byId = new Map<number, Consultation>();
+  for (const c of [...clinical, ...marketing]) byId.set(c.id, c);
+  const candidates = Array.from(byId.values()).filter((c) => hasBookingSignal(c.answers));
 
-  // De-dupe by email (latest wins) and keep only ones with a meeting.
-  const withMeeting = consults.filter((c) => {
-    const s = c.answers?._meeting_start;
-    return typeof s === "string" && /^\d{4}-\d{2}-\d{2}/.test(s);
-  });
-
-  // 2) Authoritative times + join links from HubSpot (batched ≤60).
+  // Authoritative times + Google Meet links from HubSpot (batched ≤60).
   const emails = Array.from(
-    new Set(withMeeting.map((c) => (c.email ?? "").toLowerCase()).filter(Boolean)),
-  );
+    new Set(candidates.map((c) => (c.email ?? "").toLowerCase()).filter(Boolean)),
+  ).slice(0, 240);
   const times: Record<string, string | null> = {};
   const links: Record<string, string | null> = {};
   for (let i = 0; i < emails.length; i += 60) {
@@ -154,13 +184,14 @@ async function loadEvents(): Promise<Ev[]> {
 
   const now = Date.now();
   const events: Ev[] = [];
-  for (const c of withMeeting) {
+  for (const c of candidates) {
     const email = (c.email ?? "").toLowerCase();
-    const startIso =
-      times[email] ?? (c.answers._meeting_start as string | undefined) ?? null;
-    if (!startIso) continue;
-    const start = new Date(startIso);
-    if (Number.isNaN(start.getTime())) continue;
+    // A booking is real only if we can find a time — from HubSpot or answers.
+    const start =
+      parseStart(times[email]) ??
+      parseStart(c.answers._meeting_start) ??
+      parseStart(c.answers._meeting_start_time);
+    if (!start) continue;
     const joinUrl =
       links[email] ??
       (typeof c.answers._meeting_join === "string" ? c.answers._meeting_join : null);
@@ -256,6 +287,21 @@ export default function CalendarClient() {
     }
     return byStatus.filter((e) => e.start >= start && e.start < end);
   }, [byStatus, range, weekStart]);
+
+  // Grid hour window adapts to the events shown so none fall off-grid.
+  const { gridStart, gridEnd } = useMemo(() => {
+    let lo = BASE_START;
+    let hi = BASE_END;
+    for (const e of rangeEvents) {
+      lo = Math.min(lo, e.start.getHours());
+      hi = Math.max(hi, e.start.getHours() + 1);
+    }
+    return { gridStart: Math.max(0, lo), gridEnd: Math.min(24, Math.max(hi, lo + 1)) };
+  }, [rangeEvents]);
+  const gridHours = useMemo(
+    () => Array.from({ length: gridEnd - gridStart }, (_, i) => gridStart + i),
+    [gridStart, gridEnd],
+  );
 
   const title =
     range === "week"
@@ -354,7 +400,7 @@ export default function CalendarClient() {
                 </div>
                 <div className="grid grid-cols-[56px_repeat(7,1fr)]">
                   <div className="border-r border-[#142e2a]/10">
-                    {HOURS.map((h) => (
+                    {gridHours.map((h) => (
                       <div key={h} className="relative" style={{ height: HOUR_PX }}>
                         <span className="absolute -top-2 right-1.5 font-ui text-[11px] text-[#9aa0a6]">
                           {h % 12 === 0 ? 12 : h % 12}{h < 12 ? "am" : "pm"}
@@ -364,11 +410,11 @@ export default function CalendarClient() {
                   </div>
                   {weekDays.map((day, dayIdx) => (
                     <div key={dayIdx} className={`relative border-r border-[#142e2a]/10 last:border-r-0 ${dayIdx === todayIndex ? "bg-[#1a56c4]/[0.03]" : ""}`}>
-                      {HOURS.map((h) => <div key={h} className="border-b border-[#142e2a]/8" style={{ height: HOUR_PX }} />)}
+                      {gridHours.map((h) => <div key={h} className="border-b border-[#142e2a]/8" style={{ height: HOUR_PX }} />)}
                       {rangeEvents
                         .filter((e) => sameDay(e.start, day))
                         .map((e) => {
-                          const top = (e.start.getHours() - DAY_START + e.start.getMinutes() / 60) * HOUR_PX;
+                          const top = (e.start.getHours() - gridStart + e.start.getMinutes() / 60) * HOUR_PX;
                           const height = Math.max((e.durationMin / 60) * HOUR_PX - 3, 22);
                           const st = STATUS_STYLE[e.status];
                           return (
