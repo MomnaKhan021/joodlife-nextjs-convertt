@@ -503,6 +503,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"settings\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  // Per-text size and weight, keyed by the field the editor writes.
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
@@ -526,7 +528,7 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v27";
+const SCHEMA_VERSION = "v28";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

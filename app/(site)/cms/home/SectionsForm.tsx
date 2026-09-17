@@ -16,6 +16,8 @@ import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import TreatmentsEditor from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
 import StyleFields from "../StyleFields";
+import TextField from "../TextField";
+import { type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import {
   HOME_STYLE_KEYS,
   HOME_STYLE_LABELS,
@@ -42,6 +44,12 @@ export default function SectionsForm({
   );
   const setStyle = (k: HomeStyleKey) => (next: SectionStyle) =>
     setStyles((s) => ({ ...s, [k]: next }));
+  // Size/weight per text, keyed by the same field name the editor saves.
+  const [textStyles, setTextStyles] = useState<Record<HomeTextKey, TextStyle>>(
+    initial.textStyles,
+  );
+  const setText = (k: HomeTextKey) => (next: TextStyle) =>
+    setTextStyles((t) => ({ ...t, [k]: next }));
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
@@ -136,6 +144,7 @@ export default function SectionsForm({
     try {
       await saveGlobal("home-page", {
         styles,
+        textStyles,
         faqHeading,
         faqHeadingEmphasis: faqEmphasis,
         faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
@@ -252,29 +261,53 @@ export default function SectionsForm({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="heroBadge">Badge</label>
-              <input id="heroBadge" className={`${fieldInput} mt-1`} value={heroBadge} onChange={(e) => setHeroBadge(e.target.value)} placeholder="New" />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="heroTitle">Title</label>
-              <input id="heroTitle" className={`${fieldInput} mt-1`} value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="heroEm">Title (italic line)</label>
-              <input id="heroEm" className={`${fieldInput} mt-1`} value={heroEmphasis} onChange={(e) => setHeroEmphasis(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="heroCtaL">Button text</label>
-              <input id="heroCtaL" className={`${fieldInput} mt-1`} value={heroCtaLabel} onChange={(e) => setHeroCtaLabel(e.target.value)} />
-            </div>
+            <TextField
+              id="heroBadge"
+              label="Badge"
+              value={heroBadge}
+              onChange={setHeroBadge}
+              placeholder="New"
+              style={textStyles.heroBadge}
+              onStyle={setText("heroBadge")}
+            />
+            <TextField
+              id="heroTitle"
+              label="Title"
+              value={heroTitle}
+              onChange={setHeroTitle}
+              style={textStyles.heroTitle}
+              onStyle={setText("heroTitle")}
+            />
+            <TextField
+              id="heroEm"
+              label="Title (italic line)"
+              value={heroEmphasis}
+              onChange={setHeroEmphasis}
+              style={textStyles.heroTitleEmphasis}
+              onStyle={setText("heroTitleEmphasis")}
+            />
+            <TextField
+              id="heroCtaL"
+              label="Button text"
+              value={heroCtaLabel}
+              onChange={setHeroCtaLabel}
+              style={textStyles.heroCtaLabel}
+              onStyle={setText("heroCtaLabel")}
+            />
             <div className="sm:col-span-2">
               <label className={fieldLabel} htmlFor="heroCtaH">Button link</label>
               <input id="heroCtaH" className={`${fieldInput} mt-1`} value={heroCtaHref} onChange={(e) => setHeroCtaHref(e.target.value)} />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel} htmlFor="heroBody">Body copy</label>
-              <textarea id="heroBody" rows={3} className={`${fieldInput} mt-1`} value={heroBody} onChange={(e) => setHeroBody(e.target.value)} />
+              <TextField
+                id="heroBody"
+                label="Body copy"
+                rows={3}
+                value={heroBody}
+                onChange={setHeroBody}
+                style={textStyles.heroBody}
+                onStyle={setText("heroBody")}
+              />
             </div>
           </div>
 

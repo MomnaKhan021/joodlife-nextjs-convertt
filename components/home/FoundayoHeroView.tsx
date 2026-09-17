@@ -1,3 +1,8 @@
+import {
+  textStyleProps,
+  type HomeTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -38,6 +43,8 @@ const ICONS = {
 export type HeroFeatureProp = { label: string; icon: keyof typeof ICONS };
 
 export type HeroContent = {
+  /** Per-text size and weight, keyed by the Home field name. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
   badge?: string;
   title?: string;
   titleEmphasis?: string;
@@ -57,6 +64,7 @@ const DEFAULT_FEATURES: HeroFeatureProp[] = [
 ];
 
 function FoundayoCard({
+  text = {},
   badge = "New",
   title = "A new tablet option",
   titleEmphasis = "for weight management",
@@ -77,19 +85,31 @@ function FoundayoCard({
     <div className="relative flex min-h-full flex-col overflow-hidden rounded-[24px] bg-[#fdf0ea] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12">
       {/* Copy — left column on desktop; the pill stays right of it. */}
       <div className="relative z-10 flex flex-col gap-4 lg:max-w-[62%]">
-        <span className="inline-flex w-fit items-center rounded-md bg-[#ffcebf] px-3 py-1 font-ui text-[13px] font-semibold text-[#142e2a]">
+        <span
+          {...textStyleProps(text.heroBadge)}
+          className="inline-flex w-fit items-center rounded-md bg-[#ffcebf] px-3 py-1 font-ui text-[13px] font-semibold text-[#142e2a]"
+        >
           {badge}
         </span>
 
-        <h1 className="font-display text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-[#142e2a] sm:text-[36px] lg:text-[36px] lg:leading-[1.1] min-[1400px]:text-[42px]">
+        <h1
+          {...textStyleProps(text.heroTitle)}
+          className="font-display text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-[#142e2a] sm:text-[36px] lg:text-[36px] lg:leading-[1.1] min-[1400px]:text-[42px]"
+        >
           {title}
           <br />
-          <em className="font-serif font-normal italic text-[#d27d6a]">
+          <em
+            {...textStyleProps(text.heroTitleEmphasis)}
+            className="font-serif font-normal italic text-[#d27d6a]"
+          >
             {titleEmphasis}
           </em>
         </h1>
 
-        <p className="max-w-[44ch] font-ui text-[13px] leading-[1.55] text-[#142e2a]/80 md:text-[15px]">
+        <p
+          {...textStyleProps(text.heroBody)}
+          className="max-w-[44ch] font-ui text-[13px] leading-[1.55] text-[#142e2a]/80 md:text-[15px]"
+        >
           {body}
         </p>
 
@@ -117,6 +137,7 @@ function FoundayoCard({
         <div className="mt-1">
           <Link
             href={href}
+            {...textStyleProps(text.heroCtaLabel)}
             className="btn-cta inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
           >
             {label}

@@ -11,6 +11,12 @@
  */
 
 import {
+  HOME_TEXT_KEYS,
+  mergeTextStyles,
+  type HomeTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
+import {
   mergeStyles,
   HOME_STYLE_STORED_KEYS,
   type HomeStyleKey,
@@ -142,6 +148,8 @@ export const DEFAULT_CTA = {
 export type HomeContent = {
   /** Per-section background / text colour, keyed by section. */
   styles: Record<HomeStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed by the field name. */
+  textStyles: Record<HomeTextKey, TextStyle>;
   faqs: Faq[];
   hiwSteps: HiwStep[];
   heroFeatures: HeroFeature[];
@@ -237,6 +245,8 @@ export function homeFallback(): HomeContent {
   return {
     // No stored styles, so every section keeps the design it ships with.
     styles: mergeStyles(null, HOME_STYLE_STORED_KEYS),
+    // Nothing stored, so every text keeps its designed size and weight.
+    textStyles: mergeTextStyles(null, HOME_TEXT_KEYS),
     faqs: DEFAULT_FAQS,
     hiwSteps: DEFAULT_HIW_STEPS,
     heroFeatures: DEFAULT_HERO_FEATURES,
