@@ -15,12 +15,10 @@ import type { TreatmentRow } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import TreatmentsEditor from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
 import { AreaField, TextField } from "../FormKit";
 import { type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import {
-  HOME_STYLE_KEYS,
-  HOME_STYLE_LABELS,
   type HomeStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
@@ -207,37 +205,6 @@ export default function SectionsForm({
       )}
 
       <div className="space-y-5">
-        {/* ---- Section colours ----
-             Kept together rather than threaded through each block below:
-             colour choices are made by comparing sections against each
-             other, which is hard to do when they're pages apart. */}
-        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
-          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
-            Section colours
-            <span className="ml-2 text-[13px] font-normal text-[#616161]">
-              backgrounds, text colour and column order
-            </span>
-          </summary>
-          <p className="mt-2 text-[13px] text-[#616161]">
-            In the order the sections appear on the page. Anything left on
-            Default keeps the design exactly as it is today.
-          </p>
-          <div className="mt-4 space-y-5">
-            {HOME_STYLE_KEYS.map((k) => (
-              <div key={k}>
-                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
-                  {HOME_STYLE_LABELS[k]}
-                </p>
-                <StyleFields
-                  sectionKey={k}
-                  value={styles[k]}
-                  onChange={setStyle(k)}
-                />
-              </div>
-            ))}
-          </div>
-        </details>
-
         {/* ---- Hero ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -248,6 +215,13 @@ export default function SectionsForm({
               <p className="text-[12px] text-[#8a8a8a]">
                 The peach Foundayo card at the top of the page.
               </p>
+            </div>
+            <div className="ml-auto">
+              <SectionControl
+                sectionKey="hero"
+                value={styles.hero}
+                onChange={setStyle("hero")}
+              />
             </div>
             <button
               type="button"
@@ -467,6 +441,13 @@ export default function SectionsForm({
                 that ship with the site.
               </p>
             </div>
+            <div className="ml-auto">
+              <SectionControl
+                sectionKey="reviews"
+                value={styles.reviews}
+                onChange={setStyle("reviews")}
+              />
+            </div>
             <button
               type="button"
               onClick={() =>
@@ -549,6 +530,13 @@ export default function SectionsForm({
                 The three-step explainer in the middle of the page.
               </p>
             </div>
+            <div className="ml-auto">
+              <SectionControl
+                sectionKey="howItWorks"
+                value={styles.howItWorks}
+                onChange={setStyle("howItWorks")}
+              />
+            </div>
             <button
               type="button"
               onClick={() =>
@@ -611,6 +599,13 @@ export default function SectionsForm({
                 Questions shown near the bottom of the home page.
               </p>
             </div>
+            <div className="ml-auto">
+              <SectionControl
+                sectionKey="faq"
+                value={styles.faq}
+                onChange={setStyle("faq")}
+              />
+            </div>
             <button
               type="button"
               onClick={() => setFaqs([...faqs, { q: "", a: "" }])}
@@ -668,14 +663,21 @@ export default function SectionsForm({
 
         {/* ---- Blog strip ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-              Blog strip
-            </h2>
-            <p className="text-[12px] text-[#8a8a8a]">
-              Heading above the recent-posts carousel. The posts themselves come
-              from the blog.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+                Blog strip
+              </h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Heading above the recent-posts carousel. The posts themselves
+                come from the blog.
+              </p>
+            </div>
+            <SectionControl
+              sectionKey="blog"
+              value={styles.blog}
+              onChange={setStyle("blog")}
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -694,13 +696,20 @@ export default function SectionsForm({
 
         {/* ---- Closing CTA ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-              Closing call-to-action
-            </h2>
-            <p className="text-[12px] text-[#8a8a8a]">
-              The banner just above the footer.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+                Closing call-to-action
+              </h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                The banner just above the footer.
+              </p>
+            </div>
+            <SectionControl
+              sectionKey="cta"
+              value={styles.cta}
+              onChange={setStyle("cta")}
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
