@@ -1,42 +1,36 @@
 /**
  * Per-text size and weight, chosen next to the text it applies to.
  *
- * Two deliberate choices:
+ * Sizes are pixel numbers the editor types, because that is what was asked
+ * for: any value, not a set of presets. Two consequences worth knowing.
  *
- * 1. Sizes are *relative* (em), not pixels. Every heading on the site is
- *    responsive — `text-[24px] md:text-[34px]` and so on — so storing "28px"
- *    would flatten that and wreck the phone layout. An em multiplier rides on
- *    top of whatever the design already picked at that breakpoint, so
- *    "Larger" is larger on both mobile and desktop.
+ * A pixel size is fixed, so a heading told to be 40px is 40px on a phone too,
+ * where the design would have used 30. Each text therefore carries an optional
+ * second value for small screens; left blank, the one size applies everywhere.
  *
- * 2. The value is applied as an inline style, never a class. Tailwind only
- *    generates CSS for classes it can see at build time, so a runtime
- *    `text-[${n}px]` produces nothing at all. Inline also outranks the
- *    shipped utility class, which is exactly what an override needs to do.
+ * Applied inline, never as a class: Tailwind only generates CSS for classes it
+ * can see at build time, so a runtime `text-[40px]` produces no CSS at all.
+ * Inline also outranks the shipped utility class, which is what an override has
+ * to do. The mobile value rides along as a CSS variable, picked up by one rule
+ * in globals.css — inline styles cannot hold a media query themselves.
  *
- * Client-safe: no `server-only`, no Payload import, so the editors can import
- * it too.
+ * Client-safe: no `server-only`, no Payload import, so the editors import it too.
  */
 
 import type { CSSProperties } from "react";
 
-export type TextSize = "" | "sm" | "lg" | "xl";
 export type TextWeight = "" | "light" | "regular" | "medium" | "semibold" | "bold";
 
 export type TextStyle = {
-  size: TextSize;
+  /** Font size in px. 0 or absent means the size the design already uses. */
+  px?: number;
+  /** Optional override below 768px. Absent means `px` applies at every width. */
+  pxMobile?: number;
   weight: TextWeight;
 };
 
 /** Nothing chosen — the text renders exactly as designed. */
-export const EMPTY_TEXT_STYLE: TextStyle = { size: "", weight: "" };
-
-export const TEXT_SIZES: { value: TextSize; label: string; em: number }[] = [
-  { value: "", label: "Default", em: 1 },
-  { value: "sm", label: "Smaller", em: 0.875 },
-  { value: "lg", label: "Larger", em: 1.15 },
-  { value: "xl", label: "Much larger", em: 1.3 },
-];
+export const EMPTY_TEXT_STYLE: TextStyle = { weight: "" };
 
 export const TEXT_WEIGHTS: { value: TextWeight; label: string; css: number }[] = [
   { value: "", label: "Default", css: 0 },
@@ -47,46 +41,65 @@ export const TEXT_WEIGHTS: { value: TextWeight; label: string; css: number }[] =
   { value: "bold", label: "Bold", css: 700 },
 ];
 
-const SIZE_EM = new Map(TEXT_SIZES.map((s) => [s.value, s.em]));
 const WEIGHT_CSS = new Map(TEXT_WEIGHTS.map((w) => [w.value, w.css]));
+
+/** Sizes outside this are a typo, not an intention. */
+export const MIN_PX = 8;
+export const MAX_PX = 200;
+
+/** A usable px number, or undefined. Keeps junk out of the rendered page. */
+export function cleanPx(value: unknown): number | undefined {
+  const n = typeof value === "string" ? Number(value) : (value as number);
+  if (typeof n !== "number" || !Number.isFinite(n)) return undefined;
+  const r = Math.round(n);
+  return r >= MIN_PX && r <= MAX_PX ? r : undefined;
+}
 
 /** True when this text has been given any treatment at all. */
 export function hasTextStyle(t?: TextStyle | null): boolean {
-  return Boolean(t && (t.size || t.weight));
+  return Boolean(t && (t.px || t.pxMobile || t.weight));
 }
 
 /**
- * Spread onto the element that holds the text:
- *   <h1 {...textStyleProps(ts.heroTitle)} className="text-[24px] md:text-[34px]">
+ * Spread onto the element holding the text:
+ *   <h1 {...textStyleProps(text.heroTitle)} className="text-[30px] md:text-[42px]">
  *
  * Returns `{}` when nothing is set, so an untouched site renders byte for byte
  * what it renders today.
  */
 export function textStyleProps(t?: TextStyle | null): { style?: CSSProperties } {
   if (!t) return {};
-  const style: CSSProperties = {};
-  const em = SIZE_EM.get(t.size);
-  if (em && em !== 1) style.fontSize = `${em}em`;
+  const style: Record<string, string | number> = {};
+  const px = cleanPx(t.px);
+  const mob = cleanPx(t.pxMobile);
+  if (px) style.fontSize = `${px}px`;
+  // Custom property, not fontSize: a media query cannot live in an inline
+  // style, so globals.css turns this into one below 768px.
+  if (mob) style["--jl-fs-m"] = `${mob}px`;
   const weight = WEIGHT_CSS.get(t.weight);
   if (weight) style.fontWeight = weight;
-  return Object.keys(style).length ? { style } : {};
+  return Object.keys(style).length ? { style: style as CSSProperties } : {};
 }
 
 /** Coerce one stored value, dropping anything unrecognised. */
 function one(value: unknown): TextStyle {
   const v = (value ?? {}) as Partial<TextStyle>;
-  return {
-    size: SIZE_EM.has(v.size as TextSize) ? (v.size as TextSize) : "",
+  const out: TextStyle = {
     weight: WEIGHT_CSS.has(v.weight as TextWeight) ? (v.weight as TextWeight) : "",
   };
+  const px = cleanPx(v.px);
+  const mob = cleanPx(v.pxMobile);
+  if (px) out.px = px;
+  if (mob) out.pxMobile = mob;
+  return out;
 }
 
 /**
  * Merge the stored map over the defaults for a known set of field names.
  *
- * Keyed by the field the editor writes (`heroTitle`, `ctaTitle`, …) so the
- * control can sit beside that field and nothing has to be kept in step by
- * hand. Unknown keys in the database are ignored rather than trusted.
+ * Keyed by the field the editor writes (`heroTitle`, `ctaTitle`, ...) so the
+ * control sits beside that field and nothing has to be kept in step by hand.
+ * Unknown keys in the database are ignored rather than trusted.
  */
 export function mergeTextStyles<K extends string>(
   stored: unknown,

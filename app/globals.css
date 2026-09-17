@@ -344,3 +344,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .consult-flow select:focus {
   border-color: #142e2a;
 }
+
+/* Per-text mobile size from the CMS.
+   An inline style cannot hold a media query, so the editor's mobile value
+   travels as --jl-fs-m and this turns it into a real one below 768px.
+   Scoped to elements that actually carry the variable, so nothing else is
+   touched; !important because it has to beat the inline desktop size. */
+@media (max-width: 767px) {
+  [style*="--jl-fs-m"] {
+    font-size: var(--jl-fs-m) !important;
+  }
+}

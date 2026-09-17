@@ -1,6 +1,8 @@
 "use client";
 
 import { fieldInput, fieldLabel } from "./LinkFields";
+import TypeControl from "./TypeControl";
+import type { TextStyle } from "@/lib/textStyle";
 import MediaPicker from "./MediaPicker";
 
 /**
@@ -154,17 +156,30 @@ export function TextField({
   onChange,
   hint,
   placeholder,
+  id,
+  style,
+  onStyle,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   hint?: string;
   placeholder?: string;
+  id?: string;
+  /** Pass both to show the "Aa" size and weight control on this field. */
+  style?: TextStyle;
+  onStyle?: (next: TextStyle) => void;
 }) {
   return (
     <div>
-      <label className={fieldLabel}>{label}</label>
+      <div className="flex items-center justify-between gap-2">
+        <label className={fieldLabel} htmlFor={id}>{label}</label>
+        {onStyle ? (
+          <TypeControl label={label} value={style} onChange={onStyle} />
+        ) : null}
+      </div>
       <input
+        id={id}
         className={`${fieldInput} mt-1`}
         value={value}
         placeholder={placeholder}
@@ -182,17 +197,30 @@ export function AreaField({
   onChange,
   rows = 3,
   hint,
+  id,
+  style,
+  onStyle,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   rows?: number;
   hint?: string;
+  id?: string;
+  /** Pass both to show the "Aa" size and weight control on this field. */
+  style?: TextStyle;
+  onStyle?: (next: TextStyle) => void;
 }) {
   return (
     <div>
-      <label className={fieldLabel}>{label}</label>
+      <div className="flex items-center justify-between gap-2">
+        <label className={fieldLabel} htmlFor={id}>{label}</label>
+        {onStyle ? (
+          <TypeControl label={label} value={style} onChange={onStyle} />
+        ) : null}
+      </div>
       <textarea
+        id={id}
         rows={rows}
         className={`${fieldInput} mt-1`}
         value={value}

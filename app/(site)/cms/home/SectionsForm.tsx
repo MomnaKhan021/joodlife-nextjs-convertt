@@ -16,7 +16,7 @@ import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import TreatmentsEditor from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
 import StyleFields from "../StyleFields";
-import TextField from "../TextField";
+import { AreaField, TextField } from "../FormKit";
 import { type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import {
   HOME_STYLE_KEYS,
@@ -299,7 +299,7 @@ export default function SectionsForm({
               <input id="heroCtaH" className={`${fieldInput} mt-1`} value={heroCtaHref} onChange={(e) => setHeroCtaHref(e.target.value)} />
             </div>
             <div className="sm:col-span-2">
-              <TextField
+              <AreaField
                 id="heroBody"
                 label="Body copy"
                 rows={3}
