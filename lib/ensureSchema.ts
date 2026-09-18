@@ -509,6 +509,7 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
 
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
@@ -530,7 +531,7 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v30";
+const SCHEMA_VERSION = "v31";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

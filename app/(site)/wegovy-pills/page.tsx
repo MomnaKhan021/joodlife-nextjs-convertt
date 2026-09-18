@@ -16,6 +16,7 @@ import Dosing from "@/components/wegovy/Dosing";
 import WhyChoose from "@/components/wegovy/WhyChoose";
 import WegovyFaq from "@/components/wegovy/WegovyFaq";
 import FinalCta from "@/components/wegovy/FinalCta";
+import { textStyleProps } from "@/lib/textStyle";
 
 export const metadata: Metadata = {
   title: "Wegovy Pills in the UK — Once-daily oral semaglutide | JoodLife",
@@ -42,22 +43,25 @@ export default async function WegovyPillsPage() {
         {...styleProps(c.styles.announcement)}
         className="w-full bg-[#142e2a]"
       >
-        <p className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[13px] font-semibold leading-[16.9px] tracking-[-0.02em] text-white md:px-10 lg:px-[60px]">
+        <p
+          {...textStyleProps(c.textStyles["announcement.text"])}
+          className="mx-auto w-full max-w-[1440px] px-6 py-2 text-center font-ui text-[13px] font-semibold leading-[16.9px] tracking-[-0.02em] text-white md:px-10 lg:px-[60px]"
+        >
           {c.announcement.text}
         </p>
       </div>
       <Header />
-      <Hero content={c.hero} style={c.styles.hero} />
+      <Hero content={c.hero} style={c.styles.hero} text={c.textStyles} />
       <UspBar content={c.uspBar} style={c.styles.uspBar} />
-      <WhatIsPill content={c.whatIsPill} style={c.styles.whatIsPill} />
-      <Comparison content={c.comparison} style={c.styles.comparison} />
-      <HowItWorks content={c.howItWorks} style={c.styles.howItWorks} />
+      <WhatIsPill content={c.whatIsPill} style={c.styles.whatIsPill} text={c.textStyles} />
+      <Comparison content={c.comparison} style={c.styles.comparison} text={c.textStyles} />
+      <HowItWorks content={c.howItWorks} style={c.styles.howItWorks} text={c.textStyles} />
       <Reviews />
-      <RealResults content={c.realResults} style={c.styles.realResults} />
-      <Dosing content={c.dosing} style={c.styles.dosing} />
-      <WhyChoose content={c.whyChoose} style={c.styles.whyChoose} />
-      <WegovyFaq content={c.faq} style={c.styles.faq} />
-      <FinalCta content={c.finalCta} style={c.styles.finalCta} />
+      <RealResults content={c.realResults} style={c.styles.realResults} text={c.textStyles} />
+      <Dosing content={c.dosing} style={c.styles.dosing} text={c.textStyles} />
+      <WhyChoose content={c.whyChoose} style={c.styles.whyChoose} text={c.textStyles} />
+      <WegovyFaq content={c.faq} style={c.styles.faq} text={c.textStyles} />
+      <FinalCta content={c.finalCta} style={c.styles.finalCta} text={c.textStyles} />
       <Footer />
     </main>
   );

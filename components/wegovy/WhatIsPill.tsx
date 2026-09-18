@@ -11,6 +11,7 @@ import {
   type WegovyWhatIsPill,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "What is the Wegovy pill?" — Figma node 1:1610.
@@ -58,10 +59,13 @@ function CardView({ c }: { c: ExplainerCard }) {
 export default function WhatIsPill({
   content = WEGOVY_DEFAULT.whatIsPill,
   style,
+  text,
 }: {
   content?: WegovyWhatIsPill;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -75,21 +79,21 @@ export default function WhatIsPill({
           className="mb-9 flex flex-col items-start justify-between gap-5 md:flex-row md:items-end"
         >
           <div className="max-w-[720px]">
-            <h2 className="font-display text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] sm:text-[34px] md:text-[48px] md:leading-[52px]">
+            <h2 {...textStyleProps(text?.["whatIsPill.heading"])} className="font-display text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] sm:text-[34px] md:text-[48px] md:leading-[52px]">
               {content.heading}{" "}
-              <span className="font-serif italic font-normal">
+              <span {...textStyleProps(text?.["whatIsPill.headingAccent"])} className="font-serif italic font-normal">
                 {content.headingAccent}
               </span>
             </h2>
-            <p className="mt-4 font-ui text-[18px] font-semibold leading-[24px] tracking-[-0.02em] text-[#142e2a] md:text-[20px]">
+            <p {...textStyleProps(text?.["whatIsPill.kicker"])} className="mt-4 font-ui text-[18px] font-semibold leading-[24px] tracking-[-0.02em] text-[#142e2a] md:text-[20px]">
               {content.kicker}
             </p>
-            <p className="mt-3 font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[24px]">
+            <p {...textStyleProps(text?.["whatIsPill.body"])} className="mt-3 font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[24px]">
               {content.body}
             </p>
           </div>
           {content.ctaLabel ? (
-            <a
+            <a {...textStyleProps(text?.["whatIsPill.ctaLabel"])}
               href={content.ctaHref}
               className="hidden h-[50px] shrink-0 items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:inline-flex"
             >
@@ -125,7 +129,7 @@ export default function WhatIsPill({
       {/* Mobile CTA — full-width below the cards, per Figma */}
       <div className="mx-auto w-full max-w-[1440px] px-4 md:hidden">
         {content.ctaLabel ? (
-          <a
+          <a {...textStyleProps(text?.["whatIsPill.ctaLabel"])}
             href={content.ctaHref}
             className="mt-6 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-[50px] font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
           >

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 import {
   USP_ICONS,
@@ -19,6 +19,8 @@ import {
   type WegovyStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
+import TypeControl from "../TypeControl";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editor for /wegovy-pills — eleven sections, in the order a reader meets
@@ -47,6 +49,31 @@ const USP_ICON_LABEL: Record<UspIcon, string> = {
 };
 
 /** Amber note marking a block whose wording is clinically regulated. */
+/**
+ * The "Aa" size/weight control for one text, by key. Reads and writes through
+ * context so the module-level helpers below can use it without every call site
+ * threading state through.
+ */
+const TextStyleCtx = createContext<{
+  get: (k: string) => TextStyle | undefined;
+  set: (k: string) => (next: TextStyle) => void;
+} | null>(null);
+
+function Ts({ k, label }: { k?: string; label: string }) {
+  const ctx = useContext(TextStyleCtx);
+  if (!ctx || !k) return null;
+  return <TypeControl label={label} value={ctx.get(k)} onChange={ctx.set(k)} />;
+}
+
+function LabelRow({ children, k, label }: { children: React.ReactNode; k?: string; label: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      {children}
+      <Ts k={k} label={label} />
+    </div>
+  );
+}
+
 function Regulated({ children }: { children: React.ReactNode }) {
   return (
     <p className="rounded-lg border border-[#f0e2c0] bg-[#fffaf0] px-3 py-2 text-[12px] leading-relaxed text-[#8a6100]">
@@ -70,17 +97,24 @@ function Pair({
   second,
   onFirst,
   onSecond,
+  firstKey,
+  secondKey,
 }: {
   label: string;
   first: string;
   second: string;
   onFirst: (v: string) => void;
   onSecond: (v: string) => void;
+  /** Text-style keys; pass them to show the "Aa" control on each half. */
+  firstKey?: string;
+  secondKey?: string;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
-        <label className={fieldLabel}>{label}</label>
+        <LabelRow k={firstKey} label={label}>
+          <label className={fieldLabel}>{label}</label>
+        </LabelRow>
         <input
           className={`${fieldInput} mt-1`}
           value={first}
@@ -88,7 +122,9 @@ function Pair({
         />
       </div>
       <div>
-        <label className={fieldLabel}>{label} (italic part)</label>
+        <LabelRow k={secondKey} label={`${label} (italic part)`}>
+          <label className={fieldLabel}>{label} (italic part)</label>
+        </LabelRow>
         <input
           className={`${fieldInput} mt-1`}
           value={second}
@@ -105,16 +141,21 @@ function CtaFields({
   href,
   onLabel,
   onHref,
+  labelKey,
 }: {
   label: string;
   href: string;
   onLabel: (v: string) => void;
   onHref: (v: string) => void;
+  /** Text-style key for the button text. */
+  labelKey?: string;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
-        <label className={fieldLabel}>Button text</label>
+        <LabelRow k={labelKey} label="Button text">
+          <label className={fieldLabel}>Button text</label>
+        </LabelRow>
         <input
           className={`${fieldInput} mt-1`}
           value={label}
@@ -369,6 +410,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
     try {
       await saveGlobal("wegovy-page", {
         styles,
+        textStyles,
         announcement,
         hero: { ...hero, stats: hero.stats.filter((s) => s.trim()) },
         uspBar: { items: uspBar.items.filter((i) => i.label.trim()) },
@@ -399,7 +441,17 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
     }
   }
 
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
   return (
+    <TextStyleCtx.Provider value={textStyleApi}>
     <div className="mx-auto w-full max-w-[1000px]">
       <header className="mb-6">
         <Link
@@ -469,9 +521,11 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 1. Announcement */}
         <div className={card}>
-          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-            1. Strip above the header
-          </h2>
+          <LabelRow k="announcement.text" label="Strip above the header">
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+              1. Strip above the header
+            </h2>
+          </LabelRow>
           <input
             aria-label="Announcement text"
             className={fieldInput}
@@ -491,11 +545,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Title"
             first={hero.title}
             second={hero.titleAccent}
+            firstKey="hero.title"
+            secondKey="hero.titleAccent"
             onFirst={(v) => setHero({ ...hero, title: v })}
             onSecond={(v) => setHero({ ...hero, titleAccent: v })}
           />
           <div>
-            <label className={fieldLabel}>Body</label>
+            <LabelRow k="hero.body" label="Body">
+              <label className={fieldLabel}>Body</label>
+            </LabelRow>
             <textarea
               rows={3}
               className={`${fieldInput} mt-1`}
@@ -504,7 +562,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             />
           </div>
           <div>
-            <label className={fieldLabel}>Trustpilot line</label>
+            <LabelRow k="hero.reviewsLabel" label="Trustpilot line">
+              <label className={fieldLabel}>Trustpilot line</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={hero.reviewsLabel}
@@ -515,6 +575,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <CtaFields
             label={hero.ctaLabel}
+            labelKey="hero.ctaLabel"
             href={hero.ctaHref}
             onLabel={(v) => setHero({ ...hero, ctaLabel: v })}
             onHref={(v) => setHero({ ...hero, ctaHref: v })}
@@ -633,11 +694,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={whatIsPill.heading}
             second={whatIsPill.headingAccent}
+            firstKey="whatIsPill.heading"
+            secondKey="whatIsPill.headingAccent"
             onFirst={(v) => setWhatIsPill({ ...whatIsPill, heading: v })}
             onSecond={(v) => setWhatIsPill({ ...whatIsPill, headingAccent: v })}
           />
           <div>
-            <label className={fieldLabel}>Bold line</label>
+            <LabelRow k="whatIsPill.kicker" label="Bold line">
+              <label className={fieldLabel}>Bold line</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={whatIsPill.kicker}
@@ -647,7 +712,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             />
           </div>
           <div>
-            <label className={fieldLabel}>Body</label>
+            <LabelRow k="whatIsPill.body" label="Body">
+              <label className={fieldLabel}>Body</label>
+            </LabelRow>
             <textarea
               rows={4}
               className={`${fieldInput} mt-1`}
@@ -659,6 +726,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <CtaFields
             label={whatIsPill.ctaLabel}
+            labelKey="whatIsPill.ctaLabel"
             href={whatIsPill.ctaHref}
             onLabel={(v) => setWhatIsPill({ ...whatIsPill, ctaLabel: v })}
             onHref={(v) => setWhatIsPill({ ...whatIsPill, ctaHref: v })}
@@ -791,11 +859,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={comparison.heading}
             second={comparison.headingAccent}
+            firstKey="comparison.heading"
+            secondKey="comparison.headingAccent"
             onFirst={(v) => setComparison({ ...comparison, heading: v })}
             onSecond={(v) => setComparison({ ...comparison, headingAccent: v })}
           />
           <div>
-            <label className={fieldLabel}>Intro</label>
+            <LabelRow k="comparison.body" label="Intro">
+              <label className={fieldLabel}>Intro</label>
+            </LabelRow>
             <textarea
               rows={3}
               className={`${fieldInput} mt-1`}
@@ -807,7 +879,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Left card title</label>
+              <LabelRow k="comparison.pillTitle" label="Left card title">
+                <label className={fieldLabel}>Left card title</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={comparison.pillTitle}
@@ -817,7 +891,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Right card title</label>
+              <LabelRow k="comparison.penTitle" label="Right card title">
+                <label className={fieldLabel}>Right card title</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={comparison.penTitle}
@@ -845,6 +921,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <CtaFields
             label={comparison.ctaLabel}
+            labelKey="comparison.ctaLabel"
             href={comparison.ctaHref}
             onLabel={(v) => setComparison({ ...comparison, ctaLabel: v })}
             onHref={(v) => setComparison({ ...comparison, ctaHref: v })}
@@ -860,11 +937,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={howItWorks.heading}
             second={howItWorks.headingAccent}
+            firstKey="howItWorks.heading"
+            secondKey="howItWorks.headingAccent"
             onFirst={(v) => setHowItWorks({ ...howItWorks, heading: v })}
             onSecond={(v) => setHowItWorks({ ...howItWorks, headingAccent: v })}
           />
           <div>
-            <label className={fieldLabel}>Intro</label>
+            <LabelRow k="howItWorks.intro" label="Intro">
+              <label className={fieldLabel}>Intro</label>
+            </LabelRow>
             <textarea
               rows={3}
               className={`${fieldInput} mt-1`}
@@ -902,7 +983,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             </div>
           </div>
           <div>
-            <label className={fieldLabel}>Body below the image</label>
+            <LabelRow k="howItWorks.body" label="Body below the image">
+              <label className={fieldLabel}>Body below the image</label>
+            </LabelRow>
             <textarea
               rows={3}
               className={`${fieldInput} mt-1`}
@@ -914,13 +997,16 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <CtaFields
             label={howItWorks.ctaLabel}
+            labelKey="howItWorks.ctaLabel"
             href={howItWorks.ctaHref}
             onLabel={(v) => setHowItWorks({ ...howItWorks, ctaLabel: v })}
             onHref={(v) => setHowItWorks({ ...howItWorks, ctaHref: v })}
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Second button text</label>
+              <LabelRow k="howItWorks.secondaryLabel" label="Second button text">
+                <label className={fieldLabel}>Second button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={howItWorks.secondaryLabel}
@@ -974,12 +1060,16 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={realResults.heading}
             second={realResults.headingAccent}
+            firstKey="realResults.heading"
+            secondKey="realResults.headingAccent"
             onFirst={(v) => setRealResults({ ...realResults, heading: v })}
             onSecond={(v) => setRealResults({ ...realResults, headingAccent: v })}
           />
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className={fieldLabel}>Above the number</label>
+              <LabelRow k="realResults.statPrefix" label="Above the number">
+                <label className={fieldLabel}>Above the number</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={realResults.statPrefix}
@@ -989,7 +1079,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>The number</label>
+              <LabelRow k="realResults.statValue" label="The number">
+                <label className={fieldLabel}>The number</label>
+              </LabelRow>
               <input
                 type="number"
                 step="0.1"
@@ -1004,7 +1096,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>After the number</label>
+              <LabelRow k="realResults.statSuffix" label="After the number">
+                <label className={fieldLabel}>After the number</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={realResults.statSuffix}
@@ -1015,7 +1109,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             </div>
           </div>
           <div>
-            <label className={fieldLabel}>Caption under the number</label>
+            <LabelRow k="realResults.statCaption" label="Caption under the number">
+              <label className={fieldLabel}>Caption under the number</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={realResults.statCaption}
@@ -1026,7 +1122,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Study card title</label>
+              <LabelRow k="realResults.studyTitle" label="Study card title">
+                <label className={fieldLabel}>Study card title</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={realResults.studyTitle}
@@ -1036,7 +1134,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Study card body</label>
+              <LabelRow k="realResults.studyBody" label="Study card body">
+                <label className={fieldLabel}>Study card body</label>
+              </LabelRow>
               <textarea
                 rows={3}
                 className={`${fieldInput} mt-1`}
@@ -1061,7 +1161,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Overlay card title</label>
+              <LabelRow k="realResults.overlayTitle" label="Overlay card title">
+                <label className={fieldLabel}>Overlay card title</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={realResults.overlayTitle}
@@ -1074,7 +1176,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Overlay card body</label>
+              <LabelRow k="realResults.overlayBody" label="Overlay card body">
+                <label className={fieldLabel}>Overlay card body</label>
+              </LabelRow>
               <textarea
                 rows={4}
                 className={`${fieldInput} mt-1`}
@@ -1100,11 +1204,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading (this half is italic)"
             first={dosing.heading}
             second={dosing.headingAccent}
+            firstKey="dosing.heading"
+            secondKey="dosing.headingAccent"
             onFirst={(v) => setDosing({ ...dosing, heading: v })}
             onSecond={(v) => setDosing({ ...dosing, headingAccent: v })}
           />
           <div>
-            <label className={fieldLabel}>Body</label>
+            <LabelRow k="dosing.body" label="Body">
+              <label className={fieldLabel}>Body</label>
+            </LabelRow>
             <textarea
               rows={3}
               className={`${fieldInput} mt-1`}
@@ -1120,7 +1228,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             onAlt={(v) => setDosing({ ...dosing, imageAlt: v })}
           />
           <div>
-            <label className={fieldLabel}>&ldquo;Start here&rdquo; flag text</label>
+            <LabelRow k="dosing.startBadge" label="&ldquo;Start here&rdquo; flag text">
+              <label className={fieldLabel}>&ldquo;Start here&rdquo; flag text</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={dosing.startBadge}
@@ -1253,6 +1363,8 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={whyChoose.heading}
             second={whyChoose.headingAccent}
+            firstKey="whyChoose.heading"
+            secondKey="whyChoose.headingAccent"
             onFirst={(v) => setWhyChoose({ ...whyChoose, heading: v })}
             onSecond={(v) => setWhyChoose({ ...whyChoose, headingAccent: v })}
           />
@@ -1267,7 +1379,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             The safety notice below is required wording. Do not remove it.
           </Regulated>
           <div>
-            <label className={fieldLabel}>Safety notice title</label>
+            <LabelRow k="whyChoose.safetyTitle" label="Safety notice title">
+              <label className={fieldLabel}>Safety notice title</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={whyChoose.safetyTitle}
@@ -1277,7 +1391,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             />
           </div>
           <div>
-            <label className={fieldLabel}>Safety notice body</label>
+            <LabelRow k="whyChoose.safetyBody" label="Safety notice body">
+              <label className={fieldLabel}>Safety notice body</label>
+            </LabelRow>
             <textarea
               rows={4}
               className={`${fieldInput} mt-1`}
@@ -1316,6 +1432,8 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={faq.heading}
             second={faq.headingAccent}
+            firstKey="faq.heading"
+            secondKey="faq.headingAccent"
             onFirst={(v) => setFaq({ ...faq, heading: v })}
             onSecond={(v) => setFaq({ ...faq, headingAccent: v })}
           />
@@ -1410,11 +1528,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             label="Heading"
             first={finalCta.heading}
             second={finalCta.headingAccent}
+            firstKey="finalCta.heading"
+            secondKey="finalCta.headingAccent"
             onFirst={(v) => setFinalCta({ ...finalCta, heading: v })}
             onSecond={(v) => setFinalCta({ ...finalCta, headingAccent: v })}
           />
           <div>
-            <label className={fieldLabel}>Body</label>
+            <LabelRow k="finalCta.body" label="Body">
+              <label className={fieldLabel}>Body</label>
+            </LabelRow>
             <textarea
               rows={2}
               className={`${fieldInput} mt-1`}
@@ -1426,6 +1548,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           </div>
           <CtaFields
             label={finalCta.ctaLabel}
+            labelKey="finalCta.ctaLabel"
             href={finalCta.ctaHref}
             onLabel={(v) => setFinalCta({ ...finalCta, ctaLabel: v })}
             onHref={(v) => setFinalCta({ ...finalCta, ctaHref: v })}
@@ -1442,7 +1565,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             higher up the page. Removing it leaves those figures unqualified.
           </Regulated>
           <div>
-            <label className={fieldLabel}>Small print</label>
+            <LabelRow k="finalCta.disclaimer" label="Small print">
+              <label className={fieldLabel}>Small print</label>
+            </LabelRow>
             <textarea
               rows={4}
               className={`${fieldInput} mt-1`}
@@ -1479,5 +1604,6 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         leaving it blank.
       </p>
     </div>
+    </TextStyleCtx.Provider>
   );
 }

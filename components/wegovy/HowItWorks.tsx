@@ -6,6 +6,7 @@ import {
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "How do Wegovy pills work?" — Figma node 1:1725.
@@ -118,10 +119,13 @@ const CALLOUTS: Callout[] = [
 export default function HowItWorks({
   content = WEGOVY_DEFAULT.howItWorks,
   style,
+  text,
 }: {
   content?: WegovyHowItWorks;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -154,11 +158,11 @@ export default function HowItWorks({
 
         {/* Heading + subtitle — centred, max-w 580px */}
         <Reveal as="div" className="mx-auto max-w-[640px] text-center">
-          <h2 className="font-display text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[48px] lg:leading-[52px]">
+          <h2 {...textStyleProps(text?.["howItWorks.heading"])} className="font-display text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[48px] lg:leading-[52px]">
             {content.heading}{" "}
-            <em className="font-serif italic">{content.headingAccent}</em>
+            <em {...textStyleProps(text?.["howItWorks.headingAccent"])} className="font-serif italic">{content.headingAccent}</em>
           </h2>
-          <p className="mx-auto mt-4 max-w-[580px] font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
+          <p {...textStyleProps(text?.["howItWorks.intro"])} className="mx-auto mt-4 max-w-[580px] font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
             {content.intro}
           </p>
         </Reveal>
@@ -205,12 +209,12 @@ export default function HowItWorks({
 
         {/* Description + buttons — centred */}
         <Reveal as="div" className="mx-auto mt-4 max-w-[690px] text-center" delay={120}>
-          <p className="font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
+          <p {...textStyleProps(text?.["howItWorks.body"])} className="font-ui text-[13px] leading-[20px] text-white/90 md:text-[16.3px] md:leading-[24px]">
             {content.body}
           </p>
           <div className="mt-7 flex items-center justify-center gap-4">
             {content.ctaLabel ? (
-              <EligibilityCta
+              <EligibilityCta {...textStyleProps(text?.["howItWorks.ctaLabel"])}
                 product="weight-loss"
                 href={content.ctaHref}
                 label={content.ctaLabel}
@@ -221,7 +225,7 @@ export default function HowItWorks({
                 defaults to #faq, the tablet's own questions further down,
                 rather than the weight-loss injection page. */}
             {content.secondaryLabel ? (
-              <a
+              <a {...textStyleProps(text?.["howItWorks.secondaryLabel"])}
                 href={content.secondaryHref}
                 className="inline-flex h-[50px] items-center justify-center rounded-lg border border-white/40 bg-white/[0.08] px-9 font-ui text-[16.3px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/15"
               >

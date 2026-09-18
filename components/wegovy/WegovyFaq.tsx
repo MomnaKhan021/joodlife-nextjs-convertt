@@ -7,6 +7,7 @@ import {
   type WegovyFaqContent,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Wegovy FAQ — Figma node 1:2097.
@@ -19,10 +20,13 @@ import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 export default function WegovyFaq({
   content = WEGOVY_DEFAULT.faq,
   style,
+  text,
 }: {
   content?: WegovyFaqContent;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const [open, setOpen] = useState<number | null>(null);
 
@@ -38,9 +42,9 @@ export default function WegovyFaq({
 
           {/* LEFT — heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}
           <Reveal as="div">
-            <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+            <h2 {...textStyleProps(text?.["faq.heading"])} className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
               {content.heading}{" "}
-              <em className="font-serif italic font-normal">
+              <em {...textStyleProps(text?.["faq.headingAccent"])} className="font-serif italic font-normal">
                 {content.headingAccent}
               </em>
             </h2>

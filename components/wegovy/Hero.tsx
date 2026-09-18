@@ -6,6 +6,7 @@ import {
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Wegovy Pills landing hero — Figma node 1:1506 (desktop) / 1:2362 (mobile).
@@ -31,7 +32,13 @@ function CheckBadge() {
   );
 }
 
-function HeroCopy({ c }: { c: WegovyHero }) {
+function HeroCopy({
+  c,
+  text,
+}: {
+  c: WegovyHero;
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -49,22 +56,22 @@ function HeroCopy({ c }: { c: WegovyHero }) {
           height={16}
           className="h-4 w-auto"
         />
-        <span className="font-ui text-[14.2px] text-white/90">
+        <span {...textStyleProps(text?.["hero.reviewsLabel"])} className="font-ui text-[14.2px] text-white/90">
           {c.reviewsLabel}
         </span>
       </div>
 
-      <h1 className="font-display text-[26px] font-semibold leading-[1.12] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[46px] lg:leading-[1.1]">
+      <h1 {...textStyleProps(text?.["hero.title"])} className="font-display text-[26px] font-semibold leading-[1.12] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[46px] lg:leading-[1.1]">
         {c.title}
         <br />
-        <span className="font-serif italic font-normal">{c.titleAccent}</span>
+        <span {...textStyleProps(text?.["hero.titleAccent"])} className="font-serif italic font-normal">{c.titleAccent}</span>
       </h1>
-      <p className="mt-4 max-w-[480px] font-ui text-[15px] leading-[1.5] text-white/85 sm:text-[16px] md:text-[17px] md:leading-[1.5]">
+      <p {...textStyleProps(text?.["hero.body"])} className="mt-4 max-w-[480px] font-ui text-[15px] leading-[1.5] text-white/85 sm:text-[16px] md:text-[17px] md:leading-[1.5]">
         {c.body}
       </p>
 
       {c.ctaLabel ? (
-        <EligibilityCta
+        <EligibilityCta {...textStyleProps(text?.["hero.ctaLabel"])}
           product="weight-loss"
           href={c.ctaHref}
           label={c.ctaLabel}
@@ -89,10 +96,13 @@ function HeroCopy({ c }: { c: WegovyHero }) {
 export default function Hero({
   content = WEGOVY_DEFAULT.hero,
   style,
+  text,
 }: {
   content?: WegovyHero;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -131,7 +141,7 @@ export default function Hero({
 
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-12 md:px-10 md:py-20 lg:px-[60px] lg:py-[110px]">
         <Reveal as="div" className="max-w-[720px]">
-          <HeroCopy c={content} />
+          <HeroCopy c={content} text={text} />
         </Reveal>
       </div>
     </section>

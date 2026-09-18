@@ -33,6 +33,11 @@ export const WegovyPage: GlobalConfig = {
     { name: "faq", type: "json", admin: { description: "Accordion questions." } },
     { name: "finalCta", type: "json", admin: { description: "Closing card and disclaimer." } },
     {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by section.field." },
+    },
+    {
       name: "styles",
       type: "json",
       admin: {

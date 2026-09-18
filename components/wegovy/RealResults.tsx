@@ -6,6 +6,7 @@ import {
   type WegovyRealResults,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "Real results with Wegovy" — Figma node 1:1948.
@@ -16,10 +17,13 @@ import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 export default function RealResults({
   content = WEGOVY_DEFAULT.realResults,
   style,
+  text,
 }: {
   content?: WegovyRealResults;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   // The stat drives the count-up animation, so how many decimals to show is
   // derived from the value rather than stored as its own field.
@@ -56,9 +60,9 @@ export default function RealResults({
               }}
             />
 
-            <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+            <h2 {...textStyleProps(text?.["realResults.heading"])} className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
               {content.heading}{" "}
-              <span className="font-serif italic font-normal">
+              <span {...textStyleProps(text?.["realResults.headingAccent"])} className="font-serif italic font-normal">
                 {content.headingAccent}
               </span>
             </h2>
@@ -72,17 +76,17 @@ export default function RealResults({
                     <path d="M19.9981 16.4515L19.6794 13.3137C19.6425 12.9692 19.229 12.8212 18.9919 13.0634L18.2386 13.8331L13.4949 8.98646C13.1973 8.68237 12.6731 8.68237 12.3755 8.98646L9.76262 11.656L5.34815 7.14307C5.19538 6.98699 4.99258 6.90625 4.78976 6.90625C4.58694 6.90625 4.38414 6.98699 4.23137 7.14307C3.9232 7.45793 3.9232 7.96922 4.23137 8.28677L9.20423 13.3675C9.50186 13.6716 10.026 13.6716 10.321 13.3675L12.9365 10.698L17.1218 14.9741L16.2394 15.8756C15.9998 16.1205 16.1446 16.543 16.4818 16.578L19.5529 16.9036C19.8084 16.9332 20.0244 16.7125 19.9981 16.4515Z" fill="white"/>
                   </svg>
                 </span>
-                <span className="font-ui text-[18px] text-white/85 md:text-[22px]">
+                <span {...textStyleProps(text?.["realResults.statPrefix"])} className="font-ui text-[18px] text-white/85 md:text-[22px]">
                   {content.statPrefix}
                 </span>
               </span>
-              <CountUpPercent
+              <CountUpPercent {...textStyleProps(text?.["realResults.statSuffix"])} {...textStyleProps(text?.["realResults.statValue"])}
                 value={content.statValue}
                 decimals={decimals}
                 suffix={content.statSuffix}
                 className="mt-1 block font-display text-[54px] font-medium leading-none text-white sm:text-[68px] md:text-[96px] lg:text-[120px]"
               />
-              <p className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
+              <p {...textStyleProps(text?.["realResults.statCaption"])} className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
                 {content.statCaption}
               </p>
             </div>
@@ -96,10 +100,10 @@ export default function RealResults({
                 </svg>
               </span>
               <div>
-                <p className="font-display text-[18px] font-semibold leading-tight text-white md:text-[22px]">
+                <p {...textStyleProps(text?.["realResults.studyTitle"])} className="font-display text-[18px] font-semibold leading-tight text-white md:text-[22px]">
                   {content.studyTitle}
                 </p>
-                <p className="font-ui text-[16px] font-semibold leading-[1.2] text-white/80 md:text-[22px]">
+                <p {...textStyleProps(text?.["realResults.studyBody"])} className="font-ui text-[16px] font-semibold leading-[1.2] text-white/80 md:text-[22px]">
                   {content.studyBody}
                 </p>
               </div>
@@ -128,10 +132,10 @@ export default function RealResults({
                 </svg>
               </span>
               <div>
-                <p className="font-ui text-[18px] font-semibold text-white md:text-[22px]">
+                <p {...textStyleProps(text?.["realResults.overlayTitle"])} className="font-ui text-[18px] font-semibold text-white md:text-[22px]">
                   {content.overlayTitle}
                 </p>
-                <p className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
+                <p {...textStyleProps(text?.["realResults.overlayBody"])} className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
                   {content.overlayBody}
                 </p>
               </div>

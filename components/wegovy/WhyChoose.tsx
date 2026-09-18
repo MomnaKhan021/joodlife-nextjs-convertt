@@ -5,6 +5,7 @@ import {
   type WegovyWhyChoose,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "Why Choose Jood Life for Wegovy" — Figma node 1:2049.
@@ -15,10 +16,13 @@ import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 export default function WhyChoose({
   content = WEGOVY_DEFAULT.whyChoose,
   style,
+  text,
 }: {
   content?: WegovyWhyChoose;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -54,9 +58,9 @@ export default function WhyChoose({
 
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
         <Reveal as="div" className="max-w-[560px]">
-          <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text?.["whyChoose.heading"])} className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
             {content.heading}{" "}
-            <span className="font-serif italic font-normal">
+            <span {...textStyleProps(text?.["whyChoose.headingAccent"])} className="font-serif italic font-normal">
               {content.headingAccent}
             </span>
           </h2>
@@ -80,10 +84,10 @@ export default function WhyChoose({
           </ul>
 
           <div className="mt-8 max-w-[520px]">
-            <p className="font-ui text-[16px] font-semibold text-white md:text-[18px]">
+            <p {...textStyleProps(text?.["whyChoose.safetyTitle"])} className="font-ui text-[16px] font-semibold text-white md:text-[18px]">
               {content.safetyTitle}
             </p>
-            <p className="mt-2 font-ui text-[15px] leading-[21px] text-white/80 md:text-[16.3px]">
+            <p {...textStyleProps(text?.["whyChoose.safetyBody"])} className="mt-2 font-ui text-[15px] leading-[21px] text-white/80 md:text-[16.3px]">
               {content.safetyBody}
             </p>
           </div>

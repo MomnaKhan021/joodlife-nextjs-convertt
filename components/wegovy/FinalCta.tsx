@@ -6,6 +6,7 @@ import {
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Closing CTA — Figma node 1:2132.
@@ -18,10 +19,13 @@ import EligibilityCta from "@/components/ui/EligibilityCta";
 export default function FinalCta({
   content = WEGOVY_DEFAULT.finalCta,
   style,
+  text,
 }: {
   content?: WegovyFinalCta;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -56,15 +60,15 @@ export default function FinalCta({
                 </span>
 
                 {/* Heading: Gilroy-SemiBold 48px / lh 52px / ls -1.2px */}
-                <h2 className="max-w-[425px] font-display text-[36px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+                <h2 {...textStyleProps(text?.["finalCta.heading"])} className="max-w-[425px] font-display text-[36px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
                   {content.heading}{" "}
-                  <em className="font-serif italic font-normal">
+                  <em {...textStyleProps(text?.["finalCta.headingAccent"])} className="font-serif italic font-normal">
                     {content.headingAccent}
                   </em>
                 </h2>
 
                 {/* Body: Saans 16.3px / lh 19.5px / w380 / ls -0.32px */}
-                <p className="max-w-[425px] font-ui text-[15px] leading-[19.5px] tracking-[-0.02em] text-[#142e2a]/70 md:text-[16.3px]">
+                <p {...textStyleProps(text?.["finalCta.body"])} className="max-w-[425px] font-ui text-[15px] leading-[19.5px] tracking-[-0.02em] text-[#142e2a]/70 md:text-[16.3px]">
                   {content.body}
                 </p>
               </div>
@@ -84,7 +88,7 @@ export default function FinalCta({
               {/* RIGHT — outlined button: 183×50, border=#0c2421, px=50px, Saans w570 */}
               <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-0 md:py-0">
                 {content.ctaLabel ? (
-                  <EligibilityCta
+                  <EligibilityCta {...textStyleProps(text?.["finalCta.ctaLabel"])}
                     product="weight-loss"
                     href={content.ctaHref}
                     label={content.ctaLabel}
@@ -97,7 +101,7 @@ export default function FinalCta({
           </div>
 
           {/* Footer disclaimer */}
-          <p className="mt-6 font-ui text-[11px] leading-[16px] text-[#142e2a]/55">
+          <p {...textStyleProps(text?.["finalCta.disclaimer"])} className="mt-6 font-ui text-[11px] leading-[16px] text-[#142e2a]/55">
             {content.disclaimer}
           </p>
         </Reveal>

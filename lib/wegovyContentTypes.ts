@@ -16,6 +16,7 @@ import {
   type WegovyStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
+import { WEGOVY_TEXT_KEYS, mergeTextStyles, type WegovyTextKey, type TextStyle } from "@/lib/textStyle";
 
 
 /* ── shared shapes ──────────────────────────────────────── */
@@ -159,6 +160,8 @@ export type WegovyFinalCta = {
 export type WegovyContent = {
   /** Per-section background / text colour, keyed by section. */
   styles: Record<WegovyStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed by section.field. */
+  textStyles: Record<WegovyTextKey, TextStyle>;
   announcement: WegovyAnnouncement;
   hero: WegovyHero;
   uspBar: WegovyUspBar;
@@ -179,6 +182,7 @@ const ASSESS = "/consultation?product=weight-loss";
 export const WEGOVY_DEFAULT: WegovyContent = {
   // Nothing styled: every section keeps the design it ships with.
   styles: mergeStyles(null, WEGOVY_STYLE_KEYS),
+  textStyles: mergeTextStyles(null, WEGOVY_TEXT_KEYS),
 
   announcement: { text: "New Wegovy Pills treatment in the UK" },
 
@@ -469,6 +473,7 @@ export function mergeWegovy(stored: unknown): WegovyContent {
 
   return {
     styles: mergeStyles(obj(stored).styles, WEGOVY_STYLE_KEYS),
+    textStyles: mergeTextStyles(obj(stored).textStyles, WEGOVY_TEXT_KEYS),
     announcement: { text: optStr(an.text, B.announcement.text) },
 
     hero: {

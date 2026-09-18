@@ -5,6 +5,7 @@ import {
   type WegovyComparison,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "Wegovy pill vs Wegovy injection" — Figma node 1:1676.
@@ -128,10 +129,13 @@ function Card({
 export default function Comparison({
   content = WEGOVY_DEFAULT.comparison,
   style,
+  text,
 }: {
   content?: WegovyComparison;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -143,13 +147,13 @@ export default function Comparison({
 
         {/* Heading — 846px wide in Figma, centred */}
         <Reveal as="div">
-          <h2 className="mb-5 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text?.["comparison.heading"])} className="mb-5 text-center font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             {content.heading}{" "}
-            <span className="font-serif italic font-normal">
+            <span {...textStyleProps(text?.["comparison.headingAccent"])} className="font-serif italic font-normal">
               {content.headingAccent}
             </span>
           </h2>
-          <p className="mx-auto mb-10 max-w-[620px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
+          <p {...textStyleProps(text?.["comparison.body"])} className="mx-auto mb-10 max-w-[620px] text-center font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[22px]">
             {content.body}
           </p>
         </Reveal>
@@ -157,12 +161,12 @@ export default function Comparison({
         {/* Cards — 690px total (340 + 10 gap + 340), centred */}
         <Reveal as="div" delay={100}>
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
-            <Card
+            <Card {...textStyleProps(text?.["comparison.pillTitle"])}
               title={content.pillTitle}
               rows={content.pillRows}
               variant="pill"
             />
-            <Card
+            <Card {...textStyleProps(text?.["comparison.penTitle"])}
               title={content.penTitle}
               rows={content.penRows}
               variant="pen"
@@ -174,7 +178,7 @@ export default function Comparison({
         <Reveal as="div" delay={150}>
           <div className="mx-auto mt-9 flex max-w-[690px] flex-col items-center gap-6">
             {content.ctaLabel ? (
-              <a
+              <a {...textStyleProps(text?.["comparison.ctaLabel"])}
                 href={content.ctaHref}
                 className="inline-flex h-[50px] w-[220px] items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421]"
               >

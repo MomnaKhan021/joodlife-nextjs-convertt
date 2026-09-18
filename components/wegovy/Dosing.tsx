@@ -2,6 +2,7 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { WEGOVY_DEFAULT, type WegovyDosing } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "Wegovy pill Dosing & Pricing" — Figma node 1:1996.
@@ -11,10 +12,13 @@ import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 export default function Dosing({
   content = WEGOVY_DEFAULT.dosing,
   style,
+  text,
 }: {
   content?: WegovyDosing;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -26,12 +30,14 @@ export default function Dosing({
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_minmax(0,420px)]">
           <Reveal as="div">
             <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-              <span className="font-serif italic font-normal">
+              <span {...textStyleProps(text?.["dosing.heading"])} className="font-serif italic font-normal">
                 {content.heading}
               </span>{" "}
-              {content.headingAccent}
+              <span {...textStyleProps(text?.["dosing.headingAccent"])}>
+                {content.headingAccent}
+              </span>
             </h2>
-            <p className="mt-4 max-w-[620px] font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[19.5px]">
+            <p {...textStyleProps(text?.["dosing.body"])} className="mt-4 max-w-[620px] font-ui text-[15px] leading-[22px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[19.5px]">
               {content.body}
             </p>
           </Reveal>
@@ -57,7 +63,7 @@ export default function Dosing({
               className="relative flex flex-col gap-1 rounded-2xl border border-[#142e2a]/12 bg-[#f7f9f2] px-5 py-6"
             >
               {d.start ? (
-                <span className="absolute -top-2.5 left-5 rounded-full bg-[#00b67a] px-3 py-1 font-ui text-[10px] font-semibold uppercase tracking-wide text-white">
+                <span {...textStyleProps(text?.["dosing.startBadge"])} className="absolute -top-2.5 left-5 rounded-full bg-[#00b67a] px-3 py-1 font-ui text-[10px] font-semibold uppercase tracking-wide text-white">
                   {content.startBadge}
                 </span>
               ) : null}
