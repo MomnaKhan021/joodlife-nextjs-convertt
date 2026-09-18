@@ -121,5 +121,17 @@ export const HOME_TEXT_KEYS = [
   "heroTitleEmphasis",
   "heroBody",
   "heroCtaLabel",
+  "reviewsHeading",
+  "reviewsHeadingEmphasis",
+  "reviewsIntro",
+  "hiwHeading",
+  "hiwHeadingEmphasis",
+  "faqHeading",
+  "faqHeadingEmphasis",
+  "blogHeading",
+  "blogHeadingEmphasis",
+  "ctaTitle",
+  "ctaTitleEmphasis",
+  "ctaSubtitle",
 ] as const;
 export type HomeTextKey = (typeof HOME_TEXT_KEYS)[number];

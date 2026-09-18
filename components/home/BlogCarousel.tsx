@@ -1,5 +1,6 @@
 "use client";
 
+import { textStyleProps, type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -22,6 +23,7 @@ export type BlogCardPost = {
  * instance through React state so they always reflect the active slide.
  */
 export default function BlogCarousel({
+  text = {},
   posts,
   heading = "Recent",
   headingEmphasis = "blog",
@@ -29,6 +31,8 @@ export default function BlogCarousel({
   posts: BlogCardPost[];
   heading?: string;
   headingEmphasis?: string;
+  /** Per-text size and weight, keyed by the Home field name. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
 }) {
   const swiperRef = useRef<SwiperType | null>(null);
   const [active, setActive] = useState(0);
@@ -38,8 +42,8 @@ export default function BlogCarousel({
   return (
     <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
       <div className="flex items-center justify-between gap-4 pb-8 md:pb-10">
-        <h2 className="font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-          {heading} <em className="font-serif italic font-normal">{headingEmphasis}</em> posts
+        <h2 {...textStyleProps(text.blogHeading)} className="font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          {heading} <em {...textStyleProps(text.blogHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em> posts
         </h2>
         <div className="hidden items-center gap-3 md:flex">
           <button

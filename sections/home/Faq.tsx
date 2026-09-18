@@ -9,10 +9,11 @@ import FaqClient from "./FaqClient";
  * section exactly as it shipped.
  */
 export default async function Faq() {
-  const { faqs, faqHeading, faqHeadingEmphasis, styles } = await getHomeContent();
+  const { faqs, faqHeading, faqHeadingEmphasis, styles, textStyles } = await getHomeContent();
   return (
     <FaqClient
       style={styles.faq}
+      text={textStyles}
       heading={faqHeading}
       headingEmphasis={faqHeadingEmphasis}
       faqs={faqs}

@@ -1,3 +1,4 @@
+import { textStyleProps, type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
@@ -18,12 +19,15 @@ export type CtaContent = {
   title?: string;
   titleEmphasis?: string;
   subtitle?: string;
+  /** Per-text size and weight, keyed by the Home field name. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
   image?: string;
 };
 
 /** Presentational only, so it stays safe from a client boundary.
  *  CtaBanner.tsx is the server wrapper that feeds it from the CMS. */
 export default function CtaBannerView({
+  text = {},
   style,
   isReturningPatient,
   title = "Take the first step",
@@ -76,14 +80,14 @@ export default function CtaBannerView({
                 </svg>
               </span>
 
-              <h2 className="max-w-[425px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+              <h2 {...textStyleProps(text.ctaTitle)} className="max-w-[425px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
                 {title}{" "}
-                <em className="font-serif italic font-normal">
+                <em {...textStyleProps(text.ctaTitleEmphasis)} className="font-serif italic font-normal">
                   {titleEmphasis}
                 </em>
               </h2>
 
-              <p className="max-w-[360px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#142e2a]/75 md:text-[16.3px] md:leading-[20px]">
+              <p {...textStyleProps(text.ctaSubtitle)} className="max-w-[360px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#142e2a]/75 md:text-[16.3px] md:leading-[20px]">
                 {subtitle}
               </p>
             </div>

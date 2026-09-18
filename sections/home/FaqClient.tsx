@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { textStyleProps, type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { useState } from "react";
@@ -31,10 +33,13 @@ const DEFAULT_FAQS = [
 export type FaqContent = {
   heading?: string;
   headingEmphasis?: string;
+  /** Per-text size and weight, keyed by the Home field name. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
   faqs?: { q: string; a: string }[];
 };
 
 export default function FaqClient({
+  text = {},
   style,
   heading = "Frequently asked",
   headingEmphasis = "questions",
@@ -52,9 +57,9 @@ export default function FaqClient({
     >
       <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-8 px-6 md:gap-10 md:px-10 lg:px-[60px]">
         <Reveal as="div">
-          <h2 className="text-center font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text.faqHeading)} className="text-center font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             {heading}{" "}
-            <em className="font-serif italic font-normal">{headingEmphasis}</em>
+            <em {...textStyleProps(text.faqHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em>
           </h2>
         </Reveal>
 
@@ -116,12 +121,12 @@ export default function FaqClient({
           </ul>
         </Reveal>
 
-        <a
+        <Link
           href="/consultation"
           className="btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white hover:bg-[#0c2421]"
         >
           Get started
-        </a>
+        </Link>
       </div>
     </section>
   );

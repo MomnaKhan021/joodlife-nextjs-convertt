@@ -1,5 +1,6 @@
 "use client";
 
+import { textStyleProps, type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, A11y } from "swiper/modules";
@@ -86,6 +87,8 @@ export type ReviewsContent = {
   heading?: string;
   headingEmphasis?: string;
   intro?: string;
+  /** Per-text size and weight, keyed by the Home field name. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
   /** Empty falls back to the curated Trustpilot list in lib/reviews.ts. */
   reviews?: Review[];
   trustpilotScore?: string;
@@ -93,6 +96,7 @@ export type ReviewsContent = {
 };
 
 export default function ReviewsClient({
+  text = {},
   style,
   heading = "Loved by our",
   headingEmphasis = "customers",
@@ -145,11 +149,11 @@ export default function ReviewsClient({
               {TP.score} out of 5
             </span>
           </a>
-          <h2 className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text.reviewsHeading)} className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             {heading}{" "}
-            <em className="font-serif italic font-normal">{headingEmphasis}</em>
+            <em {...textStyleProps(text.reviewsHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em>
           </h2>
-          <p className="max-w-[780px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
+          <p {...textStyleProps(text.reviewsIntro)} className="max-w-[780px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             {intro}
           </p>
         </Reveal>

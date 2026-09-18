@@ -1,3 +1,4 @@
+import { textStyleProps, type HomeTextKey, type TextStyle } from "@/lib/textStyle";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
@@ -12,6 +13,8 @@ export type HiwStepProp = {
 export type HowItWorksContent = {
   heading?: string;
   headingEmphasis?: string;
+  /** Per-text size and weight, keyed by the Home field name. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
   steps?: HiwStepProp[];
 };
 
@@ -41,6 +44,7 @@ const DEFAULT_STEPS: HiwStepProp[] = [
  * client boundary. HowItWorks.tsx is the server wrapper that feeds it.
  */
 export default function HowItWorksView({
+  text = {},
   style,
   heading = "How it",
   headingEmphasis = "works",
@@ -57,9 +61,9 @@ export default function HowItWorksView({
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div" className="flex flex-col items-center gap-2 pb-6 text-center">
-          <h2 className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text.hiwHeading)} className="font-display text-[32px] leading-[40px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             {heading}{" "}
-            <em className="font-serif italic font-normal">{headingEmphasis}</em>
+            <em {...textStyleProps(text.hiwHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em>
           </h2>
           <p className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             Getting started takes just a few minutes. Our clinicians review

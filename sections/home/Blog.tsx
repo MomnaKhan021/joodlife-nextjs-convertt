@@ -49,7 +49,7 @@ const DEMO_POSTS: BlogCardPost[] = [
 ];
 
 export default async function Blog() {
-  const { blogHeading, blogHeadingEmphasis, styles } = await getHomeContent();
+  const { blogHeading, blogHeadingEmphasis, styles, textStyles } = await getHomeContent();
   const style = styles.blog;
   let posts: BlogCardPost[] = [];
   try {
@@ -75,6 +75,7 @@ export default async function Blog() {
     >
       <BlogCarousel
         posts={posts}
+        text={textStyles}
         heading={blogHeading}
         headingEmphasis={blogHeadingEmphasis}
       />

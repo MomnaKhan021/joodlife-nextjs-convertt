@@ -460,17 +460,32 @@ export default function SectionsForm({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="revH">Heading</label>
-              <input id="revH" className={`${fieldInput} mt-1`} value={revHeading} onChange={(e) => setRevHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="revE">Heading (italic part)</label>
-              <input id="revE" className={`${fieldInput} mt-1`} value={revEmphasis} onChange={(e) => setRevEmphasis(e.target.value)} />
-            </div>
+            <TextField
+              id="revH"
+              label="Heading"
+              value={revHeading}
+              onChange={setRevHeading}
+              style={textStyles.reviewsHeading}
+              onStyle={setText("reviewsHeading")}
+            />
+            <TextField
+              id="revE"
+              label="Heading (italic part)"
+              value={revEmphasis}
+              onChange={setRevEmphasis}
+              style={textStyles.reviewsHeadingEmphasis}
+              onStyle={setText("reviewsHeadingEmphasis")}
+            />
             <div className="sm:col-span-2">
-              <label className={fieldLabel} htmlFor="revI">Intro</label>
-              <textarea id="revI" rows={2} className={`${fieldInput} mt-1`} value={revIntro} onChange={(e) => setRevIntro(e.target.value)} />
+              <AreaField
+                id="revI"
+                label="Intro"
+                rows={2}
+                value={revIntro}
+                onChange={setRevIntro}
+                style={textStyles.reviewsIntro}
+                onStyle={setText("reviewsIntro")}
+              />
             </div>
             <div>
               <label className={fieldLabel} htmlFor="tpS">Trustpilot score</label>
@@ -548,14 +563,22 @@ export default function SectionsForm({
             </button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="hiwH">Heading</label>
-              <input id="hiwH" className={`${fieldInput} mt-1`} value={hiwHeading} onChange={(e) => setHiwHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="hiwE">Heading (italic part)</label>
-              <input id="hiwE" className={`${fieldInput} mt-1`} value={hiwEmphasis} onChange={(e) => setHiwEmphasis(e.target.value)} />
-            </div>
+            <TextField
+              id="hiwH"
+              label="Heading"
+              value={hiwHeading}
+              onChange={setHiwHeading}
+              style={textStyles.hiwHeading}
+              onStyle={setText("hiwHeading")}
+            />
+            <TextField
+              id="hiwE"
+              label="Heading (italic part)"
+              value={hiwEmphasis}
+              onChange={setHiwEmphasis}
+              style={textStyles.hiwHeadingEmphasis}
+              onStyle={setText("hiwHeadingEmphasis")}
+            />
           </div>
 
           {hiwSteps.length === 0 ? (
@@ -615,14 +638,22 @@ export default function SectionsForm({
             </button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="faqH">Heading</label>
-              <input id="faqH" className={`${fieldInput} mt-1`} value={faqHeading} onChange={(e) => setFaqHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="faqE">Heading (italic part)</label>
-              <input id="faqE" className={`${fieldInput} mt-1`} value={faqEmphasis} onChange={(e) => setFaqEmphasis(e.target.value)} />
-            </div>
+            <TextField
+              id="faqH"
+              label="Heading"
+              value={faqHeading}
+              onChange={setFaqHeading}
+              style={textStyles.faqHeading}
+              onStyle={setText("faqHeading")}
+            />
+            <TextField
+              id="faqE"
+              label="Heading (italic part)"
+              value={faqEmphasis}
+              onChange={setFaqEmphasis}
+              style={textStyles.faqHeadingEmphasis}
+              onStyle={setText("faqHeadingEmphasis")}
+            />
           </div>
 
           {faqs.length === 0 ? (
@@ -680,14 +711,22 @@ export default function SectionsForm({
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="blogH">Heading</label>
-              <input id="blogH" className={`${fieldInput} mt-1`} value={blogHeading} onChange={(e) => setBlogHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="blogE">Heading (italic part)</label>
-              <input id="blogE" className={`${fieldInput} mt-1`} value={blogEmphasis} onChange={(e) => setBlogEmphasis(e.target.value)} />
-            </div>
+            <TextField
+              id="blogH"
+              label="Heading"
+              value={blogHeading}
+              onChange={setBlogHeading}
+              style={textStyles.blogHeading}
+              onStyle={setText("blogHeading")}
+            />
+            <TextField
+              id="blogE"
+              label="Heading (italic part)"
+              value={blogEmphasis}
+              onChange={setBlogEmphasis}
+              style={textStyles.blogHeadingEmphasis}
+              onStyle={setText("blogHeadingEmphasis")}
+            />
           </div>
           <p className="text-[12px] text-[#8a8a8a]">
             Renders as: {blogHeading} <em>{blogEmphasis}</em> posts
@@ -712,17 +751,32 @@ export default function SectionsForm({
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="ctaT">Title</label>
-              <input id="ctaT" className={`${fieldInput} mt-1`} value={ctaTitle} onChange={(e) => setCtaTitle(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="ctaE">Title (italic part)</label>
-              <input id="ctaE" className={`${fieldInput} mt-1`} value={ctaEmphasis} onChange={(e) => setCtaEmphasis(e.target.value)} />
-            </div>
+            <TextField
+              id="ctaT"
+              label="Title"
+              value={ctaTitle}
+              onChange={setCtaTitle}
+              style={textStyles.ctaTitle}
+              onStyle={setText("ctaTitle")}
+            />
+            <TextField
+              id="ctaE"
+              label="Title (italic part)"
+              value={ctaEmphasis}
+              onChange={setCtaEmphasis}
+              style={textStyles.ctaTitleEmphasis}
+              onStyle={setText("ctaTitleEmphasis")}
+            />
             <div className="sm:col-span-2">
-              <label className={fieldLabel} htmlFor="ctaS">Subtitle</label>
-              <textarea id="ctaS" rows={2} className={`${fieldInput} mt-1`} value={ctaSubtitle} onChange={(e) => setCtaSubtitle(e.target.value)} />
+              <AreaField
+                id="ctaS"
+                label="Subtitle"
+                rows={2}
+                value={ctaSubtitle}
+                onChange={setCtaSubtitle}
+                style={textStyles.ctaSubtitle}
+                onStyle={setText("ctaSubtitle")}
+              />
             </div>
           </div>
           <div>
