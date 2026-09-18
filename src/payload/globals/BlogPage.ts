@@ -41,6 +41,16 @@ export const BlogPage: GlobalConfig = {
       type: "json",
       admin: { description: "The closing banner above the footer." },
     },
+    {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by section.field." },
+    },
+    {
+      name: "styles",
+      type: "json",
+      admin: { description: "Per-section background / text colour. Empty keeps the shipped design." },
+    },
   ],
 };
 

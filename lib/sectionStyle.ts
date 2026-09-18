@@ -215,3 +215,7 @@ export const ED_STYLE_LABELS: Record<EdStyleKey, string> = {
   know: "Let’s get to know you",
   banner: "Closing banner",
 };
+
+/** The blog listing page's four bands, in page order. */
+export const BLOG_PAGE_STYLE_KEYS = ["hero", "list", "newsletter", "cta"] as const;
+export type BlogPageStyleKey = (typeof BLOG_PAGE_STYLE_KEYS)[number];

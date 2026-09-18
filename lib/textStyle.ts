@@ -286,3 +286,23 @@ export const SUPPORT_TEXT_KEYS = [
   "stories.ctaLabel",
 ] as const;
 export type SupportTextKey = (typeof SUPPORT_TEXT_KEYS)[number];
+
+/** Per-text keys for the blog listing page, derived from the editor's bindings. */
+export const BLOG_PAGE_TEXT_KEYS = [
+  "hero.title",
+  "hero.titleAccent",
+  "hero.body",
+  "hero.ctaLabel",
+  "list.heading",
+  "list.body",
+  "newsletter.heading",
+  "newsletter.headingAccent",
+  "newsletter.kicker",
+  "newsletter.body",
+  "newsletter.placeholder",
+  "newsletter.submitLabel",
+  "cta.title",
+  "cta.body",
+  "cta.ctaLabel",
+] as const;
+export type BlogPageTextKey = (typeof BLOG_PAGE_TEXT_KEYS)[number];

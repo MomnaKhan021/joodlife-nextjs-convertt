@@ -7,6 +7,10 @@ import type { BlogPageContent } from "@/lib/blogPageContentTypes";
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
+import SectionControl from "../SectionControl";
+import type { BlogPageStyleKey, SectionStyle } from "@/lib/sectionStyle";
+import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editor for the /blogs listing page, in page order: the photo hero, the
@@ -23,6 +27,9 @@ export default function BlogPageForm({
 }: {
   initial: BlogPageContent;
 }) {
+  const [styles, setStyles] = useState(initial.styles);
+  const setStyle = (k: BlogPageStyleKey) => (next: SectionStyle) =>
+    setStyles((st) => ({ ...st, [k]: next }));
   const [hero, setHero] = useState(initial.hero);
   const [list, setList] = useState(initial.list);
   const [newsletter, setNewsletter] = useState(initial.newsletter);
@@ -37,7 +44,14 @@ export default function BlogPageForm({
     setError(null);
     setSaved(false);
     try {
-      await saveGlobal("blog-page", { hero, list, newsletter, cta });
+      await saveGlobal("blog-page", {
+        styles,
+        textStyles,
+        hero,
+        list,
+        newsletter,
+        cta,
+      });
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -46,7 +60,17 @@ export default function BlogPageForm({
     }
   }
 
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
   return (
+    <TextStyleCtx.Provider value={textStyleApi}>
     <div className="mx-auto w-full max-w-[1000px]">
       <header className="mb-6">
         <Link
@@ -82,12 +106,17 @@ export default function BlogPageForm({
       <div className="space-y-5">
         {/* ── 1. Hero ── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             1. Hero banner
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Title</label>
+              <LabelRow k="hero.title" label="Title">
+                <label className={fieldLabel}>Title</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={hero.title}
@@ -95,7 +124,9 @@ export default function BlogPageForm({
               />
             </div>
             <div>
-              <label className={fieldLabel}>Title (italic part)</label>
+              <LabelRow k="hero.titleAccent" label="Title (italic part)">
+                <label className={fieldLabel}>Title (italic part)</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={hero.titleAccent}
@@ -105,7 +136,9 @@ export default function BlogPageForm({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Body</label>
+              <LabelRow k="hero.body" label="Body">
+                <label className={fieldLabel}>Body</label>
+              </LabelRow>
               <textarea
                 rows={3}
                 className={`${fieldInput} mt-1`}
@@ -114,7 +147,9 @@ export default function BlogPageForm({
               />
             </div>
             <div>
-              <label className={fieldLabel}>Button text</label>
+              <LabelRow k="hero.ctaLabel" label="Button text">
+                <label className={fieldLabel}>Button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={hero.ctaLabel}
@@ -158,6 +193,9 @@ export default function BlogPageForm({
 
         {/* ── 2. Listing heading ── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="list" value={styles.list} onChange={setStyle("list")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               2. Above the articles
@@ -167,7 +205,9 @@ export default function BlogPageForm({
             </p>
           </div>
           <div>
-            <label className={fieldLabel}>Heading</label>
+            <LabelRow k="list.heading" label="Heading">
+              <label className={fieldLabel}>Heading</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={list.heading}
@@ -175,7 +215,9 @@ export default function BlogPageForm({
             />
           </div>
           <div>
-            <label className={fieldLabel}>Intro</label>
+            <LabelRow k="list.body" label="Intro">
+              <label className={fieldLabel}>Intro</label>
+            </LabelRow>
             <textarea
               rows={3}
               className={`${fieldInput} mt-1`}
@@ -187,6 +229,9 @@ export default function BlogPageForm({
 
         {/* ── 3. Newsletter ── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="newsletter" value={styles.newsletter} onChange={setStyle("newsletter")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               3. Newsletter block
@@ -197,7 +242,9 @@ export default function BlogPageForm({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Heading</label>
+              <LabelRow k="newsletter.heading" label="Heading">
+                <label className={fieldLabel}>Heading</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={newsletter.heading}
@@ -207,7 +254,9 @@ export default function BlogPageForm({
               />
             </div>
             <div>
-              <label className={fieldLabel}>Heading (italic part)</label>
+              <LabelRow k="newsletter.headingAccent" label="Heading (italic part)">
+                <label className={fieldLabel}>Heading (italic part)</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={newsletter.headingAccent}
@@ -217,7 +266,9 @@ export default function BlogPageForm({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Bold line</label>
+              <LabelRow k="newsletter.kicker" label="Bold line">
+                <label className={fieldLabel}>Bold line</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={newsletter.kicker}
@@ -227,7 +278,9 @@ export default function BlogPageForm({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Body</label>
+              <LabelRow k="newsletter.body" label="Body">
+                <label className={fieldLabel}>Body</label>
+              </LabelRow>
               <textarea
                 rows={2}
                 className={`${fieldInput} mt-1`}
@@ -238,7 +291,9 @@ export default function BlogPageForm({
               />
             </div>
             <div>
-              <label className={fieldLabel}>Email box placeholder</label>
+              <LabelRow k="newsletter.placeholder" label="Email box placeholder">
+                <label className={fieldLabel}>Email box placeholder</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={newsletter.placeholder}
@@ -248,7 +303,9 @@ export default function BlogPageForm({
               />
             </div>
             <div>
-              <label className={fieldLabel}>Submit button text</label>
+              <LabelRow k="newsletter.submitLabel" label="Submit button text">
+                <label className={fieldLabel}>Submit button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={newsletter.submitLabel}
@@ -284,6 +341,9 @@ export default function BlogPageForm({
 
         {/* ── 4. Closing banner ── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="cta" value={styles.cta} onChange={setStyle("cta")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               4. Closing banner
@@ -294,7 +354,9 @@ export default function BlogPageForm({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Heading</label>
+              <LabelRow k="cta.title" label="Heading">
+                <label className={fieldLabel}>Heading</label>
+              </LabelRow>
               <textarea
                 rows={2}
                 className={`${fieldInput} mt-1`}
@@ -306,7 +368,9 @@ export default function BlogPageForm({
               </p>
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Body</label>
+              <LabelRow k="cta.body" label="Body">
+                <label className={fieldLabel}>Body</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={cta.body}
@@ -314,7 +378,9 @@ export default function BlogPageForm({
               />
             </div>
             <div>
-              <label className={fieldLabel}>Button text</label>
+              <LabelRow k="cta.ctaLabel" label="Button text">
+                <label className={fieldLabel}>Button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={cta.ctaLabel}
@@ -365,5 +431,6 @@ export default function BlogPageForm({
         </button>
       </div>
     </div>
+    </TextStyleCtx.Provider>
   );
 }

@@ -13,6 +13,8 @@ import {
   getCategoryCounts,
   listPublishedPostsPaginated,
 } from "@/lib/posts";
+import { styleProps } from "@/lib/sectionStyle";
+import { textStyleProps } from "@/lib/textStyle";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +63,7 @@ export default async function BlogsPage({
     getBlogPageContent(),
   ]);
 
-  const { hero, list, newsletter, cta } = content;
+  const { hero, list, newsletter, cta, styles, textStyles } = content;
 
   const { posts, total, totalPages } = paginated;
   const isFiltered = !!category;
@@ -75,7 +77,7 @@ export default async function BlogsPage({
       <Header />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="px-4 pt-4 md:px-6 md:pt-6">
+      <section {...styleProps(styles.hero)} className="px-4 pt-4 md:px-6 md:pt-6">
         <div className="relative mx-auto flex min-h-[420px] w-full max-w-[1400px] items-center overflow-hidden rounded-[24px] md:min-h-[560px]">
           <Image
             src={hero.image}
@@ -91,17 +93,17 @@ export default async function BlogsPage({
           />
           <div className="relative z-10 mx-auto w-full max-w-[1320px] px-6 md:px-10">
             <Reveal className="max-w-[600px]">
-              <h1 className="font-display text-[40px] font-semibold leading-[1.06] tracking-[-0.02em] text-white md:text-[60px]">
+              <h1 {...textStyleProps(textStyles?.["hero.title"])} className="font-display text-[40px] font-semibold leading-[1.06] tracking-[-0.02em] text-white md:text-[60px]">
                 {hero.title}{" "}
-                <em className="font-serif font-normal italic">
+                <em {...textStyleProps(textStyles?.["hero.titleAccent"])} className="font-serif font-normal italic">
                   {hero.titleAccent}
                 </em>
               </h1>
-              <p className="mt-4 max-w-[520px] font-ui text-[15px] leading-[1.55] text-white/85 md:text-[16px]">
+              <p {...textStyleProps(textStyles?.["hero.body"])} className="mt-4 max-w-[520px] font-ui text-[15px] leading-[1.55] text-white/85 md:text-[16px]">
                 {hero.body}
               </p>
               {hero.ctaLabel ? (
-                <Link
+                <Link {...textStyleProps(textStyles?.["hero.ctaLabel"])}
                   href={hero.ctaHref}
                   className="mt-7 inline-flex items-center justify-center rounded-full bg-white px-7 py-3.5 font-ui text-[15px] font-semibold text-[#142e2a] transition hover:bg-[#dff49f]"
                 >
@@ -114,12 +116,12 @@ export default async function BlogsPage({
       </section>
 
       {/* ── Recent blog posts ────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-[1440px] px-4 pt-14 pb-8 md:px-[60px] md:pt-24 md:pb-12">
+      <section {...styleProps(styles.list)} className="mx-auto w-full max-w-[1440px] px-4 pt-14 pb-8 md:px-[60px] md:pt-24 md:pb-12">
         <Reveal className="mx-auto max-w-[720px] text-center">
-          <h2 className="font-display text-[26px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[32px]">
+          <h2 {...textStyleProps(textStyles?.["list.heading"])} className="font-display text-[26px] font-bold tracking-[-0.01em] text-[#142e2a] md:text-[32px]">
             {list.heading}
           </h2>
-          <p className="mx-auto mt-3 max-w-[680px] font-ui text-[15px] leading-[1.55] text-[#142e2a]/70 md:text-[16px]">
+          <p {...textStyleProps(textStyles?.["list.body"])} className="mx-auto mt-3 max-w-[680px] font-ui text-[15px] leading-[1.55] text-[#142e2a]/70 md:text-[16px]">
             {list.body}
           </p>
         </Reveal>
@@ -177,7 +179,7 @@ export default async function BlogsPage({
       </section>
 
       {/* ── Newsletter ───────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-[1440px] px-4 pb-16 md:px-[60px] md:pb-24">
+      <section {...styleProps(styles.newsletter)} className="mx-auto w-full max-w-[1440px] px-4 pb-16 md:px-[60px] md:pb-24">
         <Reveal className="grid items-stretch gap-6 overflow-hidden md:grid-cols-2 md:gap-10">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-[#f7f9f2] md:aspect-auto md:min-h-[380px]">
             <Image
@@ -189,16 +191,16 @@ export default async function BlogsPage({
             />
           </div>
           <div className="flex flex-col justify-center">
-            <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#142e2a] md:text-[44px]">
+            <h2 {...textStyleProps(textStyles?.["newsletter.heading"])} className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#142e2a] md:text-[44px]">
               {newsletter.heading}{" "}
-              <em className="font-serif font-normal italic">
+              <em {...textStyleProps(textStyles?.["newsletter.headingAccent"])} className="font-serif font-normal italic">
                 {newsletter.headingAccent}
               </em>
             </h2>
-            <p className="mt-5 font-ui text-[14px] font-semibold text-[#142e2a]">
+            <p {...textStyleProps(textStyles?.["newsletter.kicker"])} className="mt-5 font-ui text-[14px] font-semibold text-[#142e2a]">
               {newsletter.kicker}
             </p>
-            <p className="mt-2 max-w-[440px] font-ui text-[15px] leading-[1.55] text-[#142e2a]/70">
+            <p {...textStyleProps(textStyles?.["newsletter.body"])} className="mt-2 max-w-[440px] font-ui text-[15px] leading-[1.55] text-[#142e2a]/70">
               {newsletter.body}
             </p>
 
@@ -210,7 +212,7 @@ export default async function BlogsPage({
               <label htmlFor="newsletter-email" className="sr-only">
                 Your email
               </label>
-              <input
+              <input {...textStyleProps(textStyles?.["newsletter.placeholder"])}
                 id="newsletter-email"
                 type="email"
                 name="email"
@@ -218,7 +220,7 @@ export default async function BlogsPage({
                 placeholder={newsletter.placeholder}
                 className="w-full rounded-full border border-[#142e2a]/15 bg-[#f7f9f2] px-5 py-3.5 font-ui text-[15px] text-[#142e2a] outline-none transition placeholder:text-[#142e2a]/45 focus:border-[#142e2a]/50"
               />
-              <button
+              <button {...textStyleProps(textStyles?.["newsletter.submitLabel"])}
                 type="submit"
                 className="w-full rounded-full bg-[#142e2a] px-6 py-3.5 font-ui text-[15px] font-semibold text-white transition hover:bg-[#1d3f3a]"
               >
@@ -230,7 +232,7 @@ export default async function BlogsPage({
       </section>
 
       {/* ── "Feel Better" CTA banner ─────────────────────────── */}
-      <section className="px-4 pb-16 md:px-6 md:pb-24">
+      <section {...styleProps(styles.cta)} className="px-4 pb-16 md:px-6 md:pb-24">
         <div className="relative mx-auto flex min-h-[360px] w-full max-w-[1320px] items-center justify-center overflow-hidden rounded-[24px] md:min-h-[500px]">
           <Image
             src={cta.image}
@@ -244,18 +246,18 @@ export default async function BlogsPage({
             className="absolute inset-0 bg-[#0c1f1c]/35"
           />
           <Reveal className="relative z-10 flex flex-col items-center px-6 text-center">
-            <h2 className="font-display text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[54px]">
+            <h2 {...textStyleProps(textStyles?.["cta.title"])} className="font-display text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[54px]">
               {cta.title.split("\n").map((line, i) => (
                 <span key={i} className="block">
                   {line}
                 </span>
               ))}
             </h2>
-            <p className="mt-4 font-ui text-[16px] text-white/85 md:text-[18px]">
+            <p {...textStyleProps(textStyles?.["cta.body"])} className="mt-4 font-ui text-[16px] text-white/85 md:text-[18px]">
               {cta.body}
             </p>
             {cta.ctaLabel ? (
-              <Link
+              <Link {...textStyleProps(textStyles?.["cta.ctaLabel"])}
                 href={cta.ctaHref}
                 className="mt-7 inline-flex items-center justify-center rounded-full bg-white px-7 py-3.5 font-ui text-[15px] font-semibold text-[#142e2a] transition hover:bg-[#dff49f]"
               >

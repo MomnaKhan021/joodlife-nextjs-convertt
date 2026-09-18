@@ -290,6 +290,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"cta\" jsonb",
   "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
 
   // Wegovy Pills page - one json column per section, in page order.
   "CREATE TABLE IF NOT EXISTS \"wegovy_page\" (\"id\" serial, \"announcement\" jsonb, \"hero\" jsonb, \"usp_bar\" jsonb, \"what_is_pill\" jsonb, \"comparison\" jsonb, \"how_it_works\" jsonb, \"real_results\" jsonb, \"dosing\" jsonb, \"why_choose\" jsonb, \"faq\" jsonb, \"final_cta\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
@@ -533,7 +535,7 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v33";
+const SCHEMA_VERSION = "v35";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

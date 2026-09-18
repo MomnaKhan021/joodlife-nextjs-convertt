@@ -9,6 +9,14 @@
  * import it. `lib/blogPageContent.ts` is the server-side reader.
  */
 
+import {
+  BLOG_PAGE_STYLE_KEYS,
+  mergeStyles,
+  type BlogPageStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import { BLOG_PAGE_TEXT_KEYS, mergeTextStyles, type BlogPageTextKey, type TextStyle } from "@/lib/textStyle";
+
 export type BlogHero = {
   title: string;
   titleAccent: string;
@@ -51,12 +59,18 @@ export type BlogPageContent = {
   list: BlogListIntro;
   newsletter: BlogNewsletter;
   cta: BlogCta;
+  /** Per-section background / text colour. */
+  styles: Record<BlogPageStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed by section.field. */
+  textStyles: Record<BlogPageTextKey, TextStyle>;
 };
 
 const LIBRARY_BLURB =
   "Explore expert tips and proven advice to support your weight loss and wellbeing goals. Learn how to create a healthier lifestyle that truly lasts.";
 
 export const BLOG_PAGE_DEFAULT: BlogPageContent = {
+  styles: mergeStyles(null, BLOG_PAGE_STYLE_KEYS),
+  textStyles: mergeTextStyles(null, BLOG_PAGE_TEXT_KEYS),
   hero: {
     title: "Jood wellness",
     titleAccent: "library",
@@ -122,6 +136,8 @@ export function mergeBlogPage(stored: unknown): BlogPageContent {
   const c = obj(d.cta);
 
   return {
+    styles: mergeStyles(obj(stored).styles, BLOG_PAGE_STYLE_KEYS),
+    textStyles: mergeTextStyles(obj(stored).textStyles, BLOG_PAGE_TEXT_KEYS),
     hero: {
       title: str(h.title, base.hero.title),
       titleAccent: str(h.titleAccent, base.hero.titleAccent),
