@@ -266,6 +266,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"categories\" jsonb",
   "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   // ---- global: policy pages ----
   "CREATE TABLE IF NOT EXISTS \"policies\" (\"id\" serial, \"terms\" jsonb, \"refund_complaints\" jsonb, \"privacy\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"terms\" jsonb",
@@ -537,7 +539,7 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v36";
+const SCHEMA_VERSION = "v37";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

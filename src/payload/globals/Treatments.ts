@@ -36,6 +36,16 @@ export const Treatments: GlobalConfig = {
           'Per-category overrides, keyed by "weight-loss" | "erectile-dysfunction" | "period-delay". Edit these in /cms/treatments rather than by hand.',
       },
     },
+    {
+      name: "styles",
+      type: "json",
+      admin: { description: "Per-category band colour. Empty keeps the shipped design." },
+    },
+    {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by category.field." },
+    },
   ],
 };
 

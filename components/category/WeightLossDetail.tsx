@@ -4,6 +4,7 @@ import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 import Highlight from "@/components/ui/Highlight";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Weight-loss section content (Figma Component 289, below the hero):
@@ -54,10 +55,20 @@ function renderChip(c: Chip) {
   );
 }
 
-function GhostButton({ href, children }: { href: string; children: React.ReactNode }) {
+function GhostButton({
+  href,
+  children,
+  style,
+}: {
+  href: string;
+  children: React.ReactNode;
+  /** CMS size/weight for the button text. */
+  style?: React.CSSProperties;
+}) {
   return (
     <Link
       href={href}
+      style={style}
       className="btn-cta inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white hover:bg-white/15"
     >
       {children}
@@ -104,12 +115,14 @@ function WegovyIntroCard({
   FEATURES,
   card1Cta,
   card1Image,
+  textStyles = {},
 }: {
   card1Title: string;
   card1Body: string;
   FEATURES: { title: string; sub: string }[];
   card1Cta: string;
   card1Image: string;
+  textStyles?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <Reveal
@@ -118,10 +131,10 @@ function WegovyIntroCard({
     >
       <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
         <div className="flex flex-col">
-          <h3 className="font-display text-[18px] font-semibold leading-[1.2] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
+          <h3 {...textStyleProps(textStyles.card1Title)} className="font-display text-[18px] font-semibold leading-[1.2] tracking-[-0.01em] text-white md:text-[34px] md:leading-[40px]">
             <Highlight text={card1Title} />
           </h3>
-          <p className="mt-3 max-w-[48ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px] md:leading-[22px]">
+          <p {...textStyleProps(textStyles.card1Body)} className="mt-3 max-w-[48ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px] md:leading-[22px]">
             <Highlight text={card1Body} />
           </p>
 
@@ -141,7 +154,7 @@ function WegovyIntroCard({
           </ul>
 
           <div className="mt-7">
-            <Link
+            <Link {...textStyleProps(textStyles.card1Cta)}
               href="/wegovy-pills"
               className="btn-cta inline-flex h-[52px] w-fit items-center justify-center rounded-xl border border-white/40 bg-white/5 px-7 font-ui text-[16px] font-medium text-white hover:bg-white/15"
             >
@@ -166,6 +179,8 @@ function WegovyIntroCard({
 }
 
 export type WeightLossDetailContent = {
+  /** This panel's text sizes, keyed by bare field name. */
+  textStyles?: Partial<Record<string, TextStyle>>;
   card1Title?: string;
   card1Body?: string;
   card1Features?: { title: string; sub: string }[];
@@ -201,6 +216,7 @@ export default function WeightLossDetail({
   chipsRight,
   ctaPrimary = 'Start Your Journey',
   ctaSecondary = 'Check Your Eligibility',
+  textStyles = {},
 }: WeightLossDetailContent = {}) {
   const FEATURES = card1Features?.length
     ? card1Features
@@ -218,18 +234,19 @@ export default function WeightLossDetail({
         FEATURES={FEATURES}
         card1Cta={card1Cta}
         card1Image={card1Image}
+        textStyles={textStyles}
       />
       <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
       {/* Card A — transformation (second on mobile per Figma) */}
       <Reveal as="div" className="order-2 flex flex-col items-center rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 text-center backdrop-blur-[20px] md:p-8 lg:order-1">
-        <h3 className="font-display text-[22px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
+        <h3 {...textStyleProps(textStyles.card2Title)} className="font-display text-[22px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           <Highlight
             text={card2Title}
             as="em"
             accentClass="font-serif font-normal italic text-[#b4ff9f]"
           />
         </h3>
-        <p className="mt-3 max-w-[46ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px]">
+        <p {...textStyleProps(textStyles.card2Body)} className="mt-3 max-w-[46ch] font-ui text-[14px] leading-[20px] text-white/80 md:text-[16px]">
           <Highlight text={card2Body} />
         </p>
 
@@ -273,13 +290,13 @@ export default function WeightLossDetail({
         </div>
 
         <div className="mt-auto w-full pt-4 md:pt-7">
-          <GhostButton href="/consultation?product=weight-loss">{ctaPrimary}</GhostButton>
+          <GhostButton href="/consultation?product=weight-loss" style={textStyleProps(textStyles.ctaPrimary).style}>{ctaPrimary}</GhostButton>
         </div>
       </Reveal>
 
       {/* Card B — continuous expert guidance (first on mobile per Figma) */}
       <Reveal as="div" delay={120} className="order-1 flex flex-col items-center rounded-[16px] md:rounded-[24px] bg-black/20 px-5 pb-6 pt-8 text-center backdrop-blur-[20px] md:p-8 lg:order-2">
-        <h3 className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
+        <h3 {...textStyleProps(textStyles.card3Title)} className="font-display text-[24px] font-semibold leading-[1.12] tracking-[-0.01em] text-white md:text-[34px] md:leading-[42px]">
           {card3Title}
         </h3>
 
@@ -294,15 +311,15 @@ export default function WeightLossDetail({
           />
         </div>
 
-        <p className="mt-6 font-serif text-[24px] font-normal italic text-[#b4ff9f] md:text-[34px]">
+        <p {...textStyleProps(textStyles.card3Em)} className="mt-6 font-serif text-[24px] font-normal italic text-[#b4ff9f] md:text-[34px]">
           {card3Em}
         </p>
-        <p className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
+        <p {...textStyleProps(textStyles.card3Body)} className="mt-3 max-w-[46ch] font-ui text-[16px] leading-[20px] text-white/80">
           <Highlight text={card3Body} />
         </p>
 
         <div className="mt-6 w-full">
-          <EligibilityCta
+          <EligibilityCta {...textStyleProps(textStyles.ctaSecondary)}
             product="weight-loss"
             label={ctaSecondary}
             className="btn-cta inline-flex h-[52px] w-full items-center justify-center rounded-xl border border-white/40 bg-white/5 px-6 font-ui text-[16px] font-medium text-white hover:bg-white/15"

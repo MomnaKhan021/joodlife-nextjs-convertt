@@ -4,6 +4,8 @@ import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 import CategoryCurve from "@/components/home/CategoryCurve";
 import type { Category } from "@/lib/categories";
+import { styleProps } from "@/lib/sectionStyle";
+import { textStyleProps } from "@/lib/textStyle";
 
 /**
  * Category preview section — the themed full-bleed blocks from the Figma
@@ -33,6 +35,7 @@ export default function CategoryPreview({
   children?: React.ReactNode;
 }) {
   const { theme } = category;
+  const ts = category.textStyles ?? {};
   const isHero = variant === "hero";
 
   // The 2026 Figma home-page treatment (ED): sky backdrop, portrait
@@ -51,6 +54,9 @@ export default function CategoryPreview({
       className="w-full bg-white px-0 py-[7px] md:py-10"
       style={
         {
+          // Merged, not spread: this section already sets its theme
+          // variables in `style`, which would replace a spread colour.
+          ...styleProps(category.style).style,
           "--cat-base": theme.base,
           "--cat-soft": theme.soft,
           "--cat-tint": theme.tint,
@@ -108,15 +114,15 @@ export default function CategoryPreview({
           <div className="flex flex-col items-start text-left md:items-center md:text-center">
             {isHero && (
               <Reveal as="div" direction="down">
-                <span className="mb-3 inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 font-ui text-[13px] font-medium tracking-tight">
+                <span {...textStyleProps(ts.eyebrow)} className="mb-3 inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 font-ui text-[13px] font-medium tracking-tight">
                   {category.eyebrow}
                 </span>
               </Reveal>
             )}
             <Reveal as="div" delay={60}>
-              <h2 className="max-w-[18ch] font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.025em] md:text-[48px] md:leading-[1.08]">
+              <h2 {...textStyleProps(ts.title)} className="max-w-[18ch] font-display text-[30px] font-semibold leading-[1.12] tracking-[-0.025em] md:text-[48px] md:leading-[1.08]">
                 {category.title}{" "}
-                <em className="font-serif font-normal italic">{category.titleAccent}</em>
+                <em {...textStyleProps(ts.titleAccent)} className="font-serif font-normal italic">{category.titleAccent}</em>
               </h2>
             </Reveal>
 
@@ -169,7 +175,7 @@ export default function CategoryPreview({
               {/* Dual CTA — overlays the lower torso, sits above the cards.
                   Compact + centred on mobile, larger on desktop. */}
               <div className="absolute bottom-[42%] left-1/2 z-20 flex w-[92%] -translate-x-1/2 flex-nowrap items-stretch justify-center gap-2.5 md:w-full md:items-center md:gap-3">
-                <Link
+                <Link {...textStyleProps(ts.ctaLabel)}
                   href={isReturningPatient && category.key === "weight-loss" ? "/reorder" : `/consultation?product=${category.key}`}
                   className="btn-cta inline-flex min-h-[50px] flex-1 items-center justify-center rounded-lg bg-white px-3 py-1.5 text-center font-ui text-[12px] font-semibold leading-tight text-[#142e2a] shadow-lg md:min-h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
@@ -192,7 +198,7 @@ export default function CategoryPreview({
           {children ? (
             <div className="relative z-10 -mt-[150px] md:-mt-[185px]">{children}</div>
           ) : (
-            <p className="relative z-10 mx-auto mt-8 max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
+            <p {...textStyleProps(ts.blurb)} className="relative z-10 mx-auto mt-8 max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
               {category.blurb}
             </p>
           )}
@@ -231,6 +237,7 @@ function SkyPreview({
   children?: React.ReactNode;
 }) {
   const { theme } = category;
+  const ts = category.textStyles ?? {};
   const lower = theme.lowerBg ?? theme.base;
   const fadeFrom = theme.fadeFrom ?? lower;
   const box = category.heroImageBox ?? {
@@ -252,6 +259,9 @@ function SkyPreview({
       className="w-full bg-white px-0 py-[7px] md:py-10"
       style={
         {
+          // Merged, not spread: this section already sets its theme
+          // variables in `style`, which would replace a spread colour.
+          ...styleProps(category.style).style,
           "--cat-base": theme.base,
           "--cat-soft": theme.soft,
           "--cat-tint": theme.tint,
@@ -290,9 +300,9 @@ function SkyPreview({
 
           <div className="relative z-10 mx-auto flex w-full max-w-[1226px] flex-col items-center px-4 pt-[50px] md:px-8 md:pt-[100px] lg:px-0">
             <Reveal as="div" delay={60} className="w-full">
-              <h2 className="mx-auto max-w-[664px] text-center font-display text-[length:var(--t-size-m)] font-semibold leading-[var(--t-lh-m)] tracking-[var(--t-ls-m)] md:text-[length:var(--t-size-d)] md:leading-[var(--t-lh-d)] md:tracking-[var(--t-ls-d)]">
+              <h2 {...textStyleProps(ts.title)} className="mx-auto max-w-[664px] text-center font-display text-[length:var(--t-size-m)] font-semibold leading-[var(--t-lh-m)] tracking-[var(--t-ls-m)] md:text-[length:var(--t-size-d)] md:leading-[var(--t-lh-d)] md:tracking-[var(--t-ls-d)]">
                 {category.title}{" "}
-                <em className="font-serif font-normal italic leading-[1]">{category.titleAccent}</em>
+                <em {...textStyleProps(ts.titleAccent)} className="font-serif font-normal italic leading-[1]">{category.titleAccent}</em>
               </h2>
             </Reveal>
 
@@ -327,7 +337,7 @@ function SkyPreview({
                   on desktop; white with a #0c2421 hairline / 6% white with
                   a white hairline. */}
               <div className="absolute bottom-[9.1%] left-1/2 z-20 flex w-[358px] max-w-[calc(100vw-32px)] -translate-x-[calc(50%+7px)] gap-2 md:bottom-[13.7%] md:w-auto md:max-w-none md:-translate-x-[calc(50%+30px)] md:gap-[11px]">
-                <Link
+                <Link {...textStyleProps(ts.ctaLabel)}
                   href={startHref}
                   className="btn-cta inline-flex h-[50px] flex-1 items-center justify-center rounded-lg border border-[#0c2421] bg-white px-4 text-center font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-[#142f2b] md:w-[183px] md:flex-none"
                 >
@@ -355,7 +365,7 @@ function SkyPreview({
           />
           <div className="relative z-10 mx-auto w-full max-w-[1226px] px-4 pb-[50px] md:px-8 md:pb-[100px] lg:px-0">
             {children ?? (
-              <p className="mx-auto max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
+              <p {...textStyleProps(ts.blurb)} className="mx-auto max-w-[52ch] text-center font-ui text-[15px] leading-relaxed text-white/85 md:text-[16px]">
                 {category.blurb}
               </p>
             )}

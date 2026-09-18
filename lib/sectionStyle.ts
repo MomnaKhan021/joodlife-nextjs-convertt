@@ -223,3 +223,7 @@ export type BlogPageStyleKey = (typeof BLOG_PAGE_STYLE_KEYS)[number];
 /** The shared treatment-page sections edited under "Category pages". */
 export const CATEGORY_PAGE_STYLE_KEYS = ["uspStrip", "featureGrid", "faqs"] as const;
 export type CategoryPageStyleKey = (typeof CATEGORY_PAGE_STYLE_KEYS)[number];
+
+/** One band per treatment category, keyed by category. */
+export const TREATMENT_STYLE_KEYS = ["weight-loss", "erectile-dysfunction", "period-delay"] as const;
+export type TreatmentStyleKey = (typeof TREATMENT_STYLE_KEYS)[number];

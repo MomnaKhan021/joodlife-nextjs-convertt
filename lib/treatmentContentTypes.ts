@@ -1,4 +1,5 @@
 import { CATEGORIES, CATEGORY_ORDER, type Category, type CategoryKey } from "@/lib/categories";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editable slice of a treatment category.
@@ -30,6 +31,8 @@ export type FeatureRow = { title: string; sub: string };
  * visible block, rather than a field per fragment.
  */
 export type CategoryDetail = {
+  /** This panel's text sizes, keyed by bare field name. */
+  textStyles?: Partial<Record<string, TextStyle>>;
   // --- Card 1: the wide banner at the top of the panel ---
   card1Title?: string;
   card1Body?: string;

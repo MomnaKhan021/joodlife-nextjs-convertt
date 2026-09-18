@@ -11,6 +11,24 @@ import type {
 } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
+import SectionControl from "../SectionControl";
+import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import {
+  TREATMENT_STYLE_KEYS,
+  mergeStyles,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  TREATMENT_TEXT_KEYS,
+  mergeTextStyles,
+  type TextStyle,
+} from "@/lib/textStyle";
+
+/** Per-category band colours and text sizes, as stored on the global. */
+export type TreatmentLook = {
+  styles: Record<string, SectionStyle>;
+  textStyles: Record<string, TextStyle>;
+};
 
 /**
  * Editor for the three treatment categories.
@@ -37,8 +55,11 @@ export default function TreatmentsForm({
   embedded = false,
   rows: controlledRows,
   onRowsChange,
+  look,
 }: {
   initial: Row[];
+  /** Band colours and text sizes; saved with the rest by this editor's own button. */
+  look?: TreatmentLook;
   /** Rendered inside the Home page screen — drop the page chrome. */
   embedded?: boolean;
   /**
@@ -101,6 +122,8 @@ export default function TreatmentsForm({
     setSaved(false);
     try {
       await saveGlobal("treatments", {
+        styles,
+        textStyles,
         categories: rows.map((r) => ({
           ...r,
           bullets: r.bullets.filter((b) => b.trim()),
@@ -114,7 +137,22 @@ export default function TreatmentsForm({
     }
   }
 
+  const [styles, setStyles] = useState<Record<string, SectionStyle>>(
+    look?.styles ?? mergeStyles(null, TREATMENT_STYLE_KEYS),
+  );
+  const setStyle = (k: string) => (next: SectionStyle) =>
+    setStyles((st) => ({ ...st, [k]: next }));
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    look?.textStyles ?? mergeTextStyles(null, TREATMENT_TEXT_KEYS),
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
   return (
+    <TextStyleCtx.Provider value={textStyleApi}>
     <div className={embedded ? "" : "mx-auto w-full max-w-[1000px]"}>
       {!embedded && (
       <header className="mb-6">
@@ -158,21 +196,32 @@ export default function TreatmentsForm({
             </summary>
 
             <div className="mt-4 space-y-4">
+              <div className="flex justify-end">
+                <SectionControl sectionKey={r.key} value={styles[r.key]} onChange={setStyle(r.key)} />
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className={fieldLabel}>Eyebrow</label>
+                  <LabelRow k={`${r.key}.eyebrow`} label="Eyebrow">
+                    <label className={fieldLabel}>Eyebrow</label>
+                  </LabelRow>
                   <input className={`${fieldInput} mt-1`} value={r.eyebrow ?? ""} onChange={(e) => update(i, { eyebrow: e.target.value })} />
                 </div>
                 <div>
-                  <label className={fieldLabel}>Button text</label>
+                  <LabelRow k={`${r.key}.ctaLabel`} label="Button text">
+                    <label className={fieldLabel}>Button text</label>
+                  </LabelRow>
                   <input className={`${fieldInput} mt-1`} value={r.ctaLabel ?? ""} onChange={(e) => update(i, { ctaLabel: e.target.value })} placeholder="Get started" />
                 </div>
                 <div>
-                  <label className={fieldLabel}>Title</label>
+                  <LabelRow k={`${r.key}.title`} label="Title">
+                    <label className={fieldLabel}>Title</label>
+                  </LabelRow>
                   <input className={`${fieldInput} mt-1`} value={r.title ?? ""} onChange={(e) => update(i, { title: e.target.value })} />
                 </div>
                 <div>
-                  <label className={fieldLabel}>Title (accent part)</label>
+                  <LabelRow k={`${r.key}.titleAccent`} label="Title (accent part)">
+                    <label className={fieldLabel}>Title (accent part)</label>
+                  </LabelRow>
                   <input className={`${fieldInput} mt-1`} value={r.titleAccent ?? ""} onChange={(e) => update(i, { titleAccent: e.target.value })} />
                 </div>
                 <div className="sm:col-span-2">
@@ -187,7 +236,9 @@ export default function TreatmentsForm({
                   </p>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={fieldLabel}>Blurb</label>
+                  <LabelRow k={`${r.key}.blurb`} label="Blurb">
+                    <label className={fieldLabel}>Blurb</label>
+                  </LabelRow>
                   <textarea rows={2} className={`${fieldInput} mt-1`} value={r.blurb ?? ""} onChange={(e) => update(i, { blurb: e.target.value })} />
                 </div>
               </div>
@@ -274,12 +325,16 @@ export default function TreatmentsForm({
                       1 · Top banner
                     </p>
                     <div>
-                      <label className={fieldLabel}>Heading</label>
+                      <LabelRow k={`${r.key}.card1Title`} label="Heading">
+                        <label className={fieldLabel}>Heading</label>
+                      </LabelRow>
                       <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card1Title ?? ""} onChange={(e) => updateDetail(i, { card1Title: e.target.value })} />
                       <p className="mt-1 text-[12px] text-[#8a8a8a]">A line break splits it across two lines.</p>
                     </div>
                     <div>
-                      <label className={fieldLabel}>Body</label>
+                      <LabelRow k={`${r.key}.card1Body`} label="Body">
+                        <label className={fieldLabel}>Body</label>
+                      </LabelRow>
                       <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
                     </div>
                     <div>
@@ -298,7 +353,9 @@ export default function TreatmentsForm({
                       </div>
                     </div>
                     <div>
-                      <label className={fieldLabel}>Button text</label>
+                      <LabelRow k={`${r.key}.card1Cta`} label="Button text">
+                        <label className={fieldLabel}>Button text</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.card1Cta ?? ""} onChange={(e) => updateDetail(i, { card1Cta: e.target.value })} />
                     </div>
                     <div>
@@ -313,15 +370,21 @@ export default function TreatmentsForm({
                       2 · Bottom-left card
                     </p>
                     <div>
-                      <label className={fieldLabel}>Heading</label>
+                      <LabelRow k={`${r.key}.card2Title`} label="Heading">
+                        <label className={fieldLabel}>Heading</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1`} value={r.detail.card2Title ?? ""} onChange={(e) => updateDetail(i, { card2Title: e.target.value })} />
                     </div>
                     <div>
-                      <label className={fieldLabel}>Body</label>
+                      <LabelRow k={`${r.key}.card2Body`} label="Body">
+                        <label className={fieldLabel}>Body</label>
+                      </LabelRow>
                       <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card2Body ?? ""} onChange={(e) => updateDetail(i, { card2Body: e.target.value })} />
                     </div>
                     <div>
-                      <label className={fieldLabel}>Button text</label>
+                      <LabelRow k={`${r.key}.ctaPrimary`} label="Button text">
+                        <label className={fieldLabel}>Button text</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.ctaPrimary ?? ""} onChange={(e) => updateDetail(i, { ctaPrimary: e.target.value })} />
                     </div>
                     <div>
@@ -337,20 +400,28 @@ export default function TreatmentsForm({
                     </p>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <label className={fieldLabel}>Heading</label>
+                        <LabelRow k={`${r.key}.card3Title`} label="Heading">
+                          <label className={fieldLabel}>Heading</label>
+                        </LabelRow>
                         <input className={`${fieldInput} mt-1`} value={r.detail.card3Title ?? ""} onChange={(e) => updateDetail(i, { card3Title: e.target.value })} />
                       </div>
                       <div>
-                        <label className={fieldLabel}>Italic line</label>
+                        <LabelRow k={`${r.key}.card3Em`} label="Italic line">
+                          <label className={fieldLabel}>Italic line</label>
+                        </LabelRow>
                         <input className={`${fieldInput} mt-1`} value={r.detail.card3Em ?? ""} onChange={(e) => updateDetail(i, { card3Em: e.target.value })} />
                       </div>
                     </div>
                     <div>
-                      <label className={fieldLabel}>Body</label>
+                      <LabelRow k={`${r.key}.card3Body`} label="Body">
+                        <label className={fieldLabel}>Body</label>
+                      </LabelRow>
                       <textarea rows={2} className={`${fieldInput} mt-1`} value={r.detail.card3Body ?? ""} onChange={(e) => updateDetail(i, { card3Body: e.target.value })} />
                     </div>
                     <div>
-                      <label className={fieldLabel}>Button text</label>
+                      <LabelRow k={`${r.key}.ctaSecondary`} label="Button text">
+                        <label className={fieldLabel}>Button text</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
                     </div>
                     <div>
@@ -406,11 +477,15 @@ export default function TreatmentsForm({
                       1 · Intro card
                     </p>
                     <div>
-                      <label className={fieldLabel}>Body</label>
+                      <LabelRow k={`${r.key}.card1Body`} label="Body">
+                        <label className={fieldLabel}>Body</label>
+                      </LabelRow>
                       <textarea rows={3} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
                     </div>
                     <div>
-                      <label className={fieldLabel}>Button text</label>
+                      <LabelRow k={`${r.key}.card1Cta`} label="Button text">
+                        <label className={fieldLabel}>Button text</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1 max-w-[240px]`} value={r.detail.card1Cta ?? ""} onChange={(e) => updateDetail(i, { card1Cta: e.target.value })} />
                     </div>
                     <div>
@@ -424,7 +499,9 @@ export default function TreatmentsForm({
                       2 · Goals card
                     </p>
                     <div>
-                      <label className={fieldLabel}>Heading</label>
+                      <LabelRow k={`${r.key}.goalsTitle`} label="Heading">
+                        <label className={fieldLabel}>Heading</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1`} value={r.detail.goalsTitle ?? ""} onChange={(e) => updateDetail(i, { goalsTitle: e.target.value })} />
                     </div>
                     <div>
@@ -490,7 +567,9 @@ export default function TreatmentsForm({
                       1 · Intro card
                     </p>
                     <div>
-                      <label className={fieldLabel}>Body</label>
+                      <LabelRow k={`${r.key}.card1Body`} label="Body">
+                        <label className={fieldLabel}>Body</label>
+                      </LabelRow>
                       <textarea rows={3} className={`${fieldInput} mt-1`} value={r.detail.card1Body ?? ""} onChange={(e) => updateDetail(i, { card1Body: e.target.value })} />
                     </div>
                     <div>
@@ -506,11 +585,15 @@ export default function TreatmentsForm({
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className={fieldLabel}>Tags card heading</label>
+                      <LabelRow k={`${r.key}.tagsTitle`} label="Tags card heading">
+                        <label className={fieldLabel}>Tags card heading</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1`} value={r.detail.tagsTitle ?? ""} onChange={(e) => updateDetail(i, { tagsTitle: e.target.value })} />
                     </div>
                     <div>
-                      <label className={fieldLabel}>Button text</label>
+                      <LabelRow k={`${r.key}.ctaSecondary`} label="Button text">
+                        <label className={fieldLabel}>Button text</label>
+                      </LabelRow>
                       <input className={`${fieldInput} mt-1`} value={r.detail.ctaSecondary ?? ""} onChange={(e) => updateDetail(i, { ctaSecondary: e.target.value })} />
                     </div>
                   </div>
@@ -567,5 +650,6 @@ export default function TreatmentsForm({
         </button>
       </div>
     </div>
+    </TextStyleCtx.Provider>
   );
 }

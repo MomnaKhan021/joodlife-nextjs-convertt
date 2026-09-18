@@ -5,6 +5,7 @@ import Reveal from "@/components/ui/Reveal";
 import TestimonialCarousel, {
   type Testimonial,
 } from "@/components/category/TestimonialCarousel";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Erectile-dysfunction home-page section content — Figma "Home Page - 2026"
@@ -54,6 +55,8 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 ];
 
 export type EdDetailContent = {
+  /** This panel's text sizes, keyed by bare field name. */
+  textStyles?: Partial<Record<string, TextStyle>>;
   card1Body?: string;
   card1Cta?: string;
   card1Image?: string;
@@ -71,6 +74,7 @@ export default function EdDetail({
   goalsTitle = DEFAULT_GOALS_TITLE,
   goals,
   testimonials,
+  textStyles = {},
 }: EdDetailContent = {}) {
   const GOALS = goals?.length ? goals : DEFAULT_GOALS;
   const TESTIMONIALS = testimonials?.length ? testimonials : DEFAULT_TESTIMONIALS;
@@ -89,7 +93,7 @@ export default function EdDetail({
         as="div"
         className="grid items-center gap-[23px] rounded-[16px] bg-black/12 px-6 pb-[49px] pt-[49px] backdrop-blur-[20px] md:min-h-[339px] md:grid-cols-[498px_1fr_183px] md:gap-0 md:rounded-[24px] md:py-0 md:pl-12 md:pr-[54px] md:backdrop-blur-none"
       >
-        <p className="font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:text-[25px] md:leading-[26px]">
+        <p {...textStyleProps(textStyles.card1Body)} className="font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:text-[25px] md:leading-[26px]">
           {card1Body}
         </p>
         <div className="relative mx-auto h-[179px] w-[188px]">
@@ -102,7 +106,7 @@ export default function EdDetail({
             className="object-contain"
           />
         </div>
-        <Link
+        <Link {...textStyleProps(textStyles.card1Cta)}
           href={START}
           className="btn-cta inline-flex h-[50px] w-full items-center justify-center rounded-lg border border-[#d3dabe] bg-[#142e2a] font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-white hover:bg-[#0c2421] md:w-[183px] md:justify-self-end"
         >
@@ -133,7 +137,7 @@ export default function EdDetail({
             sizes="(max-width: 1024px) 90vw, 651px"
             className="hidden object-cover md:block"
           />
-          <h3 className="absolute left-[21px] top-[34px] font-ui text-[25px] font-bold leading-[26px] tracking-[-0.49px] text-white md:left-12 md:top-16">
+          <h3 {...textStyleProps(textStyles.goalsTitle)} className="absolute left-[21px] top-[34px] font-ui text-[25px] font-bold leading-[26px] tracking-[-0.49px] text-white md:left-12 md:top-16">
             {goalsTitle === DEFAULT_GOALS_TITLE ? (
               <>
                 <span className="md:hidden">What&rsquo;s your goal?</span>

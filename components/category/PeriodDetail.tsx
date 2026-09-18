@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import Reveal from "@/components/ui/Reveal";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Period-delay section content (Figma Component 291, below the hero):
@@ -30,6 +31,8 @@ export type PeriodDetailContent = {
   tagsTitle?: string;
   tags?: string[];
   ctaSecondary?: string;
+  /** This panel's text sizes, keyed by bare field name. */
+  textStyles?: Partial<Record<string, TextStyle>>;
 };
 
 export default function PeriodDetail({
@@ -39,6 +42,7 @@ export default function PeriodDetail({
   tagsTitle = 'Understand Your Cycle and Hormone Health',
   tags,
   ctaSecondary = 'Check Your Eligibility',
+  textStyles = {},
 }: PeriodDetailContent = {}) {
   const TAGS = tags?.length ? tags : DEFAULT_TAGS;
   return (
@@ -48,7 +52,7 @@ export default function PeriodDetail({
         as="div"
         className="relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:p-8"
       >
-        <p className="max-w-[42ch] font-ui text-[15px] leading-relaxed text-white/90">
+        <p {...textStyleProps(textStyles.card1Body)} className="max-w-[42ch] font-ui text-[15px] leading-relaxed text-white/90">
           {card1Body}
         </p>
         <div className="relative -mb-6 mt-6 h-[260px] w-full sm:h-[300px] md:-mb-8 md:h-[340px]">
@@ -71,7 +75,7 @@ export default function PeriodDetail({
         delay={120}
         className="relative flex min-h-[380px] flex-col items-center overflow-hidden rounded-[16px] md:rounded-[24px] bg-black/12 px-5 pb-6 pt-8 backdrop-blur-[20px] md:min-h-[420px] md:p-8"
       >
-        <h3 className="relative z-10 max-w-[20ch] text-center font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
+        <h3 {...textStyleProps(textStyles.tagsTitle)} className="relative z-10 max-w-[20ch] text-center font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
           {tagsTitle}
         </h3>
 
@@ -105,7 +109,7 @@ export default function PeriodDetail({
 
         {/* CTA centred at the bottom, above the portrait */}
         <div className="relative z-10 mt-auto pt-6">
-          <EligibilityCta
+          <EligibilityCta {...textStyleProps(textStyles.ctaSecondary)}
             product="period-delay"
             className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#3a0d20] px-7 font-ui text-[14px] font-semibold text-white hover:bg-[#2d0a19]"
             label={ctaSecondary}

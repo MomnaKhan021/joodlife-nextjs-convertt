@@ -13,7 +13,7 @@ import type {
 } from "@/lib/pageContentTypes";
 import type { TreatmentRow } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
-import TreatmentsEditor from "../treatments/TreatmentsForm";
+import TreatmentsEditor, { type TreatmentLook } from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import { AreaField, TextField } from "../FormKit";
@@ -33,9 +33,12 @@ import {
 export default function SectionsForm({
   initial,
   treatments,
+  treatmentLook,
 }: {
   initial: HomeContent;
   treatments: TreatmentRow[];
+  /** Treatment band colours and text sizes, handed to the embedded editor. */
+  treatmentLook?: TreatmentLook;
 }) {
   const [styles, setStyles] = useState<Record<HomeStyleKey, SectionStyle>>(
     initial.styles,
@@ -426,6 +429,7 @@ export default function SectionsForm({
         </div>
         <TreatmentsEditor
           initial={treatments}
+          look={treatmentLook}
           embedded
           rows={treatmentRows}
           onRowsChange={setTreatmentRows}

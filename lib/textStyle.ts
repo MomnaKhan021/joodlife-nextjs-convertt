@@ -323,3 +323,46 @@ export const CATEGORY_PAGE_TEXT_KEYS = [
   "faqs.answer",
 ] as const;
 export type CategoryPageTextKey = (typeof CATEGORY_PAGE_TEXT_KEYS)[number];
+
+/**
+ * Treatment texts are keyed per category ("weight-loss.title"), because the
+ * editor draws one block per category. Views receive a category's own map with
+ * bare field names — see textStylesFor.
+ */
+const TREATMENT_CATS = ["weight-loss", "erectile-dysfunction", "period-delay"];
+export const TREATMENT_TEXT_FIELDS = [
+  "eyebrow",
+  "title",
+  "titleAccent",
+  "blurb",
+  "ctaLabel",
+  "card1Title",
+  "card1Body",
+  "card1Cta",
+  "card2Title",
+  "card2Body",
+  "card3Title",
+  "card3Em",
+  "card3Body",
+  "ctaPrimary",
+  "ctaSecondary",
+  "goalsTitle",
+  "tagsTitle",
+] as const;
+export const TREATMENT_TEXT_KEYS: string[] = TREATMENT_CATS.flatMap((c) =>
+  TREATMENT_TEXT_FIELDS.map((f) => `${c}.${f}`),
+);
+
+/** One category's sizes, keyed by bare field name ("title", "card1Body"). */
+export function textStylesFor(
+  all: Record<string, TextStyle> | undefined,
+  cat: string,
+): Partial<Record<string, TextStyle>> {
+  const out: Partial<Record<string, TextStyle>> = {};
+  if (!all) return out;
+  const prefix = `${cat}.`;
+  for (const [k, v] of Object.entries(all)) {
+    if (k.startsWith(prefix)) out[k.slice(prefix.length)] = v;
+  }
+  return out;
+}
