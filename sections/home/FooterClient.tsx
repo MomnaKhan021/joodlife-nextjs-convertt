@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  textStyleProps,
+  type FooterTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 import Image from "next/image";
 import { useState, type FormEvent } from "react";
 import PaymentBadges from "@/components/footer/PaymentBadges";
@@ -210,6 +215,8 @@ function SocialColumn() {
 export type FooterProps = {
   /** Background / text colour. Undefined keeps the shipped dark green. */
   style?: SectionStyle;
+  /** Per-text size and weight — optional so a bare render stays unchanged. */
+  textStyles?: Partial<Record<FooterTextKey, TextStyle>>;
   joodLinks?: FooterLink[];
   treatmentLinks?: FooterLink[];
   policyLinks?: FooterLink[];
@@ -228,6 +235,8 @@ const DEFAULT_LEGAL =
   "Superintendent Pharmacist: Zahhaad Khalil (2228969) Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd. Clinical, consultation and prescribing services are provided by UK-registered prescribers. All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.";
 
 export default function Footer(props: FooterProps = {}) {
+  // Per-text size/weight; empty keeps every text as designed.
+  const textStyles = props.textStyles ?? {};
   const JOOD_LINKS = props.joodLinks?.length ? props.joodLinks : DEFAULT_JOOD_LINKS;
   const TREATMENTS = props.treatmentLinks?.length ? props.treatmentLinks : DEFAULT_TREATMENTS;
   const POLICY = props.policyLinks?.length ? props.policyLinks : DEFAULT_POLICY;
@@ -292,7 +301,7 @@ export default function Footer(props: FooterProps = {}) {
 
             {/* Have-a-question card — cream bg per Figma */}
             <div className="flex flex-col gap-3 rounded-[10px] bg-[#f7f9f2] px-5 py-4 md:w-[228px]">
-              <h3 className="font-display text-[20px] font-semibold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:text-[25px]">
+              <h3 {...textStyleProps(textStyles.contactHeading)} className="font-display text-[20px] font-semibold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:text-[25px]">
                 {contactHeading}
               </h3>
               <div className="flex items-start gap-2">
@@ -302,6 +311,7 @@ export default function Footer(props: FooterProps = {}) {
                     WhatsApp
                   </span>
                   <a
+                    {...textStyleProps(textStyles.phone)}
                     href={`https://wa.me/${waNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -332,10 +342,10 @@ export default function Footer(props: FooterProps = {}) {
           <div className="border-t border-white/10 py-8 md:py-10 lg:py-[40px]">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">
               <div className="flex flex-col gap-1.5">
-                <h3 className="font-display text-[22px] font-semibold leading-[28px] tracking-[-0.01em] text-white md:text-[28px] md:leading-[34px]">
+                <h3 {...textStyleProps(textStyles.newsletterHeading)} className="font-display text-[22px] font-semibold leading-[28px] tracking-[-0.01em] text-white md:text-[28px] md:leading-[34px]">
                   {newsletterHeading}
                 </h3>
-                <p className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-white/70 md:text-[16.3px] md:leading-[20px]">
+                <p {...textStyleProps(textStyles.newsletterSubtext)} className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-white/70 md:text-[16.3px] md:leading-[20px]">
                   {newsletterSubtext}
                 </p>
               </div>
@@ -398,7 +408,7 @@ export default function Footer(props: FooterProps = {}) {
 
           {/* ───── ROW 3 — copyright + payment badges ───── */}
           <div className="flex flex-col gap-6 border-t border-white/10 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-8">
-            <p className="max-w-[620px] font-ui text-[12px] leading-[18px] tracking-[-0.01em] text-white/65 md:text-[13px] md:leading-[18px]">
+            <p {...textStyleProps(textStyles.legalText)} className="max-w-[620px] font-ui text-[12px] leading-[18px] tracking-[-0.01em] text-white/65 md:text-[13px] md:leading-[18px]">
               © {year} Jood. All rights reserved. {legalText}
             </p>
             <PaymentBadges />

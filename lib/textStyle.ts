@@ -135,3 +135,13 @@ export const HOME_TEXT_KEYS = [
   "ctaSubtitle",
 ] as const;
 export type HomeTextKey = (typeof HOME_TEXT_KEYS)[number];
+
+/** The footer texts that carry their own size/weight control. */
+export const FOOTER_TEXT_KEYS = [
+  "contactHeading",
+  "phone",
+  "newsletterHeading",
+  "newsletterSubtext",
+  "legalText",
+] as const;
+export type FooterTextKey = (typeof FOOTER_TEXT_KEYS)[number];

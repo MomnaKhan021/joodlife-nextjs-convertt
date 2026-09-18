@@ -153,6 +153,11 @@ export const Footer: GlobalConfig = {
       },
     },
     {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by field name." },
+    },
+    {
       name: "styles",
       type: "json",
       admin: {

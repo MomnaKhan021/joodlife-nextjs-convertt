@@ -16,6 +16,12 @@ import {
   type HeaderSettings,
 } from "@/lib/headerLayout";
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
+import {
+  FOOTER_TEXT_KEYS,
+  mergeTextStyles,
+  type FooterTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 export type MegaTreatment = {
   label: string;
@@ -142,6 +148,8 @@ export type HeaderContent = {
 export type FooterContent = {
   /** Background / text colour for the footer. */
   style: SectionStyle;
+  /** Per-text size and weight, keyed by the field name. */
+  textStyles: Record<FooterTextKey, TextStyle>;
   joodLinks: SiteLink[];
   treatmentLinks: SiteLink[];
   policyLinks: SiteLink[];
@@ -218,6 +226,7 @@ export function headerFallback(): HeaderContent {
 export function footerFallback(): FooterContent {
   return {
     style: EMPTY_STYLE,
+    textStyles: mergeTextStyles(null, FOOTER_TEXT_KEYS),
     joodLinks: DEFAULT_JOOD_LINKS,
     treatmentLinks: DEFAULT_TREATMENT_LINKS,
     policyLinks: DEFAULT_POLICY_LINKS,

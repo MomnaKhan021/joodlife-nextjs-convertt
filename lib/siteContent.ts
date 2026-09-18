@@ -3,6 +3,7 @@ import "server-only";
 import { getPayloadInstance } from "@/lib/payload";
 import { mergeHeaderSettings } from "@/lib/headerLayout";
 import { mergeStyles } from "@/lib/sectionStyle";
+import { FOOTER_TEXT_KEYS, mergeTextStyles } from "@/lib/textStyle";
 import {
   DEFAULT_FOOTER_TEXT,
   DEFAULT_HEADER_LOGOS,
@@ -75,6 +76,7 @@ export async function getFooterContent(): Promise<FooterContent> {
     })) as Record<string, unknown>;
     return {
       style: mergeStyles(doc?.styles, ["footer"] as const).footer,
+      textStyles: mergeTextStyles(doc?.textStyles, FOOTER_TEXT_KEYS),
       joodLinks: toLinks(doc?.joodLinks, DEFAULT_JOOD_LINKS),
       treatmentLinks: toLinks(doc?.treatmentLinks, DEFAULT_TREATMENT_LINKS),
       policyLinks: toLinks(doc?.policyLinks, DEFAULT_POLICY_LINKS),

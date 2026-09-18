@@ -11,7 +11,9 @@ import {
   saveGlobal,
 } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
+import { AreaField, TextField } from "../FormKit";
+import type { FooterTextKey, TextStyle } from "@/lib/textStyle";
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 
 /** Editor for the site footer: link columns, contact card, newsletter, legal. */
@@ -19,6 +21,11 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
   const [style, setStyle] = useState<SectionStyle>(
     initial.style ?? EMPTY_STYLE,
   );
+  const [textStyles, setTextStyles] = useState<Record<FooterTextKey, TextStyle>>(
+    initial.textStyles,
+  );
+  const setText = (k: FooterTextKey) => (next: TextStyle) =>
+    setTextStyles((t) => ({ ...t, [k]: next }));
   const [joodLinks, setJoodLinks] = useState(initial.joodLinks);
   const [treatmentLinks, setTreatmentLinks] = useState(initial.treatmentLinks);
   const [policyLinks, setPolicyLinks] = useState(initial.policyLinks);
@@ -42,6 +49,7 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
     try {
       await saveGlobal("footer", {
         styles: { footer: style },
+        textStyles,
         joodLinks,
         treatmentLinks,
         policyLinks,
@@ -89,19 +97,15 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
       <div className="space-y-5">
         {/* ---- Images ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Appearance</h2>
-            <p className="mt-1 text-[13px] text-[#616161]">Colours for the footer. Leave on Default to keep the design as it is.</p>
-          </div>
-          <StyleFields sectionKey="footer" value={style} onChange={setStyle} />
-        </div>
-
-        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Images</h2>
-            <p className="text-[12px] text-[#8a8a8a]">
-              Clear a field to restore the built-in image.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">Images</h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Clear a field to restore the built-in image.
+              </p>
+            </div>
+            {/* The footer is one band, so its appearance sits on its first card. */}
+            <SectionControl sectionKey="footer" value={style} onChange={setStyle} />
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
@@ -135,36 +139,56 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
             Contact &amp; newsletter
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="contactHeading">Contact heading</label>
-              <input id="contactHeading" className={`${fieldInput} mt-1`} value={contactHeading} onChange={(e) => setContactHeading(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="phone">WhatsApp / phone</label>
-              <input id="phone" className={`${fieldInput} mt-1`} value={phone} onChange={(e) => setPhone(e.target.value)} />
-              <p className="mt-1 text-[12px] text-[#8a8a8a]">
-                The wa.me link is rebuilt from this number automatically.
-              </p>
-            </div>
+            <TextField
+              id="contactHeading"
+              label="Contact heading"
+              value={contactHeading}
+              onChange={setContactHeading}
+              style={textStyles.contactHeading}
+              onStyle={setText("contactHeading")}
+            />
+            <TextField
+              id="phone"
+              label="WhatsApp / phone"
+              value={phone}
+              onChange={setPhone}
+              hint={"The wa.me link is rebuilt from this number automatically."}
+              style={textStyles.phone}
+              onStyle={setText("phone")}
+            />
             <div>
               <label className={fieldLabel} htmlFor="email">Support email</label>
               <input id="email" className={`${fieldInput} mt-1`} value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
-            <div>
-              <label className={fieldLabel} htmlFor="nlHeading">Newsletter heading</label>
-              <input id="nlHeading" className={`${fieldInput} mt-1`} value={newsletterHeading} onChange={(e) => setNewsletterHeading(e.target.value)} />
+            <TextField
+              id="nlHeading"
+              label="Newsletter heading"
+              value={newsletterHeading}
+              onChange={setNewsletterHeading}
+              style={textStyles.newsletterHeading}
+              onStyle={setText("newsletterHeading")}
+            />
+            <div className="sm:col-span-2">
+              <TextField
+                id="nlSub"
+                label="Newsletter subtext"
+                value={newsletterSubtext}
+                onChange={setNewsletterSubtext}
+                style={textStyles.newsletterSubtext}
+                onStyle={setText("newsletterSubtext")}
+              />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel} htmlFor="nlSub">Newsletter subtext</label>
-              <input id="nlSub" className={`${fieldInput} mt-1`} value={newsletterSubtext} onChange={(e) => setNewsletterSubtext(e.target.value)} />
-            </div>
-            <div className="sm:col-span-2">
-              <label className={fieldLabel} htmlFor="legal">Legal / small print</label>
-              <textarea id="legal" rows={4} className={`${fieldInput} mt-1`} value={legalText} onChange={(e) => setLegalText(e.target.value)} />
-              <p className="mt-1 text-[12px] text-[#8a8a8a]">
-                The “© year Jood. All rights reserved.” prefix is added
-                automatically — just the rest goes here.
-              </p>
+              <AreaField
+                id="legal"
+                label="Legal / small print"
+                rows={4}
+                value={legalText}
+                onChange={setLegalText}
+                hint={"The “© year Jood. All rights reserved.” prefix is added automatically — just the rest goes here."}
+                style={textStyles.legalText}
+                onStyle={setText("legalText")}
+              />
             </div>
           </div>
         </div>
