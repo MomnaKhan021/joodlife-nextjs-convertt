@@ -8,6 +8,7 @@ import {
   ED_DEFAULT,
   type EdReviewsContent,
 } from "@/lib/edContentTypes";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "3000+ happy customers" review wall — Figma ED page (node 18:811).
@@ -35,10 +36,13 @@ function Stars() {
 export default function EdReviews({
   content = ED_DEFAULT.reviews,
   style,
+  text,
 }: {
   content?: EdReviewsContent;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const REVIEWS = content.reviews;
   const trackRef = useRef<HTMLUListElement>(null);
@@ -83,19 +87,19 @@ export default function EdReviews({
               <span className="text-[#00b67a]">★</span> Trustpilot
             </span>
             <Stars />
-            <span className="font-semibold">{content.reviewsLabel}</span>
+            <span {...textStyleProps(text?.["reviews.reviewsLabel"])} className="font-semibold">{content.reviewsLabel}</span>
           </div>
 
-          <h2
+          <h2 {...textStyleProps(text?.["reviews.heading"])}
             id="ed-reviews"
             className="mt-3 font-display text-[30px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             {content.heading}{" "}
-            <em className="font-serif font-normal italic">
+            <em {...textStyleProps(text?.["reviews.headingAccent"])} className="font-serif font-normal italic">
               {content.headingAccent}
             </em>
           </h2>
-          <p className="mx-auto mt-3 max-w-[62ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
+          <p {...textStyleProps(text?.["reviews.body"])} className="mx-auto mt-3 max-w-[62ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
             {content.body}
           </p>
         </Reveal>

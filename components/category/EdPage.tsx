@@ -15,6 +15,7 @@ import {
   type EdStepsContent,
 } from "@/lib/edContentTypes";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Erectile-dysfunction page sections — Figma "Joodlife - Next js (Erectile
@@ -139,36 +140,41 @@ function StepVisual({ i }: { i: number }) {
 function TreatmentPlan({
   content,
   style,
+  text,
 }: {
   content: EdPlanContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
       {...styleProps(style)} aria-labelledby="ed-plan" className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]">
       <div className="mx-auto grid w-full max-w-[1200px] items-start gap-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-12">
         <Reveal as="div">
-          <h2
+          <h2 {...textStyleProps(text?.["plan.heading"])}
             id="ed-plan"
             className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             {content.heading}{" "}
-            <em className="font-serif font-normal italic">
+            <em {...textStyleProps(text?.["plan.headingAccent"])} className="font-serif font-normal italic">
               {content.headingAccent}
             </em>{" "}
-            {content.headingTail}
+            <span {...textStyleProps(text?.["plan.headingTail"])}>
+              {content.headingTail}
+            </span>
           </h2>
-          <p className="mt-3 max-w-[42ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
+          <p {...textStyleProps(text?.["plan.body"])} className="mt-3 max-w-[42ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
             {content.body}
           </p>
           <div className="mt-6 hidden flex-wrap gap-3 lg:flex">
             {content.ctaLabel ? (
-              <Link href={content.ctaHref} className={CTA_PRIMARY}>
+              <Link {...textStyleProps(text?.["plan.ctaLabel"])} href={content.ctaHref} className={CTA_PRIMARY}>
                 {content.ctaLabel}
               </Link>
             ) : null}
             {content.secondaryLabel ? (
-              <EligibilityCta
+              <EligibilityCta {...textStyleProps(text?.["plan.secondaryLabel"])}
                 product="erectile-dysfunction"
                 href={content.secondaryHref}
                 label={content.secondaryLabel}
@@ -197,12 +203,12 @@ function TreatmentPlan({
           </ul>
           <div className="mt-6 flex flex-wrap gap-3 lg:hidden">
             {content.ctaLabel ? (
-              <Link href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}>
+              <Link {...textStyleProps(text?.["plan.ctaLabel"])} href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}>
                 {content.ctaLabel}
               </Link>
             ) : null}
             {content.secondaryLabel ? (
-              <EligibilityCta
+              <EligibilityCta {...textStyleProps(text?.["plan.secondaryLabel"])}
                 product="erectile-dysfunction"
                 href={content.secondaryHref}
                 label={content.secondaryLabel}
@@ -220,25 +226,28 @@ function TreatmentPlan({
 function EdHowItWorks({
   content,
   style,
+  text,
 }: {
   content: EdStepsContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
       {...styleProps(style)} aria-labelledby="ed-how" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div" className="text-center">
-          <h2
+          <h2 {...textStyleProps(text?.["steps.heading"])}
             id="ed-how"
             className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             {content.heading}{" "}
-            <em className="font-serif font-normal italic">
+            <em {...textStyleProps(text?.["steps.headingAccent"])} className="font-serif font-normal italic">
               {content.headingAccent}
             </em>
           </h2>
-          <p className="mx-auto mt-2.5 max-w-[54ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+          <p {...textStyleProps(text?.["steps.body"])} className="mx-auto mt-2.5 max-w-[54ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
             {content.body}
           </p>
         </Reveal>
@@ -266,7 +275,7 @@ function EdHowItWorks({
 
         <div className="mt-7 flex justify-center">
           {content.ctaLabel ? (
-            <Link
+            <Link {...textStyleProps(text?.["steps.ctaLabel"])}
               href={content.ctaHref}
               className={`${CTA_PRIMARY} w-full max-w-[320px] md:w-auto`}
             >
@@ -283,9 +292,12 @@ function EdHowItWorks({
 function EdConfidence({
   content,
   style,
+  text,
 }: {
   content: EdConfidenceContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const checks = content.checks;
   return (
@@ -302,7 +314,7 @@ function EdConfidence({
               className="object-cover object-top"
             />
             {/* 89% stat overlay — animates up on scroll */}
-            <EdConfidenceStat
+            <EdConfidenceStat {...textStyleProps(text?.["confidence.statCaption"])} {...textStyleProps(text?.["confidence.statValue"])}
               target={content.statValue}
               caption={content.statCaption}
             />
@@ -314,14 +326,14 @@ function EdConfidence({
             <span className="grid h-5 w-5 place-items-center rounded-full bg-[#1a8ec1] text-[10px] text-white">
               ♂
             </span>
-            {content.eyebrow}
+            <span {...textStyleProps(text?.["confidence.eyebrow"])}>{content.eyebrow}</span>
           </span>
-          <h2
+          <h2 {...textStyleProps(text?.["confidence.heading"])}
             id="ed-conf"
             className="mt-3 font-display text-[30px] font-semibold leading-[1.2] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             {content.heading}{" "}
-            <em className="font-serif font-normal italic">
+            <em {...textStyleProps(text?.["confidence.headingAccent"])} className="font-serif font-normal italic">
               {content.headingAccent}
             </em>
           </h2>
@@ -345,12 +357,12 @@ function EdConfidence({
           </ul>
           <div className="mt-6 flex flex-wrap gap-3">
             {content.ctaLabel ? (
-              <Link href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}>
+              <Link {...textStyleProps(text?.["confidence.ctaLabel"])} href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}>
                 {content.ctaLabel}
               </Link>
             ) : null}
             {content.secondaryLabel ? (
-              <EligibilityCta
+              <EligibilityCta {...textStyleProps(text?.["confidence.secondaryLabel"])}
                 product="erectile-dysfunction"
                 href={content.secondaryHref}
                 label={content.secondaryLabel}
@@ -368,9 +380,12 @@ function EdConfidence({
 function EdGetToKnow({
   content,
   style,
+  text,
 }: {
   content: EdKnowContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const stages = content.progressStages;
   return (
@@ -378,17 +393,19 @@ function EdGetToKnow({
       {...styleProps(style)} aria-labelledby="ed-know" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div" className="text-center">
-          <h2
+          <h2 {...textStyleProps(text?.["know.heading"])}
             id="ed-know"
             className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
             {content.heading}{" "}
-            <em className="font-serif font-normal italic">
+            <em {...textStyleProps(text?.["know.headingAccent"])} className="font-serif font-normal italic">
               {content.headingAccent}
             </em>{" "}
-            {content.headingTail}
+            <span {...textStyleProps(text?.["know.headingTail"])}>
+              {content.headingTail}
+            </span>
           </h2>
-          <p className="mx-auto mt-2.5 max-w-[52ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+          <p {...textStyleProps(text?.["know.body"])} className="mx-auto mt-2.5 max-w-[52ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
             {content.body}
           </p>
         </Reveal>
@@ -400,11 +417,11 @@ function EdGetToKnow({
               <div className="scale-110 md:scale-125">
                 <AssessmentMock />
               </div>
-              <p className="mt-6 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
+              <p {...textStyleProps(text?.["know.quizBody"])} className="mt-6 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
                 {content.quizBody}
               </p>
               {content.quizCtaLabel ? (
-                <Link
+                <Link {...textStyleProps(text?.["know.quizCtaLabel"])}
                   href={content.quizCtaHref}
                   className="btn-cta mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-white px-7 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-white/90"
                 >
@@ -426,13 +443,13 @@ function EdGetToKnow({
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0d1f2a] via-[#0d1f2a]/75 to-transparent p-5 pt-14">
                 <div className="flex items-end justify-between gap-4">
-                  <p className="max-w-[26ch] font-ui text-[12.5px] leading-[18px] text-white/85">
+                  <p {...textStyleProps(text?.["know.progressBody"])} className="max-w-[26ch] font-ui text-[12.5px] leading-[18px] text-white/85">
                     {content.progressBody}
                   </p>
-                  <p className="shrink-0 text-right font-ui text-[11px] leading-[15px] text-white/70">
+                  <p {...textStyleProps(text?.["know.progressNote"])} className="shrink-0 text-right font-ui text-[11px] leading-[15px] text-white/70">
                     {content.progressNote}
                     <br />
-                    <strong className="font-bold text-white">
+                    <strong {...textStyleProps(text?.["know.progressNoteStrong"])} className="font-bold text-white">
                       {content.progressNoteStrong}
                     </strong>
                   </p>
@@ -461,9 +478,12 @@ function EdGetToKnow({
 function EdCtaBanner({
   content = ED_DEFAULT.banner,
   style,
+  text,
 }: {
   content?: EdBannerContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -495,13 +515,13 @@ function EdCtaBanner({
                   <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" />
                 </svg>
               </span>
-              <h2 className="mt-4 max-w-[15ch] font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]">
+              <h2 {...textStyleProps(text?.["banner.heading"])} className="mt-4 max-w-[15ch] font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]">
                 {content.heading}{" "}
-                <em className="font-serif font-normal italic">
+                <em {...textStyleProps(text?.["banner.headingAccent"])} className="font-serif font-normal italic">
                   {content.headingAccent}
                 </em>
               </h2>
-              <p className="mt-3 max-w-[34ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+              <p {...textStyleProps(text?.["banner.body"])} className="mt-3 max-w-[34ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
                 {content.body}
               </p>
 
@@ -525,7 +545,7 @@ function EdCtaBanner({
 
               {/* Get Started — white/outline, bottom on mobile */}
               {content.ctaLabel ? (
-                <Link
+                <Link {...textStyleProps(text?.["banner.ctaLabel"])}
                   href={content.ctaHref}
                   className="btn-cta mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:hidden"
                 >
@@ -536,7 +556,7 @@ function EdCtaBanner({
 
             {/* Get Started — bottom-right on desktop */}
             {content.ctaLabel ? (
-              <Link
+              <Link {...textStyleProps(text?.["banner.ctaLabel"])}
                 href={content.ctaHref}
                 className="btn-cta absolute bottom-10 right-12 hidden h-12 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:inline-flex"
               >
@@ -558,13 +578,13 @@ export default function EdPage({
 }) {
   return (
     <>
-      <TreatmentPlan content={content.plan} style={content.styles.plan} />
-      <EdHowItWorks content={content.steps} style={content.styles.steps} />
+      <TreatmentPlan content={content.plan} style={content.styles.plan} text={content.textStyles} />
+      <EdHowItWorks content={content.steps} style={content.styles.steps} text={content.textStyles} />
       <EdConfidence
         content={content.confidence}
-        style={content.styles.confidence}
+        style={content.styles.confidence} text={content.textStyles}
       />
-      <EdGetToKnow content={content.know} style={content.styles.know} />
+      <EdGetToKnow content={content.know} style={content.styles.know} text={content.textStyles} />
     </>
   );
 }

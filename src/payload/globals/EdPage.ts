@@ -29,6 +29,11 @@ export const EdPage: GlobalConfig = {
     { name: "know", type: "json", admin: { description: "Let's get to know you." } },
     { name: "banner", type: "json", admin: { description: "Closing banner." } },
     {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by section.field." },
+    },
+    {
       name: "styles",
       type: "json",
       admin: {

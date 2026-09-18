@@ -30,6 +30,8 @@ import {
   type EdStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
+import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editor for /erectile-dysfunction — eight sections, in the order a reader
@@ -72,6 +74,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
     try {
       await saveGlobal("ed-page", {
         styles,
+        textStyles,
         hero: { ...hero, checks: hero.checks.filter((c) => c.trim()) },
         reviews: {
           ...reviews,
@@ -106,7 +109,17 @@ export default function EdForm({ initial }: { initial: EdContent }) {
     }
   }
 
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
   return (
+    <TextStyleCtx.Provider value={textStyleApi}>
     <div className="mx-auto w-full max-w-[1000px]">
       <header className="mb-6">
         <Link
@@ -179,6 +192,8 @@ export default function EdForm({ initial }: { initial: EdContent }) {
         <div className={cmsCard}>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>
           <Pair
+            firstKey="hero.title"
+            secondKey="hero.titleAccent"
             label="Title"
             first={hero.title}
             second={hero.titleAccent}
@@ -186,6 +201,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onSecond={(v) => setHero({ ...hero, titleAccent: v })}
           />
           <TextField
+            tsKey="hero.reviewsLabel"
             label="Trustpilot line"
             value={hero.reviewsLabel}
             onChange={(v) => setHero({ ...hero, reviewsLabel: v })}
@@ -198,6 +214,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             placeholder="Private online consultation"
           />
           <CtaFields
+            labelKey="hero.ctaLabel"
             title="First button"
             label={hero.ctaLabel}
             href={hero.ctaHref}
@@ -205,6 +222,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onHref={(v) => setHero({ ...hero, ctaHref: v })}
           />
           <CtaFields
+            labelKey="hero.secondaryLabel"
             title="Second button"
             label={hero.secondaryLabel}
             href={hero.secondaryHref}
@@ -231,6 +249,8 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             </p>
           </div>
           <Pair
+            firstKey="reviews.heading"
+            secondKey="reviews.headingAccent"
             label="Heading"
             first={reviews.heading}
             second={reviews.headingAccent}
@@ -238,11 +258,13 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onSecond={(v) => setReviews({ ...reviews, headingAccent: v })}
           />
           <TextField
+            tsKey="reviews.reviewsLabel"
             label="Trustpilot line"
             value={reviews.reviewsLabel}
             onChange={(v) => setReviews({ ...reviews, reviewsLabel: v })}
           />
           <AreaField
+            tsKey="reviews.body"
             label="Intro"
             rows={2}
             value={reviews.body}
@@ -368,11 +390,14 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             </p>
           </div>
           <TextField
+            tsKey="journey.badge"
             label="Pill above the heading"
             value={journey.badge}
             onChange={(v) => setJourney({ ...journey, badge: v })}
           />
           <Pair
+            firstKey="journey.heading"
+            secondKey="journey.headingAccent"
             label="Heading"
             first={journey.heading}
             second={journey.headingAccent}
@@ -479,6 +504,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onAlt={(v) => setJourney({ ...journey, imageAlt: v })}
           />
           <CtaFields
+            labelKey="journey.ctaLabel"
             title="First button"
             label={journey.ctaLabel}
             href={journey.ctaHref}
@@ -486,6 +512,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onHref={(v) => setJourney({ ...journey, ctaHref: v })}
           />
           <CtaFields
+            labelKey="journey.secondaryLabel"
             title="Second button"
             label={journey.secondaryLabel}
             href={journey.secondaryHref}
@@ -498,6 +525,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
               Treatment card
             </p>
             <AreaField
+            tsKey="journey.cardBody"
               label="Body"
               rows={3}
               value={journey.cardBody}
@@ -514,6 +542,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             </div>
             <div className="mt-4">
               <CtaFields
+            labelKey="journey.cardCtaLabel"
                 title="Card button"
                 label={journey.cardCtaLabel}
                 href={journey.cardCtaHref}
@@ -528,6 +557,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
               Goals card
             </p>
             <TextField
+            tsKey="journey.goalsHeading"
               label="Heading"
               value={journey.goalsHeading}
               onChange={(v) => setJourney({ ...journey, goalsHeading: v })}
@@ -658,6 +688,8 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             4. Treatment plan
           </h2>
           <Pair
+            firstKey="plan.heading"
+            secondKey="plan.headingAccent"
             label="Heading"
             first={plan.heading}
             second={plan.headingAccent}
@@ -665,18 +697,21 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onSecond={(v) => setPlan({ ...plan, headingAccent: v })}
           />
           <TextField
+            tsKey="plan.headingTail"
             label="Words after the italic part"
             value={plan.headingTail}
             onChange={(v) => setPlan({ ...plan, headingTail: v })}
             placeholder="around you"
           />
           <AreaField
+            tsKey="plan.body"
             label="Body"
             rows={2}
             value={plan.body}
             onChange={(v) => setPlan({ ...plan, body: v })}
           />
           <CtaFields
+            labelKey="plan.ctaLabel"
             title="First button"
             label={plan.ctaLabel}
             href={plan.ctaHref}
@@ -684,6 +719,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onHref={(v) => setPlan({ ...plan, ctaHref: v })}
           />
           <CtaFields
+            labelKey="plan.secondaryLabel"
             title="Second button"
             label={plan.secondaryLabel}
             href={plan.secondaryHref}
@@ -788,6 +824,8 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             5. How it works
           </h2>
           <Pair
+            firstKey="steps.heading"
+            secondKey="steps.headingAccent"
             label="Heading"
             first={steps.heading}
             second={steps.headingAccent}
@@ -795,6 +833,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onSecond={(v) => setSteps({ ...steps, headingAccent: v })}
           />
           <AreaField
+            tsKey="steps.body"
             label="Intro"
             rows={2}
             value={steps.body}
@@ -889,6 +928,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             </div>
           </div>
           <CtaFields
+            labelKey="steps.ctaLabel"
             label={steps.ctaLabel}
             href={steps.ctaHref}
             onLabel={(v) => setSteps({ ...steps, ctaLabel: v })}
@@ -902,11 +942,14 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             6. Confidence split
           </h2>
           <TextField
+            tsKey="confidence.eyebrow"
             label="Small label above the heading"
             value={confidence.eyebrow}
             onChange={(v) => setConfidence({ ...confidence, eyebrow: v })}
           />
           <Pair
+            firstKey="confidence.heading"
+            secondKey="confidence.headingAccent"
             label="Heading"
             first={confidence.heading}
             second={confidence.headingAccent}
@@ -936,7 +979,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
           />
           <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
             <div>
-              <label className={fieldLabel}>Percentage</label>
+              <LabelRow k="confidence.statValue" label="Percentage">
+                <label className={fieldLabel}>Percentage</label>
+              </LabelRow>
               <input
                 type="number"
                 min={0}
@@ -952,6 +997,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
               />
             </div>
             <TextField
+            tsKey="confidence.statCaption"
               label="Caption under it"
               value={confidence.statCaption}
               onChange={(v) => setConfidence({ ...confidence, statCaption: v })}
@@ -965,6 +1011,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onAlt={(v) => setConfidence({ ...confidence, imageAlt: v })}
           />
           <CtaFields
+            labelKey="confidence.ctaLabel"
             title="First button"
             label={confidence.ctaLabel}
             href={confidence.ctaHref}
@@ -972,6 +1019,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onHref={(v) => setConfidence({ ...confidence, ctaHref: v })}
           />
           <CtaFields
+            labelKey="confidence.secondaryLabel"
             title="Second button"
             label={confidence.secondaryLabel}
             href={confidence.secondaryHref}
@@ -986,6 +1034,8 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             7. Let&rsquo;s get to know you
           </h2>
           <Pair
+            firstKey="know.heading"
+            secondKey="know.headingAccent"
             label="Heading"
             first={know.heading}
             second={know.headingAccent}
@@ -993,12 +1043,14 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onSecond={(v) => setKnow({ ...know, headingAccent: v })}
           />
           <TextField
+            tsKey="know.headingTail"
             label="Words after the italic part"
             value={know.headingTail}
             onChange={(v) => setKnow({ ...know, headingTail: v })}
             placeholder="you"
           />
           <AreaField
+            tsKey="know.body"
             label="Intro"
             rows={2}
             value={know.body}
@@ -1009,6 +1061,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
               Quiz card
             </p>
             <AreaField
+            tsKey="know.quizBody"
               label="Body"
               rows={2}
               value={know.quizBody}
@@ -1016,6 +1069,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             />
             <div className="mt-4">
               <CtaFields
+            labelKey="know.quizCtaLabel"
                 label={know.quizCtaLabel}
                 href={know.quizCtaHref}
                 onLabel={(v) => setKnow({ ...know, quizCtaLabel: v })}
@@ -1036,6 +1090,7 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             />
             <div className="mt-4">
               <AreaField
+            tsKey="know.progressBody"
                 label="Body"
                 rows={2}
                 value={know.progressBody}
@@ -1044,11 +1099,13 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_120px]">
               <TextField
+            tsKey="know.progressNote"
                 label="Small note"
                 value={know.progressNote}
                 onChange={(v) => setKnow({ ...know, progressNote: v })}
               />
               <TextField
+            tsKey="know.progressNoteStrong"
                 label="Small note (bold line)"
                 value={know.progressNoteStrong}
                 onChange={(v) => setKnow({ ...know, progressNoteStrong: v })}
@@ -1089,6 +1146,8 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             8. Closing banner
           </h2>
           <Pair
+            firstKey="banner.heading"
+            secondKey="banner.headingAccent"
             label="Heading"
             first={banner.heading}
             second={banner.headingAccent}
@@ -1096,12 +1155,14 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             onSecond={(v) => setBanner({ ...banner, headingAccent: v })}
           />
           <AreaField
+            tsKey="banner.body"
             label="Body"
             rows={2}
             value={banner.body}
             onChange={(v) => setBanner({ ...banner, body: v })}
           />
           <CtaFields
+            labelKey="banner.ctaLabel"
             label={banner.ctaLabel}
             href={banner.ctaHref}
             onLabel={(v) => setBanner({ ...banner, ctaLabel: v })}
@@ -1141,5 +1202,6 @@ export default function EdForm({ initial }: { initial: EdContent }) {
         leaving it blank.
       </p>
     </div>
+    </TextStyleCtx.Provider>
   );
 }

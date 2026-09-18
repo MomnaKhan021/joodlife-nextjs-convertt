@@ -11,6 +11,7 @@ import {
   type EdJourneyContent,
 } from "@/lib/edContentTypes";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Top-of-page ED sections — Figma "Erectile dysfunction" (node 18:811):
@@ -64,9 +65,12 @@ function Trustpilot({
 export function EdHero({
   content = ED_DEFAULT.hero,
   style,
+  text,
 }: {
   content?: EdHeroContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -108,12 +112,12 @@ export function EdHero({
 
           <div className="relative min-h-[440px] max-w-[640px] p-6 py-10 md:min-h-[560px] md:p-12">
             <Reveal as="div" direction="down">
-              <Trustpilot label={content.reviewsLabel} dark />
+              <Trustpilot {...textStyleProps(text?.["hero.reviewsLabel"])} label={content.reviewsLabel} dark />
             </Reveal>
             <Reveal as="div" delay={60}>
-              <h1 className="mt-5 max-w-[16ch] font-display text-[32px] font-semibold leading-[1.16] tracking-[-0.025em] text-white md:text-[54px] md:leading-[1.08]">
+              <h1 {...textStyleProps(text?.["hero.title"])} className="mt-5 max-w-[16ch] font-display text-[32px] font-semibold leading-[1.16] tracking-[-0.025em] text-white md:text-[54px] md:leading-[1.08]">
                 {content.title}{" "}
-                <em className="font-serif font-normal italic">
+                <em {...textStyleProps(text?.["hero.titleAccent"])} className="font-serif font-normal italic">
                   {content.titleAccent}
                 </em>
               </h1>
@@ -132,7 +136,7 @@ export function EdHero({
             </Reveal>
             <Reveal as="div" delay={220} className="mt-7 flex flex-wrap gap-3">
               {content.ctaLabel ? (
-                <Link
+                <Link {...textStyleProps(text?.["hero.ctaLabel"])}
                   href={content.ctaHref}
                   className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-lg transition-colors hover:bg-white/90"
                 >
@@ -140,7 +144,7 @@ export function EdHero({
                 </Link>
               ) : null}
               {content.secondaryLabel ? (
-                <EligibilityCta
+                <EligibilityCta {...textStyleProps(text?.["hero.secondaryLabel"])}
                   product="erectile-dysfunction"
                   href={content.secondaryHref}
                   label={content.secondaryLabel}
@@ -159,9 +163,12 @@ export function EdHero({
 export function EdJourney({
   content = ED_DEFAULT.journey,
   style,
+  text,
 }: {
   content?: EdJourneyContent;
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
@@ -179,15 +186,15 @@ export function EdJourney({
         >
           <div className="relative">
             <Reveal as="div">
-              <span className="inline-flex items-center rounded-full bg-white/20 px-3.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
+              <span {...textStyleProps(text?.["journey.badge"])} className="inline-flex items-center rounded-full bg-white/20 px-3.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
                 {content.badge}
               </span>
-              <h2
+              <h2 {...textStyleProps(text?.["journey.heading"])}
                 id="ed-journey"
                 className="mt-4 font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-white md:text-[40px] md:leading-[1.1]"
               >
                 {content.heading}{" "}
-                <em className="font-serif font-normal italic">
+                <em {...textStyleProps(text?.["journey.headingAccent"])} className="font-serif font-normal italic">
                   {content.headingAccent}
                 </em>
               </h2>
@@ -227,7 +234,7 @@ export function EdJourney({
 
               <div className="absolute bottom-[14%] left-1/2 z-10 flex w-[92%] max-w-[360px] -translate-x-1/2 gap-2.5">
                 {content.ctaLabel ? (
-                  <Link
+                  <Link {...textStyleProps(text?.["journey.ctaLabel"])}
                     href={content.ctaHref}
                     className="btn-cta inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] shadow-lg transition-colors hover:bg-white/90"
                   >
@@ -235,7 +242,7 @@ export function EdJourney({
                   </Link>
                 ) : null}
                 {content.secondaryLabel ? (
-                  <Link
+                  <Link {...textStyleProps(text?.["journey.secondaryLabel"])}
                     href={content.secondaryHref}
                     className="btn-cta inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-white/70 bg-white/10 px-5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
                   >
@@ -250,7 +257,7 @@ export function EdJourney({
               as="div"
               className="relative mt-2 grid items-center gap-5 rounded-[16px] bg-white/12 px-5 py-6 backdrop-blur-[14px] md:grid-cols-[1.4fr_auto_auto] md:gap-8 md:px-8 md:py-7"
             >
-              <p className="max-w-[46ch] font-ui text-[14px] leading-relaxed text-white/90">
+              <p {...textStyleProps(text?.["journey.cardBody"])} className="max-w-[46ch] font-ui text-[14px] leading-relaxed text-white/90">
                 {content.cardBody}
               </p>
               <div className="relative mx-auto h-[70px] w-[150px]">
@@ -264,7 +271,7 @@ export function EdJourney({
                 />
               </div>
               {content.cardCtaLabel ? (
-                <Link
+                <Link {...textStyleProps(text?.["journey.cardCtaLabel"])}
                   href={content.cardCtaHref}
                   className="btn-cta inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#08222f] md:w-auto"
                 >
@@ -289,7 +296,7 @@ export function EdJourney({
                 />
                 <div aria-hidden className="absolute inset-0 bg-black/25" />
                 <div className="absolute inset-0 flex flex-col p-6 md:p-8">
-                  <h3 className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
+                  <h3 {...textStyleProps(text?.["journey.goalsHeading"])} className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
                     {content.goalsHeading}
                   </h3>
                   <ul className="mt-auto flex flex-col items-start gap-2 md:mt-0 md:flex-1 md:items-end md:justify-center md:gap-2.5">

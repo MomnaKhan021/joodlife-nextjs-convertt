@@ -2,6 +2,7 @@
 
 import { fieldInput, fieldLabel } from "./LinkFields";
 import TypeControl from "./TypeControl";
+import { LabelRow, Ts } from "./TextStyleContext";
 import type { TextStyle } from "@/lib/textStyle";
 import MediaPicker from "./MediaPicker";
 
@@ -38,17 +39,24 @@ export function Pair({
   second,
   onFirst,
   onSecond,
+  firstKey,
+  secondKey,
 }: {
   label: string;
   first: string;
   second: string;
   onFirst: (v: string) => void;
   onSecond: (v: string) => void;
+  /** Text-style keys; each shows an "Aa" on its half. */
+  firstKey?: string;
+  secondKey?: string;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
-        <label className={fieldLabel}>{label}</label>
+        <LabelRow k={firstKey} label={label}>
+          <label className={fieldLabel}>{label}</label>
+        </LabelRow>
         <input
           className={`${fieldInput} mt-1`}
           value={first}
@@ -56,7 +64,9 @@ export function Pair({
         />
       </div>
       <div>
-        <label className={fieldLabel}>{label} (italic part)</label>
+        <LabelRow k={secondKey} label={`${label} (italic part)`}>
+          <label className={fieldLabel}>{label} (italic part)</label>
+        </LabelRow>
         <input
           className={`${fieldInput} mt-1`}
           value={second}
@@ -74,17 +84,22 @@ export function CtaFields({
   onLabel,
   onHref,
   title = "Button",
+  labelKey,
 }: {
   label: string;
   href: string;
   onLabel: (v: string) => void;
   onHref: (v: string) => void;
   title?: string;
+  /** Text-style key for the button text. */
+  labelKey?: string;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
-        <label className={fieldLabel}>{title} text</label>
+        <LabelRow k={labelKey} label={`${title} text`}>
+          <label className={fieldLabel}>{title} text</label>
+        </LabelRow>
         <input
           className={`${fieldInput} mt-1`}
           value={label}
@@ -159,6 +174,7 @@ export function TextField({
   id,
   style,
   onStyle,
+  tsKey,
 }: {
   label: string;
   value: string;
@@ -169,6 +185,8 @@ export function TextField({
   /** Pass both to show the "Aa" size and weight control on this field. */
   style?: TextStyle;
   onStyle?: (next: TextStyle) => void;
+  /** Key into the editor's text-style map; shows the "Aa" via context. */
+  tsKey?: string;
 }) {
   return (
     <div>
@@ -176,7 +194,9 @@ export function TextField({
         <label className={fieldLabel} htmlFor={id}>{label}</label>
         {onStyle ? (
           <TypeControl label={label} value={style} onChange={onStyle} />
-        ) : null}
+        ) : (
+          <Ts k={tsKey} label={label} />
+        )}
       </div>
       <input
         id={id}
@@ -200,6 +220,7 @@ export function AreaField({
   id,
   style,
   onStyle,
+  tsKey,
 }: {
   label: string;
   value: string;
@@ -210,6 +231,8 @@ export function AreaField({
   /** Pass both to show the "Aa" size and weight control on this field. */
   style?: TextStyle;
   onStyle?: (next: TextStyle) => void;
+  /** Key into the editor's text-style map; shows the "Aa" via context. */
+  tsKey?: string;
 }) {
   return (
     <div>
@@ -217,7 +240,9 @@ export function AreaField({
         <label className={fieldLabel} htmlFor={id}>{label}</label>
         {onStyle ? (
           <TypeControl label={label} value={style} onChange={onStyle} />
-        ) : null}
+        ) : (
+          <Ts k={tsKey} label={label} />
+        )}
       </div>
       <textarea
         id={id}

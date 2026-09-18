@@ -42,14 +42,14 @@ export default async function ErectileDysfunctionPage() {
       <Header />
 
       {/* Photo hero banner */}
-      <EdHero content={ed.hero} style={ed.styles.hero} />
+      <EdHero content={ed.hero} style={ed.styles.hero} text={ed.textStyles} />
 
       {/* Social proof — 3000+ happy customers */}
-      <EdReviews content={ed.reviews} style={ed.styles.reviews} />
+      <EdReviews content={ed.reviews} style={ed.styles.reviews} text={ed.textStyles} />
 
       {/* "What to expect in your journey" teal timeline + goals + testimonial */}
       <div id="assessment" className="scroll-mt-28">
-        <EdJourney content={ed.journey} style={ed.styles.journey} />
+        <EdJourney content={ed.journey} style={ed.styles.journey} text={ed.textStyles} />
       </div>
 
       {/* Light editorial sections */}
@@ -62,7 +62,7 @@ export default async function ErectileDysfunctionPage() {
         accent="#142e2a"
       />
 
-      <EdCtaBanner content={ed.banner} style={ed.styles.banner} />
+      <EdCtaBanner content={ed.banner} style={ed.styles.banner} text={ed.textStyles} />
       <Footer />
     </main>
   );
