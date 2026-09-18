@@ -12,10 +12,8 @@ import {
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
 import {
-  WEGOVY_STYLE_KEYS,
-  WEGOVY_STYLE_LABELS,
   type WegovyStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
@@ -491,36 +489,11 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
       )}
 
       <div className="space-y-5">
-        {/* ---- Section colours ---- */}
-        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
-          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
-            Section colours
-            <span className="ml-2 text-[13px] font-normal text-[#616161]">
-              backgrounds and text colour
-            </span>
-          </summary>
-          <p className="mt-2 text-[13px] text-[#616161]">
-            In the order the sections appear on the page. Anything left on
-            Default keeps the design exactly as it is today.
-          </p>
-          <div className="mt-4 space-y-5">
-            {WEGOVY_STYLE_KEYS.map((k) => (
-              <div key={k}>
-                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
-                  {WEGOVY_STYLE_LABELS[k]}
-                </p>
-                <StyleFields
-                  sectionKey={k}
-                  value={styles[k]}
-                  onChange={setStyle(k)}
-                />
-              </div>
-            ))}
-          </div>
-        </details>
-
         {/* 1. Announcement */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="announcement" value={styles.announcement} onChange={setStyle("announcement")} />
+          </div>
           <LabelRow k="announcement.text" label="Strip above the header">
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               1. Strip above the header
@@ -540,6 +513,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 2. Hero */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">2. Hero</h2>
           <Pair
             label="Title"
@@ -602,6 +578,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 3. Trust strip */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="uspBar" value={styles.uspBar} onChange={setStyle("uspBar")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               3. Scrolling trust strip
@@ -687,6 +666,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 4. What is the tablet */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="whatIsPill" value={styles.whatIsPill} onChange={setStyle("whatIsPill")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             4. What is the tablet
           </h2>
@@ -852,6 +834,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 5. Comparison */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="comparison" value={styles.comparison} onChange={setStyle("comparison")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             5. Tablet vs injection
           </h2>
@@ -930,6 +915,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 6. How it works */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="howItWorks" value={styles.howItWorks} onChange={setStyle("howItWorks")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             6. How it works
           </h2>
@@ -1048,6 +1036,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 7. Real results */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="realResults" value={styles.realResults} onChange={setStyle("realResults")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             7. Real results
           </h2>
@@ -1193,6 +1184,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 8. Dosing */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="dosing" value={styles.dosing} onChange={setStyle("dosing")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             8. Dosing &amp; pricing
           </h2>
@@ -1356,6 +1350,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 9. Why choose */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="whyChoose" value={styles.whyChoose} onChange={setStyle("whyChoose")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             9. Why choose Jood
           </h2>
@@ -1414,6 +1411,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 10. FAQ */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="faq" value={styles.faq} onChange={setStyle("faq")} />
+          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               10. Questions ({faq.items.length})
@@ -1521,6 +1521,9 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
 
         {/* 11. Final CTA */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="finalCta" value={styles.finalCta} onChange={setStyle("finalCta")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             11. Closing card
           </h2>

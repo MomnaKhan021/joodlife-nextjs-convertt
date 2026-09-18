@@ -23,10 +23,8 @@ import {
   moved,
 } from "../FormKit";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
 import {
-  ED_STYLE_KEYS,
-  ED_STYLE_LABELS,
   type EdStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
@@ -160,36 +158,11 @@ export default function EdForm({ initial }: { initial: EdContent }) {
       )}
 
       <div className="space-y-5">
-        {/* ---- Section colours ---- */}
-        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
-          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
-            Section colours
-            <span className="ml-2 text-[13px] font-normal text-[#616161]">
-              backgrounds and text colour
-            </span>
-          </summary>
-          <p className="mt-2 text-[13px] text-[#616161]">
-            In the order the sections appear on the page. Anything left on
-            Default keeps the design exactly as it is today.
-          </p>
-          <div className="mt-4 space-y-5">
-            {ED_STYLE_KEYS.map((k) => (
-              <div key={k}>
-                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
-                  {ED_STYLE_LABELS[k]}
-                </p>
-                <StyleFields
-                  sectionKey={k}
-                  value={styles[k]}
-                  onChange={setStyle(k)}
-                />
-              </div>
-            ))}
-          </div>
-        </details>
-
         {/* 1. Hero */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>
           <Pair
             firstKey="hero.title"
@@ -240,6 +213,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 2. Review wall */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="reviews" value={styles.reviews} onChange={setStyle("reviews")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               2. Review wall
@@ -381,6 +357,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 3. Journey */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="journey" value={styles.journey} onChange={setStyle("journey")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               3. Journey timeline
@@ -684,6 +663,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 4. Treatment plan */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="plan" value={styles.plan} onChange={setStyle("plan")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             4. Treatment plan
           </h2>
@@ -820,6 +802,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 5. Steps */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="steps" value={styles.steps} onChange={setStyle("steps")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             5. How it works
           </h2>
@@ -938,6 +923,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 6. Confidence */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="confidence" value={styles.confidence} onChange={setStyle("confidence")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             6. Confidence split
           </h2>
@@ -1030,6 +1018,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 7. Get to know you */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="know" value={styles.know} onChange={setStyle("know")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             7. Let&rsquo;s get to know you
           </h2>
@@ -1142,6 +1133,9 @@ export default function EdForm({ initial }: { initial: EdContent }) {
 
         {/* 8. Closing banner */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="banner" value={styles.banner} onChange={setStyle("banner")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             8. Closing banner
           </h2>

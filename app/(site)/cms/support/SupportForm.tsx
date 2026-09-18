@@ -14,10 +14,8 @@ import {
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
 import {
-  SUPPORT_STYLE_KEYS,
-  SUPPORT_STYLE_LABELS,
   type SupportStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
@@ -156,36 +154,11 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
       )}
 
       <div className="space-y-5">
-        {/* ---- Section colours ---- */}
-        <details className="rounded-xl border border-[#e4e7de] bg-white p-5">
-          <summary className="cursor-pointer text-[15px] font-medium text-[#1a1a1a]">
-            Section colours
-            <span className="ml-2 text-[13px] font-normal text-[#616161]">
-              backgrounds and text colour
-            </span>
-          </summary>
-          <p className="mt-2 text-[13px] text-[#616161]">
-            In the order the sections appear on the page. Anything left on
-            Default keeps the design exactly as it is today.
-          </p>
-          <div className="mt-4 space-y-5">
-            {SUPPORT_STYLE_KEYS.map((k) => (
-              <div key={k}>
-                <p className="mb-1.5 text-[13px] font-medium text-[#1a1a1a]">
-                  {SUPPORT_STYLE_LABELS[k]}
-                </p>
-                <StyleFields
-                  sectionKey={k}
-                  value={styles[k]}
-                  onChange={setStyle(k)}
-                />
-              </div>
-            ))}
-          </div>
-        </details>
-
         {/* ─────────── 1. Hero ─────────── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -356,6 +329,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
 
         {/* ─────────── 3. FAQs ─────────── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="faq" value={styles.faq} onChange={setStyle("faq")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               3. Frequently asked questions
@@ -554,6 +530,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
 
         {/* ─────────── 4. Success stories ─────────── */}
         <div className={card}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="stories" value={styles.stories} onChange={setStyle("stories")} />
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               4. Success stories
