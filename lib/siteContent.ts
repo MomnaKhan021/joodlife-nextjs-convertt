@@ -3,7 +3,11 @@ import "server-only";
 import { getPayloadInstance } from "@/lib/payload";
 import { mergeHeaderSettings } from "@/lib/headerLayout";
 import { mergeStyles } from "@/lib/sectionStyle";
-import { FOOTER_TEXT_KEYS, mergeTextStyles } from "@/lib/textStyle";
+import {
+  FOOTER_TEXT_KEYS,
+  HEADER_TEXT_KEYS,
+  mergeTextStyles,
+} from "@/lib/textStyle";
 import {
   DEFAULT_FOOTER_TEXT,
   DEFAULT_HEADER_LOGOS,
@@ -49,6 +53,7 @@ export async function getHeaderContent(): Promise<HeaderContent> {
     return {
       style: mergeStyles(doc?.styles, ["header"] as const).header,
       settings: mergeHeaderSettings(doc?.settings),
+      textStyles: mergeTextStyles(doc?.textStyles, HEADER_TEXT_KEYS),
       navLinks: toLinks(doc?.navLinks, DEFAULT_NAV_LINKS),
       megaTreatments: toTreatments(doc?.megaTreatments, DEFAULT_MEGA_TREATMENTS),
       megaPromoBullets: toStrings(doc?.megaPromoBullets, DEFAULT_MEGA_BULLETS),

@@ -133,6 +133,9 @@ export const HOME_TEXT_KEYS = [
   "ctaTitle",
   "ctaTitleEmphasis",
   "ctaSubtitle",
+  // The announcement bar: its copy lives on the Home global, so its sizes do too.
+  "announcementBadge",
+  "announcementText",
 ] as const;
 export type HomeTextKey = (typeof HOME_TEXT_KEYS)[number];
 
@@ -145,3 +148,20 @@ export const FOOTER_TEXT_KEYS = [
   "legalText",
 ] as const;
 export type FooterTextKey = (typeof FOOTER_TEXT_KEYS)[number];
+
+/**
+ * The header texts with their own size/weight control. `navLink`, the mega
+ * menu's item label/description and the promo bullets are repeated items, so
+ * one setting covers every instance.
+ */
+export const HEADER_TEXT_KEYS = [
+  "navLink",
+  "megaHeading",
+  "megaItemLabel",
+  "megaItemDesc",
+  "promoTitle",
+  "promoEmphasis",
+  "promoBullet",
+  "promoCta",
+] as const;
+export type HeaderTextKey = (typeof HEADER_TEXT_KEYS)[number];

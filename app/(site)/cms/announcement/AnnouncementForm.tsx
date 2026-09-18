@@ -5,7 +5,13 @@ import { useState } from "react";
 
 import type { HomeContent } from "@/lib/pageContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
+import { AreaField, TextField } from "../FormKit";
+import {
+  textStyleProps,
+  type HomeTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 /**
@@ -23,6 +29,11 @@ export default function AnnouncementForm({
   const [style, setStyle] = useState<SectionStyle>(
     initial.styles.announcement,
   );
+  const [textStyles, setTextStyles] = useState<Record<HomeTextKey, TextStyle>>(
+    initial.textStyles,
+  );
+  const setTextStyle = (k: HomeTextKey) => (next: TextStyle) =>
+    setTextStyles((t) => ({ ...t, [k]: next }));
   const [badge, setBadge] = useState(initial.announcementBadge);
   const [text, setText] = useState(initial.announcementText);
   const [href, setHref] = useState(initial.announcementHref);
@@ -41,6 +52,9 @@ export default function AnnouncementForm({
         // The home editor keeps its section colours in this same object,
         // so send it back whole — sending only ours would wipe them.
         styles: { ...initial.styles, announcement: style },
+        // Same column as the home editor's text sizes: send it whole,
+        // or saving here would wipe the home page's.
+        textStyles,
         announcementBadge: badge,
         announcementText: text,
         announcementHref: href,
@@ -95,20 +109,36 @@ export default function AnnouncementForm({
             className="flex items-center justify-center gap-3 bg-[#142e2a] px-4 py-3 text-white"
           >
             {badge ? (
-              <span className="rounded-md bg-[#ffcebf] px-2.5 py-0.5 text-[12px] font-semibold text-[#142e2a]">
+              <span
+                {...textStyleProps(textStyles.announcementBadge)}
+                className="rounded-md bg-[#ffcebf] px-2.5 py-0.5 text-[12px] font-semibold text-[#142e2a]"
+              >
                 {badge}
               </span>
             ) : null}
-            <span className="text-[13px]">{text}</span>
+            <span {...textStyleProps(textStyles.announcementText)} className="text-[13px]">
+              {text}
+            </span>
           </div>
         )}
       </div>
 
       <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-[15px] font-medium text-[#1a1a1a]">Announcement</h2>
+          <SectionControl sectionKey="announcement" value={style} onChange={setStyle} />
+        </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <label className={fieldLabel} htmlFor="badge">Badge</label>
-            <input id="badge" className={`${fieldInput} mt-1`} value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="New" />
+            <TextField
+              id="badge"
+              label="Badge"
+              value={badge}
+              onChange={setBadge}
+              placeholder="New"
+              style={textStyles.announcementBadge}
+              onStyle={setTextStyle("announcementBadge")}
+            />
             <p className="mt-1 text-[12px] text-[#8a8a8a]">Blank hides the pill.</p>
           </div>
           <div className="sm:col-span-2">
@@ -116,26 +146,19 @@ export default function AnnouncementForm({
             <input id="href" className={`${fieldInput} mt-1`} value={href} onChange={(e) => setHref(e.target.value)} placeholder="/wegovy-pills" />
           </div>
         </div>
-        <div>
-          <label className={fieldLabel} htmlFor="text">Message</label>
-          <textarea id="text" rows={2} className={`${fieldInput} mt-1`} value={text} onChange={(e) => setText(e.target.value)} />
-        </div>
+        <AreaField
+          id="text"
+          label="Message"
+          rows={2}
+          value={text}
+          onChange={setText}
+          style={textStyles.announcementText}
+          onStyle={setTextStyle("announcementText")}
+        />
         <label className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">
           <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
           Hide the announcement bar entirely
         </label>
-      </div>
-
-      <div className="mt-5 space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-        <div>
-          <h2 className="text-[15px] font-medium text-[#1a1a1a]">Colours</h2>
-          <p className="mt-1 text-[13px] text-[#616161]">
-            The preview above updates as you choose. Left on Default the bar
-            stays dark green with white text. The badge keeps its peach pill
-            either way.
-          </p>
-        </div>
-        <StyleFields sectionKey="announcement" value={style} onChange={setStyle} />
       </div>
 
       <div className="mt-5">

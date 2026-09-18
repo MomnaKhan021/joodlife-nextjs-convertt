@@ -14,6 +14,11 @@ import {
   type HeaderSettings,
 } from "@/lib/headerLayout";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import {
+  textStyleProps,
+  type HeaderTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 type NavLink = {
   label: string;
@@ -37,6 +42,7 @@ export default function HeaderClient({
   mega,
   style,
   settings = DEFAULT_HEADER_SETTINGS,
+  textStyles = {},
   logoDesktop = "/assets/icons/logo-wesmount.svg",
   logoMobile = "/assets/icons/logo-wesmount-mobile.svg",
 }: {
@@ -46,6 +52,8 @@ export default function HeaderClient({
   style?: SectionStyle;
   /** Layout preset and whether the bar sticks on scroll. */
   settings?: HeaderSettings;
+  /** Per-text size and weight — optional so a bare render stays unchanged. */
+  textStyles?: Partial<Record<HeaderTextKey, TextStyle>>;
   /** Logo image URLs; default to the assets that shipped with the design. */
   logoDesktop?: string;
   logoMobile?: string;
@@ -119,7 +127,7 @@ export default function HeaderClient({
             <li key={link.label} onMouseEnter={() => setMegaIndex(i)}>
               <Link
                 href={link.href}
-                className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                {...textStyleProps(textStyles.navLink)} className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
               >
                 {link.label}
                 <svg
@@ -138,7 +146,7 @@ export default function HeaderClient({
             <li key={link.label} onMouseEnter={() => setMegaIndex(null)}>
               <Link
                 href={link.href}
-                className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                {...textStyleProps(textStyles.navLink)} className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
               >
                 {link.label}
               </Link>
@@ -220,7 +228,7 @@ export default function HeaderClient({
       >
         <div className="mx-auto w-full max-w-[1200px] px-6 lg:px-10">
           <div className="rounded-2xl border border-[#142e2a]/10 bg-white p-6 shadow-[0_24px_50px_-20px_rgba(20,46,42,0.35)]">
-            <MegaMenu content={openMega} onNavigate={() => setMegaIndex(null)} />
+            <MegaMenu content={openMega} textStyles={textStyles} onNavigate={() => setMegaIndex(null)} />
           </div>
         </div>
       </div>
@@ -320,7 +328,7 @@ export default function HeaderClient({
                       <button
                         type="button"
                         onClick={() => setMobileTreat(true)}
-                        className="flex w-full items-center justify-between py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                        {...textStyleProps(textStyles.navLink)} className="flex w-full items-center justify-between py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                       >
                         <span>{link.label}</span>
                         <svg width="9" height="14" viewBox="0 0 9 14" fill="none" aria-hidden className="text-[#142e2a]/50">
@@ -333,7 +341,7 @@ export default function HeaderClient({
                       <Link
                         href={link.href}
                         onClick={closeMobile}
-                        className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                        {...textStyleProps(textStyles.navLink)} className="block py-3 font-ui text-base font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
                       >
                         {link.label}
                       </Link>
@@ -398,10 +406,10 @@ export default function HeaderClient({
                         <Image src={t.icon} alt="" fill sizes="56px" className="object-cover" />
                       </span>
                       <span className="flex-1">
-                        <span className="block font-ui text-[15px] font-semibold text-[#142e2a]">
+                        <span {...textStyleProps(textStyles.megaItemLabel)} className="block font-ui text-[15px] font-semibold text-[#142e2a]">
                           {t.label}
                         </span>
-                        <span className="block font-ui text-[13px] text-[#142e2a]/60">
+                        <span {...textStyleProps(textStyles.megaItemDesc)} className="block font-ui text-[13px] text-[#142e2a]/60">
                           {t.desc}
                         </span>
                       </span>

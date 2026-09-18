@@ -18,8 +18,10 @@ import {
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 import {
   FOOTER_TEXT_KEYS,
+  HEADER_TEXT_KEYS,
   mergeTextStyles,
   type FooterTextKey,
+  type HeaderTextKey,
   type TextStyle,
 } from "@/lib/textStyle";
 
@@ -139,6 +141,8 @@ export type HeaderContent = {
   style: SectionStyle;
   /** Layout preset and sticky behaviour. */
   settings: HeaderSettings;
+  /** Per-text size and weight, keyed by the field name. */
+  textStyles: Record<HeaderTextKey, TextStyle>;
   navLinks: SiteLink[];
   megaTreatments: MegaTreatment[];
   megaPromoBullets: string[];
@@ -215,6 +219,7 @@ export function headerFallback(): HeaderContent {
   return {
     style: EMPTY_STYLE,
     settings: DEFAULT_HEADER_SETTINGS,
+    textStyles: mergeTextStyles(null, HEADER_TEXT_KEYS),
     navLinks: DEFAULT_NAV_LINKS,
     megaTreatments: DEFAULT_MEGA_TREATMENTS,
     megaPromoBullets: DEFAULT_MEGA_BULLETS,

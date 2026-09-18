@@ -10,10 +10,10 @@ import HeaderClient from "./HeaderClient";
  * empty global renders exactly what shipped before.
  */
 export default async function Header() {
-  // `style` and `settings` are pulled out explicitly: whatever is left over
+  // `style`, `settings` and `textStyles` are pulled out explicitly: whatever is left over
   // becomes `mega`, so anything not named here would be handed to the mega
   // menu by mistake.
-  const { navLinks, style, settings, logoDesktop, logoMobile, ...mega } =
+  const { navLinks, style, settings, textStyles, logoDesktop, logoMobile, ...mega } =
     await getHeaderContent();
   return (
     <HeaderClient
@@ -21,6 +21,7 @@ export default async function Header() {
       mega={mega}
       style={style}
       settings={settings}
+      textStyles={textStyles}
       logoDesktop={logoDesktop}
       logoMobile={logoMobile}
     />

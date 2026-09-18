@@ -501,6 +501,7 @@ const STATEMENTS: string[] = [
   // styled; absent or empty means the design exactly as shipped.
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"settings\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
@@ -529,7 +530,7 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v29";
+const SCHEMA_VERSION = "v30";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

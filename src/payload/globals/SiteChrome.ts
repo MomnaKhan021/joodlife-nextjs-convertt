@@ -72,6 +72,11 @@ export const Header: GlobalConfig = {
     { name: "megaPromoCta", type: "text" },
     { name: "megaPromoHref", type: "text" },
     {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by field name." },
+    },
+    {
       name: "settings",
       type: "json",
       admin: { description: "Layout preset and sticky behaviour." },

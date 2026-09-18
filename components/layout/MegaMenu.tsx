@@ -1,4 +1,9 @@
 import Image from "next/image";
+import {
+  textStyleProps,
+  type HeaderTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 import Link from "next/link";
 
 /**
@@ -72,9 +77,12 @@ export type MegaMenuContent = {
 export default function MegaMenu({
   onNavigate,
   content,
+  textStyles = {},
 }: {
   onNavigate?: () => void;
   content?: MegaMenuContent;
+  /** Per-text size and weight, from the Header global. */
+  textStyles?: Partial<Record<HeaderTextKey, TextStyle>>;
 }) {
   const TREATMENTS = content?.megaTreatments?.length
     ? content.megaTreatments
@@ -91,7 +99,7 @@ export default function MegaMenu({
     <div className="grid gap-6 lg:grid-cols-[1fr_540px]">
       {/* Treatment links */}
       <div className="flex flex-col">
-        <p className="mb-3 font-display text-[18px] font-semibold tracking-[-0.01em] text-[#142e2a]">
+        <p {...textStyleProps(textStyles.megaHeading)} className="mb-3 font-display text-[18px] font-semibold tracking-[-0.01em] text-[#142e2a]">
           {heading}
         </p>
         <ul className="flex flex-col">
@@ -106,10 +114,10 @@ export default function MegaMenu({
                   <Image src={t.icon} alt="" fill sizes="64px" className="object-cover" />
                 </span>
                 <span className="flex-1">
-                  <span className="block font-ui text-[16px] font-semibold text-[#142e2a]">
+                  <span {...textStyleProps(textStyles.megaItemLabel)} className="block font-ui text-[16px] font-semibold text-[#142e2a]">
                     {t.label}
                   </span>
-                  <span className="block font-ui text-[14px] text-[#142e2a]/60">
+                  <span {...textStyleProps(textStyles.megaItemDesc)} className="block font-ui text-[14px] text-[#142e2a]/60">
                     {t.desc}
                   </span>
                 </span>
@@ -137,20 +145,20 @@ export default function MegaMenu({
         className="group/promo relative flex min-h-[260px] overflow-hidden rounded-[20px] bg-[#142e2a] p-7"
       >
         <div className="relative z-10 flex max-w-[58%] flex-col">
-          <h3 className="font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
+          <h3 {...textStyleProps(textStyles.promoTitle)} className="font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
             {promoTitle}
             <br />
-            <em className="font-serif font-normal italic">{promoEmphasis}</em>
+            <em {...textStyleProps(textStyles.promoEmphasis)} className="font-serif font-normal italic">{promoEmphasis}</em>
           </h3>
           <ul className="mt-4 flex flex-col gap-2.5">
             {PROMO_BULLETS.map((b) => (
-              <li key={b} className="flex items-center gap-2 font-ui text-[13px] text-white/85">
+              <li key={b} {...textStyleProps(textStyles.promoBullet)} className="flex items-center gap-2 font-ui text-[13px] text-white/85">
                 <CheckBadge />
                 {b}
               </li>
             ))}
           </ul>
-          <span className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-shadow duration-200 group-hover/promo:shadow-[0_8px_20px_rgba(0,0,0,0.25)]">
+          <span {...textStyleProps(textStyles.promoCta)} className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white px-6 font-ui text-[14px] font-semibold text-[#142e2a] transition-shadow duration-200 group-hover/promo:shadow-[0_8px_20px_rgba(0,0,0,0.25)]">
             {promoCta}
           </span>
         </div>

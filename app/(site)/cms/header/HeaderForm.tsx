@@ -12,7 +12,10 @@ import {
 } from "../LinkFields";
 import MegaEditor from "../MegaEditor";
 import MediaPicker from "../MediaPicker";
-import StyleFields from "../StyleFields";
+import SectionControl from "../SectionControl";
+import TypeControl from "../TypeControl";
+import { TextField } from "../FormKit";
+import type { HeaderTextKey, TextStyle } from "@/lib/textStyle";
 import {
   DEFAULT_HEADER_SETTINGS,
   HEADER_LAYOUTS,
@@ -102,6 +105,8 @@ export type HeaderInitial = {
   style?: SectionStyle;
   /** Layout preset and sticky behaviour. */
   settings?: HeaderSettings;
+  /** Per-text size and weight, keyed by the field name. */
+  textStyles: Record<HeaderTextKey, TextStyle>;
   navLinks: SiteLink[];
   megaHeading: string;
   megaTreatments: MegaTreatment[];
@@ -122,6 +127,11 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
   const [settings, setSettings] = useState<HeaderSettings>(
     initial.settings ?? DEFAULT_HEADER_SETTINGS,
   );
+  const [textStyles, setTextStyles] = useState<Record<HeaderTextKey, TextStyle>>(
+    initial.textStyles,
+  );
+  const setText = (k: HeaderTextKey) => (next: TextStyle) =>
+    setTextStyles((t) => ({ ...t, [k]: next }));
   const [navLinks, setNavLinks] = useState(initial.navLinks);
   const [megaHeading, setMegaHeading] = useState(initial.megaHeading);
   const [treatments, setTreatments] = useState(initial.megaTreatments);
@@ -156,6 +166,7 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
       await saveGlobal("header", {
         styles: { header: style },
         settings,
+        textStyles,
         navLinks,
         megaHeading,
         megaTreatments: treatments,
@@ -203,12 +214,15 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
       <div className="space-y-5">
         {/* ---- Layout ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Layout</h2>
-            <p className="mt-1 text-[13px] text-[#616161]">
-              Where the logo and the links sit on desktop. Phones always use
-              the menu button, whichever you pick.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">Layout</h2>
+              <p className="mt-1 text-[13px] text-[#616161]">
+                Where the logo and the links sit on desktop. Phones always use
+                the menu button, whichever you pick.
+              </p>
+            </div>
+            <SectionControl sectionKey="header" value={style} onChange={setStyle} />
           </div>
           <LayoutPicker
             value={settings.layout}
@@ -233,13 +247,30 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
           </label>
         </div>
 
-        {/* ---- Appearance ---- */}
-        <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
+        {/* ---- Repeated text: one setting covers every instance ---- */}
+        <div className="space-y-3 rounded-xl border border-[#e4e7de] bg-white p-5">
           <div>
-            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Appearance</h2>
-            <p className="mt-1 text-[13px] text-[#616161]">Colours for the header bar. Leave on Default to keep the design as it is.</p>
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Repeated text</h2>
+            <p className="text-[12px] text-[#8a8a8a]">
+              Each setting applies to every one of them — all the navigation
+              links, all the mega-menu cards, all the promo bullets.
+            </p>
           </div>
-          <StyleFields sectionKey="header" value={style} onChange={setStyle} />
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
+            {(
+              [
+                ["navLink", "Navigation links"],
+                ["megaItemLabel", "Menu card titles"],
+                ["megaItemDesc", "Menu card descriptions"],
+                ["promoBullet", "Promo bullets"],
+              ] as const
+            ).map(([k, label]) => (
+              <div key={k} className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">
+                {label}
+                <TypeControl label={label} value={textStyles[k]} onChange={setText(k)} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* ---- Logos ---- */}
@@ -311,10 +342,14 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
             </button>
           </div>
 
-          <div>
-            <label className={fieldLabel} htmlFor="megaHeading">Panel heading</label>
-            <input id="megaHeading" className={`${fieldInput} mt-1 max-w-[320px]`} value={megaHeading} onChange={(e) => setMegaHeading(e.target.value)} />
-          </div>
+          <TextField
+            id="megaHeading"
+            label="Panel heading"
+            value={megaHeading}
+            onChange={setMegaHeading}
+            style={textStyles.megaHeading}
+            onStyle={setText("megaHeading")}
+          />
 
           {treatments.length === 0 ? (
             <p className="text-[13px] text-[#616161]">
@@ -354,18 +389,30 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel} htmlFor="promoTitle">Title (first line)</label>
-              <input id="promoTitle" className={`${fieldInput} mt-1`} value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="promoEm">Second line (italic)</label>
-              <input id="promoEm" className={`${fieldInput} mt-1`} value={promoEmphasis} onChange={(e) => setPromoEmphasis(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel} htmlFor="promoCta">Button text</label>
-              <input id="promoCta" className={`${fieldInput} mt-1`} value={promoCta} onChange={(e) => setPromoCta(e.target.value)} />
-            </div>
+            <TextField
+              id="promoTitle"
+              label="Title (first line)"
+              value={promoTitle}
+              onChange={setPromoTitle}
+              style={textStyles.promoTitle}
+              onStyle={setText("promoTitle")}
+            />
+            <TextField
+              id="promoEm"
+              label="Second line (italic)"
+              value={promoEmphasis}
+              onChange={setPromoEmphasis}
+              style={textStyles.promoEmphasis}
+              onStyle={setText("promoEmphasis")}
+            />
+            <TextField
+              id="promoCta"
+              label="Button text"
+              value={promoCta}
+              onChange={setPromoCta}
+              style={textStyles.promoCta}
+              onStyle={setText("promoCta")}
+            />
             <div>
               <label className={fieldLabel} htmlFor="promoHref">Button link</label>
               <input id="promoHref" className={`${fieldInput} mt-1`} value={promoHref} onChange={(e) => setPromoHref(e.target.value)} />
