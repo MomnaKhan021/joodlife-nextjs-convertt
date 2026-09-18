@@ -5,6 +5,8 @@ import {
   CATEGORY_PAGE_DEFAULT,
   type CategoryFeatureGrid,
 } from "@/lib/categoryPageContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "A treatment plan that works around you" — Figma node 67:2403.
@@ -17,11 +19,18 @@ import {
 
 export default function FeatureGrid({
   content = CATEGORY_PAGE_DEFAULT.featureGrid,
+  style,
+  text,
 }: {
   content?: CategoryFeatureGrid;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Treatment plan features"
       className="w-full bg-[#142e2a] py-[30px] md:py-10"
     >
@@ -29,18 +38,18 @@ export default function FeatureGrid({
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[476fr_804fr] lg:gap-10">
           {/* Left — heading + lede + CTA */}
           <Reveal as="div" className="flex flex-col">
-            <h2 className="font-display text-[22px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
+            <h2 {...textStyleProps(text?.["featureGrid.heading"])} className="font-display text-[22px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[44px]">
               {content.heading}{" "}
-              <em className="font-serif font-normal italic">
+              <em {...textStyleProps(text?.["featureGrid.headingAccent"])} className="font-serif font-normal italic">
                 {content.headingAccent}
               </em>
             </h2>
-            <p className="mt-4 max-w-[34ch] font-ui text-[15px] leading-[22px] text-white/75 md:text-[16px]">
+            <p {...textStyleProps(text?.["featureGrid.body"])} className="mt-4 max-w-[34ch] font-ui text-[15px] leading-[22px] text-white/75 md:text-[16px]">
               {content.body}
             </p>
             <div className="mt-7 flex flex-wrap gap-4">
               {content.ctaLabel ? (
-                <Link
+                <Link {...textStyleProps(text?.["featureGrid.ctaLabel"])}
                   href={content.ctaHref}
                   className="btn-cta inline-flex h-12 items-center justify-center rounded-lg border border-white/40 bg-white/5 px-7 font-ui text-[14px] font-semibold text-white hover:bg-white/15"
                 >
@@ -48,7 +57,7 @@ export default function FeatureGrid({
                 </Link>
               ) : null}
               {content.secondaryLabel ? (
-                <Link
+                <Link {...textStyleProps(text?.["featureGrid.secondaryLabel"])}
                   href={content.secondaryHref}
                   className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-[#dff49f] px-7 font-ui text-[14px] font-semibold text-[#142e2a] hover:bg-[#cbe886]"
                 >
@@ -79,10 +88,10 @@ export default function FeatureGrid({
                     className="h-6 w-6 md:h-7 md:w-7"
                   />
                 </span>
-                <h3 className="mt-1 font-ui text-[15px] font-semibold leading-[20px] text-white md:text-[17px] md:leading-[22px]">
+                <h3 {...textStyleProps(text?.["featureGrid.featureTitle"])} className="mt-1 font-ui text-[15px] font-semibold leading-[20px] text-white md:text-[17px] md:leading-[22px]">
                   {f.title}
                 </h3>
-                <p className="font-ui text-[12.5px] leading-[17px] text-white/65 md:text-[13.5px] md:leading-[19px]">
+                <p {...textStyleProps(text?.["featureGrid.featureCopy"])} className="font-ui text-[12.5px] leading-[17px] text-white/65 md:text-[13.5px] md:leading-[19px]">
                   {f.copy}
                 </p>
               </div>

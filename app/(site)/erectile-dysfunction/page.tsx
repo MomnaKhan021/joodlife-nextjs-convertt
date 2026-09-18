@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ErectileDysfunctionPage() {
-  const [{ faqs }, ed] = await Promise.all([
+  const [{ faqs, styles: cpStyles, textStyles: cpText }, ed] = await Promise.all([
     getCategoryPageContent(),
     getEdContent(),
   ]);
@@ -60,6 +60,8 @@ export default async function ErectileDysfunctionPage() {
         heading={faqs.heading}
         headingAccent={faqs.headingAccent}
         accent="#142e2a"
+        style={cpStyles.faqs}
+        text={cpText}
       />
 
       <EdCtaBanner content={ed.banner} style={ed.styles.banner} text={ed.textStyles} />

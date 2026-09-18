@@ -35,6 +35,16 @@ export const CategoryPages: GlobalConfig = {
       type: "json",
       admin: { description: "One question list per treatment." },
     },
+    {
+      name: "styles",
+      type: "json",
+      admin: { description: "Per-section background / text colour. Empty keeps the shipped design." },
+    },
+    {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by section.field." },
+    },
   ],
 };
 

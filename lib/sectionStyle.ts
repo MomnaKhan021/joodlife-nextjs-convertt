@@ -219,3 +219,7 @@ export const ED_STYLE_LABELS: Record<EdStyleKey, string> = {
 /** The blog listing page's four bands, in page order. */
 export const BLOG_PAGE_STYLE_KEYS = ["hero", "list", "newsletter", "cta"] as const;
 export type BlogPageStyleKey = (typeof BLOG_PAGE_STYLE_KEYS)[number];
+
+/** The shared treatment-page sections edited under "Category pages". */
+export const CATEGORY_PAGE_STYLE_KEYS = ["uspStrip", "featureGrid", "faqs"] as const;
+export type CategoryPageStyleKey = (typeof CATEGORY_PAGE_STYLE_KEYS)[number];

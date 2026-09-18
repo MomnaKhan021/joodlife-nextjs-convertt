@@ -4,6 +4,8 @@ import {
   CATEGORY_PAGE_DEFAULT,
   type UspItem,
 } from "@/lib/categoryPageContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * USP Marquee strip — Figma node 141:1910 (Component 139). The Figma
@@ -16,9 +18,12 @@ import {
 function MarqueeRow({
   items,
   aria = false,
+  labelStyle,
 }: {
   items: UspItem[];
   aria?: boolean;
+  /** CMS size/weight for every item label. */
+  labelStyle?: React.CSSProperties;
 }) {
   return (
     <ul aria-hidden={aria} className="flex shrink-0 items-center">
@@ -33,7 +38,7 @@ function MarqueeRow({
             className="h-8 w-8 shrink-0"
             aria-hidden
           />
-          <span className="whitespace-nowrap font-ui text-[14px] font-semibold leading-[18px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
+          <span style={labelStyle} className="whitespace-nowrap font-ui text-[14px] font-semibold leading-[18px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             {item.label}
           </span>
         </li>
@@ -44,11 +49,18 @@ function MarqueeRow({
 
 export default function UspStrip({
   items = CATEGORY_PAGE_DEFAULT.uspStrip.items,
+  style,
+  text,
 }: {
   items?: UspItem[];
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Why customers choose Jood Life"
       className="group w-full overflow-hidden border-b border-[#142e2a]/10 bg-white py-4 md:py-[14px]"
     >
@@ -60,8 +72,8 @@ export default function UspStrip({
           className="flex shrink-0 animate-marquee items-center group-hover:[animation-play-state:paused]"
           style={{ animationDuration: "40s" }}
         >
-          <MarqueeRow items={items} />
-          <MarqueeRow items={items} aria />
+          <MarqueeRow items={items} labelStyle={textStyleProps(text?.["uspStrip.itemLabel"]).style} />
+          <MarqueeRow items={items} labelStyle={textStyleProps(text?.["uspStrip.itemLabel"]).style} aria />
         </div>
       </div>
     </section>

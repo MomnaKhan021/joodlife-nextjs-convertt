@@ -306,3 +306,20 @@ export const BLOG_PAGE_TEXT_KEYS = [
   "cta.ctaLabel",
 ] as const;
 export type BlogPageTextKey = (typeof BLOG_PAGE_TEXT_KEYS)[number];
+
+/** Per-text keys for the shared treatment-page sections. */
+export const CATEGORY_PAGE_TEXT_KEYS = [
+  "featureGrid.heading",
+  "featureGrid.headingAccent",
+  "featureGrid.body",
+  "featureGrid.ctaLabel",
+  "featureGrid.secondaryLabel",
+  "faqs.heading",
+  "faqs.headingAccent",
+  "uspStrip.itemLabel",
+  "featureGrid.featureTitle",
+  "featureGrid.featureCopy",
+  "faqs.question",
+  "faqs.answer",
+] as const;
+export type CategoryPageTextKey = (typeof CATEGORY_PAGE_TEXT_KEYS)[number];

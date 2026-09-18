@@ -1,4 +1,16 @@
 import { CATEGORY_FAQS, type Faq } from "@/lib/categoryFaqs";
+import {
+  CATEGORY_PAGE_STYLE_KEYS,
+  mergeStyles,
+  type CategoryPageStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  CATEGORY_PAGE_TEXT_KEYS,
+  mergeTextStyles,
+  type CategoryPageTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 /**
  * Shape, shipped copy and validation for the shared furniture on the
@@ -46,9 +58,15 @@ export type CategoryPageContent = {
   uspStrip: CategoryUspStrip;
   featureGrid: CategoryFeatureGrid;
   faqs: CategoryFaqs;
+  /** Per-section background / text colour. */
+  styles: Record<CategoryPageStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed by section.field. */
+  textStyles: Record<CategoryPageTextKey, TextStyle>;
 };
 
 export const CATEGORY_PAGE_DEFAULT: CategoryPageContent = {
+  styles: mergeStyles(null, CATEGORY_PAGE_STYLE_KEYS),
+  textStyles: mergeTextStyles(null, CATEGORY_PAGE_TEXT_KEYS),
   uspStrip: {
     items: [
       { icon: "/assets/figma/usp-licensed.svg", label: "UK Licensed medication" },
@@ -166,6 +184,8 @@ export function mergeCategoryPage(stored: unknown): CategoryPageContent {
   const f = obj(d.faqs);
 
   return {
+    styles: mergeStyles(d.styles, CATEGORY_PAGE_STYLE_KEYS),
+    textStyles: mergeTextStyles(d.textStyles, CATEGORY_PAGE_TEXT_KEYS),
     uspStrip: {
       items: rows<UspItem>(
         u.items,

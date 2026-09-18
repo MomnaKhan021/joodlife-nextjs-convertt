@@ -29,7 +29,7 @@ export default async function PeriodDelayPage() {
   // this page comes from the shared sub-page global.
   const categories = await getCategories();
   const category = categories["period-delay"];
-  const { uspStrip, featureGrid, faqs } = await getCategoryPageContent();
+  const { uspStrip, featureGrid, faqs, styles, textStyles } = await getCategoryPageContent();
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
@@ -37,9 +37,9 @@ export default async function PeriodDelayPage() {
       <Header />
 
       <CategoryPreview category={category} variant="hero" priority />
-      <UspStrip items={uspStrip.items} />
+      <UspStrip items={uspStrip.items} style={styles.uspStrip} text={textStyles} />
       <div id="assessment" className="scroll-mt-28">
-        <FeatureGrid content={featureGrid} />
+        <FeatureGrid content={featureGrid} style={styles.featureGrid} text={textStyles} />
       </div>
       <HowItWorks />
       <Reviews />
@@ -48,6 +48,8 @@ export default async function PeriodDelayPage() {
         heading={faqs.heading}
         headingAccent={faqs.headingAccent}
         accent={category.theme.base}
+        style={styles.faqs}
+        text={textStyles}
       />
       <CtaBanner />
       <Footer />

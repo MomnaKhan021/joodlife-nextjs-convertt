@@ -18,6 +18,10 @@ import {
   moved,
 } from "../FormKit";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import SectionControl from "../SectionControl";
+import { TextStyleCtx, Ts } from "../TextStyleContext";
+import type { CategoryPageStyleKey, SectionStyle } from "@/lib/sectionStyle";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editor for the furniture shared by the treatment sub-pages: the scrolling
@@ -66,6 +70,8 @@ export default function CategoryPagesForm({
     setSaved(false);
     try {
       await saveGlobal("category-pages", {
+        styles,
+        textStyles,
         uspStrip: { items: uspStrip.items.filter((i) => i.label.trim()) },
         featureGrid: {
           ...featureGrid,
@@ -88,7 +94,20 @@ export default function CategoryPagesForm({
     }
   }
 
+  const [styles, setStyles] = useState(initial.styles);
+  const setStyle = (k: CategoryPageStyleKey) => (next: SectionStyle) =>
+    setStyles((st) => ({ ...st, [k]: next }));
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
   return (
+    <TextStyleCtx.Provider value={textStyleApi}>
     <div className="mx-auto w-full max-w-[1000px]">
       <header className="mb-6">
         <Link
@@ -131,6 +150,22 @@ export default function CategoryPagesForm({
       <div className="space-y-5">
         {/* 1. Trust strip */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="uspStrip" value={styles.uspStrip} onChange={setStyle("uspStrip")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["uspStrip.itemLabel", "Item labels"],
+              ] as const
+            ).map(([k, label]) => (
+              <span key={k} className="flex items-center gap-2">
+                {label}
+                <Ts k={k} label={label} />
+              </span>
+            ))}
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               1. Scrolling trust strip
@@ -211,6 +246,23 @@ export default function CategoryPagesForm({
 
         {/* 2. Feature panel */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="featureGrid" value={styles.featureGrid} onChange={setStyle("featureGrid")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["featureGrid.featureTitle", "Feature titles"],
+                ["featureGrid.featureCopy", "Feature text"],
+              ] as const
+            ).map(([k, label]) => (
+              <span key={k} className="flex items-center gap-2">
+                {label}
+                <Ts k={k} label={label} />
+              </span>
+            ))}
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               2. Dark feature panel
@@ -220,6 +272,8 @@ export default function CategoryPagesForm({
             </p>
           </div>
           <Pair
+            firstKey="featureGrid.heading"
+            secondKey="featureGrid.headingAccent"
             label="Heading"
             first={featureGrid.heading}
             second={featureGrid.headingAccent}
@@ -227,12 +281,14 @@ export default function CategoryPagesForm({
             onSecond={(v) => setFeatureGrid({ ...featureGrid, headingAccent: v })}
           />
           <AreaField
+            tsKey="featureGrid.body"
             label="Body"
             rows={2}
             value={featureGrid.body}
             onChange={(v) => setFeatureGrid({ ...featureGrid, body: v })}
           />
           <CtaFields
+            labelKey="featureGrid.ctaLabel"
             title="First button"
             label={featureGrid.ctaLabel}
             href={featureGrid.ctaHref}
@@ -240,6 +296,7 @@ export default function CategoryPagesForm({
             onHref={(v) => setFeatureGrid({ ...featureGrid, ctaHref: v })}
           />
           <CtaFields
+            labelKey="featureGrid.secondaryLabel"
             title="Second button"
             label={featureGrid.secondaryLabel}
             href={featureGrid.secondaryHref}
@@ -339,6 +396,23 @@ export default function CategoryPagesForm({
 
         {/* 3. FAQs */}
         <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="faqs" value={styles.faqs} onChange={setStyle("faqs")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["faqs.question", "Questions"],
+                ["faqs.answer", "Answers"],
+              ] as const
+            ).map(([k, label]) => (
+              <span key={k} className="flex items-center gap-2">
+                {label}
+                <Ts k={k} label={label} />
+              </span>
+            ))}
+          </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
               3. Frequently asked questions
@@ -348,6 +422,8 @@ export default function CategoryPagesForm({
             </p>
           </div>
           <Pair
+            firstKey="faqs.heading"
+            secondKey="faqs.headingAccent"
             label="Heading"
             first={faqs.heading}
             second={faqs.headingAccent}
@@ -452,5 +528,6 @@ export default function CategoryPagesForm({
         leaving it blank.
       </p>
     </div>
+    </TextStyleCtx.Provider>
   );
 }
