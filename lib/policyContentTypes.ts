@@ -1,3 +1,5 @@
+import { mergeStyles, type SectionStyle } from "@/lib/sectionStyle";
+import { mergeTextStyles, type TextStyle } from "@/lib/textStyle";
 import type { PolicyBlock, PolicySection } from "@/app/(site)/policies/PolicyPage";
 import {
   POLICY_CONTACT_DEFAULT,
@@ -23,7 +25,37 @@ export type PolicyDoc = {
   sections: PolicySection[];
   eyebrow: string;
   contact: PolicyContact;
+  /** Per-text size and weight. Kept inside the policy's own document. */
+  textStyles: Record<PolicyTextKey, TextStyle>;
+  /** Per-section background / text colour. Also inside the document. */
+  styles: Record<PolicyStyleKey, SectionStyle>;
 };
+
+/**
+ * The texts on a policy page that carry their own size/weight control.
+ *
+ * The body keys cover every instance on the page — one setting for all
+ * section headings, one for all paragraphs — because a long policy has dozens
+ * of each and nobody wants to size them one at a time.
+ */
+export const POLICY_TEXT_KEYS = [
+  "eyebrow",
+  "title",
+  "titleAccent",
+  "intro",
+  "updated",
+  "sectionHeading",
+  "subHeading",
+  "paragraph",
+  "listItem",
+  "contactHeading",
+  "contactBody",
+] as const;
+export type PolicyTextKey = (typeof POLICY_TEXT_KEYS)[number];
+
+/** The three bands of a policy page, each with its own appearance. */
+export const POLICY_STYLE_KEYS = ["hero", "body", "contact"] as const;
+export type PolicyStyleKey = (typeof POLICY_STYLE_KEYS)[number];
 
 /** Which json field on the global holds which page. */
 export const POLICY_FIELD: Record<PolicySlug, string> = {
@@ -125,5 +157,7 @@ export function mergePolicy(slug: PolicySlug, stored: unknown): PolicyDoc {
     sections: sections.length ? sections : base.sections,
     eyebrow: str(d.eyebrow, POLICY_EYEBROW_DEFAULT),
     contact: toContact(d.contact),
+    textStyles: mergeTextStyles(d.textStyles, POLICY_TEXT_KEYS),
+    styles: mergeStyles(d.styles, POLICY_STYLE_KEYS),
   };
 }

@@ -11,6 +11,15 @@ import {
   type PolicyDoc,
 } from "@/lib/policyContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { AreaField, TextField } from "../FormKit";
+import SectionControl from "../SectionControl";
+import TypeControl from "../TypeControl";
+import type {
+  PolicyStyleKey,
+  PolicyTextKey,
+} from "@/lib/policyContentTypes";
+import type { SectionStyle } from "@/lib/sectionStyle";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editor for one policy page.
@@ -43,6 +52,12 @@ export default function PolicyForm({
   const [eyebrow, setEyebrow] = useState(initial.eyebrow);
   const [sections, setSections] = useState<PolicySection[]>(initial.sections);
   const [contact, setContact] = useState<PolicyContact>(initial.contact);
+  const [textStyles, setTextStyles] = useState(initial.textStyles);
+  const setText = (k: PolicyTextKey) => (next: TextStyle) =>
+    setTextStyles((t) => ({ ...t, [k]: next }));
+  const [styles, setStyles] = useState(initial.styles);
+  const setStyle = (k: PolicyStyleKey) => (next: SectionStyle) =>
+    setStyles((st) => ({ ...st, [k]: next }));
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -96,6 +111,8 @@ export default function PolicyForm({
           intro,
           updated,
           eyebrow,
+          textStyles,
+          styles,
           sections: sections.filter((s) => s.heading.trim() || s.blocks.length),
           contact: {
             ...contact,
@@ -145,27 +162,96 @@ export default function PolicyForm({
       <div className="space-y-5">
         {/* Page header */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
-          <h2 className="text-[15px] font-medium text-[#1a1a1a]">Page header</h2>
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="text-[15px] font-medium text-[#1a1a1a]">Page header</h2>
+            <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={fieldLabel}>Title</label>
-              <input className={`${fieldInput} mt-1`} value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <label className={fieldLabel}>Title (italic part)</label>
-              <input className={`${fieldInput} mt-1`} value={titleAccent} onChange={(e) => setTitleAccent(e.target.value)} />
-            </div>
+            <TextField
+              label="Title"
+              value={title}
+              onChange={setTitle}
+              style={textStyles.title}
+              onStyle={setText("title")}
+            />
+            <TextField
+              label="Title (italic part)"
+              value={titleAccent}
+              onChange={setTitleAccent}
+              style={textStyles.titleAccent}
+              onStyle={setText("titleAccent")}
+            />
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Intro</label>
-              <textarea rows={2} className={`${fieldInput} mt-1`} value={intro} onChange={(e) => setIntro(e.target.value)} />
+              <AreaField
+                label="Intro"
+                rows={2}
+                value={intro}
+                onChange={setIntro}
+                style={textStyles.intro}
+                onStyle={setText("intro")}
+              />
             </div>
+            <TextField
+              label="Last updated"
+              value={updated}
+              onChange={setUpdated}
+              placeholder="11 August 2026"
+              style={textStyles.updated}
+              onStyle={setText("updated")}
+            />
+            <TextField
+              label="Small label above the title"
+              value={eyebrow}
+              onChange={setEyebrow}
+              placeholder="Legal"
+              style={textStyles.eyebrow}
+              onStyle={setText("eyebrow")}
+            />
+          </div>
+        </div>
+
+        {/* Body text + section appearance: one setting covers every instance */}
+        <div className="space-y-3 rounded-xl border border-[#e4e7de] bg-white p-5">
+          <div className="flex items-start justify-between gap-2">
             <div>
-              <label className={fieldLabel}>Last updated</label>
-              <input className={`${fieldInput} mt-1`} value={updated} onChange={(e) => setUpdated(e.target.value)} placeholder="11 August 2026" />
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">Body text</h2>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Each setting applies to every one on the page — all section
+                headings, all paragraphs, and so on.
+              </p>
             </div>
-            <div>
-              <label className={fieldLabel}>Small label above the title</label>
-              <input className={`${fieldInput} mt-1`} value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} placeholder="Legal" />
+            <SectionControl sectionKey="body" value={styles.body} onChange={setStyle("body")} />
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
+            {(
+              [
+                ["sectionHeading", "Section headings"],
+                ["subHeading", "Sub-headings"],
+                ["paragraph", "Paragraphs"],
+                ["listItem", "List items"],
+              ] as const
+            ).map(([k, label]) => (
+              <div key={k} className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">
+                {label}
+                <TypeControl label={label} value={textStyles[k]} onChange={setText(k)} />
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#eef1e8] pt-3">
+            <span className="text-[13px] font-medium text-[#1a1a1a]">Contact card</span>
+            {(
+              [
+                ["contactHeading", "Heading"],
+                ["contactBody", "Text"],
+              ] as const
+            ).map(([k, label]) => (
+              <div key={k} className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">
+                {label}
+                <TypeControl label={`Contact ${label}`} value={textStyles[k]} onChange={setText(k)} />
+              </div>
+            ))}
+            <div className="ml-auto">
+              <SectionControl sectionKey="contact" value={styles.contact} onChange={setStyle("contact")} />
             </div>
           </div>
         </div>

@@ -8,6 +8,14 @@ import {
   type PolicyContact,
 } from "@/lib/policyDefaults";
 import Footer from "@/sections/home/Footer";
+import type {
+  PolicyStyleKey,
+  PolicyTextKey,
+} from "@/lib/policyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
+
+type PolicyText = Partial<Record<PolicyTextKey, TextStyle>>;
 
 /**
  * Shared branded shell for JoodLife policy pages
@@ -29,7 +37,13 @@ export type PolicySection = {
   blocks: PolicyBlock[];
 };
 
-function Blocks({ blocks }: { blocks: PolicyBlock[] }) {
+function Blocks({
+  blocks,
+  text = {},
+}: {
+  blocks: PolicyBlock[];
+  text?: PolicyText;
+}) {
   return (
     <>
       {blocks.map((b, i) => {
@@ -37,6 +51,7 @@ function Blocks({ blocks }: { blocks: PolicyBlock[] }) {
           return (
             <h3
               key={i}
+              {...textStyleProps(text.subHeading)}
               className="mt-7 font-ui text-[16px] font-semibold leading-[24px] text-[#142e2a] md:text-[17px]"
             >
               {b.text}
@@ -52,6 +67,7 @@ function Blocks({ blocks }: { blocks: PolicyBlock[] }) {
               {b.items.map((it, j) => (
                 <li
                   key={j}
+                  {...textStyleProps(text.listItem)}
                   className="font-ui text-[15px] leading-[26px] text-[#142e2a]/80 md:text-[16px]"
                 >
                   {it}
@@ -63,6 +79,7 @@ function Blocks({ blocks }: { blocks: PolicyBlock[] }) {
         return (
           <p
             key={i}
+            {...textStyleProps(text.paragraph)}
             className="mt-3 font-ui text-[15px] leading-[26px] text-[#142e2a]/80 md:text-[16px]"
           >
             {b.text}
@@ -74,6 +91,8 @@ function Blocks({ blocks }: { blocks: PolicyBlock[] }) {
 }
 
 export default function PolicyPage({
+  textStyles = {},
+  styles,
   title,
   titleAccent,
   intro,
@@ -86,6 +105,10 @@ export default function PolicyPage({
   titleAccent?: string;
   intro: string;
   updated: string;
+  /** Per-text size/weight — optional so a bare render stays unchanged. */
+  textStyles?: PolicyText;
+  /** Per-section appearance — optional for the same reason. */
+  styles?: Partial<Record<PolicyStyleKey, SectionStyle>>;
   sections: PolicySection[];
   /** Small label above the title. */
   eyebrow?: string;
@@ -99,53 +122,53 @@ export default function PolicyPage({
 
       <main className="w-full bg-white">
         {/* ───── Hero ───── */}
-        <section className="w-full bg-[#f7f9f2]">
+        <section {...styleProps(styles?.hero)} className="w-full bg-[#f7f9f2]">
           <div className="mx-auto w-full max-w-[860px] px-6 pb-12 pt-12 md:px-10 md:pb-16 md:pt-16">
-            <p className="font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142e2a]/55">
+            <p {...textStyleProps(textStyles.eyebrow)} className="font-ui text-[13px] font-semibold uppercase tracking-[0.14em] text-[#142e2a]/55">
               {eyebrow}
             </p>
-            <h1 className="mt-3 font-display text-[34px] font-bold leading-[1.06] tracking-[-0.02em] text-[#142e2a] md:text-[52px]">
+            <h1 {...textStyleProps(textStyles.title)} className="mt-3 font-display text-[34px] font-bold leading-[1.06] tracking-[-0.02em] text-[#142e2a] md:text-[52px]">
               {title}
               {titleAccent ? (
                 <>
                   {" "}
-                  <em className="font-serif font-normal italic">
+                  <em {...textStyleProps(textStyles.titleAccent)} className="font-serif font-normal italic">
                     {titleAccent}
                   </em>
                 </>
               ) : null}
             </h1>
-            <p className="mt-4 max-w-[620px] font-ui text-[15px] leading-[25px] text-[#142e2a]/70 md:text-[16.3px]">
+            <p {...textStyleProps(textStyles.intro)} className="mt-4 max-w-[620px] font-ui text-[15px] leading-[25px] text-[#142e2a]/70 md:text-[16.3px]">
               {intro}
             </p>
-            <p className="mt-5 font-ui text-[13px] text-[#142e2a]/55">
+            <p {...textStyleProps(textStyles.updated)} className="mt-5 font-ui text-[13px] text-[#142e2a]/55">
               Last updated: {updated}
             </p>
           </div>
         </section>
 
         {/* ───── Body ───── */}
-        <section className="w-full bg-white">
+        <section {...styleProps(styles?.body)} className="w-full bg-white">
           <div className="mx-auto w-full max-w-[860px] px-6 py-12 md:px-10 md:py-16">
             <div className="flex flex-col gap-10">
               {sections.map((s) => (
                 <div key={s.heading}>
-                  <h2 className="font-display text-[22px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#142e2a] md:text-[26px]">
+                  <h2 {...textStyleProps(textStyles.sectionHeading)} className="font-display text-[22px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#142e2a] md:text-[26px]">
                     {s.heading}
                   </h2>
                   <div className="mt-2">
-                    <Blocks blocks={s.blocks} />
+                    <Blocks blocks={s.blocks} text={textStyles} />
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Contact / help card */}
-            <div className="mt-12 rounded-3xl bg-[#f7f9f2] p-6 md:p-8">
-              <h2 className="font-display text-[20px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#142e2a] md:text-[24px]">
+            <div {...styleProps(styles?.contact)} className="mt-12 rounded-3xl bg-[#f7f9f2] p-6 md:p-8">
+              <h2 {...textStyleProps(textStyles.contactHeading)} className="font-display text-[20px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#142e2a] md:text-[24px]">
                 {contact.heading}
               </h2>
-              <p className="mt-2 font-ui text-[15px] leading-[25px] text-[#142e2a]/75 md:text-[16px]">
+              <p {...textStyleProps(textStyles.contactBody)} className="mt-2 font-ui text-[15px] leading-[25px] text-[#142e2a]/75 md:text-[16px]">
                 {contact.body}
               </p>
               <div className="mt-4 flex flex-col gap-2 font-ui text-[15px] text-[#142e2a]/80 md:text-[16px]">
