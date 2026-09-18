@@ -270,3 +270,19 @@ export const ED_TEXT_KEYS = [
   "confidence.statValue",
 ] as const;
 export type EdTextKey = (typeof ED_TEXT_KEYS)[number];
+
+/** Per-text keys for the Support page, derived from the editor's bindings. */
+export const SUPPORT_TEXT_KEYS = [
+  "hero.title",
+  "hero.titleAccent",
+  "hero.body",
+  "hero.ctaLabel",
+  "hero.cardPill",
+  "faq.allLabel",
+  "faq.ctaLabel",
+  "stories.heading",
+  "stories.headingAccent",
+  "stories.body",
+  "stories.ctaLabel",
+] as const;
+export type SupportTextKey = (typeof SUPPORT_TEXT_KEYS)[number];

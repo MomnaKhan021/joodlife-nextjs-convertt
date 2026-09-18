@@ -25,9 +25,12 @@ import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 /* ── Trustpilot rating row ───────────────────────────────────────────── */
 function Trustpilot({
   label,
+  labelStyle,
   dark = false,
 }: {
   label: string;
+  /** CMS size/weight for the label only. */
+  labelStyle?: React.CSSProperties;
   dark?: boolean;
 }) {
   return (
@@ -50,7 +53,7 @@ function Trustpilot({
           </span>
         ))}
       </span>
-      <span
+      <span style={labelStyle}
         className={
           dark ? "font-semibold text-white" : "font-semibold text-[#142e2a]"
         }
@@ -112,7 +115,11 @@ export function EdHero({
 
           <div className="relative min-h-[440px] max-w-[640px] p-6 py-10 md:min-h-[560px] md:p-12">
             <Reveal as="div" direction="down">
-              <Trustpilot {...textStyleProps(text?.["hero.reviewsLabel"])} label={content.reviewsLabel} dark />
+              <Trustpilot
+                labelStyle={textStyleProps(text?.["hero.reviewsLabel"]).style}
+                label={content.reviewsLabel}
+                dark
+              />
             </Reveal>
             <Reveal as="div" delay={60}>
               <h1 {...textStyleProps(text?.["hero.title"])} className="mt-5 max-w-[16ch] font-display text-[32px] font-semibold leading-[1.16] tracking-[-0.025em] text-white md:text-[54px] md:leading-[1.08]">

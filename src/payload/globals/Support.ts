@@ -35,6 +35,11 @@ export const Support: GlobalConfig = {
       admin: { description: "The success-story strip at the foot of the page." },
     },
     {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by section.field." },
+    },
+    {
       name: "styles",
       type: "json",
       admin: {

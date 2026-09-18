@@ -19,6 +19,8 @@ import {
   type SupportStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
+import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import type { TextStyle } from "@/lib/textStyle";
 
 /**
  * Editor for the Support page, in page order: the hero and its quick-help
@@ -97,6 +99,7 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
     try {
       await saveGlobal("support", {
         styles,
+        textStyles,
         hero: {
           ...hero,
           helpPoints: hero.helpPoints.filter((p) => p.title.trim() || p.body.trim()),
@@ -123,7 +126,17 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
     }
   }
 
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
   return (
+    <TextStyleCtx.Provider value={textStyleApi}>
     <div className="mx-auto w-full max-w-[1000px]">
       <header className="mb-6">
         <Link
@@ -162,7 +175,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Title</label>
+              <LabelRow k="hero.title" label="Title">
+                <label className={fieldLabel}>Title</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={hero.title}
@@ -170,7 +185,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Title (italic part)</label>
+              <LabelRow k="hero.titleAccent" label="Title (italic part)">
+                <label className={fieldLabel}>Title (italic part)</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={hero.titleAccent}
@@ -178,7 +195,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Body</label>
+              <LabelRow k="hero.body" label="Body">
+                <label className={fieldLabel}>Body</label>
+              </LabelRow>
               <textarea
                 rows={2}
                 className={`${fieldInput} mt-1`}
@@ -187,7 +206,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Button text</label>
+              <LabelRow k="hero.ctaLabel" label="Button text">
+                <label className={fieldLabel}>Button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={hero.ctaLabel}
@@ -243,7 +264,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
             </p>
           </div>
           <div>
-            <label className={fieldLabel}>Pill label</label>
+            <LabelRow k="hero.cardPill" label="Pill label">
+              <label className={fieldLabel}>Pill label</label>
+            </LabelRow>
             <input
               className={`${fieldInput} mt-1`}
               value={hero.cardPill}
@@ -342,7 +365,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className={fieldLabel}>“Show all” pill</label>
+              <LabelRow k="faq.allLabel" label="“Show all” pill">
+                <label className={fieldLabel}>“Show all” pill</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={faq.allLabel}
@@ -351,7 +376,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Button text</label>
+              <LabelRow k="faq.ctaLabel" label="Button text">
+                <label className={fieldLabel}>Button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={faq.ctaLabel}
@@ -543,7 +570,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={fieldLabel}>Heading</label>
+              <LabelRow k="stories.heading" label="Heading">
+                <label className={fieldLabel}>Heading</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={stories.heading}
@@ -551,7 +580,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Heading (italic part)</label>
+              <LabelRow k="stories.headingAccent" label="Heading (italic part)">
+                <label className={fieldLabel}>Heading (italic part)</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={stories.headingAccent}
@@ -561,7 +592,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className={fieldLabel}>Body</label>
+              <LabelRow k="stories.body" label="Body">
+                <label className={fieldLabel}>Body</label>
+              </LabelRow>
               <textarea
                 rows={2}
                 className={`${fieldInput} mt-1`}
@@ -570,7 +603,9 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
               />
             </div>
             <div>
-              <label className={fieldLabel}>Button text</label>
+              <LabelRow k="stories.ctaLabel" label="Button text">
+                <label className={fieldLabel}>Button text</label>
+              </LabelRow>
               <input
                 className={`${fieldInput} mt-1`}
                 value={stories.ctaLabel}
@@ -679,5 +714,6 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
         </button>
       </div>
     </div>
+    </TextStyleCtx.Provider>
   );
 }

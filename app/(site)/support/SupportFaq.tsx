@@ -9,6 +9,7 @@ import {
   type FaqItem as QA,
   type SupportFaqContent,
 } from "@/lib/supportContentTypes";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Interactive FAQ block for the Support page.
@@ -89,10 +90,13 @@ function AccordionItem({
 export default function SupportFaq({
   content = SUPPORT_FAQ_DEFAULT,
   style,
+  text,
 }: {
   content?: SupportFaqContent;
   /** Background / text colour. Undefined keeps the shipped cream. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const SECTIONS = content.sections;
   const [activePill, setActivePill] = useState<string>("all");
@@ -119,7 +123,7 @@ export default function SupportFaq({
       <div className="mx-auto w-full max-w-[1320px] px-6 md:px-10 lg:px-[60px]">
         {/* Filter pills */}
         <div className="mb-10 flex flex-wrap items-center gap-2 md:mb-14 md:gap-3">
-          <FilterPill
+          <FilterPill {...textStyleProps(text?.["faq.allLabel"])}
             label={content.allLabel}
             active={activePill === "all"}
             onClick={() => setActivePill("all")}
@@ -149,7 +153,7 @@ export default function SupportFaq({
                   </em>
                 </h3>
                 {content.ctaLabel ? (
-                  <a
+                  <a {...textStyleProps(text?.["faq.ctaLabel"])}
                     href={content.ctaHref}
                     {...(/^https?:\/\//i.test(content.ctaHref)
                       ? { target: "_blank", rel: "noopener noreferrer" }
@@ -189,16 +193,20 @@ function FilterPill({
   label,
   active,
   onClick,
+  style,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  /** CMS size/weight; the pill holds only its label. */
+  style?: React.CSSProperties;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      style={style}
       className={`inline-flex h-9 cursor-pointer items-center rounded-full px-4 font-ui text-[13px] font-medium transition-colors md:text-[14px] ${
         active
           ? "bg-[#142e2a] text-white"

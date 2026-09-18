@@ -8,6 +8,7 @@ import { styleProps } from "@/lib/sectionStyle";
 import Footer from "@/sections/home/Footer";
 
 import SupportFaq from "./SupportFaq";
+import { textStyleProps } from "@/lib/textStyle";
 
 export const metadata = {
   title: "Support — JoodLife",
@@ -32,7 +33,7 @@ export const dynamic = "force-dynamic";
 
 /** Content comes from the CMS, falling back to lib/supportContentTypes.ts. */
 export default async function SupportPage() {
-  const { hero, faq, stories, styles } = await getSupportContent();
+  const { hero, faq, stories, styles, textStyles } = await getSupportContent();
   const heroExternal = /^https?:\/\//i.test(hero.ctaHref);
 
   return (
@@ -45,17 +46,17 @@ export default async function SupportPage() {
         <section {...styleProps(styles.hero)} className="w-full bg-white">
           <div className="mx-auto w-full max-w-[1320px] px-6 pb-10 pt-12 md:px-10 md:pb-14 md:pt-16 lg:px-[60px]">
             <div className="mx-auto max-w-[720px] text-center">
-              <h1 className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#142e2a] md:text-[56px]">
+              <h1 {...textStyleProps(textStyles?.["hero.title"])} className="font-display text-[36px] font-bold leading-[1.05] tracking-[-0.02em] text-[#142e2a] md:text-[56px]">
                 {hero.title}{" "}
-                <em className="font-serif font-normal italic">
+                <em {...textStyleProps(textStyles?.["hero.titleAccent"])} className="font-serif font-normal italic">
                   {hero.titleAccent}
                 </em>
               </h1>
-              <p className="mx-auto mt-4 max-w-[480px] font-ui text-[15px] leading-[24px] text-[#142e2a]/70 md:text-[16.3px]">
+              <p {...textStyleProps(textStyles?.["hero.body"])} className="mx-auto mt-4 max-w-[480px] font-ui text-[15px] leading-[24px] text-[#142e2a]/70 md:text-[16.3px]">
                 {hero.body}
               </p>
               {hero.ctaLabel ? (
-                <a
+                <a {...textStyleProps(textStyles?.["hero.ctaLabel"])}
                   href={hero.ctaHref}
                   {...(heroExternal
                     ? { target: "_blank", rel: "noopener noreferrer" }
@@ -72,7 +73,7 @@ export default async function SupportPage() {
               <div className="flex flex-col justify-center gap-4 rounded-3xl bg-[#f7f9f2] p-6 md:p-8">
                 <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-3 py-1.5">
                   <ChatBubbleIcon />
-                  <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
+                  <span {...textStyleProps(textStyles?.["hero.cardPill"])} className="font-ui text-[13px] font-semibold text-[#142e2a]">
                     {hero.cardPill}
                   </span>
                 </div>
@@ -108,7 +109,7 @@ export default async function SupportPage() {
         </section>
 
         {/* ───── FAQ accordions ───── */}
-        <SupportFaq content={faq} style={styles.faq} />
+        <SupportFaq content={faq} style={styles.faq} text={textStyles} />
 
         {/* ───── Success stories ───── */}
         <section
@@ -118,17 +119,17 @@ export default async function SupportPage() {
         >
           <div className="mx-auto w-full max-w-[1320px] px-6 md:px-10 lg:px-[60px]">
             <div className="mx-auto max-w-[640px] text-center">
-              <h2 className="font-display text-[30px] font-bold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
+              <h2 {...textStyleProps(textStyles?.["stories.heading"])} className="font-display text-[30px] font-bold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
                 {stories.heading}{" "}
-                <em className="font-serif font-normal italic">
+                <em {...textStyleProps(textStyles?.["stories.headingAccent"])} className="font-serif font-normal italic">
                   {stories.headingAccent}
                 </em>
               </h2>
-              <p className="mx-auto mt-4 max-w-[540px] font-ui text-[15px] leading-[24px] text-[#142e2a]/70 md:text-[16.3px]">
+              <p {...textStyleProps(textStyles?.["stories.body"])} className="mx-auto mt-4 max-w-[540px] font-ui text-[15px] leading-[24px] text-[#142e2a]/70 md:text-[16.3px]">
                 {stories.body}
               </p>
               {stories.ctaLabel ? (
-                <Link
+                <Link {...textStyleProps(textStyles?.["stories.ctaLabel"])}
                   href={stories.ctaHref}
                   className="mt-6 inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-10 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
                 >

@@ -9,9 +9,15 @@ import { useEffect, useRef, useState } from "react";
 export default function EdConfidenceStat({
   target = 89,
   caption = "Members reported improved confidence in intimacy",
+  valueStyle,
+  captionStyle,
 }: {
   target?: number;
   caption?: string;
+  /** CMS size/weight for the percentage. */
+  valueStyle?: React.CSSProperties;
+  /** CMS size/weight for the caption. */
+  captionStyle?: React.CSSProperties;
 }) {
   const TARGET = target;
   const ref = useRef<HTMLDivElement>(null);
@@ -66,10 +72,10 @@ export default function EdConfidenceStat({
           style={{ width: `${value}%` }}
         />
       </div>
-      <p className="mt-3 font-display text-[30px] font-bold leading-none text-white md:text-[34px]">
+      <p style={valueStyle} className="mt-3 font-display text-[30px] font-bold leading-none text-white md:text-[34px]">
         {value}%
       </p>
-      <p className="mt-1 max-w-[24ch] font-ui text-[12px] leading-[17px] text-white/80">
+      <p style={captionStyle} className="mt-1 max-w-[24ch] font-ui text-[12px] leading-[17px] text-white/80">
         {caption}
       </p>
     </div>

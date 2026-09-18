@@ -80,7 +80,9 @@ export default function RealResults({
                   {content.statPrefix}
                 </span>
               </span>
-              <CountUpPercent {...textStyleProps(text?.["realResults.statSuffix"])} {...textStyleProps(text?.["realResults.statValue"])}
+              <CountUpPercent
+                valueStyle={textStyleProps(text?.["realResults.statValue"]).style}
+                suffixStyle={textStyleProps(text?.["realResults.statSuffix"]).style}
                 value={content.statValue}
                 decimals={decimals}
                 suffix={content.statSuffix}

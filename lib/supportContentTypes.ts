@@ -13,6 +13,7 @@ import {
   type SupportStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
+import { SUPPORT_TEXT_KEYS, mergeTextStyles, type SupportTextKey, type TextStyle } from "@/lib/textStyle";
 
 
 export type HelpPoint = { title: string; body: string };
@@ -66,6 +67,8 @@ export type SupportStories = {
 export type SupportContent = {
   /** Per-section background / text colour, keyed by section. */
   styles: Record<SupportStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed by section.field. */
+  textStyles: Record<SupportTextKey, TextStyle>;
   hero: SupportHero;
   faq: SupportFaqContent;
   stories: SupportStories;
@@ -255,6 +258,7 @@ export const SUPPORT_STORIES_DEFAULT: SupportStories = {
 export const SUPPORT_DEFAULT: SupportContent = {
   // Nothing styled: every section keeps the design it ships with.
   styles: mergeStyles(null, SUPPORT_STYLE_KEYS),
+  textStyles: mergeTextStyles(null, SUPPORT_TEXT_KEYS),
 
   hero: SUPPORT_HERO_DEFAULT,
   faq: SUPPORT_FAQ_DEFAULT,
@@ -379,6 +383,7 @@ export function mergeSupport(stored: unknown): SupportContent {
   const d = obj(stored);
   return {
     styles: mergeStyles(obj(stored).styles, SUPPORT_STYLE_KEYS),
+    textStyles: mergeTextStyles(obj(stored).textStyles, SUPPORT_TEXT_KEYS),
     hero: toHero(d.hero),
     faq: toFaq(d.faq),
     stories: toStories(d.stories),

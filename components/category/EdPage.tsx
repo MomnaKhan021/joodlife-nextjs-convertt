@@ -314,7 +314,9 @@ function EdConfidence({
               className="object-cover object-top"
             />
             {/* 89% stat overlay — animates up on scroll */}
-            <EdConfidenceStat {...textStyleProps(text?.["confidence.statCaption"])} {...textStyleProps(text?.["confidence.statValue"])}
+            <EdConfidenceStat
+              valueStyle={textStyleProps(text?.["confidence.statValue"]).style}
+              captionStyle={textStyleProps(text?.["confidence.statCaption"]).style}
               target={content.statValue}
               caption={content.statCaption}
             />

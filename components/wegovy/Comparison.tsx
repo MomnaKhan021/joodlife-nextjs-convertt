@@ -67,10 +67,13 @@ function Minus() {
 
 function Card({
   title,
+  titleStyle,
   rows,
   variant,
 }: {
   title: string;
+  /** CMS size/weight for the title only. */
+  titleStyle?: React.CSSProperties;
   rows: ComparisonRow[];
   variant: "pill" | "pen";
 }) {
@@ -85,7 +88,7 @@ function Card({
           dark ? "border-b border-white/12" : "border-b border-[#142e2a]/10"
         }`}
       >
-        <h3 className="font-ui text-[14px] font-semibold tracking-[-0.01em] sm:text-[15px] md:text-[18.8px]">{title}</h3>
+        <h3 style={titleStyle} className="font-ui text-[14px] font-semibold tracking-[-0.01em] sm:text-[15px] md:text-[18.8px]">{title}</h3>
       </div>
 
       <ul className="flex flex-col">
@@ -161,12 +164,14 @@ export default function Comparison({
         {/* Cards — 690px total (340 + 10 gap + 340), centred */}
         <Reveal as="div" delay={100}>
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
-            <Card {...textStyleProps(text?.["comparison.pillTitle"])}
+            <Card
+              titleStyle={textStyleProps(text?.["comparison.pillTitle"]).style}
               title={content.pillTitle}
               rows={content.pillRows}
               variant="pill"
             />
-            <Card {...textStyleProps(text?.["comparison.penTitle"])}
+            <Card
+              titleStyle={textStyleProps(text?.["comparison.penTitle"]).style}
               title={content.penTitle}
               rows={content.penRows}
               variant="pen"
