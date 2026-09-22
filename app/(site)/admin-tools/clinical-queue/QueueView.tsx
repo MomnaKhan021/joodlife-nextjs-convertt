@@ -880,6 +880,7 @@ export function ConsultationCard({
               Submitted: {fmt(c.createdAt)}
               {c.productSlug ? ` · ${c.productSlug}` : ""}
             </p>
+            <AttributionLine answers={c.answers} />
           </div>
           {/* Top-right actions: call time + Join call / reminder + Approve + Reject */}
           <div className="flex flex-col items-end gap-1.5">
@@ -1053,6 +1054,40 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "notbooked", label: "Consultation not booked" },
   { key: "reorder", label: "Reorder" },
 ];
+
+/** Ad-attribution chip — where this consultation was driven from
+ *  (utm_source / campaign / ad set / ad), captured on landing. */
+function AttributionLine({ answers }: { answers: Record<string, unknown> }) {
+  const utm = answers?._utm as Record<string, string> | undefined;
+  if (!utm || typeof utm !== "object") return null;
+  const source = utm.utm_source || (utm.fbclid ? "Facebook" : utm.gclid ? "Google" : "");
+  // campaign › ad set › ad, dropping blanks
+  const chain = [utm.utm_campaign, utm.utm_content, utm.utm_term]
+    .map((v) => (v || "").trim())
+    .filter(Boolean)
+    .join(" › ");
+  if (!source && !chain) return null;
+  const label = [source, chain].filter(Boolean).join(" · ");
+  return (
+    <p
+      className="mt-0.5 flex items-center gap-1 text-[11px] text-[#6b7280]"
+      title={`Attribution: ${label}${utm.landing_path ? ` · landed on ${utm.landing_path}` : ""}`}
+    >
+      <span
+        aria-hidden
+        className="inline-block h-3.5 w-3.5 shrink-0"
+      >
+        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+          <path d="M3 11l18-8-8 18-2-8-8-2z" stroke="#1450b0" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <span className="truncate">
+        <span className="font-semibold text-[#1450b0]">{source || "Ad"}</span>
+        {chain ? <span className="text-[#6b7280]"> · {chain}</span> : null}
+      </span>
+    </p>
+  );
+}
 
 export default function QueueView({
   mode = "clinical",
