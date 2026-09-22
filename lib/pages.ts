@@ -1,6 +1,18 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import {
+  ARTICLE_STYLE_KEYS,
+  mergeStyles,
+  type ArticleStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  PAGE_TEXT_KEYS,
+  mergeTextStyles,
+  type PageTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 /**
  * Data access for the `pages` collection (editable site pages).
@@ -28,6 +40,10 @@ export type SitePage = {
   redirectUrl: string | null;
   /** 308 instead of 307 — cached hard by browsers, so opt in deliberately. */
   redirectPermanent: boolean;
+  /** This page's own background / text colour. */
+  styles: Record<ArticleStyleKey, SectionStyle>;
+  /** This page's own text sizes. */
+  textStyles: Record<PageTextKey, TextStyle>;
 };
 
 type RawPage = {
@@ -43,6 +59,8 @@ type RawPage = {
   publishedAt?: string | null;
   redirectUrl?: string | null;
   redirectPermanent?: boolean | null;
+  styles?: unknown;
+  textStyles?: unknown;
 };
 
 function toSitePage(doc: RawPage): SitePage {
@@ -63,6 +81,8 @@ function toSitePage(doc: RawPage): SitePage {
     publishedAt: doc.publishedAt ?? null,
     redirectUrl: doc.redirectUrl?.trim() ? doc.redirectUrl.trim() : null,
     redirectPermanent: Boolean(doc.redirectPermanent),
+    styles: mergeStyles(doc.styles, ARTICLE_STYLE_KEYS),
+    textStyles: mergeTextStyles(doc.textStyles, PAGE_TEXT_KEYS),
   };
 }
 

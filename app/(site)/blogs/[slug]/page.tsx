@@ -15,6 +15,8 @@ import {
   getPostBySlug,
   getRelatedPosts,
 } from "@/lib/posts";
+import { styleProps } from "@/lib/sectionStyle";
+import { textStyleProps } from "@/lib/textStyle";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +93,7 @@ export default async function BlogPostPage({
       <AnnouncementBar />
       <Header />
 
-      <article>
+      <article {...styleProps(post.styles.article)}>
         {/* Breadcrumb + title block */}
         <header className="mx-auto w-full max-w-[840px] px-6 pt-8 pb-4 md:px-0 md:pt-14 md:pb-6">
           <nav
@@ -115,6 +117,7 @@ export default async function BlogPostPage({
                   <li aria-hidden>/</li>
                   <li>
                     <Link
+                      {...textStyleProps(post.textStyles.breadcrumb)}
                       href={`/blogs?category=${post.category}`}
                       className="hover:text-[#142e2a]"
                     >
@@ -132,19 +135,19 @@ export default async function BlogPostPage({
             </span>
           ) : null}
 
-          <h1 className="mt-4 font-display text-[34px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#142e2a] md:text-[52px]">
+          <h1 {...textStyleProps(post.textStyles.title)} className="mt-4 font-display text-[34px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#142e2a] md:text-[52px]">
             {post.title}
           </h1>
 
           {post.excerpt ? (
-            <p className="mt-5 font-ui text-[18px] leading-[1.55] text-[#142e2a]/75 md:text-[20px]">
+            <p {...textStyleProps(post.textStyles.excerpt)} className="mt-5 font-ui text-[18px] leading-[1.55] text-[#142e2a]/75 md:text-[20px]">
               {post.excerpt}
             </p>
           ) : null}
 
           <div className="mt-6 flex flex-wrap items-center gap-3 font-ui text-[13px] text-[#142e2a]/65">
             {post.authorName ? (
-              <span className="font-semibold text-[#142e2a]">
+              <span {...textStyleProps(post.textStyles.meta)} className="font-semibold text-[#142e2a]">
                 {post.authorName}
               </span>
             ) : null}
@@ -174,7 +177,10 @@ export default async function BlogPostPage({
         ) : null}
 
         {/* Body */}
-        <div className="mx-auto w-full max-w-[760px] px-6 pt-10 pb-12 md:px-0 md:pt-14 md:pb-20">
+        <div
+          {...textStyleProps(post.textStyles.body)}
+          className="mx-auto w-full max-w-[760px] px-6 pt-10 pb-12 md:px-0 md:pt-14 md:pb-20"
+        >
           {post.bodyHtml ? (
             <div
               className="prose-blog font-ui text-[16px] leading-[1.7] text-[#142e2a]/85 md:text-[17px]"
@@ -189,6 +195,7 @@ export default async function BlogPostPage({
               {post.tags.map((t) => (
                 <Link
                   key={t}
+                  {...textStyleProps(post.textStyles.tags)}
                   href={`/blogs?category=${encodeURIComponent(post.category ?? "other")}`}
                   className="rounded-full bg-[#f7f9f2] px-3 py-1 font-ui text-[12px] text-[#142e2a]/75 transition hover:bg-[#142e2a] hover:text-white"
                 >

@@ -213,6 +213,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"meta_description\" varchar",
   "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
   "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "CREATE UNIQUE INDEX IF NOT EXISTS posts_slug_idx ON public.posts USING btree (slug)",
   "CREATE INDEX IF NOT EXISTS posts_hero_image_idx ON public.posts USING btree (hero_image_id)",
   "CREATE INDEX IF NOT EXISTS posts_author_idx ON public.posts USING btree (author_id)",
@@ -236,6 +238,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"redirect_permanent\" boolean DEFAULT false",
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
   "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "CREATE UNIQUE INDEX IF NOT EXISTS pages_slug_idx ON public.pages USING btree (slug)",
   "CREATE INDEX IF NOT EXISTS pages_hero_image_idx ON public.pages USING btree (hero_image_id)",
   "CREATE INDEX IF NOT EXISTS pages_updated_at_idx ON public.pages USING btree (updated_at)",
@@ -539,7 +543,7 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v37";
+const SCHEMA_VERSION = "v38";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

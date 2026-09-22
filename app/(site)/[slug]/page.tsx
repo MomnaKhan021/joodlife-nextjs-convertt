@@ -6,6 +6,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/sections/home/Footer";
 import RichText from "@/components/blog/RichText";
 import { getPageBySlug } from "@/lib/pages";
+import { styleProps } from "@/lib/sectionStyle";
+import { textStyleProps } from "@/lib/textStyle";
 
 export const dynamic = "force-dynamic";
 
@@ -57,13 +59,16 @@ export default async function CmsPage({
       <AnnouncementBar />
       <Header />
 
-      <article className="mx-auto w-full max-w-[760px] px-6 pt-10 pb-12 md:px-0 md:pt-14 md:pb-20">
-        <h1 className="font-ui text-[30px] leading-tight font-semibold text-[#142e2a] md:text-[40px]">
+      <article
+          {...styleProps(page.styles.article)}
+          className="mx-auto w-full max-w-[760px] px-6 pt-10 pb-12 md:px-0 md:pt-14 md:pb-20"
+        >
+        <h1 {...textStyleProps(page.textStyles.title)} className="font-ui text-[30px] leading-tight font-semibold text-[#142e2a] md:text-[40px]">
           {page.title}
         </h1>
 
         {page.excerpt ? (
-          <p className="mt-4 font-ui text-[17px] leading-[1.6] text-[#142e2a]/70">
+          <p {...textStyleProps(page.textStyles.excerpt)} className="mt-4 font-ui text-[17px] leading-[1.6] text-[#142e2a]/70">
             {page.excerpt}
           </p>
         ) : null}
@@ -80,7 +85,7 @@ export default async function CmsPage({
           </div>
         ) : null}
 
-        <div className="mt-8">
+        <div {...textStyleProps(page.textStyles.body)} className="mt-8">
           {page.bodyHtml ? (
             // Raw HTML authored by an admin — the Pages collection restricts
             // create/update to admins, the same trust model /blogs uses for

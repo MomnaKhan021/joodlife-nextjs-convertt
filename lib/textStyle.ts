@@ -366,3 +366,22 @@ export function textStylesFor(
   }
   return out;
 }
+
+/** One blog article's own texts. Stored on the post, not a global. */
+export const POST_TEXT_KEYS = [
+  "title",
+  "excerpt",
+  "meta",
+  "breadcrumb",
+  "tags",
+  "body",
+] as const;
+export type PostTextKey = (typeof POST_TEXT_KEYS)[number];
+
+/** One custom page's own texts. Stored on the page, not a global. */
+export const PAGE_TEXT_KEYS = [
+  "title",
+  "excerpt",
+  "body",
+] as const;
+export type PageTextKey = (typeof PAGE_TEXT_KEYS)[number];

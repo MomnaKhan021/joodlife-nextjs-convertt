@@ -227,3 +227,7 @@ export type CategoryPageStyleKey = (typeof CATEGORY_PAGE_STYLE_KEYS)[number];
 /** One band per treatment category, keyed by category. */
 export const TREATMENT_STYLE_KEYS = ["weight-loss", "erectile-dysfunction", "period-delay"] as const;
 export type TreatmentStyleKey = (typeof TREATMENT_STYLE_KEYS)[number];
+
+/** A single article or custom page: one band around its content. */
+export const ARTICLE_STYLE_KEYS = ["article"] as const;
+export type ArticleStyleKey = (typeof ARTICLE_STYLE_KEYS)[number];

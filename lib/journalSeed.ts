@@ -7,7 +7,13 @@ import type { FullPost, StorefrontPost } from "./posts";
  * The starter articles as authored. `categoryLabel` is derived rather than
  * written out, so the copy below stays about the article.
  */
-export type SeedArticle = Omit<FullPost, "categoryLabel">;
+// Styling lives on a saved post, not on the shipped starter copy: a seed
+// article has no record to store it against, and getPostBySlug fills in the
+// design defaults when it serves one.
+export type SeedArticle = Omit<
+  FullPost,
+  "categoryLabel" | "styles" | "textStyles"
+>;
 
 /**
  * Jood Journal — starter content.

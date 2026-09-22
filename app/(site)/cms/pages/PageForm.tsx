@@ -6,6 +6,19 @@ import { useMemo, useState } from "react";
 
 import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "../MediaPicker";
+import SectionControl from "../SectionControl";
+import TypeControl from "../TypeControl";
+import {
+  ARTICLE_STYLE_KEYS,
+  mergeStyles,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  PAGE_TEXT_KEYS,
+  mergeTextStyles,
+  type PageTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 /**
  * Create / edit form for a CMS page.
@@ -99,6 +112,8 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
       metaDescription: metaDescription || null,
       heroImage: heroId ?? null,
       publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+      styles,
+      textStyles,
       redirectUrl: redirectUrl.trim() || null,
       redirectPermanent,
     };
@@ -152,6 +167,17 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
       setSaving(false);
     }
   }
+
+  const [styles, setStyles] = useState(() =>
+    mergeStyles((initial as { styles?: unknown } | null)?.styles, ARTICLE_STYLE_KEYS),
+  );
+  const setStyle = (k: "article") => (next: SectionStyle) =>
+    setStyles((st) => ({ ...st, [k]: next }));
+  const [textStyles, setTextStyles] = useState(() =>
+    mergeTextStyles((initial as { textStyles?: unknown } | null)?.textStyles, PAGE_TEXT_KEYS),
+  );
+  const setText = (k: PageTextKey) => (next: TextStyle) =>
+    setTextStyles((t) => ({ ...t, [k]: next }));
 
   return (
     <div className="mx-auto w-full max-w-[900px]">
@@ -256,6 +282,34 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
           <p className="mt-1 text-[12px] text-[#8a8a8a]">
             Set automatically on first publish. Override it here if needed.
           </p>
+        </div>
+
+        {/* Appearance & text sizes — stored on this page itself */}
+        <div className="space-y-3 rounded-xl border border-[#e4e7de] bg-white p-4">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <span className={label}>Appearance</span>
+              <p className="text-[12px] text-[#8a8a8a]">
+                Applies to this page only. Left alone, it looks exactly as it does now.
+              </p>
+            </div>
+            <SectionControl sectionKey="article" value={styles.article} onChange={setStyle("article")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Text sizes:</span>
+            {(
+              [
+                ["title", "Title"],
+                ["excerpt", "Intro"],
+                ["body", "Body"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
+          </div>
         </div>
 
         <div>

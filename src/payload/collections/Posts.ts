@@ -242,6 +242,16 @@ export const Posts: CollectionConfig = {
         },
       ],
     },
+    {
+      name: "styles",
+      type: "json",
+      admin: { description: "This article's background / text colour. Empty keeps the design." },
+    },
+    {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "This article's text sizes, keyed by field name." },
+    },
   ],
 };
 

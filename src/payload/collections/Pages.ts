@@ -237,6 +237,16 @@ export const Pages: CollectionConfig = {
         },
       ],
     },
+    {
+      name: "styles",
+      type: "json",
+      admin: { description: "This page's background / text colour. Empty keeps the design." },
+    },
+    {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "This page's text sizes, keyed by field name." },
+    },
   ],
 };
 

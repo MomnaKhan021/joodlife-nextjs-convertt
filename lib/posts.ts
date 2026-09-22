@@ -4,6 +4,18 @@ import { fallbackLabel } from "@/lib/postCategories";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { journalSeedPosts, seedToStorefront } from "./journalSeed";
+import {
+  ARTICLE_STYLE_KEYS,
+  mergeStyles,
+  type ArticleStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  POST_TEXT_KEYS,
+  mergeTextStyles,
+  type PostTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 /**
  * Server-side blog data layer. Mirrors the raw-SQL pattern used by
@@ -33,6 +45,10 @@ export type StorefrontPost = {
 export type FullPost = StorefrontPost & {
   content: unknown; // Lexical JSON tree, rendered client-side
   bodyHtml: string | null;
+  /** This article's own background / text colour. */
+  styles: Record<ArticleStyleKey, SectionStyle>;
+  /** This article's own text sizes. */
+  textStyles: Record<PostTextKey, TextStyle>;
   metaTitle: string | null;
   metaDescription: string | null;
 };
@@ -54,6 +70,8 @@ type FullRow = ListRow & {
   body_html: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  styles: unknown;
+  text_styles: unknown;
 };
 
 type TagRow = { _parent_id: number; tag: string | null };
@@ -318,7 +336,8 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   let rows: FullRow[] = [];
   try {
     rows = await rawQuery<FullRow>(
-      `SELECT ${LIST_SELECT}, p.content, p.body_html, p.meta_title, p.meta_description
+      `SELECT ${LIST_SELECT}, p.content, p.body_html, p.meta_title, p.meta_description,
+              p.styles, p.text_styles
        ${LIST_FROM}
        WHERE p.status = 'published' AND p.slug = '${safe}'
        LIMIT 1`
@@ -336,6 +355,8 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
     return {
       ...seed,
       categoryLabel: seed.category ? fallbackLabel(seed.category) : "",
+      styles: mergeStyles(null, ARTICLE_STYLE_KEYS),
+      textStyles: mergeTextStyles(null, POST_TEXT_KEYS),
     };
   }
   const [tags, labels] = await Promise.all([
@@ -349,6 +370,8 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
     bodyHtml: row.body_html,
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
+    styles: mergeStyles(row.styles, ARTICLE_STYLE_KEYS),
+    textStyles: mergeTextStyles(row.text_styles, POST_TEXT_KEYS),
   };
 }
 
