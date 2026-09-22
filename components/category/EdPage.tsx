@@ -3,7 +3,19 @@ import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import EdConfidenceStat from "@/components/category/EdConfidenceStat";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import {
+  ED_DEFAULT,
+  type BenefitIcon,
+  type EdBannerContent,
+  type EdConfidenceContent,
+  type EdContent,
+  type EdKnowContent,
+  type EdPlanContent,
+  type EdStepsContent,
+} from "@/lib/edContentTypes";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Erectile-dysfunction page sections — Figma "Joodlife - Next js (Erectile
@@ -20,7 +32,6 @@ const CTA_PRIMARY =
 const CTA_GHOST =
   "btn-cta inline-flex h-12 items-center justify-center rounded-lg border border-[#142e2a]/25 bg-white px-7 font-ui text-[14px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2] md:h-[50px]";
 
-const START = "/consultation?product=erectile-dysfunction";
 
 /* ── Benefit icons (inline so they stay crisp and themeable) ─────────── */
 function Icon({ d }: { d: string }) {
@@ -40,59 +51,17 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-const BENEFITS = [
-  {
-    title: "Discreet, next-day delivery",
-    body: "Next-day, unbranded, secure delivery with DPD.",
-    d: "M21 8V6a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 6v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4M3.3 7 12 12l8.7-5M12 22V12",
-  },
-  {
-    title: "24/7 expert support",
-    body: "Access experienced clinicians and coaches whenever you need.",
-    d: "M12 6v6l4 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
-  },
-  {
-    title: "Trusted by thousands",
-    body: "Chosen by patients nationwide for safe, effective care.",
-    d: "M16 21v-2a4 4 0 0 0-8 0v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
-  },
-  {
-    title: "Highly effective treatments",
-    body: "Modern, evidence-based medication options.",
-    d: "M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l1 1 1-1a5 5 0 0 1 7 7l-7 7a2 2 0 0 1-2 0z",
-  },
-  {
-    title: "Quick, easy consultation",
-    body: "Start online in minutes; simple, private, seamless.",
-    d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
-  },
-  {
-    title: "Track your progress",
-    body: "Monitor results and stay on track using our online customer portal.",
-    d: "M3 3v18h18M7 15l4-4 3 3 5-6",
-  },
-];
-
-const STEPS = [
-  {
-    step: "Step 1",
-    n: "01",
-    title: "Health assessment",
-    body: "Complete a quick confidential form about your health, symptoms, and treatment goals.",
-  },
-  {
-    step: "Step 2",
-    n: "02",
-    title: "Expert review",
-    body: "A licensed provider reviews your answers and recommends a suitable erectile dysfunction treatment.",
-  },
-  {
-    step: "Step 3",
-    n: "03",
-    title: "Get medication",
-    body: "If approved, your treatment is delivered discreetly with clear instructions and ongoing support.",
-  },
-];
+/** Benefit-card drawings. Keyed so the editor picks one per row by name. */
+const BENEFIT_PATHS: Record<BenefitIcon, string> = {
+  delivery:
+    "M21 8V6a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 6v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4M3.3 7 12 12l8.7-5M12 22V12",
+  support: "M12 6v6l4 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+  trusted: "M16 21v-2a4 4 0 0 0-8 0v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+  effective:
+    "M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l1 1 1-1a5 5 0 0 1 7 7l-7 7a2 2 0 0 1-2 0z",
+  consult: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  progress: "M3 3v18h18M7 15l4-4 3 3 5-6",
+};
 
 /** Assessment-card mockup (step 01 + the quiz card). Built in CSS in the same
  *  visual language as the home-page "How it works" illustrations — a cream
@@ -168,52 +137,84 @@ function StepVisual({ i }: { i: number }) {
 }
 
 /* ── 1. Benefits: "A treatment plan that works around you" ──────────── */
-function TreatmentPlan() {
+function TreatmentPlan({
+  content,
+  style,
+  text,
+}: {
+  content: EdPlanContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
-    <section aria-labelledby="ed-plan" className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-plan" className="w-full bg-white px-5 py-12 md:px-10 md:py-16 lg:px-[60px]">
       <div className="mx-auto grid w-full max-w-[1200px] items-start gap-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-12">
         <Reveal as="div">
-          <h2
+          <h2 {...textStyleProps(text?.["plan.heading"])}
             id="ed-plan"
             className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
-            A treatment plan that{" "}
-            <em className="font-serif font-normal italic">works</em> around you
+            {content.heading}{" "}
+            <em {...textStyleProps(text?.["plan.headingAccent"])} className="font-serif font-normal italic">
+              {content.headingAccent}
+            </em>{" "}
+            <span {...textStyleProps(text?.["plan.headingTail"])}>
+              {content.headingTail}
+            </span>
           </h2>
-          <p className="mt-3 max-w-[42ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
-            Safe, clinically approved treatment delivered privately, so you can
-            plan with confidence.
+          <p {...textStyleProps(text?.["plan.body"])} className="mt-3 max-w-[42ch] font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15px]">
+            {content.body}
           </p>
           <div className="mt-6 hidden flex-wrap gap-3 lg:flex">
-            <Link href={START} className={CTA_PRIMARY}>
-              Get Started
-            </Link>
-            <EligibilityCta product="erectile-dysfunction" label="See If You Are Eligible" className={CTA_GHOST} />
+            {content.ctaLabel ? (
+              <Link {...textStyleProps(text?.["plan.ctaLabel"])} href={content.ctaHref} className={CTA_PRIMARY}>
+                {content.ctaLabel}
+              </Link>
+            ) : null}
+            {content.secondaryLabel ? (
+              <EligibilityCta {...textStyleProps(text?.["plan.secondaryLabel"])}
+                product="erectile-dysfunction"
+                href={content.secondaryHref}
+                label={content.secondaryLabel}
+                className={CTA_GHOST}
+              />
+            ) : null}
           </div>
         </Reveal>
 
         <Reveal as="div" delay={120}>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {BENEFITS.map((b) => (
+            {content.benefits.map((b, i) => (
               <li
-                key={b.title}
+                key={i}
                 className="rounded-[14px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5"
               >
-                <Icon d={b.d} />
-                <p className="mt-3 font-ui text-[14px] font-bold leading-[19px] text-[#142e2a]">
+                <Icon d={BENEFIT_PATHS[b.icon]} />
+                <p {...textStyleProps(text?.["plan.benefitTitle"])} className="mt-3 font-ui text-[14px] font-bold leading-[19px] text-[#142e2a]">
                   {b.title}
                 </p>
-                <p className="mt-1.5 font-ui text-[12.5px] leading-[18px] text-[#142e2a]/65">
+                <p {...textStyleProps(text?.["plan.benefitBody"])} className="mt-1.5 font-ui text-[12.5px] leading-[18px] text-[#142e2a]/65">
                   {b.body}
                 </p>
               </li>
             ))}
           </ul>
           <div className="mt-6 flex flex-wrap gap-3 lg:hidden">
-            <Link href={START} className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}>
-              Get Started
-            </Link>
-            <EligibilityCta product="erectile-dysfunction" label="See If You Are Eligible" className={`${CTA_GHOST} flex-1 min-w-[150px]`} />
+            {content.ctaLabel ? (
+              <Link {...textStyleProps(text?.["plan.ctaLabel"])} href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px]`}>
+                {content.ctaLabel}
+              </Link>
+            ) : null}
+            {content.secondaryLabel ? (
+              <EligibilityCta {...textStyleProps(text?.["plan.secondaryLabel"])}
+                product="erectile-dysfunction"
+                href={content.secondaryHref}
+                label={content.secondaryLabel}
+                className={`${CTA_GHOST} flex-1 min-w-[150px]`}
+              />
+            ) : null}
           </div>
         </Reveal>
       </div>
@@ -222,36 +223,48 @@ function TreatmentPlan() {
 }
 
 /* ── 2. How it works (3 steps) ──────────────────────────────────────── */
-function EdHowItWorks() {
+function EdHowItWorks({
+  content,
+  style,
+  text,
+}: {
+  content: EdStepsContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
-    <section aria-labelledby="ed-how" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-how" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div" className="text-center">
-          <h2
+          <h2 {...textStyleProps(text?.["steps.heading"])}
             id="ed-how"
             className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
-            How it <em className="font-serif font-normal italic">works</em>
+            {content.heading}{" "}
+            <em {...textStyleProps(text?.["steps.headingAccent"])} className="font-serif font-normal italic">
+              {content.headingAccent}
+            </em>
           </h2>
-          <p className="mx-auto mt-2.5 max-w-[54ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
-            Start with a private health assessment, get reviewed by a licensed
-            provider, and receive treatment discreetly at home.
+          <p {...textStyleProps(text?.["steps.body"])} className="mx-auto mt-2.5 max-w-[54ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+            {content.body}
           </p>
         </Reveal>
 
         <ul className="mt-8 grid gap-5 md:grid-cols-3">
-          {STEPS.map((s, i) => (
-            <Reveal as="li" key={s.n} delay={i * 110}>
+          {content.steps.map((s, i) => (
+            <Reveal as="li" key={i} delay={i * 110}>
               <div className="flex h-full flex-col items-center gap-6 rounded-[20px] bg-[#f7f9f2] px-6 pt-6 md:px-8 md:pt-8">
                 <StepVisual i={i} />
                 <div className="flex flex-col items-center gap-3 pb-8 text-center">
-                  <span className="inline-flex items-center rounded-full bg-[#142e2a]/[0.06] px-4 py-1.5 font-ui text-[13px] font-medium text-[#142e2a]">
+                  <span {...textStyleProps(text?.["steps.stepBadge"])} className="inline-flex items-center rounded-full bg-[#142e2a]/[0.06] px-4 py-1.5 font-ui text-[13px] font-medium text-[#142e2a]">
                     {s.step}
                   </span>
-                  <h3 className="font-display text-[20px] font-semibold leading-[26px] text-[#142e2a] md:text-[23px]">
+                  <h3 {...textStyleProps(text?.["steps.stepTitle"])} className="font-display text-[20px] font-semibold leading-[26px] text-[#142e2a] md:text-[23px]">
                     {s.title}
                   </h3>
-                  <p className="max-w-[34ch] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px]">
+                  <p {...textStyleProps(text?.["steps.stepBody"])} className="max-w-[34ch] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px]">
                     {s.body}
                   </p>
                 </div>
@@ -261,9 +274,14 @@ function EdHowItWorks() {
         </ul>
 
         <div className="mt-7 flex justify-center">
-          <Link href={START} className={`${CTA_PRIMARY} w-full max-w-[320px] md:w-auto`}>
-            Get Started
-          </Link>
+          {content.ctaLabel ? (
+            <Link {...textStyleProps(text?.["steps.ctaLabel"])}
+              href={content.ctaHref}
+              className={`${CTA_PRIMARY} w-full max-w-[320px] md:w-auto`}
+            >
+              {content.ctaLabel}
+            </Link>
+          ) : null}
         </div>
       </div>
     </section>
@@ -271,22 +289,37 @@ function EdHowItWorks() {
 }
 
 /* ── 3. "Confidence in the moments that matter most" ────────────────── */
-function EdConfidence() {
-  const checks = ["Clinically approved", "Doctor prescribed", "Discreet & private"];
+function EdConfidence({
+  content,
+  style,
+  text,
+}: {
+  content: EdConfidenceContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
+  const checks = content.checks;
   return (
-    <section aria-labelledby="ed-conf" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-conf" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto grid w-full max-w-[1200px] items-center gap-8 lg:grid-cols-2 lg:gap-12">
         <Reveal as="div" className="relative order-2 lg:order-1">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] sm:aspect-[4/3] lg:aspect-[16/13]">
             <Image
-              src="/assets/category/ed-confidence.jpg"
-              alt="A man feeling more confident after treatment"
+              src={content.image}
+              alt={content.imageAlt}
               fill
               sizes="(max-width: 1024px) 92vw, 560px"
               className="object-cover object-top"
             />
             {/* 89% stat overlay — animates up on scroll */}
-            <EdConfidenceStat />
+            <EdConfidenceStat
+              valueStyle={textStyleProps(text?.["confidence.statValue"]).style}
+              captionStyle={textStyleProps(text?.["confidence.statCaption"]).style}
+              target={content.statValue}
+              caption={content.statCaption}
+            />
           </div>
         </Reveal>
 
@@ -295,38 +328,27 @@ function EdConfidence() {
             <span className="grid h-5 w-5 place-items-center rounded-full bg-[#1a8ec1] text-[10px] text-white">
               ♂
             </span>
-            Erectile dysfunction
+            <span {...textStyleProps(text?.["confidence.eyebrow"])}>{content.eyebrow}</span>
           </span>
-          <h2
+          <h2 {...textStyleProps(text?.["confidence.heading"])}
             id="ed-conf"
             className="mt-3 font-display text-[30px] font-semibold leading-[1.2] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
-            Confidence in the{" "}
-            <em className="font-serif font-normal italic">
-              moments that matter most.
+            {content.heading}{" "}
+            <em {...textStyleProps(text?.["confidence.headingAccent"])} className="font-serif font-normal italic">
+              {content.headingAccent}
             </em>
           </h2>
           <div className="mt-4 flex flex-col gap-3 font-ui text-[13.5px] leading-[21px] text-[#142e2a]/75 md:text-[14.5px] md:leading-[23px]">
-            <p>
-              Erectile dysfunction (ED) is the consistent inability to get or
-              keep an erection firm enough for sexual activity. It&rsquo;s common
-              and can affect men of all ages.
-            </p>
-            <p>
-              ED can have physical and emotional causes including stress,
-              anxiety, low blood flow, certain health conditions, and lifestyle
-              factors. The good news is that effective treatments are available.
-            </p>
-            <p>
-              If suitable, we can prescribe proven ED treatments online after a
-              simple consultation, with no appointment needed. Our goal is to
-              help you feel more confident and supported at every step.
-            </p>
+            {content.paragraphs.map((t, i) => (
+              <p key={i} {...textStyleProps(text?.["confidence.paragraph"])}>{t}</p>
+            ))}
           </div>
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-            {checks.map((c) => (
+            {checks.map((c, i) => (
               <li
-                key={c}
+                key={i}
+                {...textStyleProps(text?.["confidence.check"])}
                 className="flex items-center gap-1.5 font-ui text-[12.5px] font-semibold text-[#142e2a]"
               >
                 <span className="grid h-4 w-4 place-items-center rounded-full bg-[#1a8ec1] text-[9px] text-white">
@@ -337,10 +359,19 @@ function EdConfidence() {
             ))}
           </ul>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={START} className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}>
-              Get Started
-            </Link>
-            <EligibilityCta product="erectile-dysfunction" label="See If You Are Eligible" className={`${CTA_GHOST} flex-1 min-w-[150px] md:flex-none`} />
+            {content.ctaLabel ? (
+              <Link {...textStyleProps(text?.["confidence.ctaLabel"])} href={content.ctaHref} className={`${CTA_PRIMARY} flex-1 min-w-[150px] md:flex-none`}>
+                {content.ctaLabel}
+              </Link>
+            ) : null}
+            {content.secondaryLabel ? (
+              <EligibilityCta {...textStyleProps(text?.["confidence.secondaryLabel"])}
+                product="erectile-dysfunction"
+                href={content.secondaryHref}
+                label={content.secondaryLabel}
+                className={`${CTA_GHOST} flex-1 min-w-[150px] md:flex-none`}
+              />
+            ) : null}
           </div>
         </Reveal>
       </div>
@@ -349,22 +380,36 @@ function EdConfidence() {
 }
 
 /* ── 4. "Let's get to know you" ─────────────────────────────────────── */
-function EdGetToKnow() {
-  const stages = ["Low", "Moderate", "Strong", "Sustained"];
+function EdGetToKnow({
+  content,
+  style,
+  text,
+}: {
+  content: EdKnowContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
+  const stages = content.progressStages;
   return (
-    <section aria-labelledby="ed-know" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} aria-labelledby="ed-know" className="w-full bg-white px-5 pb-12 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div" className="text-center">
-          <h2
+          <h2 {...textStyleProps(text?.["know.heading"])}
             id="ed-know"
             className="font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]"
           >
-            Let&rsquo;s get to{" "}
-            <em className="font-serif font-normal italic">know</em> you
+            {content.heading}{" "}
+            <em {...textStyleProps(text?.["know.headingAccent"])} className="font-serif font-normal italic">
+              {content.headingAccent}
+            </em>{" "}
+            <span {...textStyleProps(text?.["know.headingTail"])}>
+              {content.headingTail}
+            </span>
           </h2>
-          <p className="mx-auto mt-2.5 max-w-[52ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
-            Answer a few simple questions so we can match you with the right
-            treatment and support for lasting results.
+          <p {...textStyleProps(text?.["know.body"])} className="mx-auto mt-2.5 max-w-[52ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+            {content.body}
           </p>
         </Reveal>
 
@@ -375,16 +420,17 @@ function EdGetToKnow() {
               <div className="scale-110 md:scale-125">
                 <AssessmentMock />
               </div>
-              <p className="mt-6 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
-                Answer a few simple questions so we can understand your symptoms
-                and match you with the right treatment option.
+              <p {...textStyleProps(text?.["know.quizBody"])} className="mt-6 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
+                {content.quizBody}
               </p>
-              <Link
-                href={START}
-                className="btn-cta mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-white px-7 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-white/90"
-              >
-                Start Quiz
-              </Link>
+              {content.quizCtaLabel ? (
+                <Link {...textStyleProps(text?.["know.quizCtaLabel"])}
+                  href={content.quizCtaHref}
+                  className="btn-cta mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-white px-7 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-white/90"
+                >
+                  {content.quizCtaLabel}
+                </Link>
+              ) : null}
             </div>
           </Reveal>
 
@@ -392,32 +438,34 @@ function EdGetToKnow() {
           <Reveal as="div" delay={120}>
             <div className="relative h-full min-h-[340px] overflow-hidden rounded-[16px] md:min-h-[380px]">
               <Image
-                src="/assets/category/ed-progress.jpg"
-                alt="A man staying active while on treatment"
+                src={content.progressImage}
+                alt={content.progressImageAlt}
                 fill
                 sizes="(max-width: 768px) 92vw, 560px"
                 className="object-cover"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0d1f2a] via-[#0d1f2a]/75 to-transparent p-5 pt-14">
                 <div className="flex items-end justify-between gap-4">
-                  <p className="max-w-[26ch] font-ui text-[12.5px] leading-[18px] text-white/85">
-                    Monitor your progress and treatment response so you can stay
-                    supported and feel more in control.
+                  <p {...textStyleProps(text?.["know.progressBody"])} className="max-w-[26ch] font-ui text-[12.5px] leading-[18px] text-white/85">
+                    {content.progressBody}
                   </p>
-                  <p className="shrink-0 text-right font-ui text-[11px] leading-[15px] text-white/70">
-                    Up to full
+                  <p {...textStyleProps(text?.["know.progressNote"])} className="shrink-0 text-right font-ui text-[11px] leading-[15px] text-white/70">
+                    {content.progressNote}
                     <br />
-                    <strong className="font-bold text-white">
-                      performance confidence
+                    <strong {...textStyleProps(text?.["know.progressNoteStrong"])} className="font-bold text-white">
+                      {content.progressNoteStrong}
                     </strong>
                   </p>
                 </div>
                 <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/25">
-                  <span className="block h-full w-[62%] rounded-full bg-[#4eabd2]" />
+                  <span
+                    className="block h-full rounded-full bg-[#4eabd2]"
+                    style={{ width: `${content.progressPercent}%` }}
+                  />
                 </div>
                 <ul className="mt-2 flex justify-between font-ui text-[10.5px] text-white/70">
-                  {stages.map((s) => (
-                    <li key={s}>{s}</li>
+                  {stages.map((s, i) => (
+                    <li key={i} {...textStyleProps(text?.["know.progressStage"])}>{s}</li>
                   ))}
                 </ul>
               </div>
@@ -430,9 +478,19 @@ function EdGetToKnow() {
 }
 
 /* ── 5. Closing CTA banner ──────────────────────────────────────────── */
-function EdCtaBanner() {
+function EdCtaBanner({
+  content = ED_DEFAULT.banner,
+  style,
+  text,
+}: {
+  content?: EdBannerContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
-    <section className="w-full bg-white px-5 pb-14 md:px-10 md:pb-16 lg:px-[60px]">
+    <section
+      {...styleProps(style)} className="w-full bg-white px-5 pb-14 md:px-10 md:pb-16 lg:px-[60px]">
       <div className="mx-auto w-full max-w-[1200px]">
         <Reveal as="div">
           <div
@@ -446,8 +504,8 @@ function EdCtaBanner() {
                 backdrop is pure white, so the white radial core blends it in. */}
             <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[460px] -translate-x-1/2 md:block">
               <Image
-                src="/assets/category/ed-cta.jpg"
-                alt="A man confident about starting treatment"
+                src={content.image}
+                alt={content.imageAlt}
                 fill
                 sizes="460px"
                 className="object-contain object-bottom mix-blend-multiply"
@@ -460,15 +518,14 @@ function EdCtaBanner() {
                   <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" />
                 </svg>
               </span>
-              <h2 className="mt-4 max-w-[15ch] font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]">
-                Take the first step{" "}
-                <em className="font-serif font-normal italic">
-                  toward better confidence
+              <h2 {...textStyleProps(text?.["banner.heading"])} className="mt-4 max-w-[15ch] font-display text-[28px] font-semibold leading-[1.16] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[1.1]">
+                {content.heading}{" "}
+                <em {...textStyleProps(text?.["banner.headingAccent"])} className="font-serif font-normal italic">
+                  {content.headingAccent}
                 </em>
               </h2>
-              <p className="mt-3 max-w-[34ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
-                Simple, discreet support for erectile dysfunction, designed
-                around your health, routine, and privacy.
+              <p {...textStyleProps(text?.["banner.body"])} className="mt-3 max-w-[34ch] font-ui text-[14px] leading-[21px] text-[#142e2a]/70 md:text-[15px]">
+                {content.body}
               </p>
 
               {/* Man (mobile) — white radial behind so the pure-white studio
@@ -481,8 +538,8 @@ function EdCtaBanner() {
                 }}
               >
                 <Image
-                  src="/assets/category/ed-cta.jpg"
-                  alt="A man confident about starting treatment"
+                  src={content.image}
+                  alt={content.imageAlt}
                   fill
                   sizes="92vw"
                   className="object-contain object-bottom mix-blend-multiply"
@@ -490,21 +547,25 @@ function EdCtaBanner() {
               </div>
 
               {/* Get Started — white/outline, bottom on mobile */}
-              <Link
-                href={START}
-                className="btn-cta mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:hidden"
-              >
-                Get Started
-              </Link>
+              {content.ctaLabel ? (
+                <Link {...textStyleProps(text?.["banner.ctaLabel"])}
+                  href={content.ctaHref}
+                  className="btn-cta mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:hidden"
+                >
+                  {content.ctaLabel}
+                </Link>
+              ) : null}
             </div>
 
             {/* Get Started — bottom-right on desktop */}
-            <Link
-              href={START}
-              className="btn-cta absolute bottom-10 right-12 hidden h-12 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:inline-flex"
-            >
-              Get Started
-            </Link>
+            {content.ctaLabel ? (
+              <Link {...textStyleProps(text?.["banner.ctaLabel"])}
+                href={content.ctaHref}
+                className="btn-cta absolute bottom-10 right-12 hidden h-12 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-sm transition-colors hover:bg-[#f7f9f2] md:inline-flex"
+              >
+                {content.ctaLabel}
+              </Link>
+            ) : null}
           </div>
         </Reveal>
       </div>
@@ -513,13 +574,20 @@ function EdCtaBanner() {
 }
 
 /** All new light-theme ED sections, in Figma order. */
-export default function EdPage() {
+export default function EdPage({
+  content = ED_DEFAULT,
+}: {
+  content?: EdContent;
+}) {
   return (
     <>
-      <TreatmentPlan />
-      <EdHowItWorks />
-      <EdConfidence />
-      <EdGetToKnow />
+      <TreatmentPlan content={content.plan} style={content.styles.plan} text={content.textStyles} />
+      <EdHowItWorks content={content.steps} style={content.styles.steps} text={content.textStyles} />
+      <EdConfidence
+        content={content.confidence}
+        style={content.styles.confidence} text={content.textStyles}
+      />
+      <EdGetToKnow content={content.know} style={content.styles.know} text={content.textStyles} />
     </>
   );
 }

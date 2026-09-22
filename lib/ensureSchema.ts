@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Payload } from "payload";
 
+import { blogCmsEnabled } from "./cmsFlags";
+
 /**
  * Repair the database schema to match the Payload collections.
  *
@@ -152,6 +154,15 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"consultations_id\" integer",
   "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"posts_id\" integer",
   "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"weight_logs_id\" integer",
+  // Every collection needs a column here — Payload writes a lock row whenever
+  // a document is opened or saved, and a missing column 500s the save with
+  // "column ….<collection>_id does not exist". `pages` is new; `inventory`
+  // was already registered as a collection but never had its column, so
+  // editing an inventory doc hit the same failure.
+  "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"pages_id\" integer",
+  "ALTER TABLE \"payload_locked_documents_rels\" ADD COLUMN IF NOT EXISTS \"inventory_id\" integer",
+  "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_pages_id_idx ON public.payload_locked_documents_rels USING btree (pages_id)",
+  "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_inventory_id_idx ON public.payload_locked_documents_rels USING btree (inventory_id)",
   "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_order_idx ON public.payload_locked_documents_rels USING btree (\"order\")",
   "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_parent_idx ON public.payload_locked_documents_rels USING btree (parent_id)",
   "CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_path_idx ON public.payload_locked_documents_rels USING btree (path)",
@@ -204,12 +215,171 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"meta_description\" varchar",
   "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
   "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"posts\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "CREATE UNIQUE INDEX IF NOT EXISTS posts_slug_idx ON public.posts USING btree (slug)",
   "CREATE INDEX IF NOT EXISTS posts_hero_image_idx ON public.posts USING btree (hero_image_id)",
   "CREATE INDEX IF NOT EXISTS posts_author_idx ON public.posts USING btree (author_id)",
   "CREATE UNIQUE INDEX IF NOT EXISTS posts_shopify_article_id_idx ON public.posts USING btree (shopify_article_id)",
   "CREATE INDEX IF NOT EXISTS posts_updated_at_idx ON public.posts USING btree (updated_at)",
   "CREATE INDEX IF NOT EXISTS posts_created_at_idx ON public.posts USING btree (created_at)",
+  // ---- pages (editable site pages rendered at /<slug>) ----
+  "DO $$ BEGIN CREATE TYPE \"enum_pages_status\" AS ENUM ('draft','published'); EXCEPTION WHEN duplicate_object THEN null; END $$",
+  "CREATE TABLE IF NOT EXISTS \"pages\" (\n  \"id\" serial,\n  \"title\" varchar NOT NULL,\n  \"slug\" varchar NOT NULL,\n  \"excerpt\" varchar,\n  \"hero_image_id\" integer,\n  \"content\" jsonb,\n  \"status\" \"enum_pages_status\" DEFAULT 'draft'::enum_pages_status NOT NULL,\n  \"published_at\" timestamptz,\n  \"body_html\" varchar,\n  \"meta_title\" varchar,\n  \"meta_description\" varchar,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"title\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"slug\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"excerpt\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"hero_image_id\" integer",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"content\" jsonb",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"status\" \"enum_pages_status\" DEFAULT 'draft'::enum_pages_status NOT NULL",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"published_at\" timestamptz",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"body_html\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"meta_title\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"meta_description\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"redirect_url\" varchar",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"redirect_permanent\" boolean DEFAULT false",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz DEFAULT now() NOT NULL",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"pages\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "CREATE UNIQUE INDEX IF NOT EXISTS pages_slug_idx ON public.pages USING btree (slug)",
+  "CREATE INDEX IF NOT EXISTS pages_hero_image_idx ON public.pages USING btree (hero_image_id)",
+  "CREATE INDEX IF NOT EXISTS pages_updated_at_idx ON public.pages USING btree (updated_at)",
+  "CREATE INDEX IF NOT EXISTS pages_created_at_idx ON public.pages USING btree (created_at)",
+  // ---- globals: header / footer (site chrome, editable from /cms) ----
+  "CREATE TABLE IF NOT EXISTS \"header\" (\"id\" serial, \"nav_links\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"nav_links\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_heading\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_treatments\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_title\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_emphasis\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_bullets\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_cta\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"mega_promo_href\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"logo_desktop\" varchar",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"logo_mobile\" varchar",
+  "CREATE TABLE IF NOT EXISTS \"footer\" (\"id\" serial, \"jood_links\" jsonb, \"treatment_links\" jsonb, \"policy_links\" jsonb, \"contact_heading\" varchar, \"phone\" varchar, \"email\" varchar, \"newsletter_heading\" varchar, \"newsletter_subtext\" varchar, \"legal_text\" varchar, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"jood_links\" jsonb",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"treatment_links\" jsonb",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"policy_links\" jsonb",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_heading\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"logo\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"contact_icon\" varchar",
+  // ---- global: treatment category overrides ----
+  "CREATE TABLE IF NOT EXISTS \"treatments\" (\"id\" serial, \"categories\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"categories\" jsonb",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"treatments\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  // ---- global: policy pages ----
+  "CREATE TABLE IF NOT EXISTS \"policies\" (\"id\" serial, \"terms\" jsonb, \"refund_complaints\" jsonb, \"privacy\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"terms\" jsonb",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"refund_complaints\" jsonb",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"privacy\" jsonb",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"policies\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Support page — one json column per section, in page order.
+  "CREATE TABLE IF NOT EXISTS \"support\" (\"id\" serial, \"hero\" jsonb, \"faq\" jsonb, \"stories\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"faq\" jsonb",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"stories\" jsonb",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Blog listing page - one json column per section, in page order.
+  "CREATE TABLE IF NOT EXISTS \"blog_page\" (\"id\" serial, \"hero\" jsonb, \"list\" jsonb, \"newsletter\" jsonb, \"cta\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"list\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"newsletter\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"cta\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+
+  // Wegovy Pills page - one json column per section, in page order.
+  "CREATE TABLE IF NOT EXISTS \"wegovy_page\" (\"id\" serial, \"announcement\" jsonb, \"hero\" jsonb, \"usp_bar\" jsonb, \"what_is_pill\" jsonb, \"comparison\" jsonb, \"how_it_works\" jsonb, \"real_results\" jsonb, \"dosing\" jsonb, \"why_choose\" jsonb, \"faq\" jsonb, \"final_cta\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"announcement\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"usp_bar\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"what_is_pill\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"comparison\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"how_it_works\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"real_results\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"dosing\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"why_choose\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"faq\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"final_cta\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Treatment sub-pages - shared trust strip, feature panel and FAQs.
+  "CREATE TABLE IF NOT EXISTS \"category_pages\" (\"id\" serial, \"usp_strip\" jsonb, \"feature_grid\" jsonb, \"faqs\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"usp_strip\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"feature_grid\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"faqs\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"category_pages\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+
+  // Erectile dysfunction page - one json column per section, in page order.
+  "CREATE TABLE IF NOT EXISTS \"ed_page\" (\"id\" serial, \"hero\" jsonb, \"reviews\" jsonb, \"journey\" jsonb, \"plan\" jsonb, \"steps\" jsonb, \"confidence\" jsonb, \"know\" jsonb, \"banner\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"reviews\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"journey\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"plan\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"steps\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"confidence\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"know\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"banner\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  // ---- global: home page sections ----
+  "CREATE TABLE IF NOT EXISTS \"home_page\" (\"id\" serial, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_badge\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_text\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_href\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"announcement_hidden\" boolean DEFAULT false",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faq_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"faqs\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_badge\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_title\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_title_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_body\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_features\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_cta_label\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_cta_href\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hero_image\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews_heading\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews_intro\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"reviews\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"trustpilot_score\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"trustpilot_url\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_heading\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_heading\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_steps\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_subtitle\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_image\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"phone\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"email\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"newsletter_heading\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"newsletter_subtext\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"legal_text\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   "CREATE TABLE IF NOT EXISTS \"posts_tags\" (\n  \"_order\" integer NOT NULL,\n  \"_parent_id\" integer NOT NULL,\n  \"id\" varchar NOT NULL,\n  \"tag\" varchar NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"posts_tags\" ADD COLUMN IF NOT EXISTS \"_order\" integer",
   "ALTER TABLE \"posts_tags\" ADD COLUMN IF NOT EXISTS \"_parent_id\" integer",
@@ -314,6 +484,58 @@ const STATEMENTS: string[] = [
   // Seed a starter discount code (WELCOME20 → 20% off) once. Idempotent: only
   // inserts when absent, so editing/disabling it in the dashboard sticks. To
   // retire it, set it inactive in the admin rather than deleting the row.
+  // Blog categories are editable in /cms, so posts.category can hold any
+  // value the team creates. It shipped as a Postgres enum, which would
+  // reject anything not compiled into the code, so convert it to plain text.
+  // Guarded on the column still being an enum, so this is a one-time
+  // conversion that is safe to re-run. The enum type is left behind rather
+  // than dropped - nothing else references it, and dropping types is not
+  // something this repair does.
+  //
+  // This is the ONLY statement in the list that changes an existing column
+  // rather than adding something, so it runs only when the blog CMS is
+  // switched on — which is also the only time a category outside the enum can
+  // be created. With the switch off, `posts.category` keeps the exact type it
+  // has today and this list stays purely additive.
+  ...(blogCmsEnabled()
+    ? [
+        `DO $$
+   BEGIN
+     IF EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'posts'
+         AND column_name = 'category' AND data_type = 'USER-DEFINED'
+     ) THEN
+       ALTER TABLE "posts" ALTER COLUMN "category" DROP DEFAULT;
+       ALTER TABLE "posts" ALTER COLUMN "category" TYPE varchar USING "category"::text;
+     END IF;
+   END $$`,
+      ]
+    : []),
+
+  // The editable list itself.
+  "CREATE TABLE IF NOT EXISTS \"blog_categories\" (\"id\" serial, \"items\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"blog_categories\" ADD COLUMN IF NOT EXISTS \"items\" jsonb",
+  "ALTER TABLE \"blog_categories\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"blog_categories\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
+  // Per-section styling. One jsonb column on each surface that can be
+  // styled; absent or empty means the design exactly as shipped.
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"settings\" jsonb",
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  // Per-text size and weight, keyed by the field the editor writes.
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"support\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"wegovy_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
@@ -328,9 +550,16 @@ let ensured = false;
  */
 // Bump whenever STATEMENTS gains anything — a matching stored version skips
 // the whole list, so a new column never appears until the version changes.
-// v5: discounts.once_per_customer + orders.discount_code.
-// v6: discounts.allowed_email (code restricted to one customer).
-const SCHEMA_VERSION = "v6";
+// main v5: discounts.once_per_customer + orders.discount_code.
+// main v6: discounts.allowed_email (code restricted to one customer).
+// The CMS branch had reached v26 separately. v27 is the merge of both lists
+// and sits above either side, so a database on either re-applies the full
+// additive set once.
+// v39 carries the blog switch in the version itself. The statement list
+// differs between the two states, so a shared version would let a database
+// that was repaired with the blog CMS off take the fast path afterwards and
+// never apply the one statement turning it on adds.
+const SCHEMA_VERSION = blogCmsEnabled() ? "v39-blog" : "v39";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

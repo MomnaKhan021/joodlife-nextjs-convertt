@@ -14,9 +14,22 @@ import config from "@/payload.config";
 
 let cached: Promise<Payload> | null = null;
 
+/**
+ * The initialised Payload instance, created once per process.
+ *
+ * A failed init is deliberately NOT kept. Neon suspends an idle database and
+ * the first connection has to wake it, so a cold start can time out; caching
+ * that rejected promise left the whole process with no database until it was
+ * restarted, and every page fell back to its shipped copy for the life of
+ * that instance. Dropping the cache on failure means the next request tries
+ * again — by which time the compute is usually awake.
+ */
 export function getPayloadInstance(): Promise<Payload> {
   if (!cached) {
-    cached = getPayload({ config });
+    cached = getPayload({ config }).catch((err) => {
+      cached = null;
+      throw err;
+    });
   }
   return cached;
 }

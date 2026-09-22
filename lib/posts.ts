@@ -1,7 +1,21 @@
 import "server-only";
+import { getCategoryLabelMap } from "@/lib/blogCategories";
+import { fallbackLabel } from "@/lib/postCategories";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { journalSeedPosts, seedToStorefront } from "./journalSeed";
+import {
+  ARTICLE_STYLE_KEYS,
+  mergeStyles,
+  type ArticleStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  POST_TEXT_KEYS,
+  mergeTextStyles,
+  type PostTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 /**
  * Server-side blog data layer. Mirrors the raw-SQL pattern used by
@@ -21,6 +35,8 @@ export type StorefrontPost = {
   heroImageUrl: string | null;
   heroImageAlt: string | null;
   category: string | null;
+  /** Display name for `category`, resolved from the editable list. */
+  categoryLabel: string;
   publishedAt: string | null;
   authorName: string | null;
   tags: string[];
@@ -29,6 +45,10 @@ export type StorefrontPost = {
 export type FullPost = StorefrontPost & {
   content: unknown; // Lexical JSON tree, rendered client-side
   bodyHtml: string | null;
+  /** This article's own background / text colour. */
+  styles: Record<ArticleStyleKey, SectionStyle>;
+  /** This article's own text sizes. */
+  textStyles: Record<PostTextKey, TextStyle>;
   metaTitle: string | null;
   metaDescription: string | null;
 };
@@ -50,6 +70,8 @@ type FullRow = ListRow & {
   body_html: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  styles: unknown;
+  text_styles: unknown;
 };
 
 type TagRow = { _parent_id: number; tag: string | null };
@@ -221,9 +243,12 @@ export async function listPublishedPostsPaginated(
     return { posts: [], total: 0, page: 1, pageSize, totalPages: 0 };
   }
 
-  const tags = await fetchTagsByPost(rows.map((r) => r.id));
+  const [tags, labels] = await Promise.all([
+    fetchTagsByPost(rows.map((r) => r.id)),
+    getCategoryLabelMap(),
+  ]);
   return {
-    posts: rows.map((r) => rowToList(r, tags.get(r.id) ?? [])),
+    posts: rows.map((r) => rowToList(r, tags.get(r.id) ?? [], labels)),
     total,
     page: Math.floor(offset / pageSize) + 1,
     pageSize,
@@ -245,9 +270,14 @@ export async function getCategoryCounts(): Promise<
       if (!p.category) continue;
       counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
     }
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([slug, count]) => ({ slug, label: categoryLabel(slug), count }));
+    const seedLabels = await getCategoryLabelMap();
+          return [...counts.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .map(([slug, count]) => ({
+              slug,
+              label: seedLabels.get(slug) ?? fallbackLabel(slug),
+              count,
+            }));
   }
 
   let rows: Array<{ category: string | null; count: string }>;
@@ -262,11 +292,15 @@ export async function getCategoryCounts(): Promise<
   } catch {
     return [];
   }
-  return rows.map((r) => ({
-    slug: r.category ?? "other",
-    label: categoryLabel(r.category ?? "other"),
-    count: Number(r.count),
-  }));
+  const labels = await getCategoryLabelMap();
+    return rows.map((r) => {
+      const slug = r.category ?? "other";
+      return {
+        slug,
+        label: labels.get(slug) ?? fallbackLabel(slug),
+        count: Number(r.count),
+      };
+    });
 }
 
 /**
@@ -302,7 +336,8 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   let rows: FullRow[] = [];
   try {
     rows = await rawQuery<FullRow>(
-      `SELECT ${LIST_SELECT}, p.content, p.body_html, p.meta_title, p.meta_description
+      `SELECT ${LIST_SELECT}, p.content, p.body_html, p.meta_title, p.meta_description,
+              p.styles, p.text_styles
        ${LIST_FROM}
        WHERE p.status = 'published' AND p.slug = '${safe}'
        LIMIT 1`
@@ -315,20 +350,36 @@ export async function getPostBySlug(slug: string): Promise<FullPost | null> {
   const row = rows[0];
   if (!row) {
     // Fall back to the curated starter article, if one matches.
-    return journalSeedPosts.find((p) => p.slug === slug) ?? null;
+    const seed = journalSeedPosts.find((p) => p.slug === slug);
+    if (!seed) return null;
+    return {
+      ...seed,
+      categoryLabel: seed.category ? fallbackLabel(seed.category) : "",
+      styles: mergeStyles(null, ARTICLE_STYLE_KEYS),
+      textStyles: mergeTextStyles(null, POST_TEXT_KEYS),
+    };
   }
-  const tags = await fetchTagsByPost([row.id]);
-  const list = rowToList(row, tags.get(row.id) ?? []);
+  const [tags, labels] = await Promise.all([
+    fetchTagsByPost([row.id]),
+    getCategoryLabelMap(),
+  ]);
+  const list = rowToList(row, tags.get(row.id) ?? [], labels);
   return {
     ...list,
     content: row.content,
     bodyHtml: row.body_html,
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
+    styles: mergeStyles(row.styles, ARTICLE_STYLE_KEYS),
+    textStyles: mergeTextStyles(row.text_styles, POST_TEXT_KEYS),
   };
 }
 
-function rowToList(row: ListRow, tags: string[]): StorefrontPost {
+function rowToList(
+  row: ListRow,
+  tags: string[],
+  labels: Map<string, string>,
+): StorefrontPost {
   return {
     id: row.id,
     title: row.title,
@@ -337,6 +388,9 @@ function rowToList(row: ListRow, tags: string[]): StorefrontPost {
     heroImageUrl: row.hero_image_url,
     heroImageAlt: row.hero_image_alt,
     category: row.category,
+    categoryLabel: row.category
+      ? (labels.get(row.category) ?? fallbackLabel(row.category))
+      : "",
     publishedAt: row.published_at,
     authorName: row.author_name,
     tags,
@@ -356,15 +410,10 @@ export function formatPublishedDate(iso: string | null): string {
   }
 }
 
+/**
+ * Kept for callers that only have a slug. Prefer `post.categoryLabel`, which
+ * carries the name the team actually set - this can only guess from the slug.
+ */
 export function categoryLabel(slug: string | null): string {
-  if (!slug) return "";
-  const map: Record<string, string> = {
-    "weight-loss": "Weight loss",
-    nutrition: "Nutrition",
-    lifestyle: "Lifestyle",
-    science: "Science",
-    "company-news": "Company news",
-    other: "Other",
-  };
-  return map[slug] ?? slug.replace(/-/g, " ");
+  return slug ? fallbackLabel(slug) : "";
 }

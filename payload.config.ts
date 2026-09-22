@@ -13,6 +13,17 @@ import { Discounts } from "./src/payload/collections/Discounts";
 import { Media } from "./src/payload/collections/Media";
 import { Consultations } from "./src/payload/collections/Consultations";
 import { Posts } from "./src/payload/collections/Posts";
+import { Pages } from "./src/payload/collections/Pages";
+import { Header, Footer } from "./src/payload/globals/SiteChrome";
+import { HomePage } from "./src/payload/globals/HomePage";
+import { Treatments } from "./src/payload/globals/Treatments";
+import { Policies } from "./src/payload/globals/Policies";
+import { Support } from "./src/payload/globals/Support";
+import { BlogPage } from "./src/payload/globals/BlogPage";
+import { WegovyPage } from "./src/payload/globals/WegovyPage";
+import { CategoryPages } from "./src/payload/globals/CategoryPages";
+import { EdPage } from "./src/payload/globals/EdPage";
+import { BlogCategories } from "./src/payload/globals/BlogCategories";
 import { WeightLogs } from "./src/payload/collections/WeightLogs";
 import { Inventory } from "./src/payload/collections/Inventory";
 import { applyDiscountEndpoint } from "./src/payload/endpoints/applyDiscount";
@@ -327,7 +338,20 @@ export default buildConfig({
     // /admin is the default route for Payload 3.x with the Next.js plugin.
   },
   editor: lexicalEditor(),
-  collections: [Users, Products, Orders, Discounts, Media, Consultations, Posts, WeightLogs, Inventory],
+  collections: [Users, Products, Orders, Discounts, Media, Consultations, Posts, Pages, WeightLogs, Inventory],
+  globals: [
+    Header,
+    Footer,
+    HomePage,
+    Treatments,
+    Policies,
+    Support,
+    BlogPage,
+    WegovyPage,
+    CategoryPages,
+    EdPage,
+    BlogCategories,
+  ],
   endpoints: [applyDiscountEndpoint],
   secret: resolveSecret(),
   typescript: {
@@ -347,7 +371,14 @@ export default buildConfig({
       // connections quickly so slots free up between requests.
       max: 3,
       idleTimeoutMillis: 10_000,
-      connectionTimeoutMillis: 10_000,
+      // Neon suspends an idle database, and whichever connection arrives
+      // first has to wait for that compute to wake. 10s was not enough for
+      // the wake, so a quiet period could leave the app unable to reach its
+      // own database. Only the waking connection is slow — warm ones connect
+      // in milliseconds — so a longer ceiling costs nothing in normal use.
+      connectionTimeoutMillis: Number(
+        process.env.PG_CONNECT_TIMEOUT_MS ?? 30_000,
+      ),
       allowExitOnIdle: true,
     },
     // Auto-sync the Drizzle schema with Postgres so first-boot doesn't
@@ -356,7 +387,17 @@ export default buildConfig({
     // without needing a separate `payload migrate` step. Safe for a
     // single-environment setup; if you adopt staging/prod separation,
     // switch to migrations and set push to false in production.
-    push: true,
+    //
+    // Set PAYLOAD_DB_PUSH=false to turn push OFF. Needed for local dev once
+    // `ensureFullSchema` (onInit) has added the 2FA/OTP columns that no
+    // collection declares: on every restart push then notices the extras and
+    // BLOCKS on an interactive "DATA LOSS WARNING … (y/N)" prompt, which
+    // hangs Payload init and makes the whole site unresponsive. Answering
+    // "y" would drop real columns. Schema stays correct without push because
+    // ensureFullSchema repairs it additively on boot — the same mechanism
+    // production already relies on. Unset (the default) keeps push enabled,
+    // so Vercel behaviour is unchanged.
+    push: process.env.PAYLOAD_DB_PUSH !== "false",
   }),
   // Allow same-origin and explicit configured URLs. Vercel
   // sets VERCEL_URL automatically (no protocol) for every deploy,

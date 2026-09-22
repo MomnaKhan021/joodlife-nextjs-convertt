@@ -1,6 +1,15 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
 import type { NextConfig } from "next";
 
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const nextConfig: NextConfig = {
+  // Pin the workspace root. A stray package-lock.json in a parent directory
+  // makes Next infer that directory instead, which breaks the build with
+  // spurious "Pages Router" module errors.
+  turbopack: { root: dirname },
   // Keep Postgres / Payload native deps external so Next.js doesn't try
   // to bundle their optional binaries. drizzle-kit MUST stay external
   // because Payload's postgres adapter does a dynamic `require('drizzle-

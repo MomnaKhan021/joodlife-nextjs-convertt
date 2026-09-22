@@ -8,7 +8,8 @@ import EdPage, { EdCtaBanner } from "@/components/category/EdPage";
 import CategoryFaq from "@/components/category/CategoryFaq";
 import Footer from "@/sections/home/Footer";
 
-import { CATEGORY_FAQS } from "@/lib/categoryFaqs";
+import { getCategoryPageContent } from "@/lib/categoryPageContent";
+import { getEdContent } from "@/lib/edContent";
 
 export const metadata: Metadata = {
   title: "Erectile Dysfunction Treatment — Discreet & clinically approved | JoodLife",
@@ -27,32 +28,43 @@ export const metadata: Metadata = {
  * banner. Every section is responsive: stacked on mobile, 2-up on tablet, the
  * Figma grid on desktop.
  */
-export default function ErectileDysfunctionPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ErectileDysfunctionPage() {
+  const [{ faqs, styles: cpStyles, textStyles: cpText }, ed] = await Promise.all([
+    getCategoryPageContent(),
+    getEdContent(),
+  ]);
+
   return (
     <main className="flex min-h-screen flex-col overflow-x-clip bg-white">
       <AnnouncementBar />
       <Header />
 
       {/* Photo hero banner */}
-      <EdHero />
+      <EdHero content={ed.hero} style={ed.styles.hero} text={ed.textStyles} />
 
       {/* Social proof — 3000+ happy customers */}
-      <EdReviews />
+      <EdReviews content={ed.reviews} style={ed.styles.reviews} text={ed.textStyles} />
 
       {/* "What to expect in your journey" teal timeline + goals + testimonial */}
       <div id="assessment" className="scroll-mt-28">
-        <EdJourney />
+        <EdJourney content={ed.journey} style={ed.styles.journey} text={ed.textStyles} />
       </div>
 
       {/* Light editorial sections */}
-      <EdPage />
+      <EdPage content={ed} />
 
       <CategoryFaq
-        items={CATEGORY_FAQS["erectile-dysfunction"]}
+        items={faqs.erectileDysfunction}
+        heading={faqs.heading}
+        headingAccent={faqs.headingAccent}
         accent="#142e2a"
+        style={cpStyles.faqs}
+        text={cpText}
       />
 
-      <EdCtaBanner />
+      <EdCtaBanner content={ed.banner} style={ed.styles.banner} text={ed.textStyles} />
       <Footer />
     </main>
   );

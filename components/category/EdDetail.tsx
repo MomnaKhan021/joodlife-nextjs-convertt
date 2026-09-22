@@ -5,6 +5,7 @@ import Reveal from "@/components/ui/Reveal";
 import TestimonialCarousel, {
   type Testimonial,
 } from "@/components/category/TestimonialCarousel";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Erectile-dysfunction home-page section content — Figma "Home Page - 2026"
@@ -17,13 +18,16 @@ import TestimonialCarousel, {
 
 const START = "/consultation?product=erectile-dysfunction";
 
-const GOALS = [
+const DEFAULT_GOALS_TITLE = "What are your goals?";
+const DEFAULT_GOALS_IMAGE = "/assets/category/ed-goals-d.jpg";
+
+const DEFAULT_GOALS = [
   "Address erectile difficulties",
   "Improve sexual confidence",
   "All the above",
 ];
 
-const TESTIMONIALS: Testimonial[] = [
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
   {
     quote:
       "This treatment completely restored my confidence. I no longer worry about performance, and I feel in control",
@@ -50,7 +54,36 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-export default function EdDetail() {
+export type EdDetailContent = {
+  /** This panel's text sizes, keyed by bare field name. */
+  textStyles?: Partial<Record<string, TextStyle>>;
+  card1Body?: string;
+  card1Cta?: string;
+  card1Image?: string;
+  card2Image?: string;
+  goalsTitle?: string;
+  goals?: string[];
+  testimonials?: Testimonial[];
+};
+
+export default function EdDetail({
+  card1Body = "Take control of erectile health safely and discreetly. Clinically approved treatments are delivered to your door, helping you regain confidence and performance.",
+  card1Cta = "Get Started",
+  card1Image = "/assets/category/ed-pill-2.webp",
+  card2Image = DEFAULT_GOALS_IMAGE,
+  goalsTitle = DEFAULT_GOALS_TITLE,
+  goals,
+  testimonials,
+  textStyles = {},
+}: EdDetailContent = {}) {
+  const GOALS = goals?.length ? goals : DEFAULT_GOALS;
+  const TESTIMONIALS = testimonials?.length ? testimonials : DEFAULT_TESTIMONIALS;
+  // The design ships a separate mobile crop. A replacement image from the
+  // CMS has no second crop, so it is used at both sizes.
+  const mobileGoalsImage =
+    card2Image === DEFAULT_GOALS_IMAGE
+      ? "/assets/category/ed-goals-m.jpg"
+      : card2Image;
   return (
     <div className="flex flex-col gap-4 md:gap-[15px]">
       {/* Treatment card. Desktop: 339 tall, no blur, copy 498 wide inset 48,
@@ -60,12 +93,12 @@ export default function EdDetail() {
         as="div"
         className="grid items-center gap-[23px] rounded-[16px] bg-black/12 px-6 pb-[49px] pt-[49px] backdrop-blur-[20px] md:min-h-[339px] md:grid-cols-[498px_1fr_183px] md:gap-0 md:rounded-[24px] md:py-0 md:pl-12 md:pr-[54px] md:backdrop-blur-none"
       >
-        <p className="font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:text-[25px] md:leading-[26px]">
-          Take control of erectile health safely and discreetly. Clinically approved treatments are delivered to your door, helping you regain confidence and performance.
+        <p {...textStyleProps(textStyles.card1Body)} className="font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:text-[25px] md:leading-[26px]">
+          {card1Body}
         </p>
         <div className="relative mx-auto h-[179px] w-[188px]">
           <Image
-            src="/assets/category/ed-pill-2.webp"
+            src={card1Image}
             alt="ED treatment tablet"
             fill
             quality={90}
@@ -73,11 +106,11 @@ export default function EdDetail() {
             className="object-contain"
           />
         </div>
-        <Link
+        <Link {...textStyleProps(textStyles.card1Cta)}
           href={START}
           className="btn-cta inline-flex h-[50px] w-full items-center justify-center rounded-lg border border-[#d3dabe] bg-[#142e2a] font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-white hover:bg-[#0c2421] md:w-[183px] md:justify-self-end"
         >
-          Get Started
+          {card1Cta}
         </Link>
       </Reveal>
 
@@ -89,7 +122,7 @@ export default function EdDetail() {
         >
           {/* Two exports: the mobile card is a different crop/photo. */}
           <Image
-            src="/assets/category/ed-goals-m.jpg"
+            src={mobileGoalsImage}
             alt="Man considering his treatment goals"
             fill
             quality={90}
@@ -97,16 +130,22 @@ export default function EdDetail() {
             className="object-cover md:hidden"
           />
           <Image
-            src="/assets/category/ed-goals-d.jpg"
+            src={card2Image}
             alt="Man considering his treatment goals"
             fill
             quality={90}
             sizes="(max-width: 1024px) 90vw, 651px"
             className="hidden object-cover md:block"
           />
-          <h3 className="absolute left-[21px] top-[34px] font-ui text-[25px] font-bold leading-[26px] tracking-[-0.49px] text-white md:left-12 md:top-16">
-            <span className="md:hidden">What&rsquo;s your goal?</span>
-            <span className="hidden md:inline">What are your goals?</span>
+          <h3 {...textStyleProps(textStyles.goalsTitle)} className="absolute left-[21px] top-[34px] font-ui text-[25px] font-bold leading-[26px] tracking-[-0.49px] text-white md:left-12 md:top-16">
+            {goalsTitle === DEFAULT_GOALS_TITLE ? (
+              <>
+                <span className="md:hidden">What&rsquo;s your goal?</span>
+                <span className="hidden md:inline">What are your goals?</span>
+              </>
+            ) : (
+              goalsTitle
+            )}
           </h3>
           {/* Goal chips: 48 tall, 26px side padding, 17% white + blur.
               Stacked left on mobile (Figma y142–296), right-aligned on
@@ -115,6 +154,7 @@ export default function EdDetail() {
             {GOALS.map((g) => (
               <li
                 key={g}
+                {...textStyleProps(textStyles.goal)}
                 className="inline-flex h-12 items-center whitespace-nowrap rounded-full bg-white/17 px-[26px] font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-white backdrop-blur-[20px]"
               >
                 {g}
@@ -124,7 +164,12 @@ export default function EdDetail() {
         </Reveal>
 
         <Reveal as="div" delay={120} className="min-w-0">
-          <TestimonialCarousel items={TESTIMONIALS} />
+          <TestimonialCarousel
+            items={TESTIMONIALS}
+            quoteStyle={textStyleProps(textStyles.testimonialQuote).style}
+            nameStyle={textStyleProps(textStyles.testimonialName).style}
+            metaStyle={textStyleProps(textStyles.testimonialMeta).style}
+          />
         </Reveal>
       </div>
     </div>

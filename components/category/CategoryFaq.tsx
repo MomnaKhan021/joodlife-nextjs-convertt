@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 
-import type { Faq } from "@/lib/categoryFaqs";
+import {
+  CATEGORY_PAGE_DEFAULT,
+  type Faq,
+} from "@/lib/categoryPageContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Themed FAQ accordion for the category sub-pages. Accent colour is
@@ -12,29 +17,40 @@ import type { Faq } from "@/lib/categoryFaqs";
 export default function CategoryFaq({
   items,
   accent = "#142e2a",
+  heading = CATEGORY_PAGE_DEFAULT.faqs.heading,
+  headingAccent = CATEGORY_PAGE_DEFAULT.faqs.headingAccent,
+  style,
+  text,
 }: {
   items: Faq[];
   accent?: string;
+  heading?: string;
+  headingAccent?: string;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
     <section
+      {...styleProps(style)}
       id="faq"
       aria-label="Frequently asked questions"
       className="w-full scroll-mt-28 bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto flex w-full max-w-[820px] flex-col items-center gap-8 px-6 md:gap-10 md:px-10">
-        <h2 className="text-center font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
-          Frequently asked{" "}
-          <em className="font-serif font-normal italic">questions</em>
+        <h2 {...textStyleProps(text?.["faqs.heading"])} className="text-center font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[44px]">
+          {heading}{" "}
+          <em {...textStyleProps(text?.["faqs.headingAccent"])} className="font-serif font-normal italic">{headingAccent}</em>
         </h2>
 
         <ul className="w-full divide-y divide-[#142e2a]/10 border-y border-[#142e2a]/10">
           {items.map((item, i) => {
             const isOpen = open === i;
             return (
-              <li key={item.q}>
+              <li key={i}>
                 <button
                   type="button"
                   aria-expanded={isOpen}
@@ -43,7 +59,12 @@ export default function CategoryFaq({
                 >
                   <span
                     className="font-ui text-[16px] font-semibold leading-snug transition-colors md:text-[18px]"
-                    style={{ color: isOpen ? accent : "#142e2a" }}
+                    // Merged, not spread: this span already sets its own colour, and a
+                    // later `style` would silently replace the CMS size.
+                    style={{
+                      ...textStyleProps(text?.["faqs.question"]).style,
+                      color: isOpen ? accent : "#142e2a",
+                    }}
                   >
                     {item.q}
                   </span>
@@ -67,7 +88,7 @@ export default function CategoryFaq({
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="pb-5 pr-10 font-ui text-[15px] leading-relaxed text-[#142e2a]/75 md:text-[16px]">
+                    <p {...textStyleProps(text?.["faqs.answer"])} className="pb-5 pr-10 font-ui text-[15px] leading-relaxed text-[#142e2a]/75 md:text-[16px]">
                       {item.a}
                     </p>
                   </div>

@@ -20,6 +20,7 @@ export default function EligibilityCta({
   className,
   label = "Check Your Eligibility",
   reorderLabel = "Reorder",
+  style,
 }: {
   /** Consultation product slug used to build the default non-returning href. */
   product?: string;
@@ -28,6 +29,8 @@ export default function EligibilityCta({
   className?: string;
   label?: string;
   reorderLabel?: string;
+  /** Optional inline style — lets a CMS text size reach the button. */
+  style?: React.CSSProperties;
 }) {
   const [returning, setReturning] = useState(false);
 
@@ -54,6 +57,7 @@ export default function EligibilityCta({
     <Link
       href={returning ? "/reorder" : (href ?? `/consultation?product=${product}`)}
       className={className}
+      style={style}
     >
       {returning ? reorderLabel : label}
     </Link>

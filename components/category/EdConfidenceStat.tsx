@@ -6,9 +6,20 @@ import { useEffect, useRef, useState } from "react";
  * Animated "89%" stat overlay for the Confidence section. Starts at 0 and
  * counts up / fills the bar to 89% the first time it scrolls into view.
  */
-const TARGET = 89;
-
-export default function EdConfidenceStat() {
+export default function EdConfidenceStat({
+  target = 89,
+  caption = "Members reported improved confidence in intimacy",
+  valueStyle,
+  captionStyle,
+}: {
+  target?: number;
+  caption?: string;
+  /** CMS size/weight for the percentage. */
+  valueStyle?: React.CSSProperties;
+  /** CMS size/weight for the caption. */
+  captionStyle?: React.CSSProperties;
+}) {
+  const TARGET = target;
   const ref = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState(0);
   const started = useRef(false);
@@ -44,7 +55,7 @@ export default function EdConfidenceStat() {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [TARGET]);
 
   return (
     <div
@@ -61,11 +72,11 @@ export default function EdConfidenceStat() {
           style={{ width: `${value}%` }}
         />
       </div>
-      <p className="mt-3 font-display text-[30px] font-bold leading-none text-white md:text-[34px]">
+      <p style={valueStyle} className="mt-3 font-display text-[30px] font-bold leading-none text-white md:text-[34px]">
         {value}%
       </p>
-      <p className="mt-1 max-w-[24ch] font-ui text-[12px] leading-[17px] text-white/80">
-        Members reported improved confidence in intimacy
+      <p style={captionStyle} className="mt-1 max-w-[24ch] font-ui text-[12px] leading-[17px] text-white/80">
+        {caption}
       </p>
     </div>
   );

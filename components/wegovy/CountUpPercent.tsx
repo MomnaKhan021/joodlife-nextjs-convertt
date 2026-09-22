@@ -12,6 +12,8 @@ export default function CountUpPercent({
   decimals = 0,
   prefix = "",
   suffix = "",
+  valueStyle,
+  suffixStyle,
   duration = 1300,
   className = "",
 }: {
@@ -19,6 +21,10 @@ export default function CountUpPercent({
   decimals?: number;
   prefix?: string;
   suffix?: string;
+  /** CMS size/weight for the number. */
+  valueStyle?: React.CSSProperties;
+  /** CMS size/weight for the suffix only. */
+  suffixStyle?: React.CSSProperties;
   duration?: number;
   className?: string;
 }) {
@@ -56,10 +62,12 @@ export default function CountUpPercent({
   }, [value, decimals, duration]);
 
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} style={valueStyle}>
       {prefix}
       {display}
-      {suffix}
+      {/* Its own span only when it has its own size, so an unset suffix
+          renders exactly as before. */}
+      {suffixStyle ? <span style={suffixStyle}>{suffix}</span> : suffix}
     </span>
   );
 }

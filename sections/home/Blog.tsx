@@ -1,5 +1,7 @@
 import BlogCarousel, { type BlogCardPost } from "@/components/home/BlogCarousel";
 import { listPublishedPosts, categoryLabel } from "@/lib/posts";
+import { getHomeContent } from "@/lib/pageContent";
+import { styleProps } from "@/lib/sectionStyle";
 
 /**
  * Home "Recent blog posts" — server component.
@@ -47,6 +49,8 @@ const DEMO_POSTS: BlogCardPost[] = [
 ];
 
 export default async function Blog() {
+  const { blogHeading, blogHeadingEmphasis, styles, textStyles } = await getHomeContent();
+  const style = styles.blog;
   let posts: BlogCardPost[] = [];
   try {
     const rows = await listPublishedPosts({ limit: 8 });
@@ -65,10 +69,16 @@ export default async function Blog() {
 
   return (
     <section
+      {...styleProps(style)}
       aria-label="Recent blog posts"
       className="w-full bg-white py-[30px] md:py-10"
     >
-      <BlogCarousel posts={posts} />
+      <BlogCarousel
+        posts={posts}
+        text={textStyles}
+        heading={blogHeading}
+        headingEmphasis={blogHeadingEmphasis}
+      />
     </section>
   );
 }

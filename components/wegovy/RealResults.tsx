@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import CountUpPercent from "@/components/wegovy/CountUpPercent";
+import {
+  WEGOVY_DEFAULT,
+  type WegovyRealResults,
+} from "@/lib/wegovyContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * "Real results with Wegovy" — Figma node 1:1948.
@@ -8,9 +14,24 @@ import CountUpPercent from "@/components/wegovy/CountUpPercent";
  * "Health gains beyond numbers" overlay card.
  */
 
-export default function RealResults() {
+export default function RealResults({
+  content = WEGOVY_DEFAULT.realResults,
+  style,
+  text,
+}: {
+  content?: WegovyRealResults;
+  /** Background / text colour. Undefined keeps the shipped design. */
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
+  // The stat drives the count-up animation, so how many decimals to show is
+  // derived from the value rather than stored as its own field.
+  const decimals = String(content.statValue).split(".")[1]?.length ?? 0;
+
   return (
     <section
+      {...styleProps(style)}
       aria-label="Real results with Wegovy"
       className="w-full bg-white"
     >
@@ -21,7 +42,7 @@ export default function RealResults() {
           <div className="relative flex h-full min-h-[460px] flex-col justify-between gap-6 overflow-hidden rounded-[24px] bg-[#0b3b3c] py-10 px-5 md:min-h-[560px]">
             {/* Carousel image — blurred green outdoor scene sits on the base */}
             <Image
-              src="/assets/wegovy/why-runner.png"
+              src={content.panelImage}
               alt=""
               fill
               aria-hidden
@@ -39,10 +60,10 @@ export default function RealResults() {
               }}
             />
 
-            <h2 className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-              Real Results with the{" "}
-              <span className="font-serif italic font-normal">
-                Wegovy Tablet
+            <h2 {...textStyleProps(text?.["realResults.heading"])} className="relative font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
+              {content.heading}{" "}
+              <span {...textStyleProps(text?.["realResults.headingAccent"])} className="font-serif italic font-normal">
+                {content.headingAccent}
               </span>
             </h2>
 
@@ -55,16 +76,20 @@ export default function RealResults() {
                     <path d="M19.9981 16.4515L19.6794 13.3137C19.6425 12.9692 19.229 12.8212 18.9919 13.0634L18.2386 13.8331L13.4949 8.98646C13.1973 8.68237 12.6731 8.68237 12.3755 8.98646L9.76262 11.656L5.34815 7.14307C5.19538 6.98699 4.99258 6.90625 4.78976 6.90625C4.58694 6.90625 4.38414 6.98699 4.23137 7.14307C3.9232 7.45793 3.9232 7.96922 4.23137 8.28677L9.20423 13.3675C9.50186 13.6716 10.026 13.6716 10.321 13.3675L12.9365 10.698L17.1218 14.9741L16.2394 15.8756C15.9998 16.1205 16.1446 16.543 16.4818 16.578L19.5529 16.9036C19.8084 16.9332 20.0244 16.7125 19.9981 16.4515Z" fill="white"/>
                   </svg>
                 </span>
-                <span className="font-ui text-[18px] text-white/85 md:text-[22px]">Up to</span>
+                <span {...textStyleProps(text?.["realResults.statPrefix"])} className="font-ui text-[18px] text-white/85 md:text-[22px]">
+                  {content.statPrefix}
+                </span>
               </span>
               <CountUpPercent
-                value={16.6}
-                decimals={1}
-                suffix="%"
+                valueStyle={textStyleProps(text?.["realResults.statValue"]).style}
+                suffixStyle={textStyleProps(text?.["realResults.statSuffix"]).style}
+                value={content.statValue}
+                decimals={decimals}
+                suffix={content.statSuffix}
                 className="mt-1 block font-display text-[54px] font-medium leading-none text-white sm:text-[68px] md:text-[96px] lg:text-[120px]"
               />
-              <p className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
-                average body weight loss at 64 weeks*
+              <p {...textStyleProps(text?.["realResults.statCaption"])} className="mt-3 font-ui text-[18px] font-semibold text-white/90 md:text-[25px]">
+                {content.statCaption}
               </p>
             </div>
 
@@ -77,12 +102,11 @@ export default function RealResults() {
                 </svg>
               </span>
               <div>
-                <p className="font-display text-[18px] font-semibold leading-tight text-white md:text-[22px]">
-                  Clinical Study
+                <p {...textStyleProps(text?.["realResults.studyTitle"])} className="font-display text-[18px] font-semibold leading-tight text-white md:text-[22px]">
+                  {content.studyTitle}
                 </p>
-                <p className="font-ui text-[16px] font-semibold leading-[1.2] text-white/80 md:text-[22px]">
-                  Around 1 in 4 participants lost 20% or more of their body
-                  weight when combined with lifestyle changes.*
+                <p {...textStyleProps(text?.["realResults.studyBody"])} className="font-ui text-[16px] font-semibold leading-[1.2] text-white/80 md:text-[22px]">
+                  {content.studyBody}
                 </p>
               </div>
             </div>
@@ -93,8 +117,8 @@ export default function RealResults() {
         <Reveal as="div" delay={120} className="h-full">
           <div className="relative h-full min-h-[460px] overflow-hidden rounded-[24px] md:min-h-[560px]">
             <Image
-              src="/assets/wegovy/results-woman.png"
-              alt="Women walking outdoors in a sunlit field"
+              src={content.photo}
+              alt={content.photoAlt}
               fill
               sizes="(max-width:1024px) 100vw, 50vw"
               className="object-cover object-center"
@@ -110,14 +134,11 @@ export default function RealResults() {
                 </svg>
               </span>
               <div>
-                <p className="font-ui text-[18px] font-semibold text-white md:text-[22px]">
-                  Beyond Weight Loss
+                <p {...textStyleProps(text?.["realResults.overlayTitle"])} className="font-ui text-[18px] font-semibold text-white md:text-[22px]">
+                  {content.overlayTitle}
                 </p>
-                <p className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
-                  The Wegovy tablet contains the same active ingredient as the
-                  Wegovy injection and may help improve appetite control while
-                  supporting long-term weight management alongside healthy
-                  lifestyle changes.
+                <p {...textStyleProps(text?.["realResults.overlayBody"])} className="mt-1 font-ui text-[13px] leading-[19.5px] text-white/80 md:text-[16.3px]">
+                  {content.overlayBody}
                 </p>
               </div>
             </div>

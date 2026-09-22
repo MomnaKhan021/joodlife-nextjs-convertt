@@ -14,6 +14,7 @@ export const ADMIN_ALLOWLIST: ReadonlySet<string> = new Set(
   [
     "syed@convertt.co",
     "support@convertt.co",
+    "m.ahsandev@convertt.co",
     "momnafatima021@gmail.com",
     "jav@ihsanpharma.com",
     "zahhaadk@hotmail.co.uk",

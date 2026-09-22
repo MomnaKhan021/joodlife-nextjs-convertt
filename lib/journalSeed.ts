@@ -1,6 +1,19 @@
 import "server-only";
 
+import { fallbackLabel } from "./postCategories";
 import type { FullPost, StorefrontPost } from "./posts";
+
+/**
+ * The starter articles as authored. `categoryLabel` is derived rather than
+ * written out, so the copy below stays about the article.
+ */
+// Styling lives on a saved post, not on the shipped starter copy: a seed
+// article has no record to store it against, and getPostBySlug fills in the
+// design defaults when it serves one.
+export type SeedArticle = Omit<
+  FullPost,
+  "categoryLabel" | "styles" | "textStyles"
+>;
 
 /**
  * Jood Journal — starter content.
@@ -17,7 +30,7 @@ import type { FullPost, StorefrontPost } from "./posts";
 
 const AUTHOR = "The Jood Clinical Team";
 
-export const journalSeedPosts: FullPost[] = [
+export const journalSeedPosts: SeedArticle[] = [
   {
     id: 9001,
     title: "How Weight Loss Medications Are Changing Everyday Lives",
@@ -209,11 +222,14 @@ export const journalSeedPosts: FullPost[] = [
 ];
 
 /** Strip full-article fields down to the list/card shape. */
-export function seedToStorefront(p: FullPost): StorefrontPost {
+export function seedToStorefront(p: SeedArticle): StorefrontPost {
   const { content, bodyHtml, metaTitle, metaDescription, ...list } = p;
   void content;
   void bodyHtml;
   void metaTitle;
   void metaDescription;
-  return list;
+  return {
+    ...list,
+    categoryLabel: p.category ? fallbackLabel(p.category) : "",
+  };
 }

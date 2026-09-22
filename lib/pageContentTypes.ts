@@ -1,0 +1,262 @@
+/**
+ * Home page section content: types and the defaults that shipped in the
+ * components.
+ *
+ * Client-safe on purpose — no `server-only`, no Payload import — so the /cms
+ * editors can import these types. `lib/pageContent.ts` is the server-side
+ * reader and re-exports everything here.
+ *
+ * The DEFAULT_* values are what makes this safe to deploy: an empty global
+ * renders the page exactly as it does today.
+ */
+
+import {
+  HOME_TEXT_KEYS,
+  mergeTextStyles,
+  type HomeTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
+import {
+  mergeStyles,
+  HOME_STYLE_STORED_KEYS,
+  type HomeStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+
+export type Faq = { q: string; a: string };
+
+export const DEFAULT_ANNOUNCEMENT = {
+  announcementBadge: "New",
+  announcementText:
+    "Foundayo® (oral tirzepatide) – a new tablet option for weight management is now available",
+  announcementHref: "/wegovy-pills",
+  announcementHidden: false,
+};
+
+export const DEFAULT_FAQ_HEADING = {
+  faqHeading: "Frequently asked",
+  faqHeadingEmphasis: "questions",
+};
+
+export const DEFAULT_FAQS: Faq[] = [
+  {
+    q: "How does Jood's weight-loss actually work?",
+    a: "Jood combines clinically proven GLP-1 medication with personalised coaching, ongoing clinical support, and evidence-based nutrition and movement guidance to help you achieve lasting results.",
+  },
+  {
+    q: "Is the medication safe and evidence-based?",
+    a: "Yes. All medications are MHRA/GPhC licensed and prescribed by UK-registered clinicians after reviewing your full health assessment.",
+  },
+  {
+    q: "What if I miss an injection?",
+    a: "Contact our 24/7 clinical team and they'll advise you on the safest way to get back on schedule — it's never a problem we can't solve.",
+  },
+  {
+    q: "What is included with my purchase?",
+    a: "Your plan includes the medication, ongoing clinical support, a personalised care plan, and free next-day discreet delivery.",
+  },
+  {
+    q: "Can I pause or cancel my subscription?",
+    a: "Yes — you're always in control. You can pause or cancel at any time from your account dashboard.",
+  },
+];
+
+/** Icon keys the hero knows how to draw. Anything else falls back to tablet. */
+export type HeroIcon = "tablet" | "syringe" | "heart";
+
+export type HeroFeature = { label: string; icon: HeroIcon };
+
+export const DEFAULT_HERO = {
+  heroBadge: "New",
+  heroTitle: "A new tablet option",
+  heroTitleEmphasis: "for weight management",
+  heroBody:
+    "Foundayo® (oral tirzepatide) is a new weight management treatment option, available following clinician assessment.",
+  heroCtaLabel: "Explore Foundayo",
+  heroCtaHref: "/consultation?product=weight-loss",
+  heroImage: "/assets/home/foundayo-pill.png",
+};
+
+export const DEFAULT_HERO_FEATURES: HeroFeature[] = [
+  { label: "Oral tablet\ntreatment", icon: "tablet" },
+  { label: "No\ninjections", icon: "syringe" },
+  { label: "Clinician\nsupport", icon: "heart" },
+];
+
+export type SiteReview = {
+  name: string;
+  text: string;
+  avatar?: string;
+  initials?: string;
+};
+
+export const DEFAULT_REVIEWS_HEADING = {
+  reviewsHeading: "Loved by our",
+  reviewsHeadingEmphasis: "customers",
+  reviewsIntro:
+    "Real reviews from real patients on Trustpilot. Our patients value the expert support, clear communication and fast, discreet delivery that make every journey unique.",
+  trustpilotScore: "4.4",
+  trustpilotUrl: "https://www.trustpilot.com/review/joodlife.com",
+};
+
+export const DEFAULT_BLOG_HEADING = {
+  blogHeading: "Recent",
+  blogHeadingEmphasis: "blog",
+};
+
+export type HiwStep = {
+  step: string;
+  title: string;
+  copy: string;
+  img: string;
+};
+
+export const DEFAULT_HIW_HEADING = {
+  hiwHeading: "How it",
+  hiwHeadingEmphasis: "works",
+};
+
+export const DEFAULT_HIW_STEPS: HiwStep[] = [
+  {
+    step: "Step 1",
+    title: "Complete your assessment",
+    copy: "Answer a few quick questions about your health, medical history and treatment goals.",
+    img: "/assets/figma/hiw-step1.png",
+  },
+  {
+    step: "Step 2",
+    title: "Clinical review",
+    copy: "One of our experienced UK clinicians will review your assessment and recommend the most appropriate treatment, where clinically suitable.",
+    img: "/assets/figma/hiw-step2.png",
+  },
+  {
+    step: "Step 3",
+    title: "Treatment delivered",
+    copy: "If approved, your treatment will be prepared by our pharmacy and delivered quickly, discreetly and securely to your door.",
+    img: "/assets/figma/hiw-step3-v2.png",
+  },
+];
+
+export const DEFAULT_CTA = {
+  ctaTitle: "Take the first step",
+  ctaTitleEmphasis: "toward a better you",
+  ctaSubtitle:
+    "Simple support for your goals, your routine, and your confidence.",
+  ctaImage: "/assets/figma/cta-bg.png",
+};
+
+export type HomeContent = {
+  /** Per-section background / text colour, keyed by section. */
+  styles: Record<HomeStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed by the field name. */
+  textStyles: Record<HomeTextKey, TextStyle>;
+  faqs: Faq[];
+  hiwSteps: HiwStep[];
+  heroFeatures: HeroFeature[];
+  /** Empty means "use the curated Trustpilot list in lib/reviews.ts". */
+  reviews: SiteReview[];
+} & typeof DEFAULT_HERO &
+  typeof DEFAULT_ANNOUNCEMENT &
+  typeof DEFAULT_FAQ_HEADING &
+  typeof DEFAULT_HIW_HEADING &
+  typeof DEFAULT_REVIEWS_HEADING &
+  typeof DEFAULT_BLOG_HEADING &
+  typeof DEFAULT_CTA;
+
+/** Accept only well-formed FAQ rows; anything else falls back. */
+export function toFaqs(value: unknown, fallback: Faq[]): Faq[] {
+  if (!Array.isArray(value)) return fallback;
+  const cleaned = value
+    .filter(
+      (v): v is Faq =>
+        Boolean(v) &&
+        typeof v === "object" &&
+        typeof (v as Faq).q === "string" &&
+        typeof (v as Faq).a === "string",
+    )
+    .map((v) => ({ q: v.q, a: v.a }));
+  return cleaned.length ? cleaned : fallback;
+}
+
+/** Accept only well-formed step rows; anything else falls back. */
+export function toHiwSteps(value: unknown, fallback: HiwStep[]): HiwStep[] {
+  if (!Array.isArray(value)) return fallback;
+  const cleaned = value
+    .filter(
+      (v): v is HiwStep =>
+        Boolean(v) && typeof v === "object" && typeof (v as HiwStep).title === "string",
+    )
+    .map((v) => ({
+      step: typeof v.step === "string" ? v.step : "",
+      title: v.title,
+      copy: typeof v.copy === "string" ? v.copy : "",
+      img: typeof v.img === "string" ? v.img : "",
+    }));
+  return cleaned.length ? cleaned : fallback;
+}
+
+/**
+ * Accept only well-formed review rows.
+ *
+ * Returns [] rather than a fallback list when there is nothing valid: these
+ * are real Trustpilot reviews, and the curated set in lib/reviews.ts stays
+ * the source of truth unless someone deliberately overrides it here.
+ */
+export function toReviews(value: unknown): SiteReview[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(
+      (v): v is SiteReview =>
+        Boolean(v) &&
+        typeof v === "object" &&
+        typeof (v as SiteReview).name === "string" &&
+        typeof (v as SiteReview).text === "string",
+    )
+    .map((v) => ({
+      name: v.name,
+      text: v.text,
+      ...(typeof v.avatar === "string" && v.avatar ? { avatar: v.avatar } : {}),
+      ...(typeof v.initials === "string" && v.initials
+        ? { initials: v.initials }
+        : {}),
+    }));
+}
+
+/** Accept only well-formed hero features; anything else falls back. */
+export function toHeroFeatures(
+  value: unknown,
+  fallback: HeroFeature[],
+): HeroFeature[] {
+  if (!Array.isArray(value)) return fallback;
+  const icons: HeroIcon[] = ["tablet", "syringe", "heart"];
+  const cleaned = value
+    .filter(
+      (v): v is HeroFeature =>
+        Boolean(v) && typeof v === "object" && typeof (v as HeroFeature).label === "string",
+    )
+    .map((v) => ({
+      label: v.label,
+      icon: icons.includes(v.icon) ? v.icon : ("tablet" as HeroIcon),
+    }));
+  return cleaned.length ? cleaned : fallback;
+}
+
+export function homeFallback(): HomeContent {
+  return {
+    // No stored styles, so every section keeps the design it ships with.
+    styles: mergeStyles(null, HOME_STYLE_STORED_KEYS),
+    // Nothing stored, so every text keeps its designed size and weight.
+    textStyles: mergeTextStyles(null, HOME_TEXT_KEYS),
+    faqs: DEFAULT_FAQS,
+    hiwSteps: DEFAULT_HIW_STEPS,
+    heroFeatures: DEFAULT_HERO_FEATURES,
+    reviews: [],
+    ...DEFAULT_HERO,
+    ...DEFAULT_ANNOUNCEMENT,
+    ...DEFAULT_FAQ_HEADING,
+    ...DEFAULT_HIW_HEADING,
+    ...DEFAULT_REVIEWS_HEADING,
+    ...DEFAULT_BLOG_HEADING,
+    ...DEFAULT_CTA,
+  };
+}

@@ -1,11 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import {
-  categoryLabel,
-  formatPublishedDate,
-  type StorefrontPost,
-} from "@/lib/posts";
+import { formatPublishedDate, type StorefrontPost } from "@/lib/posts";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 type Variant = "default" | "feature";
 
@@ -21,16 +18,19 @@ type Variant = "default" | "feature";
  *   variant="feature"  — wider hero card spanning the full row on desktop.
  */
 export default function PostCard({
+  text,
   post,
   variant = "default",
   priority = false,
 }: {
+  /** Per-text size and weight from the blog page. */
+  text?: Partial<Record<string, TextStyle>>;
   post: StorefrontPost;
   variant?: Variant;
   priority?: boolean;
 }) {
   const href = `/blogs/${post.slug}`;
-  const cat = post.category ? categoryLabel(post.category) : null;
+  const cat = post.categoryLabel || null;
   const date = formatPublishedDate(post.publishedAt);
   const isFeature = variant === "feature";
 
@@ -69,7 +69,7 @@ export default function PostCard({
 
       {/* Bottom content */}
       <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-3 p-5 md:p-6">
-        <h3
+        <h3 {...textStyleProps(text?.["cardTitle"])}
           className={`font-display font-semibold leading-[1.25] tracking-[-0.01em] text-white ${
             isFeature
               ? "text-[22px] md:text-[30px] md:max-w-[560px]"
@@ -79,7 +79,7 @@ export default function PostCard({
           {post.title}
         </h3>
         {isFeature && post.excerpt ? (
-          <p className="hidden max-w-[520px] font-ui text-[14px] leading-[1.55] text-white/80 md:line-clamp-2 md:block">
+          <p {...textStyleProps(text?.["cardExcerpt"])} className="hidden max-w-[520px] font-ui text-[14px] leading-[1.55] text-white/80 md:line-clamp-2 md:block">
             {post.excerpt}
           </p>
         ) : null}

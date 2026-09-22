@@ -10,6 +10,9 @@
  *   Women's Health       → /period-delay
  */
 
+import type { SectionStyle } from "@/lib/sectionStyle";
+import type { TextStyle } from "@/lib/textStyle";
+
 export type CategoryTheme = {
   /** Solid brand hue for the section / accents. */
   base: string;
@@ -44,6 +47,10 @@ export type CategoryKey = "weight-loss" | "erectile-dysfunction" | "period-delay
 
 export type Category = {
   key: CategoryKey;
+  /** Band colour from the Treatments editor; absent keeps the design. */
+  style?: SectionStyle;
+  /** This category's text sizes, keyed by bare field name. */
+  textStyles?: Partial<Record<string, TextStyle>>;
   /** Route segment, e.g. "/weight-loss". */
   href: string;
   /**

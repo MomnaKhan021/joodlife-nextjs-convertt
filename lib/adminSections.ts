@@ -24,7 +24,13 @@ export type SectionKey =
   | "customers"
   | "consultations"
   | "discounts"
-  | "content";
+  | "content"
+  // CMS dashboard sections (/cms). Grantable to staff exactly like the
+  // operations sections above — "content" (blog posts & media) is shared
+  // between the CMS and the admin data-browser rather than duplicated.
+  | "cms-pages"
+  | "cms-navigation"
+  | "cms-sections";
 
 export const SECTIONS: { key: SectionKey; label: string; href: string; description: string }[] = [
   { key: "analytics", label: "Analytics", href: "/admin-tools/analytics", description: "Daily metrics dashboard" },
@@ -38,6 +44,9 @@ export const SECTIONS: { key: SectionKey; label: string; href: string; descripti
   { key: "consultations", label: "Consultations", href: "/admin-tools/data-browser?type=consultations", description: "View consultations" },
   { key: "discounts", label: "Discounts", href: "/admin-tools/data-browser?type=discounts", description: "Manage discount codes" },
   { key: "content", label: "Content", href: "/admin-tools/data-browser?type=posts", description: "Blog posts & media" },
+  { key: "cms-pages", label: "CMS — Pages", href: "/cms/pages", description: "Create & edit site pages" },
+  { key: "cms-navigation", label: "CMS — Header & Footer", href: "/cms/navigation", description: "Site navigation & footer content" },
+  { key: "cms-sections", label: "CMS — Page sections", href: "/cms/sections", description: "Home & landing page section content" },
 ];
 
 export const SECTION_KEYS = SECTIONS.map((s) => s.key);

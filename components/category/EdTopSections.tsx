@@ -2,11 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
-import TestimonialCarousel, {
-  type Testimonial,
-} from "@/components/category/TestimonialCarousel";
+import TestimonialCarousel from "@/components/category/TestimonialCarousel";
 import EdTimeline from "@/components/category/EdTimeline";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import {
+  ED_DEFAULT,
+  type EdHeroContent,
+  type EdJourneyContent,
+} from "@/lib/edContentTypes";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Top-of-page ED sections — Figma "Erectile dysfunction" (node 18:811):
@@ -17,68 +22,22 @@ import EligibilityCta from "@/components/ui/EligibilityCta";
  * Both are fully responsive: stacked on mobile, the Figma layout on desktop.
  */
 
-const START = "/consultation?product=erectile-dysfunction";
-
-const HERO_CHECKS = [
-  "Private online consultation",
-  "Clinically approved ED treatments",
-  "Discreet next day delivery",
-  "Ongoing support from licensed professionals",
-];
-
-const JOURNEY = [
-  {
-    tag: "TODAY",
-    title: "Immediate",
-    body: "Start with a quick online consultation. A licensed provider reviews your information and your ED medication is delivered discreetly.",
-  },
-  {
-    tag: "1–3 MONTHS",
-    title: "Early results",
-    body: "Notice gradual improvements in erectile function and increased confidence, with ongoing guidance from your provider.",
-  },
-  {
-    tag: "3–6 MONTHS",
-    title: "Continued progress",
-    body: "Performance becomes more consistent, anxiety decreases, and your treatment plan may be adjusted for optimal results.",
-  },
-];
-
-const GOALS = [
-  "Address erectile difficulties",
-  "Improve sexual confidence",
-  "All the above",
-];
-
-const TESTIMONIALS: Testimonial[] = [
-  {
-    quote:
-      "This treatment completely restored my confidence. I no longer worry about performance, and I feel in control.",
-    name: "Jordan, 42",
-    meta: "2 months into treatment",
-  },
-  {
-    quote:
-      "I feel like myself again. My confidence has improved, and intimacy no longer feels stressful.",
-    name: "Michael, 46",
-    meta: "6 weeks completed",
-  },
-  {
-    quote:
-      "I noticed a real difference in my performance and confidence. It's helped me feel more in control again.",
-    name: "David, 39",
-    meta: "1 month completed",
-  },
-  {
-    quote:
-      "This has made a big impact on both my confidence and my relationship. I feel much more relaxed and reassured now.",
-    name: "Chris, 51",
-    meta: "7 weeks completed",
-  },
-];
-
 /* ── Trustpilot rating row ───────────────────────────────────────────── */
-function Trustpilot({ dark = false }: { dark?: boolean }) {
+function Trustpilot({
+  label,
+  labelStyle,
+  dark = false,
+}: {
+  label: string;
+  /** CMS size/weight for the label only. */
+  labelStyle?: React.CSSProperties;
+  dark?: boolean;
+}) {
+  // The score carries the weight; the rest of the line is set lighter. One
+  // editable field, still drawn with the contrast it has always had.
+  const [score, ...rest] = label.split(" ");
+  const tail = rest.join(" ");
+
   return (
     <div
       className={`flex items-center gap-2 font-ui text-[13px] ${
@@ -99,28 +58,51 @@ function Trustpilot({ dark = false }: { dark?: boolean }) {
           </span>
         ))}
       </span>
-      <span className="font-semibold">
-        4.4{" "}
-        <span className={dark ? "font-normal text-white/70" : "font-normal text-[#142e2a]/60"}>
-          (50+) Reviews
-        </span>
+      <span style={labelStyle}
+        className={
+          dark ? "font-semibold text-white" : "font-semibold text-[#142e2a]"
+        }
+      >
+        {score}
+        {tail ? (
+          <>
+            {" "}
+            <span
+              className={
+                dark ? "font-normal text-white/70" : "font-normal text-[#142e2a]/60"
+              }
+            >
+              {tail}
+            </span>
+          </>
+        ) : null}
       </span>
     </div>
   );
 }
 
 /* ── 1. Hero photo banner ────────────────────────────────────────────── */
-export function EdHero() {
+export function EdHero({
+  content = ED_DEFAULT.hero,
+  style,
+  text,
+}: {
+  content?: EdHeroContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
     <section
+      {...styleProps(style)}
       aria-label="Erectile dysfunction treatment"
       className="w-full bg-white px-5 pt-4 md:px-10 md:pt-6 lg:px-[60px]"
     >
       <div className="mx-auto w-full max-w-[1280px]">
         <div className="relative overflow-hidden rounded-[16px] md:rounded-[24px]">
           <Image
-            src="/assets/category/ed-hero-banner.jpg"
-            alt="A man feeling confident outdoors"
+            src={content.image}
+            alt={content.imageAlt}
             fill
             priority
             quality={85}
@@ -150,20 +132,24 @@ export function EdHero() {
 
           <div className="relative min-h-[440px] max-w-[640px] p-6 py-10 md:min-h-[560px] md:p-12">
             <Reveal as="div" direction="down">
-              <Trustpilot dark />
+              <Trustpilot
+                labelStyle={textStyleProps(text?.["hero.reviewsLabel"]).style}
+                label={content.reviewsLabel}
+                dark
+              />
             </Reveal>
             <Reveal as="div" delay={60}>
-              <h1 className="mt-5 max-w-[16ch] font-display text-[32px] font-semibold leading-[1.16] tracking-[-0.025em] text-white md:text-[54px] md:leading-[1.08]">
-                Regain confidence &amp;{" "}
-                <em className="font-serif font-normal italic">
-                  control your performance
+              <h1 {...textStyleProps(text?.["hero.title"])} className="mt-5 max-w-[16ch] font-display text-[32px] font-semibold leading-[1.16] tracking-[-0.025em] text-white md:text-[54px] md:leading-[1.08]">
+                {content.title}{" "}
+                <em {...textStyleProps(text?.["hero.titleAccent"])} className="font-serif font-normal italic">
+                  {content.titleAccent}
                 </em>
               </h1>
             </Reveal>
             <Reveal as="div" delay={140} className="mt-6">
               <ul className="flex flex-col gap-2.5">
-                {HERO_CHECKS.map((c) => (
-                  <li key={c} className="flex items-center gap-2.5 font-ui text-[13.5px] text-white/90 md:text-[15px]">
+                {content.checks.map((c, i) => (
+                  <li key={i} {...textStyleProps(text?.["hero.check"])} className="flex items-center gap-2.5 font-ui text-[13.5px] text-white/90 md:text-[15px]">
                     <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#1a8ec1] text-[10px] text-white">
                       ✓
                     </span>
@@ -173,17 +159,22 @@ export function EdHero() {
               </ul>
             </Reveal>
             <Reveal as="div" delay={220} className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href={START}
-                className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-lg transition-colors hover:bg-white/90"
-              >
-                Get Started
-              </Link>
-              <EligibilityCta
-                product="erectile-dysfunction"
-                label="See If You Are Eligible"
-                className="btn-cta inline-flex h-12 items-center justify-center rounded-lg border border-white/70 bg-white/10 px-8 font-ui text-[14px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-              />
+              {content.ctaLabel ? (
+                <Link {...textStyleProps(text?.["hero.ctaLabel"])}
+                  href={content.ctaHref}
+                  className="btn-cta inline-flex h-12 items-center justify-center rounded-lg bg-white px-8 font-ui text-[14px] font-semibold text-[#142e2a] shadow-lg transition-colors hover:bg-white/90"
+                >
+                  {content.ctaLabel}
+                </Link>
+              ) : null}
+              {content.secondaryLabel ? (
+                <EligibilityCta {...textStyleProps(text?.["hero.secondaryLabel"])}
+                  product="erectile-dysfunction"
+                  href={content.secondaryHref}
+                  label={content.secondaryLabel}
+                  className="btn-cta inline-flex h-12 items-center justify-center rounded-lg border border-white/70 bg-white/10 px-8 font-ui text-[14px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                />
+              ) : null}
             </Reveal>
           </div>
         </div>
@@ -193,9 +184,19 @@ export function EdHero() {
 }
 
 /* ── 2. "What to expect in your journey" (teal) ──────────────────────── */
-export function EdJourney() {
+export function EdJourney({
+  content = ED_DEFAULT.journey,
+  style,
+  text,
+}: {
+  content?: EdJourneyContent;
+  style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
     <section
+      {...styleProps(style)}
       aria-labelledby="ed-journey"
       className="w-full bg-white px-5 py-6 md:px-10 lg:px-[60px]"
     >
@@ -209,20 +210,22 @@ export function EdJourney() {
         >
           <div className="relative">
             <Reveal as="div">
-              <span className="inline-flex items-center rounded-full bg-white/20 px-3.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
-                Timeline
+              <span {...textStyleProps(text?.["journey.badge"])} className="inline-flex items-center rounded-full bg-white/20 px-3.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
+                {content.badge}
               </span>
-              <h2
+              <h2 {...textStyleProps(text?.["journey.heading"])}
                 id="ed-journey"
                 className="mt-4 font-display text-[30px] font-semibold leading-[1.14] tracking-[-0.02em] text-white md:text-[40px] md:leading-[1.1]"
               >
-                What to expect in{" "}
-                <em className="font-serif font-normal italic">your journey</em>
+                {content.heading}{" "}
+                <em {...textStyleProps(text?.["journey.headingAccent"])} className="font-serif font-normal italic">
+                  {content.headingAccent}
+                </em>
               </h2>
             </Reveal>
 
             {/* Timeline — animated progress fill */}
-            <EdTimeline stages={JOURNEY} />
+            <EdTimeline stages={content.stages} text={text} />
 
             {/* Thumbs-up cut-out + wavy curve + CTAs */}
             <div className="relative mt-2 flex justify-center md:-mt-4">
@@ -244,8 +247,8 @@ export function EdJourney() {
 
               <div className="relative h-[320px] w-[280px] md:h-[380px] md:w-[330px]">
                 <Image
-                  src="/assets/category/ed-thumbsup.png"
-                  alt="A man happy with his treatment results"
+                  src={content.image}
+                  alt={content.imageAlt}
                   fill
                   quality={90}
                   sizes="(max-width: 768px) 280px, 330px"
@@ -254,18 +257,22 @@ export function EdJourney() {
               </div>
 
               <div className="absolute bottom-[14%] left-1/2 z-10 flex w-[92%] max-w-[360px] -translate-x-1/2 gap-2.5">
-                <Link
-                  href={START}
-                  className="btn-cta inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] shadow-lg transition-colors hover:bg-white/90"
-                >
-                  Get Started
-                </Link>
-                <Link
-                  href={START}
-                  className="btn-cta inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-white/70 bg-white/10 px-5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                >
-                  Learn More
-                </Link>
+                {content.ctaLabel ? (
+                  <Link {...textStyleProps(text?.["journey.ctaLabel"])}
+                    href={content.ctaHref}
+                    className="btn-cta inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] shadow-lg transition-colors hover:bg-white/90"
+                  >
+                    {content.ctaLabel}
+                  </Link>
+                ) : null}
+                {content.secondaryLabel ? (
+                  <Link {...textStyleProps(text?.["journey.secondaryLabel"])}
+                    href={content.secondaryHref}
+                    className="btn-cta inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-white/70 bg-white/10 px-5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                  >
+                    {content.secondaryLabel}
+                  </Link>
+                ) : null}
               </div>
             </div>
 
@@ -274,27 +281,27 @@ export function EdJourney() {
               as="div"
               className="relative mt-2 grid items-center gap-5 rounded-[16px] bg-white/12 px-5 py-6 backdrop-blur-[14px] md:grid-cols-[1.4fr_auto_auto] md:gap-8 md:px-8 md:py-7"
             >
-              <p className="max-w-[46ch] font-ui text-[14px] leading-relaxed text-white/90">
-                Take control of erectile health safely and discreetly. Clinically
-                approved treatments are delivered to your door, helping you regain
-                confidence and performance.
+              <p {...textStyleProps(text?.["journey.cardBody"])} className="max-w-[46ch] font-ui text-[14px] leading-relaxed text-white/90">
+                {content.cardBody}
               </p>
               <div className="relative mx-auto h-[70px] w-[150px]">
                 <Image
-                  src="/assets/category/ed-pill.png"
-                  alt="Clinically approved ED treatment tablet"
+                  src={content.cardImage}
+                  alt={content.cardImageAlt}
                   fill
                   quality={90}
                   sizes="150px"
                   className="object-contain"
                 />
               </div>
-              <Link
-                href={START}
-                className="btn-cta inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#08222f] md:w-auto"
-              >
-                Get Started
-              </Link>
+              {content.cardCtaLabel ? (
+                <Link {...textStyleProps(text?.["journey.cardCtaLabel"])}
+                  href={content.cardCtaHref}
+                  className="btn-cta inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#0c2a3a] px-7 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#08222f] md:w-auto"
+                >
+                  {content.cardCtaLabel}
+                </Link>
+              ) : null}
             </Reveal>
 
             {/* Goals + testimonial */}
@@ -304,8 +311,8 @@ export function EdJourney() {
                 className="relative min-h-[360px] min-w-0 overflow-hidden rounded-[16px] md:min-h-[400px] md:rounded-[24px]"
               >
                 <Image
-                  src="/assets/category/ed-goals.png"
-                  alt="Man considering his treatment goals"
+                  src={content.goalsImage}
+                  alt={content.goalsImageAlt}
                   fill
                   quality={90}
                   sizes="(max-width: 1024px) 90vw, 620px"
@@ -313,13 +320,14 @@ export function EdJourney() {
                 />
                 <div aria-hidden className="absolute inset-0 bg-black/25" />
                 <div className="absolute inset-0 flex flex-col p-6 md:p-8">
-                  <h3 className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
-                    What are your goals?
+                  <h3 {...textStyleProps(text?.["journey.goalsHeading"])} className="font-display text-[24px] font-semibold leading-tight text-white md:text-[28px]">
+                    {content.goalsHeading}
                   </h3>
                   <ul className="mt-auto flex flex-col items-start gap-2 md:mt-0 md:flex-1 md:items-end md:justify-center md:gap-2.5">
-                    {GOALS.map((g) => (
+                    {content.goals.map((g, i) => (
                       <li
-                        key={g}
+                        key={i}
+                        {...textStyleProps(text?.["journey.goal"])}
                         className="max-w-full rounded-full bg-white/15 px-3 py-1.5 text-left font-ui text-[12px] font-medium text-white backdrop-blur-sm md:px-4 md:py-2 md:text-right md:text-[13px]"
                       >
                         {g}
@@ -330,7 +338,12 @@ export function EdJourney() {
               </Reveal>
 
               <Reveal as="div" delay={120} className="min-w-0">
-                <TestimonialCarousel items={TESTIMONIALS} />
+                <TestimonialCarousel
+                  items={content.testimonials}
+                  quoteStyle={textStyleProps(text?.["journey.testimonialQuote"]).style}
+                  nameStyle={textStyleProps(text?.["journey.testimonialName"]).style}
+                  metaStyle={textStyleProps(text?.["journey.testimonialMeta"]).style}
+                />
               </Reveal>
             </div>
           </div>
