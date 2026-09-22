@@ -23,7 +23,7 @@
  *   `answers` blob inline. For external integrators / clinician tools.
  */
 import { NextResponse, after, type NextRequest } from "next/server";
-import { headers as nextHeaders } from "next/headers";
+import { headers as nextHeaders, cookies as nextCookies } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { addNoteToContact, createDeal, fireHubSpot, mapConsultationStageId, upsertContact, PATIENT_LIFECYCLE_STAGES } from "@/lib/hubspot";
@@ -43,6 +43,25 @@ const SEVERE_REORDER_SYMPTOMS = new Set([
  * Returns a list of human-readable red flag reasons found in the answers.
  * Empty array = no red flags.
  */
+/** Ad-attribution captured on landing (see components/analytics/UtmCapture).
+ *  Read from the readable `jl_utm` cookie and stored on the consultation so
+ *  the admin can see which campaign / ad set / ad drove each submission. */
+async function readUtmAttribution(): Promise<Record<string, string> | null> {
+  try {
+    const jar = await nextCookies();
+    const raw = jar.get("jl_utm")?.value;
+    if (!raw) return null;
+    const obj = JSON.parse(decodeURIComponent(raw)) as Record<string, unknown>;
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof v === "string" && v) out[k] = v.slice(0, 300);
+    }
+    return Object.keys(out).length ? out : null;
+  } catch {
+    return null;
+  }
+}
+
 function getReorderRedFlags(answers: Record<string, unknown>): string[] {
   const flags: string[] = [];
 
@@ -258,8 +277,13 @@ export async function POST(req: NextRequest) {
   // mirror below still fires.
   const dbStatus = autoApproveReorder ? "approved" : status;
 
+  // Attach ad attribution captured on landing, unless the submission already
+  // carries one (keeps the first attribution if the client sent it).
+  const utm = await readUtmAttribution();
+
   const answers: Record<string, unknown> = {
     ...(body.answers ?? {}),
+    ...(utm && !(body.answers ?? {})._utm ? { _utm: utm } : {}),
     ...(autoApproveReorder
       ? {
           _review_decision: "approved",
