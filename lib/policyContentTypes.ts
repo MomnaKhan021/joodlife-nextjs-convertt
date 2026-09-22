@@ -50,6 +50,8 @@ export const POLICY_TEXT_KEYS = [
   "listItem",
   "contactHeading",
   "contactBody",
+  "contactLink",
+  "contactCta",
 ] as const;
 export type PolicyTextKey = (typeof POLICY_TEXT_KEYS)[number];
 

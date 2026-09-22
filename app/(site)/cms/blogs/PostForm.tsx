@@ -13,6 +13,7 @@ import TypeControl from "../TypeControl";
 import {
   ARTICLE_STYLE_KEYS,
   mergeStyles,
+  type ArticleStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
 import {
@@ -210,7 +211,7 @@ export default function PostForm({
   const [styles, setStyles] = useState(() =>
     mergeStyles((initial as { styles?: unknown } | null)?.styles, ARTICLE_STYLE_KEYS),
   );
-  const setStyle = (k: "article") => (next: SectionStyle) =>
+  const setStyle = (k: ArticleStyleKey) => (next: SectionStyle) =>
     setStyles((st) => ({ ...st, [k]: next }));
   const [textStyles, setTextStyles] = useState(() =>
     mergeTextStyles((initial as { textStyles?: unknown } | null)?.textStyles, POST_TEXT_KEYS),
@@ -447,6 +448,35 @@ export default function PostForm({
                 ["breadcrumb", "Breadcrumb"],
                 ["tags", "Tag pills"],
                 ["body", "Body"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* The band of other articles that closes this page */}
+        <div className="space-y-3 rounded-xl border border-[#e4e7de] bg-white p-4">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <span className={label}>More from the journal</span>
+              <p className="text-[12px] text-[#8a8a8a]">
+                The row of other articles under this one. Left alone, it looks
+                exactly as it does now.
+              </p>
+            </div>
+            <SectionControl sectionKey="related" value={styles.related} onChange={setStyle("related")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Text sizes:</span>
+            {(
+              [
+                ["relatedHeading", "Heading"],
+                ["relatedLink", "View all link"],
+                ["relatedCardTitle", "Card titles"],
               ] as const
             ).map(([k, lbl]) => (
               <span key={k} className="flex items-center gap-2">

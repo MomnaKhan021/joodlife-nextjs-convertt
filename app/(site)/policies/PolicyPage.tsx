@@ -178,6 +178,7 @@ export default function PolicyPage({
                   return (
                     <a
                       key={i}
+                      {...textStyleProps(textStyles.contactLink)}
                       className="w-fit underline decoration-[#142e2a]/30 underline-offset-4 transition-colors hover:text-[#142e2a] hover:decoration-[#142e2a]"
                       href={l.href}
                       {...(external
@@ -191,6 +192,7 @@ export default function PolicyPage({
               </div>
               {contact.ctaLabel ? (
                 <Link
+                  {...textStyleProps(textStyles.contactCta)}
                   href={contact.ctaHref}
                   className="mt-6 inline-flex h-[48px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421]"
                 >

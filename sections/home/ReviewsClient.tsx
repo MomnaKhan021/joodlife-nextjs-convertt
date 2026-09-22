@@ -22,7 +22,14 @@ import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 /** Below this many cards, all fit on screen — no pagination needed. */
 const PAGINATION_MIN = 4;
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({
+  review,
+  text,
+}: {
+  review: Review;
+  /** Per-text size and weight; one setting covers every card. */
+  text?: Partial<Record<HomeTextKey, TextStyle>>;
+}) {
   return (
     <article
       className="review-card flex h-full w-full flex-col justify-between rounded-lg border border-[#142E2A]/20 bg-[#f7f9f2] px-4 py-6 md:h-[288px]"
@@ -39,7 +46,7 @@ function ReviewCard({ review }: { review: Review }) {
           height={16}
           className="h-4 w-[84px] self-start"
         />
-        <p className="font-ui text-[15.5px] leading-[22px] text-[#2a2929]">
+        <p {...textStyleProps(text?.reviewText)} className="font-ui text-[15.5px] leading-[22px] text-[#2a2929]">
           {review.text}
         </p>
         <div className="h-px w-28 bg-[#142E2A]" />
@@ -61,7 +68,7 @@ function ReviewCard({ review }: { review: Review }) {
           </div>
         )}
         <div className="flex flex-col gap-1">
-          <p className="font-ui text-[16px] font-semibold leading-[20px] text-[#142e2a]">
+          <p {...textStyleProps(text?.reviewName)} className="font-ui text-[16px] font-semibold leading-[20px] text-[#142e2a]">
             {review.name}
           </p>
           <div className="flex items-center gap-1.5">
@@ -175,7 +182,7 @@ export default function ReviewsClient({
           >
             {ITEMS.map((r, i) => (
               <SwiperSlide key={i} className="!h-auto">
-                <ReviewCard review={r} />
+                <ReviewCard review={r} text={text} />
               </SwiperSlide>
             ))}
           </Swiper>

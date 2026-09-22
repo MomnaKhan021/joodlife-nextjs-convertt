@@ -203,6 +203,7 @@ export default function BlogPageForm({
                 ["categoryTab", "Category tabs"],
                 ["cardTitle", "Card titles"],
                 ["cardExcerpt", "Card intros"],
+                ["pageNumber", "Pagination"],
               ] as const
             ).map(([k, lbl]) => (
               <span key={k} className="flex items-center gap-2">

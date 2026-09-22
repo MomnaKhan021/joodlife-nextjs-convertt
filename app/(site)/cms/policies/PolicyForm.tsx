@@ -243,6 +243,8 @@ export default function PolicyForm({
               [
                 ["contactHeading", "Heading"],
                 ["contactBody", "Text"],
+                ["contactLink", "Contact links"],
+                ["contactCta", "Button"],
               ] as const
             ).map(([k, label]) => (
               <div key={k} className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">

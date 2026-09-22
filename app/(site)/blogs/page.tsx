@@ -163,6 +163,7 @@ export default async function BlogsPage({
             ) : null}
 
             <Pagination
+              style={textStyleProps(textStyles?.["pageNumber"]).style}
               page={page}
               totalPages={totalPages}
               basePath={BASE_PATH}

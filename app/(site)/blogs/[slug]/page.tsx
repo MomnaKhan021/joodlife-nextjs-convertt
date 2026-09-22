@@ -231,12 +231,14 @@ export default async function BlogPostPage({
             <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
               <h2
                 id="related-heading"
+                {...textStyleProps(post.textStyles.relatedHeading)}
                 className="font-display text-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[34px]"
               >
                 More from the journal
               </h2>
               <Link
                 href="/blogs"
+                {...textStyleProps(post.textStyles.relatedLink)}
                 className="font-ui text-[14px] font-semibold text-[#142e2a]/80 transition hover:text-[#142e2a]"
               >
                 View all →
@@ -244,7 +246,11 @@ export default async function BlogPostPage({
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((r) => (
-                <PostCard key={r.id} post={r} />
+                <PostCard
+                  key={r.id}
+                  post={r}
+                  text={{ cardTitle: post.textStyles.relatedCardTitle }}
+                />
               ))}
             </div>
           </div>

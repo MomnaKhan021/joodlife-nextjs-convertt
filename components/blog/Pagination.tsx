@@ -11,11 +11,14 @@ export default function Pagination({
   totalPages,
   basePath,
   category,
+  style,
 }: {
   page: number;
   totalPages: number;
   basePath: string; // e.g. "/blogs"
   category?: string | null;
+  /** CMS size/weight; the links inherit it from the strip. */
+  style?: React.CSSProperties;
 }) {
   if (totalPages <= 1) return null;
 
@@ -31,6 +34,7 @@ export default function Pagination({
 
   return (
     <nav
+      style={style}
       aria-label="Blog pagination"
       className="mt-12 flex items-center justify-center gap-1 font-ui text-[14px]"
     >

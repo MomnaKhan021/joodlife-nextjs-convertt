@@ -116,6 +116,8 @@ export function mergeTextStyles<K extends string>(
 
 /** The home-page texts that carry their own size/weight control. */
 export const HOME_TEXT_KEYS = [
+  "reviewText",
+  "reviewName",
   "faqQuestion",
   "faqAnswer",
   "hiwStepTitle",
@@ -336,6 +338,7 @@ export type SupportTextKey = (typeof SUPPORT_TEXT_KEYS)[number];
 
 /** Per-text keys for the blog listing page, derived from the editor's bindings. */
 export const BLOG_PAGE_TEXT_KEYS = [
+  "pageNumber",
   "categoryTab",
   "cardTitle",
   "cardExcerpt",
@@ -428,6 +431,9 @@ export function textStylesFor(
 
 /** One blog article's own texts. Stored on the post, not a global. */
 export const POST_TEXT_KEYS = [
+  "relatedHeading",
+  "relatedLink",
+  "relatedCardTitle",
   "title",
   "excerpt",
   "meta",

@@ -477,6 +477,21 @@ export default function SectionsForm({
             </button>
           </div>
 
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["reviewText", "Review text"],
+                ["reviewName", "Reviewer names"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
               id="revH"
