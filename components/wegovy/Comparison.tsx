@@ -68,12 +68,15 @@ function Minus() {
 function Card({
   title,
   titleStyle,
+  rowStyle,
   rows,
   variant,
 }: {
   title: string;
   /** CMS size/weight for the title only. */
   titleStyle?: React.CSSProperties;
+  /** CMS size/weight for the rows; one setting covers every row. */
+  rowStyle?: React.CSSProperties;
   rows: ComparisonRow[];
   variant: "pill" | "pen";
 }) {
@@ -110,7 +113,7 @@ function Card({
               {i > 0 && r.mark === "check" ? <Tick dark={dark} /> : null}
               {i > 0 && r.mark === "minus" ? <Minus /> : null}
 
-              <span className={`font-ui text-[12px] leading-[18px] md:text-[14px] md:leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
+              <span style={rowStyle} className={`font-ui text-[12px] leading-[18px] md:text-[14px] md:leading-[20px] ${dark ? "text-white/90" : "text-[#142e2a]/90"}`}>
                 {/* The first row is the cadence line, set bold — green on the
                     tablet card, plain on the pen card. */}
                 {i === 0 ? (
@@ -166,12 +169,14 @@ export default function Comparison({
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
             <Card
               titleStyle={textStyleProps(text?.["comparison.pillTitle"]).style}
+            rowStyle={textStyleProps(text?.["comparison.rowLabel"]).style}
               title={content.pillTitle}
               rows={content.pillRows}
               variant="pill"
             />
             <Card
               titleStyle={textStyleProps(text?.["comparison.penTitle"]).style}
+            rowStyle={textStyleProps(text?.["comparison.rowLabel"]).style}
               title={content.penTitle}
               rows={content.penRows}
               variant="pen"

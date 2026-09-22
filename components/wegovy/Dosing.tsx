@@ -67,16 +67,16 @@ export default function Dosing({
                   {content.startBadge}
                 </span>
               ) : null}
-              <span className="font-display text-[26px] font-semibold leading-none text-[#142e2a]">
+              <span {...textStyleProps(text?.["dosing.doseMg"])} className="font-display text-[26px] font-semibold leading-none text-[#142e2a]">
                 {d.mg}
               </span>
-              <span className="font-ui text-[13px] font-medium text-[#142e2a]/80">
+              <span {...textStyleProps(text?.["dosing.doseLabel"])} className="font-ui text-[13px] font-medium text-[#142e2a]/80">
                 {d.label}
               </span>
-              <span className="font-ui text-[12px] text-[#142e2a]/55">
+              <span {...textStyleProps(text?.["dosing.doseDays"])} className="font-ui text-[12px] text-[#142e2a]/55">
                 {d.days}
               </span>
-              <span className="mt-3 font-display text-[15px] font-semibold leading-[20px] text-[#142e2a]">
+              <span {...textStyleProps(text?.["dosing.dosePrice"])} className="mt-3 font-display text-[15px] font-semibold leading-[20px] text-[#142e2a]">
                 {d.price}
               </span>
             </div>

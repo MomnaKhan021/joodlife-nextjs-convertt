@@ -154,6 +154,7 @@ export default function EdDetail({
             {GOALS.map((g) => (
               <li
                 key={g}
+                {...textStyleProps(textStyles.goal)}
                 className="inline-flex h-12 items-center whitespace-nowrap rounded-full bg-white/17 px-[26px] font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-white backdrop-blur-[20px]"
               >
                 {g}
@@ -163,7 +164,12 @@ export default function EdDetail({
         </Reveal>
 
         <Reveal as="div" delay={120} className="min-w-0">
-          <TestimonialCarousel items={TESTIMONIALS} />
+          <TestimonialCarousel
+            items={TESTIMONIALS}
+            quoteStyle={textStyleProps(textStyles.testimonialQuote).style}
+            nameStyle={textStyleProps(textStyles.testimonialName).style}
+            metaStyle={textStyleProps(textStyles.testimonialMeta).style}
+          />
         </Reveal>
       </div>
     </div>

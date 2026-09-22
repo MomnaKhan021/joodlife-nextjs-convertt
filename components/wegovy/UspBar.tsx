@@ -10,6 +10,7 @@ import {
   type WegovyUspBar,
 } from "@/lib/wegovyContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 const s = {
   fill: "none",
@@ -61,10 +62,13 @@ const ICONS: Record<UspIcon, React.ReactNode> = {
 export default function UspBar({
   content = WEGOVY_DEFAULT.uspBar,
   style,
+  text,
 }: {
   content?: WegovyUspBar;
   /** Background / text colour. Undefined keeps the shipped design. */
   style?: SectionStyle;
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
 }) {
   const items = content.items;
   const track = [...items, ...items];
@@ -84,7 +88,7 @@ export default function UspBar({
               aria-hidden={i >= items.length}
             >
               <span className="shrink-0 text-black">{ICONS[it.icon]}</span>
-              <span className="whitespace-nowrap font-ui text-[16px] font-medium leading-[22.4px] tracking-[-0.02em] text-black md:text-[18px] md:leading-[25.2px]">
+              <span {...textStyleProps(text?.["uspBar.itemLabel"])} className="whitespace-nowrap font-ui text-[16px] font-medium leading-[22.4px] tracking-[-0.02em] text-black md:text-[18px] md:leading-[25.2px]">
                 {it.label}
               </span>
             </li>

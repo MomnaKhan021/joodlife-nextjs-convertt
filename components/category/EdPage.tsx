@@ -192,10 +192,10 @@ function TreatmentPlan({
                 className="rounded-[14px] border border-[#142e2a]/10 bg-[#f7f9f2] p-5"
               >
                 <Icon d={BENEFIT_PATHS[b.icon]} />
-                <p className="mt-3 font-ui text-[14px] font-bold leading-[19px] text-[#142e2a]">
+                <p {...textStyleProps(text?.["plan.benefitTitle"])} className="mt-3 font-ui text-[14px] font-bold leading-[19px] text-[#142e2a]">
                   {b.title}
                 </p>
-                <p className="mt-1.5 font-ui text-[12.5px] leading-[18px] text-[#142e2a]/65">
+                <p {...textStyleProps(text?.["plan.benefitBody"])} className="mt-1.5 font-ui text-[12.5px] leading-[18px] text-[#142e2a]/65">
                   {b.body}
                 </p>
               </li>
@@ -258,13 +258,13 @@ function EdHowItWorks({
               <div className="flex h-full flex-col items-center gap-6 rounded-[20px] bg-[#f7f9f2] px-6 pt-6 md:px-8 md:pt-8">
                 <StepVisual i={i} />
                 <div className="flex flex-col items-center gap-3 pb-8 text-center">
-                  <span className="inline-flex items-center rounded-full bg-[#142e2a]/[0.06] px-4 py-1.5 font-ui text-[13px] font-medium text-[#142e2a]">
+                  <span {...textStyleProps(text?.["steps.stepBadge"])} className="inline-flex items-center rounded-full bg-[#142e2a]/[0.06] px-4 py-1.5 font-ui text-[13px] font-medium text-[#142e2a]">
                     {s.step}
                   </span>
-                  <h3 className="font-display text-[20px] font-semibold leading-[26px] text-[#142e2a] md:text-[23px]">
+                  <h3 {...textStyleProps(text?.["steps.stepTitle"])} className="font-display text-[20px] font-semibold leading-[26px] text-[#142e2a] md:text-[23px]">
                     {s.title}
                   </h3>
-                  <p className="max-w-[34ch] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px]">
+                  <p {...textStyleProps(text?.["steps.stepBody"])} className="max-w-[34ch] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px]">
                     {s.body}
                   </p>
                 </div>
@@ -341,13 +341,14 @@ function EdConfidence({
           </h2>
           <div className="mt-4 flex flex-col gap-3 font-ui text-[13.5px] leading-[21px] text-[#142e2a]/75 md:text-[14.5px] md:leading-[23px]">
             {content.paragraphs.map((t, i) => (
-              <p key={i}>{t}</p>
+              <p key={i} {...textStyleProps(text?.["confidence.paragraph"])}>{t}</p>
             ))}
           </div>
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
             {checks.map((c, i) => (
               <li
                 key={i}
+                {...textStyleProps(text?.["confidence.check"])}
                 className="flex items-center gap-1.5 font-ui text-[12.5px] font-semibold text-[#142e2a]"
               >
                 <span className="grid h-4 w-4 place-items-center rounded-full bg-[#1a8ec1] text-[9px] text-white">
@@ -464,7 +465,7 @@ function EdGetToKnow({
                 </div>
                 <ul className="mt-2 flex justify-between font-ui text-[10.5px] text-white/70">
                   {stages.map((s, i) => (
-                    <li key={i}>{s}</li>
+                    <li key={i} {...textStyleProps(text?.["know.progressStage"])}>{s}</li>
                   ))}
                 </ul>
               </div>

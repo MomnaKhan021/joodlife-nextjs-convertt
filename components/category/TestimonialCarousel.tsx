@@ -23,9 +23,16 @@ export type Testimonial = {
 export default function TestimonialCarousel({
   items,
   className = "",
+  quoteStyle,
+  nameStyle,
+  metaStyle,
 }: {
   items: Testimonial[];
   className?: string;
+  /** CMS size/weight; one setting covers every slide. */
+  quoteStyle?: React.CSSProperties;
+  nameStyle?: React.CSSProperties;
+  metaStyle?: React.CSSProperties;
 }) {
   const n = items.length;
   const loop = n > 1;
@@ -113,12 +120,12 @@ export default function TestimonialCarousel({
           {slides.map((t, d) => (
             <div key={d} className="flex w-full min-w-full shrink-0 basis-full flex-col justify-center px-2 md:px-14">
               {/* Figma: Saans-Medium 25/26 (20/23 mobile), upright, 404 wide */}
-              <p className="mx-auto max-w-[324px] font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:max-w-[404px] md:text-[25px] md:leading-[26px]">
+              <p style={quoteStyle} className="mx-auto max-w-[324px] font-ui text-[20px] font-medium leading-[23px] tracking-[-0.49px] text-white md:max-w-[404px] md:text-[25px] md:leading-[26px]">
                 &ldquo;{t.quote}&rdquo;
               </p>
               <div className="mt-[59px] flex flex-col gap-[6px] md:mt-[55px] md:gap-2">
-                <span className="font-display text-[14px] font-semibold leading-[14px] tracking-[-0.57px] text-white md:font-ui md:text-[16px] md:font-medium md:leading-5 md:tracking-[-0.32px]">{t.name}</span>
-                <span className="font-display text-[14px] font-semibold leading-[14px] tracking-[-0.57px] text-white md:font-ui md:text-[16px] md:font-medium md:leading-5 md:tracking-[-0.32px]">{t.meta}</span>
+                <span style={nameStyle} className="font-display text-[14px] font-semibold leading-[14px] tracking-[-0.57px] text-white md:font-ui md:text-[16px] md:font-medium md:leading-5 md:tracking-[-0.32px]">{t.name}</span>
+                <span style={metaStyle} className="font-display text-[14px] font-semibold leading-[14px] tracking-[-0.57px] text-white md:font-ui md:text-[16px] md:font-medium md:leading-5 md:tracking-[-0.32px]">{t.meta}</span>
               </div>
             </div>
           ))}

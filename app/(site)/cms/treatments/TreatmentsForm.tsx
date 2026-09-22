@@ -12,7 +12,7 @@ import type {
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
-import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
 import {
   TREATMENT_STYLE_KEYS,
   mergeStyles,
@@ -48,6 +48,24 @@ const LABELS: Record<string, string> = {
   "weight-loss": "Weight loss",
   "erectile-dysfunction": "Erectile dysfunction",
   "period-delay": "Period delay",
+};
+
+/** The repeated texts each band draws. Keyed by band, because the three
+    bands show different lists. */
+const REPEATED_TEXTS: Record<string, readonly (readonly [string, string])[]> = {
+  "weight-loss": [
+    ["featureTitle", "Feature titles"],
+    ["featureSub", "Feature subtitles"],
+    ["chipLabel", "Chip labels"],
+    ["chipSub", "Chip subtitles"],
+  ],
+  "erectile-dysfunction": [
+    ["goal", "Goal chips"],
+    ["testimonialQuote", "Quotes"],
+    ["testimonialName", "Names"],
+    ["testimonialMeta", "Name subtitles"],
+  ],
+  "period-delay": [["tag", "Tag cloud"]],
 };
 
 export default function TreatmentsForm({
@@ -199,6 +217,17 @@ export default function TreatmentsForm({
               <div className="flex justify-end">
                 <SectionControl sectionKey={r.key} value={styles[r.key]} onChange={setStyle(r.key)} />
               </div>
+              {(REPEATED_TEXTS[r.key] ?? []).length > 0 ? (
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+                  <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+                  {(REPEATED_TEXTS[r.key] ?? []).map(([k, lbl]) => (
+                    <span key={k} className="flex items-center gap-2">
+                      {lbl}
+                      <Ts k={`${r.key}.${k}`} label={lbl} />
+                    </span>
+                  ))}
+                </div>
+              ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <LabelRow k={`${r.key}.eyebrow`} label="Eyebrow">

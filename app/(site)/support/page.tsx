@@ -83,10 +83,10 @@ export default async function SupportPage() {
                       key={p.title}
                       className="rounded-2xl bg-white px-4 py-3.5"
                     >
-                      <p className="font-ui text-[15px] font-semibold text-[#142e2a]">
+                      <p {...textStyleProps(textStyles?.["hero.helpTitle"])} className="font-ui text-[15px] font-semibold text-[#142e2a]">
                         {p.title}
                       </p>
-                      <p className="mt-0.5 font-ui text-[13.5px] leading-[20px] text-[#142e2a]/65">
+                      <p {...textStyleProps(textStyles?.["hero.helpBody"])} className="mt-0.5 font-ui text-[13.5px] leading-[20px] text-[#142e2a]/65">
                         {p.body}
                       </p>
                     </li>

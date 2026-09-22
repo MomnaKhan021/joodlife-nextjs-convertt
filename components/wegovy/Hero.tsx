@@ -83,7 +83,7 @@ function HeroCopy({
         {c.stats.map((s) => (
           <li key={s} className="flex items-center gap-3">
             <CheckBadge />
-            <span className="font-ui text-[14px] leading-[20px] text-white/90 md:text-[15px]">
+            <span {...textStyleProps(text?.["hero.stat"])} className="font-ui text-[14px] leading-[20px] text-white/90 md:text-[15px]">
               {s}
             </span>
           </li>

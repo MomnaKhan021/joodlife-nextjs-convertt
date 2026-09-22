@@ -117,11 +117,11 @@ export default function EdReviews({
             >
               <Stars />
               {r.title && (
-                <p className="mt-3 font-ui text-[14px] font-bold leading-[19px] text-[#142e2a]">
+                <p {...textStyleProps(text?.["reviews.cardTitle"])} className="mt-3 font-ui text-[14px] font-bold leading-[19px] text-[#142e2a]">
                   {r.title}
                 </p>
               )}
-              <p className="mt-2 flex-1 font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
+              <p {...textStyleProps(text?.["reviews.cardBody"])} className="mt-2 flex-1 font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
                 {r.body}
               </p>
               <div className="mt-4 flex items-center gap-2.5 border-t border-[#142e2a]/10 pt-3">
@@ -129,7 +129,7 @@ export default function EdReviews({
                   {r.initials}
                 </span>
                 <div className="leading-tight">
-                  <p className="font-ui text-[12.5px] font-semibold text-[#142e2a]">
+                  <p {...textStyleProps(text?.["reviews.cardName"])} className="font-ui text-[12.5px] font-semibold text-[#142e2a]">
                     {r.name}
                   </p>
                   <p className="flex items-center gap-1 font-ui text-[11px] text-[#00b67a]">

@@ -52,7 +52,7 @@ export default async function WegovyPillsPage() {
       </div>
       <Header />
       <Hero content={c.hero} style={c.styles.hero} text={c.textStyles} />
-      <UspBar content={c.uspBar} style={c.styles.uspBar} />
+      <UspBar content={c.uspBar} style={c.styles.uspBar} text={c.textStyles} />
       <WhatIsPill content={c.whatIsPill} style={c.styles.whatIsPill} text={c.textStyles} />
       <Comparison content={c.comparison} style={c.styles.comparison} text={c.textStyles} />
       <HowItWorks content={c.howItWorks} style={c.styles.howItWorks} text={c.textStyles} />

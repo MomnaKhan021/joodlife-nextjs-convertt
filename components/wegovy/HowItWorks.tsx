@@ -178,7 +178,7 @@ export default function HowItWorks({
               }`}
             >
               {c.connectorFirst && c.connector}
-              <p className="whitespace-pre-line font-ui text-[18px] font-semibold leading-[24px] text-white">
+              <p {...textStyleProps(text?.["howItWorks.callout"])} className="whitespace-pre-line font-ui text-[18px] font-semibold leading-[24px] text-white">
                 {content.callouts[i]}
               </p>
               {!c.connectorFirst && c.connector}
@@ -198,7 +198,7 @@ export default function HowItWorks({
                 }`}
               >
                 {c.connectorFirst && c.mobileConnector}
-                <p className={`whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white sm:text-[13px] sm:leading-[17px] ${c.align}`}>
+                <p {...textStyleProps(text?.["howItWorks.callout"])} className={`whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white sm:text-[13px] sm:leading-[17px] ${c.align}`}>
                   {content.callouts[i]}
                 </p>
                 {!c.connectorFirst && c.mobileConnector}

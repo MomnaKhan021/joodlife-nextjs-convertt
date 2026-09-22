@@ -30,7 +30,11 @@ const DEFAULT_RIGHT_CHIPS: Chip[] = [
   { label: "WhatsApp", sub: "24/7 support", iconSrc: "/assets/icons/chip-whatsapp.svg" },
 ];
 
-function renderChip(c: Chip) {
+function renderChip(
+  c: Chip,
+  labelStyle?: React.CSSProperties,
+  subStyle?: React.CSSProperties,
+) {
   return (
     <li
       key={c.label}
@@ -44,10 +48,10 @@ function renderChip(c: Chip) {
         className="h-7 w-7 shrink-0 md:h-10 md:w-10"
       />
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className="font-ui text-[13px] font-medium leading-[16px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
+        <span style={labelStyle} className="font-ui text-[13px] font-medium leading-[16px] text-[#b4ff9f] md:text-[20px] md:leading-[23px]">
           {c.label}
         </span>
-        <span className="font-ui text-[11px] leading-[14px] text-white/75 md:text-[14px] md:leading-[18px]">
+        <span style={subStyle} className="font-ui text-[11px] leading-[14px] text-white/75 md:text-[14px] md:leading-[18px]">
           {c.sub}
         </span>
       </span>
@@ -80,10 +84,15 @@ function FeatureRow({
   title,
   sub,
   iconSrc,
+  titleStyle,
+  subStyle,
 }: {
   title: string;
   sub: string;
   iconSrc: string;
+  /** CMS size/weight; one setting covers every row. */
+  titleStyle?: React.CSSProperties;
+  subStyle?: React.CSSProperties;
 }) {
   return (
     <li className="flex items-start gap-3">
@@ -97,10 +106,10 @@ function FeatureRow({
         />
       </span>
       <span className="flex flex-col">
-        <span className="font-ui text-[18px] font-semibold leading-[24px] text-white md:text-[20px]">
+        <span style={titleStyle} className="font-ui text-[18px] font-semibold leading-[24px] text-white md:text-[20px]">
           {title}
         </span>
-        <span className="mt-0.5 font-ui text-[14px] leading-[19px] text-white/70">
+        <span style={subStyle} className="mt-0.5 font-ui text-[14px] leading-[19px] text-white/70">
           {sub}
         </span>
       </span>
@@ -144,6 +153,8 @@ function WegovyIntroCard({
                 key={i}
                 title={f.title}
                 sub={f.sub}
+                titleStyle={textStyleProps(textStyles.featureTitle).style}
+                subStyle={textStyleProps(textStyles.featureSub).style}
                 iconSrc={
                   i === 0
                     ? "/assets/icons/wegovy-uk.svg"
@@ -224,6 +235,8 @@ export default function WeightLossDetail({
         { title: 'Personalised Assessment', sub: 'Every treatment starts with a clinical review.' },
         { title: 'Ongoing Support', sub: 'Expert guidance throughout your journey.' },
       ];
+  const chipLabelStyle = textStyleProps(textStyles.chipLabel).style;
+  const chipSubStyle = textStyleProps(textStyles.chipSub).style;
   const LEFT_CHIPS = chipsLeft?.length ? chipsLeft : DEFAULT_LEFT_CHIPS;
   const RIGHT_CHIPS = chipsRight?.length ? chipsRight : DEFAULT_RIGHT_CHIPS;
   return (
@@ -254,7 +267,7 @@ export default function WeightLossDetail({
             portrait, so nothing overlaps or gets clipped. */}
         <div className="mt-6 w-full lg:hidden">
           <ul className="grid grid-cols-2 gap-2.5">
-            {[...LEFT_CHIPS, ...RIGHT_CHIPS].map(renderChip)}
+            {[...LEFT_CHIPS, ...RIGHT_CHIPS].map((c) => renderChip(c, chipLabelStyle, chipSubStyle))}
           </ul>
           <div className="relative mx-auto mt-5 aspect-[150/212] w-[210px]">
             <Image
@@ -282,10 +295,10 @@ export default function WeightLossDetail({
             />
           </div>
           <ul className="absolute left-0 top-0 z-10 flex w-[188px] flex-col gap-3.5">
-            {LEFT_CHIPS.map(renderChip)}
+            {LEFT_CHIPS.map((c) => renderChip(c, chipLabelStyle, chipSubStyle))}
           </ul>
           <ul className="absolute right-0 top-[64px] z-10 flex w-[188px] flex-col gap-3.5">
-            {RIGHT_CHIPS.map(renderChip)}
+            {RIGHT_CHIPS.map((c) => renderChip(c, chipLabelStyle, chipSubStyle))}
           </ul>
         </div>
 

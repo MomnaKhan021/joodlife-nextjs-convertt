@@ -19,7 +19,7 @@ import {
   type SupportStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
-import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
 import type { TextStyle } from "@/lib/textStyle";
 
 /**
@@ -171,6 +171,20 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["hero.helpTitle", "Card titles"],
+              ["hero.helpBody", "Card text"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -354,6 +368,22 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="faq" value={styles.faq} onChange={setStyle("faq")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["faq.pill", "Filter pills"],
+              ["faq.sectionHeading", "Group headings"],
+              ["faq.question", "Questions"],
+              ["faq.answer", "Answers"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">

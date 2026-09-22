@@ -71,7 +71,7 @@ export default function WhyChoose({
                 key={b}
                 className="flex items-center justify-between gap-3 rounded-xl bg-black/[0.23] px-5 py-4 backdrop-blur-sm"
               >
-                <span className="font-ui text-[16px] font-semibold text-white md:text-[20px]">
+                <span {...textStyleProps(text?.["whyChoose.benefit"])} className="font-ui text-[16px] font-semibold text-white md:text-[20px]">
                   {b}
                 </span>
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/40 bg-white/10">

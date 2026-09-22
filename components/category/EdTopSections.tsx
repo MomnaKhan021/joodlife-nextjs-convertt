@@ -132,7 +132,7 @@ export function EdHero({
             <Reveal as="div" delay={140} className="mt-6">
               <ul className="flex flex-col gap-2.5">
                 {content.checks.map((c, i) => (
-                  <li key={i} className="flex items-center gap-2.5 font-ui text-[13.5px] text-white/90 md:text-[15px]">
+                  <li key={i} {...textStyleProps(text?.["hero.check"])} className="flex items-center gap-2.5 font-ui text-[13.5px] text-white/90 md:text-[15px]">
                     <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#1a8ec1] text-[10px] text-white">
                       ✓
                     </span>
@@ -208,7 +208,7 @@ export function EdJourney({
             </Reveal>
 
             {/* Timeline — animated progress fill */}
-            <EdTimeline stages={content.stages} />
+            <EdTimeline stages={content.stages} text={text} />
 
             {/* Thumbs-up cut-out + wavy curve + CTAs */}
             <div className="relative mt-2 flex justify-center md:-mt-4">
@@ -310,6 +310,7 @@ export function EdJourney({
                     {content.goals.map((g, i) => (
                       <li
                         key={i}
+                        {...textStyleProps(text?.["journey.goal"])}
                         className="max-w-full rounded-full bg-white/15 px-3 py-1.5 text-left font-ui text-[12px] font-medium text-white backdrop-blur-sm md:px-4 md:py-2 md:text-right md:text-[13px]"
                       >
                         {g}
@@ -320,7 +321,12 @@ export function EdJourney({
               </Reveal>
 
               <Reveal as="div" delay={120} className="min-w-0">
-                <TestimonialCarousel items={content.testimonials} />
+                <TestimonialCarousel
+                  items={content.testimonials}
+                  quoteStyle={textStyleProps(text?.["journey.testimonialQuote"]).style}
+                  nameStyle={textStyleProps(text?.["journey.testimonialName"]).style}
+                  metaStyle={textStyleProps(text?.["journey.testimonialMeta"]).style}
+                />
               </Reveal>
             </div>
           </div>

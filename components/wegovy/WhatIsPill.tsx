@@ -20,7 +20,14 @@ import { textStyleProps, type TextStyle } from "@/lib/textStyle";
  * below the cards.
  */
 
-function CardView({ c }: { c: ExplainerCard }) {
+function CardView({
+  c,
+  text,
+}: {
+  c: ExplainerCard;
+  /** Per-text size and weight; one setting covers every card. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#f7f9f2]">
       <div className="relative h-[300px] w-full overflow-hidden bg-[#eef2e6]">
@@ -45,10 +52,10 @@ function CardView({ c }: { c: ExplainerCard }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-5 py-5">
-        <h3 className="font-ui text-[18px] font-semibold leading-[26px] tracking-[-0.02em] text-[#142e2a] md:text-[25px] md:leading-[25.6px]">
+        <h3 {...textStyleProps(text?.["whatIsPill.cardTitle"])} className="font-ui text-[18px] font-semibold leading-[26px] tracking-[-0.02em] text-[#142e2a] md:text-[25px] md:leading-[25.6px]">
           {c.title}
         </h3>
-        <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[19.5px]">
+        <p {...textStyleProps(text?.["whatIsPill.cardBody"])} className="font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[16.3px] md:leading-[19.5px]">
           {c.body}
         </p>
       </div>
@@ -120,7 +127,7 @@ export default function WhatIsPill({
         >
           {content.cards.map((c) => (
             <SwiperSlide key={c.title} className="!h-auto">
-              <CardView c={c} />
+              <CardView c={c} text={text} />
             </SwiperSlide>
           ))}
         </Swiper>

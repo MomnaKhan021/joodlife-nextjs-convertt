@@ -516,6 +516,19 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["hero.stat", "Feature list"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">2. Hero</h2>
           <Pair
             label="Title"
@@ -580,6 +593,19 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="uspBar" value={styles.uspBar} onChange={setStyle("uspBar")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["uspBar.itemLabel", "Item labels"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
@@ -668,6 +694,20 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="whatIsPill" value={styles.whatIsPill} onChange={setStyle("whatIsPill")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["whatIsPill.cardTitle", "Card titles"],
+              ["whatIsPill.cardBody", "Card text"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             4. What is the tablet
@@ -837,6 +877,19 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="comparison" value={styles.comparison} onChange={setStyle("comparison")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["comparison.rowLabel", "Row labels"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             5. Tablet vs injection
           </h2>
@@ -917,6 +970,19 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="howItWorks" value={styles.howItWorks} onChange={setStyle("howItWorks")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["howItWorks.callout", "Callouts"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             6. How it works
@@ -1187,6 +1253,22 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="dosing" value={styles.dosing} onChange={setStyle("dosing")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["dosing.doseMg", "Dose strengths"],
+              ["dosing.doseLabel", "Dose labels"],
+              ["dosing.doseDays", "Dose days"],
+              ["dosing.dosePrice", "Dose prices"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             8. Dosing &amp; pricing
           </h2>
@@ -1353,6 +1435,19 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="whyChoose" value={styles.whyChoose} onChange={setStyle("whyChoose")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["whyChoose.benefit", "Benefits"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             9. Why choose Jood
           </h2>
@@ -1413,6 +1508,20 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="faq" value={styles.faq} onChange={setStyle("faq")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["faq.question", "Questions"],
+              ["faq.answer", "Answers"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">

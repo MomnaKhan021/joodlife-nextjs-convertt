@@ -177,6 +177,19 @@ export type HeaderTextKey = (typeof HEADER_TEXT_KEYS)[number];
 
 /** Per-text keys for the Wegovy Pills page, derived from the editor's bindings. */
 export const WEGOVY_TEXT_KEYS = [
+  "uspBar.itemLabel",
+  "hero.stat",
+  "whatIsPill.cardTitle",
+  "whatIsPill.cardBody",
+  "comparison.rowLabel",
+  "howItWorks.callout",
+  "dosing.doseMg",
+  "dosing.doseLabel",
+  "dosing.doseDays",
+  "dosing.dosePrice",
+  "whyChoose.benefit",
+  "faq.question",
+  "faq.answer",
   "announcement.text",
   "hero.body",
   "hero.reviewsLabel",
@@ -230,6 +243,25 @@ export type WegovyTextKey = (typeof WEGOVY_TEXT_KEYS)[number];
 
 /** Per-text keys for the erectile dysfunction page, derived from the editor's bindings. */
 export const ED_TEXT_KEYS = [
+  "hero.check",
+  "reviews.cardTitle",
+  "reviews.cardBody",
+  "reviews.cardName",
+  "journey.stageTag",
+  "journey.stageTitle",
+  "journey.stageBody",
+  "journey.goal",
+  "journey.testimonialQuote",
+  "journey.testimonialName",
+  "journey.testimonialMeta",
+  "plan.benefitTitle",
+  "plan.benefitBody",
+  "steps.stepBadge",
+  "steps.stepTitle",
+  "steps.stepBody",
+  "confidence.paragraph",
+  "confidence.check",
+  "know.progressStage",
   "hero.reviewsLabel",
   "reviews.reviewsLabel",
   "reviews.body",
@@ -282,6 +314,12 @@ export type EdTextKey = (typeof ED_TEXT_KEYS)[number];
 
 /** Per-text keys for the Support page, derived from the editor's bindings. */
 export const SUPPORT_TEXT_KEYS = [
+  "hero.helpTitle",
+  "hero.helpBody",
+  "faq.pill",
+  "faq.sectionHeading",
+  "faq.question",
+  "faq.answer",
   "hero.title",
   "hero.titleAccent",
   "hero.body",
@@ -343,6 +381,15 @@ export type CategoryPageTextKey = (typeof CATEGORY_PAGE_TEXT_KEYS)[number];
  */
 const TREATMENT_CATS = ["weight-loss", "erectile-dysfunction", "period-delay"];
 export const TREATMENT_TEXT_FIELDS = [
+  "featureTitle",
+  "featureSub",
+  "chipLabel",
+  "chipSub",
+  "goal",
+  "tag",
+  "testimonialQuote",
+  "testimonialName",
+  "testimonialMeta",
   "eyebrow",
   "title",
   "titleAccent",

@@ -64,7 +64,7 @@ export default function WegovyFaq({
                       className="flex w-full cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left"
                     >
                       {/* Question: Saans 16.3px w=570 lh=19.5 ls=-0.02em */}
-                      <span className="font-ui text-[15px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px]">
+                      <span {...textStyleProps(text?.["faq.question"])} className="font-ui text-[15px] font-semibold leading-[19.5px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px]">
                         {f.q}
                       </span>
                       {/* Plus icon: 28×28, r=full, fill=#f7f9f2, border #142e2a */}
@@ -86,7 +86,7 @@ export default function WegovyFaq({
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <p className="px-4 pb-4 font-ui text-[14px] leading-[22px] tracking-[-0.02em] text-[#142e2a]/70">
+                        <p {...textStyleProps(text?.["faq.answer"])} className="px-4 pb-4 font-ui text-[14px] leading-[22px] tracking-[-0.02em] text-[#142e2a]/70">
                           {f.a}
                         </p>
                       </div>

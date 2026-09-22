@@ -87,6 +87,7 @@ export default function PeriodDetail({
           {TAGS.concat(TAGS, TAGS, TAGS).map((t, i) => (
             <li
               key={`${t}-${i}`}
+              {...textStyleProps(textStyles.tag)}
               className="rounded-full border border-white/25 px-3 py-1 font-ui text-[11px] text-white/80"
             >
               {t}

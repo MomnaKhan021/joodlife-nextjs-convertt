@@ -48,11 +48,16 @@ function AccordionItem({
   open,
   onToggle,
   id,
+  questionStyle,
+  answerStyle,
 }: {
   qa: QA;
   open: boolean;
   onToggle: () => void;
   id: string;
+  /** CMS size/weight; one setting covers every row. */
+  questionStyle?: React.CSSProperties;
+  answerStyle?: React.CSSProperties;
 }) {
   return (
     <li className="border-b border-[#142e2a]/12">
@@ -64,7 +69,7 @@ function AccordionItem({
         id={`${id}-trigger`}
         className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
       >
-        <span className="font-ui text-[15px] font-medium leading-[22px] text-[#142e2a] md:text-[16.3px]">
+        <span style={questionStyle} className="font-ui text-[15px] font-medium leading-[22px] text-[#142e2a] md:text-[16.3px]">
           {qa.q}
         </span>
         <PlusIcon open={open} />
@@ -78,7 +83,7 @@ function AccordionItem({
         }`}
       >
         <div className="overflow-hidden">
-          <p className="max-w-[560px] pb-5 font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15.5px] md:leading-[24px]">
+          <p style={answerStyle} className="max-w-[560px] pb-5 font-ui text-[14px] leading-[22px] text-[#142e2a]/70 md:text-[15.5px] md:leading-[24px]">
             {qa.a}
           </p>
         </div>
@@ -131,6 +136,7 @@ export default function SupportFaq({
           {SECTIONS.map((s) => (
             <FilterPill
               key={s.id}
+              {...textStyleProps(text?.["faq.pill"])}
               label={s.pill}
               active={activePill === s.id}
               onClick={() => setActivePill(s.id)}
@@ -146,7 +152,7 @@ export default function SupportFaq({
               className="grid scroll-mt-32 gap-8 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] md:gap-16 lg:gap-24"
             >
               <div className="md:pt-1">
-                <h3 className="font-display text-[30px] font-bold leading-[1.05] tracking-[-0.02em] text-[#142e2a] md:text-[40px]">
+                <h3 {...textStyleProps(text?.["faq.sectionHeading"])} className="font-display text-[30px] font-bold leading-[1.05] tracking-[-0.02em] text-[#142e2a] md:text-[40px]">
                   {section.headStart}{" "}
                   <em className="font-serif font-normal italic">
                     {section.headAccent}
@@ -173,6 +179,8 @@ export default function SupportFaq({
                       key={key}
                       id={key.replace(":", "-")}
                       qa={qa}
+                      questionStyle={textStyleProps(text?.["faq.question"]).style}
+                      answerStyle={textStyleProps(text?.["faq.answer"]).style}
                       open={openKey === key}
                       onToggle={() =>
                         setOpenKey((prev) => (prev === key ? null : key))

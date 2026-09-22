@@ -28,7 +28,7 @@ import {
   type EdStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
-import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
 import type { TextStyle } from "@/lib/textStyle";
 
 /**
@@ -163,6 +163,19 @@ export default function EdForm({ initial }: { initial: EdContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="hero" value={styles.hero} onChange={setStyle("hero")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["hero.check", "Check list"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">1. Hero</h2>
           <Pair
             firstKey="hero.title"
@@ -215,6 +228,21 @@ export default function EdForm({ initial }: { initial: EdContent }) {
         <div className={cmsCard}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="reviews" value={styles.reviews} onChange={setStyle("reviews")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["reviews.cardTitle", "Card titles"],
+              ["reviews.cardBody", "Card text"],
+              ["reviews.cardName", "Names"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
@@ -359,6 +387,25 @@ export default function EdForm({ initial }: { initial: EdContent }) {
         <div className={cmsCard}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="journey" value={styles.journey} onChange={setStyle("journey")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["journey.stageTag", "Stage tags"],
+              ["journey.stageTitle", "Stage titles"],
+              ["journey.stageBody", "Stage text"],
+              ["journey.goal", "Goal chips"],
+              ["journey.testimonialQuote", "Quotes"],
+              ["journey.testimonialName", "Names"],
+              ["journey.testimonialMeta", "Name subtitles"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">
@@ -666,6 +713,20 @@ export default function EdForm({ initial }: { initial: EdContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="plan" value={styles.plan} onChange={setStyle("plan")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["plan.benefitTitle", "Card titles"],
+              ["plan.benefitBody", "Card text"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             4. Treatment plan
           </h2>
@@ -805,6 +866,21 @@ export default function EdForm({ initial }: { initial: EdContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="steps" value={styles.steps} onChange={setStyle("steps")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["steps.stepBadge", "Step badges"],
+              ["steps.stepTitle", "Step titles"],
+              ["steps.stepBody", "Step text"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             5. How it works
           </h2>
@@ -926,6 +1002,20 @@ export default function EdForm({ initial }: { initial: EdContent }) {
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="confidence" value={styles.confidence} onChange={setStyle("confidence")} />
           </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["confidence.paragraph", "Paragraphs"],
+              ["confidence.check", "Check list"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
+          </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             6. Confidence split
           </h2>
@@ -1020,6 +1110,19 @@ export default function EdForm({ initial }: { initial: EdContent }) {
         <div className={cmsCard}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="know" value={styles.know} onChange={setStyle("know")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+              ["know.progressStage", "Progress labels"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <h2 className="text-[15px] font-medium text-[#1a1a1a]">
             7. Let&rsquo;s get to know you

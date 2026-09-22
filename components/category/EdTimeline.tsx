@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
+
 /**
  * "What to expect in your journey" timeline. A dashed track with a progress
  * line that fills through the three points (Today → 1–3 months → 3–6 months)
@@ -11,16 +13,23 @@ import { useEffect, useRef, useState } from "react";
 
 export type Stage = { tag: string; title: string; body: string };
 
-function StageText({ s }: { s: Stage }) {
+function StageText({
+  s,
+  text,
+}: {
+  s: Stage;
+  /** Per-text size and weight; one setting covers every stage. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   return (
     <div>
-      <span className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 font-ui text-[10px] font-semibold uppercase tracking-[0.06em] text-white">
+      <span {...textStyleProps(text?.["journey.stageTag"])} className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 font-ui text-[10px] font-semibold uppercase tracking-[0.06em] text-white">
         {s.tag}
       </span>
-      <h3 className="mt-2.5 font-display text-[19px] font-semibold text-white md:text-[21px]">
+      <h3 {...textStyleProps(text?.["journey.stageTitle"])} className="mt-2.5 font-display text-[19px] font-semibold text-white md:text-[21px]">
         {s.title}
       </h3>
-      <p className="mt-1.5 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
+      <p {...textStyleProps(text?.["journey.stageBody"])} className="mt-1.5 max-w-[38ch] font-ui text-[13px] leading-[19px] text-white/80">
         {s.body}
       </p>
     </div>
@@ -35,7 +44,14 @@ function Node() {
   );
 }
 
-export default function EdTimeline({ stages }: { stages: Stage[] }) {
+export default function EdTimeline({
+  stages,
+  text,
+}: {
+  stages: Stage[];
+  /** Per-text size and weight, keyed by section.field. */
+  text?: Partial<Record<string, TextStyle>>;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [filled, setFilled] = useState(false);
 
@@ -73,7 +89,7 @@ export default function EdTimeline({ stages }: { stages: Stage[] }) {
         </div>
         <div className="grid grid-cols-3 gap-6">
           {stages.map((s) => (
-            <StageText key={s.tag} s={s} />
+            <StageText key={s.tag} s={s} text={text} />
           ))}
         </div>
       </div>
@@ -93,7 +109,7 @@ export default function EdTimeline({ stages }: { stages: Stage[] }) {
             <li key={s.tag} className="relative flex gap-4">
               <Node />
               <div className="flex-1 pt-0.5">
-                <StageText s={s} />
+                <StageText s={s} text={text} />
               </div>
             </li>
           ))}
