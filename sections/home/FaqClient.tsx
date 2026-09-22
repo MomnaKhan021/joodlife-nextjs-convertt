@@ -80,7 +80,7 @@ export default function FaqClient({
                     id={`faq-trigger-${i}`}
                     className="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left md:px-6 md:py-5"
                   >
-                    <span className="font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[22px]">
+                    <span {...textStyleProps(text.faqQuestion)} className="font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[22px]">
                       {f.q}
                     </span>
                     <span
@@ -110,7 +110,7 @@ export default function FaqClient({
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <p className="px-5 pb-5 font-ui text-[14px] leading-[22px] text-[#142e2a]/75 md:px-6 md:pb-6 md:text-[15.5px] md:leading-[24px]">
+                      <p {...textStyleProps(text.faqAnswer)} className="px-5 pb-5 font-ui text-[14px] leading-[22px] text-[#142e2a]/75 md:px-6 md:pb-6 md:text-[15.5px] md:leading-[24px]">
                         {f.a}
                       </p>
                     </div>

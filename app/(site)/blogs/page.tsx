@@ -128,6 +128,7 @@ export default async function BlogsPage({
 
         <div className="mt-8 md:mt-10">
           <CategoryTabs
+            text={textStyles}
             categories={categories}
             active={category}
             basePath={BASE_PATH}
@@ -138,7 +139,7 @@ export default async function BlogsPage({
       {/* Featured post (page 1, no filter) */}
       {featured ? (
         <section className="mx-auto w-full max-w-[1440px] px-4 pb-6 md:px-[60px] md:pb-8">
-          <PostCard post={featured} variant="feature" priority />
+          <PostCard post={featured} text={textStyles} variant="feature" priority />
         </section>
       ) : null}
 
@@ -154,6 +155,7 @@ export default async function BlogsPage({
                   <PostCard
                     key={p.id}
                     post={p}
+                    text={textStyles}
                     priority={!showFeatured && i < 3}
                   />
                 ))}

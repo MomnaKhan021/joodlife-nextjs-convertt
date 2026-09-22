@@ -128,11 +128,11 @@ export default function BlogCarousel({
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/60" />
               <div className="relative z-10 flex h-full flex-col justify-between p-6 md:p-8">
-                <span className="inline-flex w-fit items-center rounded-full bg-white/25 px-3 py-1.5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm md:text-[14px]">
+                <span {...textStyleProps(text.blogCardTag)} className="inline-flex w-fit items-center rounded-full bg-white/25 px-3 py-1.5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm md:text-[14px]">
                   {post.tag}
                 </span>
                 <div className="flex flex-col gap-4 rounded-xl bg-black/20 p-5 backdrop-blur-md md:p-6">
-                  <h3 className="font-ui text-[17px] font-semibold leading-[22px] text-white md:text-[19px] md:leading-[24px]">
+                  <h3 {...textStyleProps(text.blogCardTitle)} className="font-ui text-[17px] font-semibold leading-[22px] text-white md:text-[19px] md:leading-[24px]">
                     {post.title}
                   </h3>
                   <span className="inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white/15 px-6 font-ui text-[13px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/25 backdrop-blur-sm transition-colors duration-200 group-hover:bg-white group-hover:text-[#142e2a] md:h-12 md:text-[14px]">

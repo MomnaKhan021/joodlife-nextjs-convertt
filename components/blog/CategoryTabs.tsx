@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 type Category = { slug: string; label: string; count: number };
 
@@ -9,10 +10,13 @@ type Category = { slug: string; label: string; count: number };
  * no JS needed.
  */
 export default function CategoryTabs({
+  text,
   categories,
   active,
   basePath,
 }: {
+  /** Per-text size and weight from the blog page. */
+  text?: Partial<Record<string, TextStyle>>;
   categories: Category[];
   active: string | null;
   basePath: string;
@@ -26,7 +30,11 @@ export default function CategoryTabs({
       aria-label="Blog categories"
       className="flex flex-wrap items-center justify-center gap-2 md:gap-3"
     >
-      <Pill href={basePath} active={active === null}>
+      <Pill
+        href={basePath}
+        active={active === null}
+        style={textStyleProps(text?.["categoryTab"]).style}
+      >
         All articles
       </Pill>
       {categories.map((c) => (
@@ -34,6 +42,7 @@ export default function CategoryTabs({
           key={c.slug}
           href={`${basePath}?category=${encodeURIComponent(c.slug)}`}
           active={active === c.slug}
+          style={textStyleProps(text?.["categoryTab"]).style}
         >
           {c.label}
         </Pill>
@@ -46,10 +55,13 @@ function Pill({
   href,
   active,
   children,
+  style,
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
+  /** CMS size/weight; one setting covers every tab. */
+  style?: React.CSSProperties;
 }) {
   const cls = active
     ? "bg-[#142e2a] text-white"
@@ -57,6 +69,7 @@ function Pill({
   return (
     <Link
       href={href}
+      style={style}
       className={`inline-flex shrink-0 items-center rounded-full px-5 py-2.5 font-ui text-[14px] font-medium transition ${cls}`}
     >
       {children}

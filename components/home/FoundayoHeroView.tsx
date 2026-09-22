@@ -126,7 +126,7 @@ function FoundayoCard({
                 <span className="text-[#d27d6a]">
                   <Icon />
                 </span>
-                <span className="whitespace-pre-line font-ui text-[12px] font-medium leading-[1.25] text-[#142e2a] md:text-[13px]">
+                <span {...textStyleProps(text.heroFeature)} className="whitespace-pre-line font-ui text-[12px] font-medium leading-[1.25] text-[#142e2a] md:text-[13px]">
                   {f.label}
                 </span>
               </li>

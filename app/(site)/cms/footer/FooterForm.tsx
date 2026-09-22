@@ -15,6 +15,7 @@ import SectionControl from "../SectionControl";
 import { AreaField, TextField } from "../FormKit";
 import type { FooterTextKey, TextStyle } from "@/lib/textStyle";
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
+import TypeControl from "../TypeControl";
 
 /** Editor for the site footer: link columns, contact card, newsletter, legal. */
 export default function FooterForm({ initial }: { initial: FooterContent }) {
@@ -106,6 +107,20 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
             </div>
             {/* The footer is one band, so its appearance sits on its first card. */}
             <SectionControl sectionKey="footer" value={style} onChange={setStyle} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["columnTitle", "Column titles"],
+                ["linkLabel", "Link labels"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>

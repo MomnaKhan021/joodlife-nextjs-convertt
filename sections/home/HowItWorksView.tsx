@@ -93,10 +93,10 @@ export default function HowItWorksView({
                 <span className="inline-flex items-center rounded-full bg-[#142e2a]/[0.06] px-4 py-1.5 font-ui text-[13px] font-medium text-[#142e2a]">
                   {step.step}
                 </span>
-                <h3 className="font-display text-[22px] font-semibold leading-[26px] text-[#142e2a] md:text-[25px]">
+                <h3 {...textStyleProps(text.hiwStepTitle)} className="font-display text-[22px] font-semibold leading-[26px] text-[#142e2a] md:text-[25px]">
                   {step.title}
                 </h3>
-                <p className="max-w-[34ch] font-ui text-[15px] leading-[21px] text-[#142e2a]/80 md:text-[16px]">
+                <p {...textStyleProps(text.hiwStepBody)} className="max-w-[34ch] font-ui text-[15px] leading-[21px] text-[#142e2a]/80 md:text-[16px]">
                   {step.copy}
                 </p>
               </div>

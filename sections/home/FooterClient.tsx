@@ -81,13 +81,21 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
-function FooterLinks({ items }: { items: FooterLink[] }) {
+function FooterLinks({
+  items,
+  linkStyle,
+}: {
+  items: FooterLink[];
+  /** CMS size/weight; one setting covers every link. */
+  linkStyle?: React.CSSProperties;
+}) {
   return (
     <ul className="flex flex-col gap-3 md:gap-[14px]">
       {items.map((l) => (
         <li key={l.label}>
           <a
             href={l.href}
+            style={linkStyle}
             {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             className="inline-block font-ui text-[15px] leading-[20px] tracking-[-0.02em] text-white/85 transition-colors duration-200 hover:text-white md:text-[16.3px]"
           >
@@ -102,9 +110,15 @@ function FooterLinks({ items }: { items: FooterLink[] }) {
 function AccordionColumn({
   title,
   items,
+  titleStyle,
+  linkStyle,
 }: {
   title: string;
   items: FooterLink[];
+  /** CMS size/weight for every column title. */
+  titleStyle?: React.CSSProperties;
+  /** CMS size/weight for every link in the column. */
+  linkStyle?: React.CSSProperties;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -115,7 +129,10 @@ function AccordionColumn({
         aria-expanded={open}
         className="flex w-full cursor-pointer items-center justify-between py-4 lg:!cursor-default lg:py-0"
       >
-        <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
+        <h3
+          style={titleStyle}
+          className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]"
+        >
           {title}
         </h3>
         <span className="lg:hidden">
@@ -129,7 +146,7 @@ function AccordionColumn({
       >
         <div className="overflow-hidden">
           <div className="pb-5 lg:pb-0">
-            <FooterLinks items={items} />
+            <FooterLinks items={items} linkStyle={linkStyle} />
           </div>
         </div>
       </div>
@@ -293,9 +310,24 @@ export default function Footer(props: FooterProps = {}) {
             </div>
 
             <div className="flex flex-1 flex-col lg:grid lg:grid-cols-4 lg:gap-8 lg:pl-6 lg:gap-10">
-              <AccordionColumn title="Jood" items={JOOD_LINKS} />
-              <AccordionColumn title="Treatments" items={TREATMENTS} />
-              <AccordionColumn title="Policy" items={POLICY} />
+              <AccordionColumn
+              title="Jood"
+              items={JOOD_LINKS}
+              titleStyle={textStyleProps(textStyles.columnTitle).style}
+              linkStyle={textStyleProps(textStyles.linkLabel).style}
+            />
+              <AccordionColumn
+              title="Treatments"
+              items={TREATMENTS}
+              titleStyle={textStyleProps(textStyles.columnTitle).style}
+              linkStyle={textStyleProps(textStyles.linkLabel).style}
+            />
+              <AccordionColumn
+              title="Policy"
+              items={POLICY}
+              titleStyle={textStyleProps(textStyles.columnTitle).style}
+              linkStyle={textStyleProps(textStyles.linkLabel).style}
+            />
               <SocialColumn />
             </div>
 

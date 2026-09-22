@@ -116,6 +116,13 @@ export function mergeTextStyles<K extends string>(
 
 /** The home-page texts that carry their own size/weight control. */
 export const HOME_TEXT_KEYS = [
+  "faqQuestion",
+  "faqAnswer",
+  "hiwStepTitle",
+  "hiwStepBody",
+  "heroFeature",
+  "blogCardTitle",
+  "blogCardTag",
   "heroBadge",
   "heroTitle",
   "heroTitleEmphasis",
@@ -141,6 +148,8 @@ export type HomeTextKey = (typeof HOME_TEXT_KEYS)[number];
 
 /** The footer texts that carry their own size/weight control. */
 export const FOOTER_TEXT_KEYS = [
+  "columnTitle",
+  "linkLabel",
   "contactHeading",
   "phone",
   "newsletterHeading",
@@ -289,6 +298,9 @@ export type SupportTextKey = (typeof SUPPORT_TEXT_KEYS)[number];
 
 /** Per-text keys for the blog listing page, derived from the editor's bindings. */
 export const BLOG_PAGE_TEXT_KEYS = [
+  "categoryTab",
+  "cardTitle",
+  "cardExcerpt",
   "hero.title",
   "hero.titleAccent",
   "hero.body",

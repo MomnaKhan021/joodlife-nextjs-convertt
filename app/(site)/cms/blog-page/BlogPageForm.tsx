@@ -9,7 +9,7 @@ import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import type { BlogPageStyleKey, SectionStyle } from "@/lib/sectionStyle";
-import { LabelRow, TextStyleCtx } from "../TextStyleContext";
+import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
 import type { TextStyle } from "@/lib/textStyle";
 
 /**
@@ -195,6 +195,21 @@ export default function BlogPageForm({
         <div className={card}>
           <div className="-mb-2 flex justify-end">
             <SectionControl sectionKey="list" value={styles.list} onChange={setStyle("list")} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["categoryTab", "Category tabs"],
+                ["cardTitle", "Card titles"],
+                ["cardExcerpt", "Card intros"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <Ts k={k} label={lbl} />
+              </span>
+            ))}
           </div>
           <div>
             <h2 className="text-[15px] font-medium text-[#1a1a1a]">

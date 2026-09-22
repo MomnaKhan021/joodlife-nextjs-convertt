@@ -22,6 +22,7 @@ import {
   type HomeStyleKey,
   type SectionStyle,
 } from "@/lib/sectionStyle";
+import TypeControl from "../TypeControl";
 
 /**
  * Editor for the home page sections.
@@ -226,6 +227,19 @@ export default function SectionsForm({
                 onChange={setStyle("hero")}
               />
             </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["heroFeature", "Feature labels"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
+          </div>
             <button
               type="button"
               onClick={() =>
@@ -556,6 +570,20 @@ export default function SectionsForm({
                 onChange={setStyle("howItWorks")}
               />
             </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["hiwStepTitle", "Step titles"],
+                ["hiwStepBody", "Step text"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
+          </div>
             <button
               type="button"
               onClick={() =>
@@ -633,6 +661,20 @@ export default function SectionsForm({
                 onChange={setStyle("faq")}
               />
             </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["faqQuestion", "Questions"],
+                ["faqAnswer", "Answers"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
+          </div>
             <button
               type="button"
               onClick={() => setFaqs([...faqs, { q: "", a: "" }])}
@@ -713,6 +755,20 @@ export default function SectionsForm({
               value={styles.blog}
               onChange={setStyle("blog")}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["blogCardTitle", "Card titles"],
+                ["blogCardTag", "Card tags"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl label={lbl} value={textStyles[k]} onChange={setText(k)} />
+              </span>
+            ))}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
