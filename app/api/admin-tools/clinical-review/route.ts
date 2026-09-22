@@ -324,7 +324,16 @@ export async function GET(req: NextRequest) {
     // pre-dispatch review, so once the order is shipped/dispatched/delivered
     // (or was cancelled/refunded) the consultation no longer belongs here — it
     // was lingering only because nothing excluded a fulfilled order.
-    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND LOWER(COALESCE(o.status::text, '')) NOT IN ('shipped','dispatched','delivered','cancelled','refunded') AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""})`;
+    // A consultation belongs in Clinical Check only if it is the questionnaire
+    // session that actually produced a paid order. Previously this matched ANY
+    // paid order for the email, so once a patient ordered even once, every
+    // earlier abandoned questionnaire they had ever filled (same email) showed
+    // up too. Now each paid order is attributed to the LATEST consultation at
+    // or before it: an abandoned fill has a newer consultation sitting between
+    // it and the order, so it no longer qualifies — it stays an abandoned
+    // checkout (marketing queue) instead. (30-minute grace on the lower bound
+    // absorbs clock skew between the consultation row and the checkout.)
+    const paidOrderExists = `EXISTS (SELECT 1 FROM "orders" o WHERE LOWER(o.customer_email) = LOWER("consultations".email) AND LOWER(COALESCE(o.payment_status::text, '')) = 'paid' AND LOWER(COALESCE(o.status::text, '')) NOT IN ('shipped','dispatched','delivered','cancelled','refunded') AND (COALESCE(o.total_amount, 0) > 0 OR COALESCE(CAST(o.notes AS TEXT),'') ILIKE '%Card verified%')${orderHide ? ` AND ${orderHide}` : ""} AND o.created_at >= "consultations".created_at - interval '30 minutes' AND NOT EXISTS (SELECT 1 FROM "consultations" c2 WHERE LOWER(c2.email) = LOWER("consultations".email) AND c2.created_at > "consultations".created_at AND c2.created_at <= o.created_at))`;
     // A consultation that has already been dispatched has left the clinical
     // pipeline entirely (Clinical Check -> To Dispatch -> Dispatched). Dispatch
     // state is stamped on the CONSULTATION itself, so exclude any consultation
@@ -560,6 +569,7 @@ export async function GET(req: NextRequest) {
         reviewedAt: answers._reviewed_at ?? null,
         orderTotal: null as number | null,
         orderNumber: null as string | null,
+        orderCount: 0,
         // History-aware "returning customer" flag (set below from order count).
         // Drives only the New Supply / Reorder PILL — not the tab placement.
         isRepeatCustomer: isReorder,
@@ -649,6 +659,7 @@ export async function GET(req: NextRequest) {
           if (typeof total === "number") c.orderTotal = total;
           const on = orderNumByEmail[key];
           if (on) c.orderNumber = on;
+          c.orderCount = realOrderCount[key] ?? 0;
           // Returning customer → Reorder pill (unless already a reorder form).
           if ((realOrderCount[key] ?? 0) >= 2) c.isRepeatCustomer = true;
         }

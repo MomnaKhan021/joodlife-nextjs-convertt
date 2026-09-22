@@ -26,6 +26,7 @@ import { NextResponse, type NextRequest, after } from "next/server";
 import { getPayloadInstance } from "@/lib/payload";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { sendOrderConfirmationOnce } from "@/lib/orderConfirmationOnce";
+import { sendOrderCancelledEmail } from "@/lib/account-email";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -285,17 +286,51 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "charge.refunded": {
-        const charge = event.data.object as { payment_intent?: string | null };
-        if (!charge.payment_intent) break;
-        await drizzle.execute(
+        // Fires for refunds made anywhere — our admin's Refund button (which
+        // has already recorded + emailed) and refunds made directly in the
+        // Stripe dashboard. `refunded` is true only once the charge is FULLY
+        // refunded; a partial refund leaves the order untouched.
+        const charge = event.data.object as {
+          payment_intent?: string | null;
+          refunded?: boolean;
+        };
+        if (!charge.payment_intent || charge.refunded === false) break;
+        const changed = (await drizzle.execute(
           sql.raw(
             `UPDATE "orders"
              SET payment_status = 'refunded',
                  status = 'cancelled',
                  updated_at = now()
-             WHERE stripe_payment_intent_id = ${esc(charge.payment_intent)}`
+             WHERE stripe_payment_intent_id = ${esc(charge.payment_intent)}
+               AND LOWER(COALESCE(payment_status::text, '')) <> 'refunded'
+             RETURNING id, order_number, customer_name, customer_email, total_amount, items_json`
           )
-        );
+        )) as { rows?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+        const rows = Array.isArray(changed) ? changed : (changed.rows ?? []);
+        // Only when THIS event did the marking (a refund from our admin has
+        // already set it and sent the emails) — never a second email.
+        for (const o of rows) {
+          after(async () => {
+            try {
+              const payload = await getPayloadInstance();
+              await sendOrderCancelledEmail(payload, {
+                email: o.customer_email as string | null,
+                name: o.customer_name as string | null,
+                orderNumber: String(o.order_number ?? `#${o.id}`),
+                orderId: o.id as number,
+                total: Number(o.total_amount ?? 0) || 0,
+                refunded: true,
+                viaStripe: true,
+                items: Array.isArray(o.items_json)
+                  ? (o.items_json as Array<{ title?: unknown; dose?: unknown; quantity?: unknown }>)
+                  : null,
+                actor: "Stripe dashboard",
+              });
+            } catch (e) {
+              console.error("[stripe-webhook] refund emails failed", e);
+            }
+          });
+        }
         break;
       }
       default:

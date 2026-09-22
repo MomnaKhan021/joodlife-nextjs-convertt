@@ -81,7 +81,7 @@ type SpecRow = {
   // Abandoned Checkout queue instead. The rows stay in the database — this is
   // a display filter, like the legacy-data hide.
   const REAL_ORDER_SQL =
-    "(LOWER(COALESCE(payment_status::text,'')) = 'paid'" +
+    "(LOWER(COALESCE(payment_status::text,'')) IN ('paid','refunded')" +
     " OR COALESCE(CAST(notes AS TEXT),'') ILIKE 'Auto-created on clinical approval%'" +
     " OR LOWER(COALESCE(status::text,'')) IN ('shipped','delivered')" +
     " OR COALESCE(CAST(notes AS TEXT),'') ILIKE '%DPD tracking:%')";
