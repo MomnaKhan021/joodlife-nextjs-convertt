@@ -68,7 +68,7 @@ export type CategoryDetail = {
 export const DEFAULT_DETAILS: Record<CategoryKey, CategoryDetail> = {
   "weight-loss": {
     card1Title:
-      "New Oral Treatment Available\nPart of Jood's **clinician-led care**",
+      "New Oral Treatment Available\nPart of Jood’s **clinician-led care**",
     card1Body:
       "A new oral treatment option, available following an **individual clinical assessment**.",
     card1Features: [

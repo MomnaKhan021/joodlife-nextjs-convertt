@@ -44,6 +44,9 @@ export default function EdReviews({
   /** Per-text size and weight, keyed by section.field. */
   text?: Partial<Record<string, TextStyle>>;
 }) {
+  // Same split as the hero row: score semibold, the rest lighter.
+  const [reviewsScore, ...reviewsRest] = content.reviewsLabel.split(" ");
+  const reviewsTail = reviewsRest.join(" ");
   const REVIEWS = content.reviews;
   const trackRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
@@ -87,7 +90,15 @@ export default function EdReviews({
               <span className="text-[#00b67a]">★</span> Trustpilot
             </span>
             <Stars />
-            <span {...textStyleProps(text?.["reviews.reviewsLabel"])} className="font-semibold">{content.reviewsLabel}</span>
+            <span {...textStyleProps(text?.["reviews.reviewsLabel"])} className="font-semibold">
+              {reviewsScore}
+              {reviewsTail ? (
+                <>
+                  {" "}
+                  <span className="font-normal text-[#142e2a]/60">{reviewsTail}</span>
+                </>
+              ) : null}
+            </span>
           </div>
 
           <h2 {...textStyleProps(text?.["reviews.heading"])}

@@ -211,7 +211,7 @@ export type WeightLossDetailContent = {
 };
 
 export default function WeightLossDetail({
-  card1Title = "New Oral Treatment Available\nPart of Jood's **clinician-led care**",
+  card1Title = "New Oral Treatment Available\nPart of Jood’s **clinician-led care**",
   card1Body = "A new oral treatment option, available following an **individual clinical assessment**.",
   card1Features,
   card1Cta = 'Learn More',

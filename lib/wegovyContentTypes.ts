@@ -216,7 +216,7 @@ export const WEGOVY_DEFAULT: WegovyContent = {
     heading: "What is the",
     headingAccent: "Wegovy Tablet?",
     kicker: "Daily oral weight-loss treatment.",
-    body: "The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist that works with your body’s natural appetite signals to help reduce hunger, increase fullness and support sustainable weight loss alongside healthy lifestyle changes.",
+    body: "The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist that works with your body's natural appetite signals to help reduce hunger, increase fullness and support sustainable weight loss alongside healthy lifestyle changes.",
     ctaLabel: "Start Your Assessment",
     ctaHref: ASSESS,
     cards: [
@@ -266,14 +266,14 @@ export const WEGOVY_DEFAULT: WegovyContent = {
     heading: "How the",
     headingAccent: "Wegovy Tablet Works",
     intro:
-      "The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist that works with your body’s natural appetite hormones to support weight loss. Helps to:",
+      "The Wegovy tablet contains semaglutide, a GLP-1 receptor agonist that works with your body's natural appetite hormones to support weight loss. Helps to:",
     callouts: [
       "Reduce food\ncravings",
       "Increase feelings\nof fullness",
       "Slow stomach\nemptying",
       "Help regulate\nappetite",
     ],
-    body: "Like the Wegovy injection, the tablet contains semaglutide. The difference is simply how it’s taken — one as a daily tablet and the other as a once-weekly injection.",
+    body: "Like the Wegovy injection, the tablet contains semaglutide. The difference is simply how it's taken — one as a daily tablet and the other as a once-weekly injection.",
     ctaLabel: "Check Your Eligibility",
     ctaHref: ASSESS,
     secondaryLabel: "Learn More",

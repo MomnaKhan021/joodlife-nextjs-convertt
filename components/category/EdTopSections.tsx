@@ -33,6 +33,11 @@ function Trustpilot({
   labelStyle?: React.CSSProperties;
   dark?: boolean;
 }) {
+  // The score carries the weight; the rest of the line is set lighter. One
+  // editable field, still drawn with the contrast it has always had.
+  const [score, ...rest] = label.split(" ");
+  const tail = rest.join(" ");
+
   return (
     <div
       className={`flex items-center gap-2 font-ui text-[13px] ${
@@ -58,7 +63,19 @@ function Trustpilot({
           dark ? "font-semibold text-white" : "font-semibold text-[#142e2a]"
         }
       >
-        {label}
+        {score}
+        {tail ? (
+          <>
+            {" "}
+            <span
+              className={
+                dark ? "font-normal text-white/70" : "font-normal text-[#142e2a]/60"
+              }
+            >
+              {tail}
+            </span>
+          </>
+        ) : null}
       </span>
     </div>
   );
