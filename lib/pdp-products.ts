@@ -350,3 +350,43 @@ export const PDP_PRODUCTS: Record<string, PDPProduct> = {
 };
 
 export const PDP_FAQS = SHARED_FAQS;
+
+/**
+ * The page template for a product that has no entry above.
+ *
+ * Products are added in the dashboard; this file is code. When the two drift
+ * apart the page used to borrow Mounjaro's content, which meant a page could
+ * describe the wrong medicine — a once-weekly injection pen on a page selling
+ * a daily tablet, under the heading "What is Mounjaro?".
+ *
+ * So a product without its own copy gets none. The generic chrome stays (the
+ * service chips and trust line say nothing about a specific drug), and every
+ * drug-specific field is empty: the page renders the title, images, doses and
+ * prices from the product record, and the sections that would describe the
+ * medicine are skipped entirely until someone qualified writes them.
+ */
+export function blankEditorial(title: string): PDPProduct {
+  return {
+    slug: "mounjaro", // unused: mergePdp takes the real slug from the record
+    title,
+    italicWord: "",
+    ratingLabel: "",
+    lede: "",
+    gallery: [],
+    features: SHARED_FEATURES,
+    dosages: [],
+    fromPrice: "",
+    serviceChips: SHARED_SERVICE_CHIPS,
+    trustLine: [],
+    whatIsTitle: "",
+    whatIsBody: "",
+    whatIsCallout: "",
+    whatIsBullets: [],
+    graph: { points: [], minWeight: 0, maxWeight: 0, yLabels: [], xLabels: [], callout: "" },
+    safetyTitle: "",
+    safetyBody: "",
+    safetySideEffects: "",
+    accordions: [],
+    comparisonActive: "mounjaro", // unused: the comparison is skipped too
+  };
+}

@@ -16,7 +16,7 @@ import ComparisonTable from "@/components/pdp/ComparisonTable";
 import SafetyFaq from "@/components/pdp/SafetyFaq";
 
 import { getStorefrontProduct, type StorefrontProduct } from "@/lib/products";
-import { PDP_PRODUCTS, type PDPProduct } from "@/lib/pdp-products";
+import { PDP_PRODUCTS, blankEditorial, type PDPProduct } from "@/lib/pdp-products";
 
 // Render on demand: the product's images, variants, and prices come from the
 // dashboard (DB), so edits appear immediately and the build never needs a DB.
@@ -115,9 +115,13 @@ export default async function ProductPage({ params }: Params) {
   // Neither in the DB nor in editorial content → genuine 404.
   if (!dbProduct && !content) notFound();
 
-  // Editorial template for the non-CMS sections: the slug's own content, or
-  // a known one so a dashboard-added product still renders a complete page.
-  const editorial = content ?? PDP_PRODUCTS.mounjaro;
+  // A product added in the dashboard has no editorial entry here. It used to
+  // borrow Mounjaro's, which meant a page could describe the wrong medicine —
+  // so instead it gets a blank template: the generic chrome (service chips,
+  // trust line) stays, and every drug-specific section is left empty and is
+  // skipped below.
+  const editorial = content ?? blankEditorial(dbProduct?.title ?? slug);
+  const hasOwnContent = !!content;
   const product = dbProduct ? mergePdp(dbProduct, editorial) : editorial;
   const productId = dbProduct?.id;
 
@@ -146,34 +150,41 @@ export default async function ProductPage({ params }: Params) {
       <UspStrip />
 
       {/* ──────────────  What is X? + animated graph  ────────────── */}
-      <section
-        aria-label={`What is ${product.title}?`}
-        className="w-full bg-white py-[30px] md:py-10"
-      >
-        <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-          <WhatIsSection product={product} />
-        </div>
-      </section>
+      {/* These three describe a specific medicine, so they appear only for a
+          product that has its own copy. Better a shorter page than one
+          describing something else. */}
+      {hasOwnContent ? (
+        <>
+          <section
+            aria-label={`What is ${product.title}?`}
+            className="w-full bg-white py-[30px] md:py-10"
+          >
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <WhatIsSection product={product} />
+            </div>
+          </section>
 
-      {/* ──────────────  Evidence-based comparison  ────────────── */}
-      <section
-        aria-label="Comparison of GLP-1 treatments"
-        className="w-full bg-white py-[30px] md:py-10"
-      >
-        <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-          <ComparisonTable active={product.comparisonActive} />
-        </div>
-      </section>
+          {/* ──────────────  Evidence-based comparison  ────────────── */}
+          <section
+            aria-label="Comparison of GLP-1 treatments"
+            className="w-full bg-white py-[30px] md:py-10"
+          >
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <ComparisonTable active={product.comparisonActive} />
+            </div>
+          </section>
 
-      {/* ──────────────  Is X safe? + FAQ  ────────────── */}
-      <section
-        aria-label={`Is ${product.title} safe?`}
-        className="w-full bg-white py-[30px] md:py-10"
-      >
-        <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
-          <SafetyFaq product={product} />
-        </div>
-      </section>
+          {/* ──────────────  Is X safe? + FAQ  ────────────── */}
+          <section
+            aria-label={`Is ${product.title} safe?`}
+            className="w-full bg-white py-[30px] md:py-10"
+          >
+            <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
+              <SafetyFaq product={product} />
+            </div>
+          </section>
+        </>
+      ) : null}
 
       {/* ──────────────  Shared sections (reuse home blocks)  ────────────── */}
       <Reviews />
