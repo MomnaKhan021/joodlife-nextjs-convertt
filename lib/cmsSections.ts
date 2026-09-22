@@ -17,6 +17,7 @@
  * because they happen to share a grant.
  */
 
+import { blogCmsEnabled } from "./cmsFlags";
 import type { SectionKey } from "./adminSections";
 
 /** Whether the underlying feature is actually built yet. */
@@ -230,10 +231,21 @@ export const CMS_NAV: CmsNavItem[] = [
   },
 ];
 
+/**
+ * The registry minus anything switched off. Every lookup goes through this
+ * rather than CMS_NAV, so a disabled section is invisible to the sidebar, the
+ * overview, the path guard and the "where do I send this user" fallback at
+ * once — there is no list left over for one of them to read.
+ */
+export function activeCmsNav(): CmsNavItem[] {
+  if (blogCmsEnabled()) return CMS_NAV;
+  return CMS_NAV.filter((i) => i.group !== "blog");
+}
+
 /** Every permission key that grants some part of the CMS. */
-export const CMS_SECTION_KEYS: SectionKey[] = Array.from(
-  new Set(CMS_NAV.map((i) => i.key)),
-);
+export function cmsSectionKeys(): SectionKey[] {
+  return Array.from(new Set(activeCmsNav().map((i) => i.key)));
+}
 
 /**
  * Resolve which permission key a /cms path needs.
@@ -248,10 +260,28 @@ export function sectionForCmsPath(
 ): SectionKey | "cms-home" | null {
   const p = path.replace(/\/+$/, "") || "/cms";
   if (p === "/cms") return "cms-home";
-  const hit = [...CMS_NAV]
+  const hit = [...activeCmsNav()]
     .sort((a, b) => b.match.length - a.match.length)
     .find((i) => p === i.match || p.startsWith(`${i.match}/`));
   return hit ? hit.key : null;
+}
+
+/**
+ * True if this path belongs to a section that is switched off.
+ *
+ * Kept separate from the permission checks because it answers a different
+ * question: not "may this person open it" but "does it exist right now".
+ * A switched-off section is closed to admins too, so this is derived from the
+ * registry rather than hardcoded — a section added to the blog group later is
+ * covered without anyone remembering to update a list of prefixes.
+ */
+export function isDisabledCmsPath(path: string): boolean {
+  const p = path.replace(/\/+$/, "") || "/cms";
+  const live = new Set(activeCmsNav().map((i) => i.match));
+  return CMS_NAV.some(
+    (i) =>
+      !live.has(i.match) && (p === i.match || p.startsWith(`${i.match}/`)),
+  );
 }
 
 /** True if this user may open the CMS at all. Admins → always. */
@@ -262,7 +292,7 @@ export function canAccessCms(
   if (role === "admin") return true;
   if (role !== "staff") return false;
   const perms = permissions ?? [];
-  return CMS_SECTION_KEYS.some((k) => perms.includes(k));
+  return cmsSectionKeys().some((k) => perms.includes(k));
 }
 
 /** True if this user may open one specific CMS path. */
@@ -283,9 +313,10 @@ export function visibleCmsNav(
   role: string,
   permissions: string[] | undefined,
 ): CmsNavItem[] {
-  if (role === "admin") return CMS_NAV;
+  const nav = activeCmsNav();
+  if (role === "admin") return nav;
   const perms = permissions ?? [];
-  return CMS_NAV.filter((i) => perms.includes(i.key));
+  return nav.filter((i) => perms.includes(i.key));
 }
 
 export type CmsNavGroup = {

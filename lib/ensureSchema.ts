@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Payload } from "payload";
 
+import { blogCmsEnabled } from "./cmsFlags";
+
 /**
  * Repair the database schema to match the Payload collections.
  *
@@ -489,7 +491,15 @@ const STATEMENTS: string[] = [
   // conversion that is safe to re-run. The enum type is left behind rather
   // than dropped - nothing else references it, and dropping types is not
   // something this repair does.
-  `DO $$
+  //
+  // This is the ONLY statement in the list that changes an existing column
+  // rather than adding something, so it runs only when the blog CMS is
+  // switched on — which is also the only time a category outside the enum can
+  // be created. With the switch off, `posts.category` keeps the exact type it
+  // has today and this list stays purely additive.
+  ...(blogCmsEnabled()
+    ? [
+        `DO $$
    BEGIN
      IF EXISTS (
        SELECT 1 FROM information_schema.columns
@@ -500,6 +510,8 @@ const STATEMENTS: string[] = [
        ALTER TABLE "posts" ALTER COLUMN "category" TYPE varchar USING "category"::text;
      END IF;
    END $$`,
+      ]
+    : []),
 
   // The editable list itself.
   "CREATE TABLE IF NOT EXISTS \"blog_categories\" (\"id\" serial, \"items\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
@@ -543,7 +555,11 @@ let ensured = false;
 // The CMS branch had reached v26 separately. v27 is the merge of both lists
 // and sits above either side, so a database on either re-applies the full
 // additive set once.
-const SCHEMA_VERSION = "v38";
+// v39 carries the blog switch in the version itself. The statement list
+// differs between the two states, so a shared version would let a database
+// that was repaired with the blog CMS off take the fast path afterwards and
+// never apply the one statement turning it on adds.
+const SCHEMA_VERSION = blogCmsEnabled() ? "v39-blog" : "v39";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

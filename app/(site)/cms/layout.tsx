@@ -7,6 +7,7 @@ import {
   canAccessCms,
   canAccessCmsPath,
   firstAllowedCmsHref,
+  isDisabledCmsPath,
   sectionForCmsPath,
 } from "@/lib/cmsSections";
 import CmsShell from "./CmsShell";
@@ -20,7 +21,8 @@ export const dynamic = "force-dynamic";
  * Gate order mirrors /admin-tools:
  *   1. signed out            → /login?next=…
  *   2. customers             → / (the CMS is staff-only)
- *   3. staff without a grant → their first allowed CMS page
+ *   3. a switched-off section → /cms (applies to admins too)
+ *   4. staff without a grant → their first allowed CMS page
  */
 export default async function CmsLayout({
   children,
@@ -33,12 +35,18 @@ export default async function CmsLayout({
   // Customers (and any unknown role) never see the CMS.
   if (!canAccessCms(user.role, user.permissions)) redirect("/");
 
-  // Per-section guard for staff. Admins pass everything. The current path
-  // is forwarded by middleware as x-admin-pathname, since layouts can't
-  // read the pathname from props.
+  // The current path is forwarded by middleware as x-admin-pathname, since
+  // layouts can't read the pathname from props.
+  const h = await headers();
+  const path = h.get("x-admin-pathname") ?? "/cms";
+
+  // A switched-off section is closed to everyone, admins included. The nav
+  // already hides it; this is what stops a bookmarked or typed URL from
+  // walking straight into an editor that is meant to be unavailable.
+  if (isDisabledCmsPath(path)) redirect("/cms");
+
+  // Per-section permission guard for staff. Admins pass everything.
   if (user.role === "staff") {
-    const h = await headers();
-    const path = h.get("x-admin-pathname") ?? "/cms";
     const section = sectionForCmsPath(path);
     if (!canAccessCmsPath(user.role, user.permissions, section)) {
       redirect(firstAllowedCmsHref(user.role, user.permissions));

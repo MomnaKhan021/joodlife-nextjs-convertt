@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { isAdmin } from "../access/isAdmin";
+import { blogCmsEnabled } from "@/lib/cmsFlags";
 
 /**
  * Blog posts.
@@ -118,7 +119,25 @@ export const Posts: CollectionConfig = {
       // /cms/blog-categories, and a select would compile the options into a
       // Postgres enum that rejects anything added later. The /cms editor
       // renders the dropdown from the live list instead.
-      type: "text",
+      //
+      // With the blog CMS switched off there is no editable list, so the
+      // field stays the select it has always been and the column stays the
+      // enum it has always been. The field type and the column type are
+      // decided by the same switch on purpose: a text field writing into an
+      // enum column is the failure this avoids.
+      ...(blogCmsEnabled()
+        ? { type: "text" as const }
+        : {
+            type: "select" as const,
+            options: [
+              { label: "Weight loss", value: "weight-loss" },
+              { label: "Nutrition", value: "nutrition" },
+              { label: "Lifestyle", value: "lifestyle" },
+              { label: "Science", value: "science" },
+              { label: "Company news", value: "company-news" },
+              { label: "Other", value: "other" },
+            ],
+          }),
       defaultValue: "weight-loss",
       admin: { position: "sidebar" },
     },

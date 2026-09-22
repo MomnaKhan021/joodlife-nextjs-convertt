@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
+import { blogCmsEnabled } from "@/lib/cmsFlags";
 import { canAccessCms } from "@/lib/cmsSections";
 import { getPayloadInstance } from "@/lib/payload";
 
@@ -25,6 +26,12 @@ export const dynamic = "force-dynamic";
  * duplicate or clobber anything.
  */
 export async function POST() {
+  // This is the one CMS endpoint that adds rows to `posts`, so it is closed
+  // whenever the blog CMS is switched off — before the sign-in check, because
+  // a route that does not exist should not report on who is asking.
+  if (!blogCmsEnabled()) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
