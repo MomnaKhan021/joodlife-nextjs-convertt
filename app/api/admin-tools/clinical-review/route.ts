@@ -569,6 +569,7 @@ export async function GET(req: NextRequest) {
         reviewedAt: answers._reviewed_at ?? null,
         orderTotal: null as number | null,
         orderNumber: null as string | null,
+        orderCount: 0,
         // History-aware "returning customer" flag (set below from order count).
         // Drives only the New Supply / Reorder PILL — not the tab placement.
         isRepeatCustomer: isReorder,
@@ -658,6 +659,7 @@ export async function GET(req: NextRequest) {
           if (typeof total === "number") c.orderTotal = total;
           const on = orderNumByEmail[key];
           if (on) c.orderNumber = on;
+          c.orderCount = realOrderCount[key] ?? 0;
           // Returning customer → Reorder pill (unless already a reorder form).
           if ((realOrderCount[key] ?? 0) >= 2) c.isRepeatCustomer = true;
         }
