@@ -51,12 +51,49 @@ async function readUtmAttribution(): Promise<Record<string, string> | null> {
     const jar = await nextCookies();
     const raw = jar.get("jl_utm")?.value;
     if (!raw) return null;
-    const obj = JSON.parse(decodeURIComponent(raw)) as Record<string, unknown>;
+    const obj = JSON.parse(raw) as Record<string, unknown>;
     const out: Record<string, string> = {};
     for (const [k, v] of Object.entries(obj)) {
       if (typeof v === "string" && v) out[k] = v.slice(0, 300);
     }
     return Object.keys(out).length ? out : null;
+  } catch {
+    return null;
+  }
+}
+
+type JourneyTouch = {
+  src?: string; med?: string; camp?: string; cont?: string; term?: string; land?: string; at?: string;
+};
+
+/** Build the conversion-journey summary from the jl_journey cookie: first
+ *  session source, total sessions, days to conversion and the converting
+ *  source. Stored on the consultation for the admin conversion view. */
+async function readJourney(): Promise<Record<string, unknown> | null> {
+  try {
+    const jar = await nextCookies();
+    const raw = jar.get("jl_journey")?.value;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { sessions?: JourneyTouch[] };
+    const sessions = Array.isArray(parsed?.sessions) ? parsed.sessions.filter((x) => x && typeof x === "object") : [];
+    if (sessions.length === 0) return null;
+    const first = sessions[0];
+    const converting = sessions[sessions.length - 1];
+    const firstAt = first.at ? new Date(first.at) : null;
+    const convertedAt = new Date();
+    const daysToConversion =
+      firstAt && !Number.isNaN(firstAt.getTime())
+        ? Math.max(0, Math.round((convertedAt.getTime() - firstAt.getTime()) / 86_400_000))
+        : 0;
+    return {
+      sessions: sessions.slice(0, 30),
+      totalSessions: sessions.length,
+      firstSource: first.src ?? "Direct",
+      firstAt: first.at ?? null,
+      convertedSource: converting.src ?? "Direct",
+      convertedAt: convertedAt.toISOString(),
+      daysToConversion,
+    };
   } catch {
     return null;
   }
@@ -280,10 +317,12 @@ export async function POST(req: NextRequest) {
   // Attach ad attribution captured on landing, unless the submission already
   // carries one (keeps the first attribution if the client sent it).
   const utm = await readUtmAttribution();
+  const journey = await readJourney();
 
   const answers: Record<string, unknown> = {
     ...(body.answers ?? {}),
     ...(utm && !(body.answers ?? {})._utm ? { _utm: utm } : {}),
+    ...(journey && !(body.answers ?? {})._journey ? { _journey: journey } : {}),
     ...(autoApproveReorder
       ? {
           _review_decision: "approved",

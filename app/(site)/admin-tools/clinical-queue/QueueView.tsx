@@ -56,6 +56,7 @@ export type Consultation = {
    *  order — not just the consultation ticket ref. Null when there's no order. */
   orderNumber?: string | null;
   answers: Record<string, unknown>;
+  orderCount?: number;
 };
 
 type TabKey = "booked" | "notbooked" | "reorder";
@@ -880,7 +881,7 @@ export function ConsultationCard({
               Submitted: {fmt(c.createdAt)}
               {c.productSlug ? ` · ${c.productSlug}` : ""}
             </p>
-            <AttributionLine answers={c.answers} />
+            <ConversionSummary answers={c.answers} orderCount={c.orderCount ?? 0} />
           </div>
           {/* Top-right actions: call time + Join call / reminder + Approve + Reject */}
           <div className="flex flex-col items-end gap-1.5">
@@ -1055,37 +1056,161 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "reorder", label: "Reorder" },
 ];
 
-/** Ad-attribution chip — where this consultation was driven from
- *  (utm_source / campaign / ad set / ad), captured on landing. */
-function AttributionLine({ answers }: { answers: Record<string, unknown> }) {
-  const utm = answers?._utm as Record<string, string> | undefined;
-  if (!utm || typeof utm !== "object") return null;
-  const source = utm.utm_source || (utm.fbclid ? "Facebook" : utm.gclid ? "Google" : "");
-  // campaign › ad set › ad, dropping blanks
-  const chain = [utm.utm_campaign, utm.utm_content, utm.utm_term]
-    .map((v) => (v || "").trim())
-    .filter(Boolean)
-    .join(" › ");
-  if (!source && !chain) return null;
-  const label = [source, chain].filter(Boolean).join(" · ");
+/* ------------------------------------------------------------------ */
+/* Conversion summary — where the patient came from + how they converted */
+/* ------------------------------------------------------------------ */
+
+type JourneyTouch = { src?: string; med?: string; camp?: string; cont?: string; term?: string; land?: string; at?: string };
+type Journey = {
+  sessions?: JourneyTouch[];
+  totalSessions?: number;
+  firstSource?: string;
+  firstAt?: string | null;
+  convertedSource?: string;
+  convertedAt?: string | null;
+  daysToConversion?: number;
+};
+
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
+}
+function convDate(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/** Compact conversion-summary block on the card, opening a details modal.
+ *  Sourced from answers._journey (session timeline) + answers._utm (campaign)
+ *  captured by components/analytics/UtmCapture. */
+function ConversionSummary({ answers, orderCount }: { answers: Record<string, unknown>; orderCount: number }) {
+  const [open, setOpen] = useState(false);
+  const j = (answers?._journey as Journey | undefined) ?? undefined;
+  const utm = (answers?._utm as Record<string, string> | undefined) ?? undefined;
+  if (!j && !utm && !orderCount) return null;
+
+  const total = j?.totalSessions ?? j?.sessions?.length ?? 0;
+  const firstSource = j?.firstSource || utm?.utm_source || "";
+  const days = j?.daysToConversion ?? 0;
+
+  const IconOrder = (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+  );
+  const IconFirst = (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><ellipse cx="12" cy="12" rx="9" ry="6" stroke="#374151" strokeWidth="1.6" /><text x="12" y="15" textAnchor="middle" fontSize="8" fill="#374151">1</text></svg>
+  );
+  const IconSessions = (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M4 20V10M9 20V4M14 20v-6M19 20v-9M3 20h18" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" /></svg>
+  );
+
   return (
-    <p
-      className="mt-0.5 flex items-center gap-1 text-[11px] text-[#6b7280]"
-      title={`Attribution: ${label}${utm.landing_path ? ` · landed on ${utm.landing_path}` : ""}`}
-    >
-      <span
-        aria-hidden
-        className="inline-block h-3.5 w-3.5 shrink-0"
+    <div className="mt-1.5 rounded-lg border border-[#e5e7eb] bg-[#fafafa] px-2.5 py-2">
+      <p className="text-[11px] font-semibold text-[#111827]">Conversion summary</p>
+      <ul className="mt-1 flex flex-col gap-1">
+        {orderCount >= 1 ? (
+          <li className="flex items-center gap-1.5 text-[12px] text-[#374151]">{IconOrder}This is their {ordinal(orderCount)} order</li>
+        ) : null}
+        {firstSource ? (
+          <li className="flex items-center gap-1.5 text-[12px] text-[#374151]">{IconFirst}1st session from {firstSource}</li>
+        ) : null}
+        {total ? (
+          <li className="flex items-center gap-1.5 text-[12px] text-[#374151]">{IconSessions}{total} session{total === 1 ? "" : "s"}{days ? ` over ${days} day${days === 1 ? "" : "s"}` : ""}</li>
+        ) : null}
+      </ul>
+      {(j || utm) ? (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+          className="mt-1.5 text-[12px] font-medium text-[#1450b0] hover:underline"
+        >
+          View conversion details
+        </button>
+      ) : null}
+      {open ? <ConversionModal j={j} utm={utm} onClose={() => setOpen(false)} /> : null}
+    </div>
+  );
+}
+
+function ConversionModal({ j, utm, onClose }: { j?: Journey; utm?: Record<string, string>; onClose: () => void }) {
+  const sessions = j?.sessions ?? [];
+  const total = j?.totalSessions ?? sessions.length ?? 0;
+  const days = j?.daysToConversion ?? 0;
+  const firstSource = j?.firstSource || utm?.utm_source || "—";
+  const firstAt = j?.firstAt ?? sessions[0]?.at ?? null;
+  const convertedSource = j?.convertedSource || utm?.utm_source || firstSource;
+  const convertedAt = j?.convertedAt ?? null;
+  const returned = Math.max(0, total - 2);
+  const midStart = sessions.length > 2 ? sessions[1]?.at : null;
+  const midEnd = sessions.length > 2 ? sessions[sessions.length - 2]?.at : null;
+
+  const utmRows: [string, string][] = [];
+  if (utm) {
+    if (utm.utm_campaign) utmRows.push(["Campaign", utm.utm_campaign]);
+    if (utm.utm_source) utmRows.push(["Source", utm.utm_source]);
+    if (utm.utm_medium) utmRows.push(["Medium", utm.utm_medium]);
+    if (utm.utm_content) utmRows.push(["Content", utm.utm_content]);
+    if (utm.utm_term) utmRows.push(["Term", utm.utm_term]);
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[60] bg-black/40" onClick={(e) => { e.stopPropagation(); onClose(); }} aria-hidden />
+      <div
+        role="dialog"
+        aria-label="Conversion details"
+        onClick={(e) => e.stopPropagation()}
+        className="fixed left-1/2 top-1/2 z-[61] max-h-[85vh] w-[92vw] max-w-[600px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl bg-white shadow-2xl"
       >
-        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-          <path d="M3 11l18-8-8 18-2-8-8-2z" stroke="#1450b0" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-      <span className="truncate">
-        <span className="font-semibold text-[#1450b0]">{source || "Ad"}</span>
-        {chain ? <span className="text-[#6b7280]"> · {chain}</span> : null}
-      </span>
-    </p>
+        <div className="flex items-center justify-between border-b border-[#eee] bg-[#f7f7f7] px-5 py-3.5">
+          <h3 className="text-[16px] font-semibold text-[#111827]">Conversion details</h3>
+          <button type="button" aria-label="Close" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full text-[#6b7280] hover:bg-[#eee]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+          </button>
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-2 gap-4 rounded-xl bg-[#f3f4f6] p-4">
+            <div><p className="text-[13px] text-[#6b7280]">Total sessions</p><p className="text-[26px] font-bold text-[#111827]">{total}</p></div>
+            <div><p className="text-[13px] text-[#6b7280]">Days to conversion</p><p className="text-[26px] font-bold text-[#111827]">{days}</p></div>
+          </div>
+
+          <ul className="mt-4 flex flex-col">
+            <li className="flex items-start gap-3 border-b border-[#f0f0f0] py-3">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[#d1d5db] text-[11px] text-[#374151]">1</span>
+              <div><p className="text-[14px] font-semibold text-[#111827]">1st session from {firstSource}</p><p className="text-[13px] text-[#6b7280]">{convDate(firstAt)}</p></div>
+            </li>
+            {returned > 0 ? (
+              <li className="flex items-start gap-3 border-b border-[#f0f0f0] py-3">
+                <span className="mt-0.5 shrink-0 text-[#374151]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H8a5 5 0 0 0-5 5M3 18h13a5 5 0 0 0 5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+                <div><p className="text-[14px] font-semibold text-[#111827]">Returned {returned} time{returned === 1 ? "" : "s"}</p><p className="text-[13px] text-[#6b7280]">{convDate(midStart)}{midEnd && midEnd !== midStart ? ` – ${convDate(midEnd)}` : ""}</p></div>
+              </li>
+            ) : null}
+            <li className="flex items-start gap-3 py-3">
+              <span className="mt-0.5 shrink-0 text-[#374151]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" strokeWidth="1.6" /><path d="M8 2v4M16 2v4M9 14l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+              <div><p className="text-[14px] font-semibold text-[#111827]">Converted after a visit from {convertedSource}</p><p className="text-[13px] text-[#6b7280]">{convDate(convertedAt)}</p></div>
+            </li>
+          </ul>
+
+          {utmRows.length > 0 ? (
+            <div className="mt-5">
+              <p className="text-[14px] font-semibold text-[#111827]">UTM Parameters</p>
+              <dl className="mt-2">
+                {utmRows.map(([k, v]) => (
+                  <div key={k} className="flex gap-4 border-b border-[#f0f0f0] py-2.5">
+                    <dt className="w-[90px] shrink-0 text-[13px] font-semibold text-[#111827]">{k}</dt>
+                    <dd className="text-[13px] text-[#374151] break-words">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
+        </div>
+        <div className="flex justify-end border-t border-[#eee] px-5 py-3">
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#d1d5db] bg-white px-4 py-2 text-[13px] font-medium text-[#374151] hover:bg-[#f7f7f7]">Close</button>
+        </div>
+      </div>
+    </>
   );
 }
 
