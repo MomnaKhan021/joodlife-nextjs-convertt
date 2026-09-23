@@ -214,6 +214,31 @@ From the team at ${url}.`;
  * Two-factor login code — the "email code" alternative to an authenticator
  * app. Sent to an admin's own address; valid for a few minutes.
  */
+export async function sendLoginCodeEmail(
+  payload: Payload,
+  opts: { email: string; code: string; name?: string | null },
+): Promise<void> {
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const html = emailShell(
+    `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">Your JoodLife sign-in code</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       Hi ${escapeHtml(firstName)}, enter this code to sign in to JoodLife. It expires in 10 minutes.
+     </p>
+     <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px;color:#142e2a">${escapeHtml(opts.code)}</p>
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+       If you didn't request this, you can safely ignore this email.
+     </p>`,
+    { preheader: "Your JoodLife sign-in code" },
+  );
+  const text = `Your JoodLife sign-in code is ${opts.code}. It expires in 10 minutes. If you didn't request it, ignore this email.`;
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Your JoodLife sign-in code",
+    html,
+    text,
+  });
+}
+
 export async function sendTwoFactorCodeEmail(
   payload: Payload,
   opts: { email: string; code: string; name?: string | null },

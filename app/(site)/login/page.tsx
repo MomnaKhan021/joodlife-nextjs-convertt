@@ -1,10 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/sections/home/Footer";
-import LoginForm from "./LoginForm";
+import PasswordlessAuth from "@/components/auth/PasswordlessAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +12,13 @@ export const metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ next?: string | string[] }>;
+  searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
 };
 
 export default async function LoginPage({ searchParams }: Props) {
   const sp = await searchParams;
   const rawNext = Array.isArray(sp.next) ? sp.next[0] : sp.next;
+  const googleError = Array.isArray(sp.error) ? sp.error[0] : sp.error;
   const next =
     rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
       ? rawNext
@@ -47,24 +47,15 @@ export default async function LoginPage({ searchParams }: Props) {
           <div className="flex w-full flex-col items-center md:items-start">
             <header className="mb-8 w-full text-center md:text-left">
               <h1 className="font-display text-[28px] font-bold leading-[34px] tracking-[-0.01em] text-[#142e2a] md:text-[34px] md:leading-[40px]">
-                Login to your Account
+                Sign in to JoodLife
               </h1>
               <p className="mt-2 font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[15px] md:leading-[22px]">
-                See what is going on with your business
+                Continue with Google or a one-time email code.
               </p>
             </header>
 
-            <LoginForm redirectTo={next} />
+            <PasswordlessAuth redirectTo={next} googleError={googleError} />
 
-            <p className="mt-6 w-full text-center font-ui text-[14px] text-[#142e2a]/75">
-              Not Registered Yet?{" "}
-              <Link
-                href="/signup"
-                className="font-semibold text-[#142e2a] underline underline-offset-2 decoration-[1px] hover:text-[#0c2421]"
-              >
-                Create account
-              </Link>
-            </p>
           </div>
         </div>
       </section>

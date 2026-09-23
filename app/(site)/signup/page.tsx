@@ -1,10 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/sections/home/Footer";
-import SignupForm from "./SignupForm";
+import PasswordlessAuth from "@/components/auth/PasswordlessAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -36,24 +35,15 @@ export default function SignupPage() {
           <div className="flex w-full flex-col items-center md:items-start">
             <header className="mb-8 w-full text-center md:text-left">
               <h1 className="font-display text-[28px] font-bold leading-[34px] tracking-[-0.01em] text-[#142e2a] md:text-[34px] md:leading-[40px]">
-                Create Account
+                Create your account
               </h1>
               <p className="mt-2 font-ui text-[14px] leading-[20px] text-[#142e2a]/70 md:text-[15px] md:leading-[22px]">
-                See what is going on with your business
+                Continue with Google or a one-time email code — no password needed.
               </p>
             </header>
 
-            <SignupForm />
+            <PasswordlessAuth redirectTo="/profile" />
 
-            <p className="mt-6 w-full text-center font-ui text-[14px] text-[#142e2a]/75">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-semibold text-[#142e2a] underline underline-offset-2 decoration-[1px] hover:text-[#0c2421]"
-              >
-                Login Here
-              </Link>
-            </p>
           </div>
         </div>
       </section>
