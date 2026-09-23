@@ -51,6 +51,8 @@ export type HeroContent = {
   body?: string;
   features?: HeroFeatureProp[];
   ctaLabel?: string;
+  /** Shown instead of ctaLabel once a patient has ordered before. */
+  ctaLabelReturning?: string;
   ctaHref?: string;
   image?: string;
   /** Returning patients skip the questionnaire — see FoundayoCard. */
@@ -71,6 +73,7 @@ function FoundayoCard({
   body = "Foundayo® (oral tirzepatide) is a new weight management treatment option, available following clinician assessment.",
   features,
   ctaLabel = "Explore Foundayo",
+  ctaLabelReturning = "Reorder",
   ctaHref = "/consultation?product=weight-loss",
   image = "/assets/home/foundayo-pill.png",
   isReturningPatient = false,
@@ -80,7 +83,9 @@ function FoundayoCard({
   // rather than back through the questionnaire, matching the weight-loss
   // preview and the bottom CTA banner. Deliberately wins over the CMS values.
   const href = isReturningPatient ? "/reorder" : ctaHref;
-  const label = isReturningPatient ? "Reorder" : ctaLabel;
+  const label = isReturningPatient
+    ? ctaLabelReturning.trim() || "Reorder"
+    : ctaLabel;
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden rounded-[24px] bg-[#fdf0ea] p-6 md:p-8 lg:min-h-[450px] lg:justify-center lg:p-12">
       {/* Copy — left column on desktop; the pill stays right of it. */}

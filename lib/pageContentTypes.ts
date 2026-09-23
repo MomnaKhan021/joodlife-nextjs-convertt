@@ -73,6 +73,8 @@ export const DEFAULT_HERO = {
   heroBody:
     "Foundayo® (oral tirzepatide) is a new weight management treatment option, available following clinician assessment.",
   heroCtaLabel: "Explore Foundayo",
+  // Shown instead of the label above once a patient has ordered before.
+  heroCtaLabelReturning: "Reorder",
   heroCtaHref: "/consultation?product=weight-loss",
   heroImage: "/assets/home/foundayo-pill.png",
 };

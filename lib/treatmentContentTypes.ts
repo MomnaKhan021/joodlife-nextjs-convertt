@@ -171,6 +171,7 @@ export type TreatmentOverride = {
   detail?: CategoryDetail;
   eyebrow?: string;
   cardTitle?: string;
+  cardCtaLabel?: string;
   title?: string;
   titleAccent?: string;
   ctaLabel?: string;
@@ -204,6 +205,7 @@ export function toTreatmentOverrides(value: unknown): TreatmentOverride[] {
       key: v.key,
       eyebrow: pick(v.eyebrow),
       cardTitle: pick(v.cardTitle),
+      cardCtaLabel: pick(v.cardCtaLabel),
       title: pick(v.title),
       titleAccent: pick(v.titleAccent),
       ctaLabel: pick(v.ctaLabel),
@@ -355,6 +357,7 @@ export function mergeCategories(
           ...base,
           eyebrow: o.eyebrow ?? base.eyebrow,
           cardTitle: o.cardTitle ?? base.cardTitle,
+          cardCtaLabel: o.cardCtaLabel ?? base.cardCtaLabel,
           title: o.title ?? base.title,
           titleAccent: o.titleAccent ?? base.titleAccent,
           ctaLabel: o.ctaLabel ?? base.ctaLabel,
@@ -379,6 +382,7 @@ export type TreatmentRow = {
   detail: CategoryDetail;
   eyebrow: string;
   cardTitle: string;
+  cardCtaLabel: string;
   title: string;
   titleAccent: string;
   ctaLabel: string;
@@ -403,6 +407,7 @@ export function overridesFromDefaults(
       key,
       eyebrow: o?.eyebrow ?? base.eyebrow,
       cardTitle: o?.cardTitle ?? base.cardTitle,
+      cardCtaLabel: o?.cardCtaLabel ?? base.cardCtaLabel ?? "",
       title: o?.title ?? base.title,
       titleAccent: o?.titleAccent ?? base.titleAccent,
       ctaLabel: o?.ctaLabel ?? base.ctaLabel ?? "",

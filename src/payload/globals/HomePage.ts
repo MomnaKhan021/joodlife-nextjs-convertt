@@ -87,6 +87,7 @@ export const HomePage: GlobalConfig = {
       },
     },
     { name: "heroCtaLabel", type: "text" },
+    { name: "heroCtaLabelReturning", type: "text" },
     { name: "heroCtaHref", type: "text" },
     {
       name: "heroImage",
