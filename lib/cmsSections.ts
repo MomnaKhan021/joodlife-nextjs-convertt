@@ -145,7 +145,7 @@ export const CMS_NAV: CmsNavItem[] = [
     label: "Shared across treatments",
     href: "/cms/category-pages",
     description:
-      "Trust strip, features and FAQs on the weight-loss, ED and period-delay pages",
+      "Trust strip, features and FAQs on the ED and period-delay pages",
     status: "ready",
     match: "/cms/category-pages",
   },

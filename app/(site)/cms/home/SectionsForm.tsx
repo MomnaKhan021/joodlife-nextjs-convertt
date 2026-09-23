@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type {
   Faq,
@@ -59,6 +59,9 @@ export default function SectionsForm({
   // Owned here so the hero's right-hand cards (edited in the hero block)
   // and the treatment bands below stay in step — one piece of state.
   const [treatmentRows, setTreatmentRows] = useState<TreatmentRow[]>(treatments);
+  // Filled in by the embedded treatments editor so "Save sections" can write
+  // that global too — the band colours and text sizes live in its state.
+  const saveTreatments = useRef<(() => Promise<void>) | null>(null);
   const updateTreatment = (key: string, patch: Partial<TreatmentRow>) =>
     setTreatmentRows((prev) =>
       prev.map((r) => (r.key === key ? { ...r, ...patch } : r)),
@@ -74,6 +77,9 @@ export default function SectionsForm({
     initial.heroFeatures,
   );
   const [heroCtaLabel, setHeroCtaLabel] = useState(initial.heroCtaLabel);
+  const [heroCtaLabelReturning, setHeroCtaLabelReturning] = useState(
+    initial.heroCtaLabelReturning,
+  );
   const [heroCtaHref, setHeroCtaHref] = useState(initial.heroCtaHref);
   const [heroImage, setHeroImage] = useState(initial.heroImage);
 
@@ -156,6 +162,7 @@ export default function SectionsForm({
         heroBody,
         heroFeatures: heroFeatures.filter((f) => f.label.trim()),
         heroCtaLabel,
+        heroCtaLabelReturning,
         heroCtaHref,
         heroImage,
         reviewsHeading: revHeading,
@@ -174,6 +181,10 @@ export default function SectionsForm({
         ctaSubtitle,
         ctaImage,
       });
+      // The hero's right-hand cards are edited on this screen but belong to
+      // the treatments global. Saving only home-page left those edits on the
+      // floor, which reads as "the CMS ignored me" — so one button writes both.
+      await saveTreatments.current?.();
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -285,6 +296,23 @@ export default function SectionsForm({
               style={textStyles.heroCtaLabel}
               onStyle={setText("heroCtaLabel")}
             />
+            <div>
+              <label className={fieldLabel} htmlFor="heroCtaLR">
+                Button text — returning patient
+              </label>
+              <input
+                id="heroCtaLR"
+                className={`${fieldInput} mt-1`}
+                value={heroCtaLabelReturning}
+                onChange={(e) => setHeroCtaLabelReturning(e.target.value)}
+                placeholder="Reorder"
+              />
+              <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                Shown to someone who has ordered before — they skip the
+                questionnaire and go straight to reorder. Empty keeps
+                &ldquo;Reorder&rdquo;.
+              </p>
+            </div>
             <div className="sm:col-span-2">
               <label className={fieldLabel} htmlFor="heroCtaH">Button link</label>
               <input id="heroCtaH" className={`${fieldInput} mt-1`} value={heroCtaHref} onChange={(e) => setHeroCtaHref(e.target.value)} />
@@ -388,6 +416,17 @@ export default function SectionsForm({
                   {label}
                 </p>
                 <div>
+                  <label className={fieldLabel}>Label above the title</label>
+                  <input
+                    className={`${fieldInput} mt-1`}
+                    value={row.eyebrow ?? ""}
+                    onChange={(e) =>
+                      updateTreatment(key, { eyebrow: e.target.value })
+                    }
+                    placeholder="Men's health"
+                  />
+                </div>
+                <div>
                   <label className={fieldLabel}>Card title</label>
                   <textarea
                     rows={2}
@@ -399,6 +438,20 @@ export default function SectionsForm({
                   />
                   <p className="mt-1 text-[12px] text-[#8a8a8a]">
                     A line break controls where it wraps.
+                  </p>
+                </div>
+                <div>
+                  <label className={fieldLabel}>Button text</label>
+                  <input
+                    className={`${fieldInput} mt-1`}
+                    value={row.cardCtaLabel ?? ""}
+                    onChange={(e) =>
+                      updateTreatment(key, { cardCtaLabel: e.target.value })
+                    }
+                    placeholder="Get Started"
+                  />
+                  <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                    Empty keeps &ldquo;Get Started&rdquo;.
                   </p>
                 </div>
                 <div>
@@ -426,8 +479,9 @@ export default function SectionsForm({
           })}
 
           <p className="rounded-lg border border-[#e4e7de] bg-[#fafbf7] px-3 py-2 text-[12px] leading-relaxed text-[#616161]">
-            These fields save with the treatment sections below — use{" "}
-            <strong>Save treatments</strong> there after editing them.
+            These belong to the treatments below, so editing them here changes
+            the treatment&apos;s own page too. <strong>Save sections</strong>{" "}
+            saves both.
           </p>
         </div>
 
@@ -447,6 +501,7 @@ export default function SectionsForm({
           embedded
           rows={treatmentRows}
           onRowsChange={setTreatmentRows}
+          saveRef={saveTreatments}
         />
 
         {/* ---- Reviews ---- */}
@@ -865,7 +920,7 @@ export default function SectionsForm({
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
         <button
           type="button"
           onClick={() => void save()}

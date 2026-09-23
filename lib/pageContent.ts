@@ -73,6 +73,10 @@ export async function getHomeContent(): Promise<HomeContent> {
       ),
       heroBody: str(doc?.heroBody, DEFAULT_HERO.heroBody),
       heroCtaLabel: str(doc?.heroCtaLabel, DEFAULT_HERO.heroCtaLabel),
+      heroCtaLabelReturning: str(
+        doc?.heroCtaLabelReturning,
+        DEFAULT_HERO.heroCtaLabelReturning,
+      ),
       heroCtaHref: str(doc?.heroCtaHref, DEFAULT_HERO.heroCtaHref),
       heroImage: str(doc?.heroImage, DEFAULT_HERO.heroImage),
       reviews: toReviews(doc?.reviews),

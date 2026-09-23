@@ -190,7 +190,7 @@ export function SecondaryCard({ category }: { category: Category }) {
           aria-label={`${category.eyebrow}: ${title} — get started`}
           className="btn-cta inline-flex h-10 items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-semibold text-white hover:bg-[#0c2421]"
         >
-          Get Started
+          {category.cardCtaLabel?.trim() || "Get Started"}
         </Link>
       </div>
     </div>

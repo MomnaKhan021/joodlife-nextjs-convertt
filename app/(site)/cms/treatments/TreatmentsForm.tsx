@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type {
   Chip,
@@ -74,6 +74,7 @@ export default function TreatmentsForm({
   rows: controlledRows,
   onRowsChange,
   look,
+  saveRef,
 }: {
   initial: Row[];
   /** Band colours and text sizes; saved with the rest by this editor's own button. */
@@ -87,6 +88,16 @@ export default function TreatmentsForm({
    */
   rows?: Row[];
   onRowsChange?: (next: Row[]) => void;
+  /**
+   * Lets the host screen save these rows with its own button.
+   *
+   * The hero's right-hand cards are edited on the Home screen but belong to
+   * this global, so "Save sections" has to write both. The band colours and
+   * text sizes live in this component's state, which is why the host calls
+   * back in here rather than assembling the payload itself — saving from
+   * outside would drop whatever it could not see.
+   */
+  saveRef?: { current: (() => Promise<void>) | null };
 }) {
   const [ownRows, setOwnRows] = useState<Row[]>(initial);
   const rows = controlledRows ?? ownRows;
@@ -168,6 +179,18 @@ export default function TreatmentsForm({
     set: (k: string) => (next: TextStyle) =>
       setTextStyles((t) => ({ ...t, [k]: next })),
   };
+
+  // Hand the host screen a save it can call, so "Save sections" on the Home
+  // screen writes this global too. Deliberately no dependency list: it
+  // re-registers after every render, so the function always closes over the
+  // current rows, colours and sizes rather than the first render's.
+  useEffect(() => {
+    if (!saveRef) return;
+    saveRef.current = save;
+    return () => {
+      saveRef.current = null;
+    };
+  });
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -668,16 +691,20 @@ export default function TreatmentsForm({
         ))}
       </div>
 
-      <div className="mt-5">
-        <button
-          type="button"
-          onClick={() => void save()}
-          disabled={saving}
-          className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-        >
-          {saving ? "Saving…" : "Save treatments"}
-        </button>
-      </div>
+      {/* Inside the Home screen this is saved by "Save sections", so a second
+          button here would be both redundant and a second sticky bar. */}
+      {!embedded && (
+        <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            {saving ? "Saving…" : "Save treatments"}
+          </button>
+        </div>
+      )}
     </div>
     </TextStyleCtx.Provider>
   );

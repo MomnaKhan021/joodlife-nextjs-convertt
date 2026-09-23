@@ -20,6 +20,7 @@ export default async function FoundayoHero({
     heroBody,
     heroFeatures,
     heroCtaLabel,
+    heroCtaLabelReturning,
     heroCtaHref,
     heroImage,
     styles,
@@ -38,6 +39,7 @@ export default async function FoundayoHero({
       body={heroBody}
       features={heroFeatures}
       ctaLabel={heroCtaLabel}
+      ctaLabelReturning={heroCtaLabelReturning}
       ctaHref={heroCtaHref}
       image={heroImage}
       isReturningPatient={isReturningPatient}

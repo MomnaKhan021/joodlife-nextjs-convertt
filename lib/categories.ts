@@ -60,6 +60,8 @@ export type Category = {
   learnMoreHref?: string;
   /** Small label above the title on the gateway card. */
   eyebrow: string;
+  /** Button on the gateway card. Empty falls back to "Get Started". */
+  cardCtaLabel?: string;
   /** Card title (kept short for the gateway grid). */
   cardTitle: string;
   /** Marketing title used on the preview section + sub-page hero. */
