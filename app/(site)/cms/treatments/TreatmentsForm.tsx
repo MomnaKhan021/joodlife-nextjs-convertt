@@ -691,16 +691,20 @@ export default function TreatmentsForm({
         ))}
       </div>
 
-      <div className="mt-5">
-        <button
-          type="button"
-          onClick={() => void save()}
-          disabled={saving}
-          className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-        >
-          {saving ? "Saving…" : "Save treatments"}
-        </button>
-      </div>
+      {/* Inside the Home screen this is saved by "Save sections", so a second
+          button here would be both redundant and a second sticky bar. */}
+      {!embedded && (
+        <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            {saving ? "Saving…" : "Save treatments"}
+          </button>
+        </div>
+      )}
     </div>
     </TextStyleCtx.Provider>
   );

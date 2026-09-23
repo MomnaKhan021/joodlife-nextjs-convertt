@@ -530,7 +530,7 @@ export default function PostForm({
         </details>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
         <button
           type="button"
           disabled={saving || !title || !effectiveSlug}
