@@ -186,6 +186,8 @@ export default function SectionsForm({
       // floor, which reads as "the CMS ignored me" — so one button writes both.
       await saveTreatments.current?.();
       setSaved(true);
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -213,12 +215,7 @@ export default function SectionsForm({
           {error}
         </p>
       )}
-      {saved && (
-        <p className="mb-4 rounded-lg border border-[#bcd9b8] bg-[#f1f8ef] px-4 py-3 text-[13px] text-[#2f6b33]">
-          Saved. Reload the site to see the change.
-        </p>
-      )}
-
+      
       <div className="space-y-5">
         {/* ---- Hero ---- */}
         <div className="space-y-4 rounded-xl border border-[#e4e7de] bg-white p-5">
@@ -929,6 +926,13 @@ export default function SectionsForm({
         >
           {saving ? "Saving…" : "Save sections"}
         </button>
+      
+        {saved ? (
+          <span className="text-[13px] text-[#2f6b33]">Saved. Reload the site to see the change.</span>
+        ) : null}
+        {error ? (
+          <span className="text-[13px] text-[#8a2b2b]">{error}</span>
+        ) : null}
       </div>
     </div>
   );

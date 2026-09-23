@@ -566,6 +566,10 @@ export default function PostForm({
             Delete
           </button>
         )}
+      
+        {error ? (
+          <span className="text-[13px] text-[#8a2b2b]">{error}</span>
+        ) : null}
       </div>
     </div>
   );

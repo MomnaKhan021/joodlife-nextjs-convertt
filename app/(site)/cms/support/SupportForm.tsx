@@ -119,6 +119,8 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
         },
       });
       setSaved(true);
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -160,12 +162,7 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
           {error}
         </p>
       )}
-      {saved && (
-        <p className="mb-4 rounded-lg border border-[#bcd9b8] bg-[#f1f8ef] px-4 py-3 text-[13px] text-[#2f6b33]">
-          Saved. Reload the page to see the change.
-        </p>
-      )}
-
+      
       <div className="space-y-5">
         {/* ─────────── 1. Hero ─────────── */}
         <div className={card}>
@@ -742,6 +739,13 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
         >
           {saving ? "Saving…" : "Save Support page"}
         </button>
+      
+        {saved ? (
+          <span className="text-[13px] text-[#2f6b33]">Saved. Reload the page to see the change.</span>
+        ) : null}
+        {error ? (
+          <span className="text-[13px] text-[#8a2b2b]">{error}</span>
+        ) : null}
       </div>
     </div>
     </TextStyleCtx.Provider>

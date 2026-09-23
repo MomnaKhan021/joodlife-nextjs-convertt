@@ -61,6 +61,8 @@ export default function AnnouncementForm({
         announcementHidden: hidden,
       });
       setSaved(true);
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -88,12 +90,7 @@ export default function AnnouncementForm({
           {error}
         </p>
       )}
-      {saved && (
-        <p className="mb-4 rounded-lg border border-[#bcd9b8] bg-[#f1f8ef] px-4 py-3 text-[13px] text-[#2f6b33]">
-          Saved. Reload the site to see the change.
-        </p>
-      )}
-
+      
       {/* Live-ish preview so the effect is obvious before saving. */}
       <div className="mb-5 overflow-hidden rounded-xl border border-[#e4e7de]">
         <p className="border-b border-[#e4e7de] bg-[#fafbf7] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-[#8a8a8a]">
@@ -170,6 +167,13 @@ export default function AnnouncementForm({
         >
           {saving ? "Saving…" : "Save announcement"}
         </button>
+      
+        {saved ? (
+          <span className="text-[13px] text-[#2f6b33]">Saved. Reload the site to see the change.</span>
+        ) : null}
+        {error ? (
+          <span className="text-[13px] text-[#8a2b2b]">{error}</span>
+        ) : null}
       </div>
     </div>
   );

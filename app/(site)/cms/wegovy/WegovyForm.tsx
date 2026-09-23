@@ -432,6 +432,8 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         finalCta,
       });
       setSaved(true);
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -482,12 +484,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           {error}
         </p>
       )}
-      {saved && (
-        <p className="mb-4 rounded-lg border border-[#bcd9b8] bg-[#f1f8ef] px-4 py-3 text-[13px] text-[#2f6b33]">
-          Saved. Reload the page to see the change.
-        </p>
-      )}
-
+      
       <div className="space-y-5">
         {/* 1. Announcement */}
         <div className={card}>
@@ -1709,6 +1706,13 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         >
           View the page ↗
         </a>
+      
+        {saved ? (
+          <span className="text-[13px] text-[#2f6b33]">Saved. Reload the page to see the change.</span>
+        ) : null}
+        {error ? (
+          <span className="text-[13px] text-[#8a2b2b]">{error}</span>
+        ) : null}
       </div>
 
       <p className="mt-3 text-[12px] text-[#8a8a8a]">
