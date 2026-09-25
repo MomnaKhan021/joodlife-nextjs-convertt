@@ -30,6 +30,8 @@ import {
 } from "@/lib/sectionStyle";
 import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
 import type { TextStyle } from "@/lib/textStyle";
+import type { CategoryPageContent } from "@/lib/categoryPageContentTypes";
+import type { Faq as CategoryFaq } from "@/lib/categoryFaqs";
 
 /**
  * Editor for /erectile-dysfunction — eight sections, in the order a reader
@@ -46,7 +48,19 @@ const BENEFIT_ICON_LABEL: Record<BenefitIcon, string> = {
   progress: "Chart",
 };
 
-export default function EdForm({ initial }: { initial: EdContent }) {
+export default function EdForm({
+  initial,
+  shared,
+}: {
+  initial: EdContent;
+  /**
+   * The document shared by the three treatment pages. Only the ED questions
+   * are edited here; it is written back whole, so the other two treatments'
+   * lists, the trust strip and the feature panel cannot be lost from this
+   * screen.
+   */
+  shared: CategoryPageContent;
+}) {
   const [styles, setStyles] = useState<Record<EdStyleKey, SectionStyle>>(
     initial.styles,
   );
@@ -60,6 +74,11 @@ export default function EdForm({ initial }: { initial: EdContent }) {
   const [confidence, setConfidence] = useState(initial.confidence);
   const [know, setKnow] = useState(initial.know);
   const [banner, setBanner] = useState(initial.banner);
+  const [faqHeading, setFaqHeading] = useState(shared.faqs.heading);
+  const [faqAccent, setFaqAccent] = useState(shared.faqs.headingAccent);
+  const [faqs, setFaqs] = useState<CategoryFaq[]>(
+    shared.faqs.erectileDysfunction,
+  );
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -70,6 +89,17 @@ export default function EdForm({ initial }: { initial: EdContent }) {
     setError(null);
     setSaved(false);
     try {
+      // The shared document is written back whole with only the ED list
+      // replaced, so editing here cannot disturb the other two treatments.
+      await saveGlobal("category-pages", {
+        ...shared,
+        faqs: {
+          ...shared.faqs,
+          heading: faqHeading,
+          headingAccent: faqAccent,
+          erectileDysfunction: faqs.filter((f) => f.q.trim() && f.a.trim()),
+        },
+      });
       await saveGlobal("ed-page", {
         styles,
         textStyles,
@@ -1269,6 +1299,104 @@ export default function EdForm({ initial }: { initial: EdContent }) {
             alt={banner.imageAlt}
             onAlt={(v) => setBanner({ ...banner, imageAlt: v })}
           />
+        </div>
+
+        {/* 9. FAQs — stored with the other treatment pages, edited here too */}
+        <div className={cmsCard}>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+                9. Frequently asked questions
+              </h2>
+              <p className="mt-1 text-[12px] leading-relaxed text-[#8a8a8a]">
+                The questions at the bottom of this page. They are stored with
+                the other treatment pages, so the <strong>heading</strong> is
+                shared with weight loss and period delay — changing it changes
+                all three. The questions below belong to this page alone.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFaqs([...faqs, { q: "", a: "" }])}
+              className="shrink-0 rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
+            >
+              + Add question
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={fieldLabel} htmlFor="edFaqH">
+                Heading (shared)
+              </label>
+              <input
+                id="edFaqH"
+                className={`${fieldInput} mt-1`}
+                value={faqHeading}
+                onChange={(e) => setFaqHeading(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="edFaqA">
+                Heading, italic part (shared)
+              </label>
+              <input
+                id="edFaqA"
+                className={`${fieldInput} mt-1`}
+                value={faqAccent}
+                onChange={(e) => setFaqAccent(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((f, i) => (
+              <div
+                key={i}
+                className="rounded-lg border border-[#eef1e8] bg-[#fafbf7] p-3"
+              >
+                <RowTools
+                  title="Question"
+                  index={i}
+                  count={faqs.length}
+                  onMove={(d) => setFaqs(moved(faqs, i, d))}
+                  onRemove={() => setFaqs(faqs.filter((_, j) => j !== i))}
+                />
+                <input
+                  aria-label={`Question ${i + 1}`}
+                  className={fieldInput}
+                  value={f.q}
+                  placeholder="Question"
+                  onChange={(e) =>
+                    setFaqs(
+                      faqs.map((x, j) =>
+                        j === i ? { ...x, q: e.target.value } : x,
+                      ),
+                    )
+                  }
+                />
+                <textarea
+                  aria-label={`Answer ${i + 1}`}
+                  rows={3}
+                  className={`${fieldInput} mt-2`}
+                  value={f.a}
+                  placeholder="Answer"
+                  onChange={(e) =>
+                    setFaqs(
+                      faqs.map((x, j) =>
+                        j === i ? { ...x, a: e.target.value } : x,
+                      ),
+                    )
+                  }
+                />
+              </div>
+            ))}
+            {faqs.length === 0 ? (
+              <p className="text-[12px] text-[#8a8a8a]">
+                No questions — the section is hidden on the page.
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
 
