@@ -13,6 +13,7 @@ import {
 } from "@/lib/supportContentTypes";
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import {
@@ -92,12 +93,19 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
     });
   }
 
-  async function save() {
-    setSaving(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await saveGlobal("support", {
+
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
+  // What this screen would send. Compared with the version it loaded
+  // with, so Save is only offered when there is something to save.
+  const payload = {
         styles,
         textStyles,
         hero: {
@@ -117,8 +125,16 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
           ...stories,
           items: stories.items.filter((s) => s.src.trim()),
         },
-      });
+      };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await saveGlobal("support", payload);
       setSaved(true);
+      markSaved();
       // The bar never leaves the screen, so the confirmation has to.
       window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
@@ -127,15 +143,6 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
       setSaving(false);
     }
   }
-
-  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
-    initial.textStyles,
-  );
-  const textStyleApi = {
-    get: (k: string) => textStyles[k],
-    set: (k: string) => (next: TextStyle) =>
-      setTextStyles((t) => ({ ...t, [k]: next })),
-  };
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -734,7 +741,7 @@ export default function SupportForm({ initial }: { initial: SupportContent }) {
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save Support page"}

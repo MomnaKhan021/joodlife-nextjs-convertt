@@ -11,6 +11,7 @@ import {
   type PolicyDoc,
 } from "@/lib/policyContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import { AreaField, TextField } from "../FormKit";
 import SectionControl from "../SectionControl";
 import TypeControl from "../TypeControl";
@@ -99,12 +100,10 @@ export default function PolicyForm({
     });
   }
 
-  async function save() {
-    setSaving(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await saveGlobal("policies", {
+
+  // What this screen would send. Compared with the version it loaded
+  // with, so Save is only offered when there is something to save.
+  const payload = {
         [POLICY_FIELD[slug]]: {
           title,
           titleAccent,
@@ -119,8 +118,16 @@ export default function PolicyForm({
             links: contact.links.filter((l) => l.label.trim() && l.href.trim()),
           },
         },
-      });
+      };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await saveGlobal("policies", payload);
       setSaved(true);
+      markSaved();
       // The bar never leaves the screen, so the confirmation has to.
       window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
@@ -477,7 +484,7 @@ export default function PolicyForm({
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : `Save ${POLICY_LABEL[slug]}`}

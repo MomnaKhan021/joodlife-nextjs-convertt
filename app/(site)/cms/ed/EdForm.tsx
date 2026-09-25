@@ -23,6 +23,7 @@ import {
   moved,
 } from "../FormKit";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import SectionControl from "../SectionControl";
 import {
   type EdStyleKey,
@@ -100,7 +101,31 @@ export default function EdForm({
     try {
       // The shared document is written back whole with only the ED list
       // replaced, so editing here cannot disturb the other two treatments.
-      await saveGlobal("category-pages", {
+      await saveGlobal("category-pages", sharedPayload);
+      await saveGlobal("ed-page", edPayload);
+      setSaved(true);
+      markSaved();
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
+  // Both documents this screen writes. Compared with what it loaded
+  // with, so Save is only offered when something would actually change.
+  const sharedPayload = {
         ...shared,
         styles: { ...shared.styles, faqs: faqStyle },
         textStyles: faqText,
@@ -110,8 +135,8 @@ export default function EdForm({
           headingAccent: faqAccent,
           erectileDysfunction: faqs.filter((f) => f.q.trim() && f.a.trim()),
         },
-      });
-      await saveGlobal("ed-page", {
+      };
+  const edPayload = {
         styles,
         textStyles,
         hero: { ...hero, checks: hero.checks.filter((c) => c.trim()) },
@@ -139,25 +164,10 @@ export default function EdForm({
           progressStages: know.progressStages.filter((s) => s.trim()),
         },
         banner,
-      });
-      setSaved(true);
-      // The bar never leaves the screen, so the confirmation has to.
-      window.setTimeout(() => setSaved(false), 4000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
-    initial.textStyles,
+      };
+  const { dirty, markSaved } = useDirty(
+    JSON.stringify({ sharedPayload, edPayload }),
   );
-  const textStyleApi = {
-    get: (k: string) => textStyles[k],
-    set: (k: string) => (next: TextStyle) =>
-      setTextStyles((t) => ({ ...t, [k]: next })),
-  };
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -1455,7 +1465,7 @@ export default function EdForm({
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save ED page"}
