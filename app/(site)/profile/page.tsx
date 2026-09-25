@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
+import { canAccessCms } from "@/lib/cmsSections";
 import {
   getOrdersForEmail,
   getConsultationsForEmail,
@@ -147,12 +148,26 @@ export default async function ProfilePage() {
                 Reorder
               </Link>
             ) : null}
+            {/* Two different places, so two buttons. This one was labelled
+                "Open CMS admin" but goes to the operations dashboard — orders,
+                consultations, dispensing — which made the real CMS hard to
+                find from here. */}
             {user.role === "admin" ? (
               <Link
-                href="/admin"
+                href="/admin-tools"
                 className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
               >
-                Open CMS admin
+                Orders &amp; admin
+              </Link>
+            ) : null}
+            {/* Shown to whoever can actually open it — admins, and staff
+                granted a CMS section — so the button never leads to a bounce. */}
+            {canAccessCms(user.role, user.permissions) ? (
+              <Link
+                href="/cms"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-5 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#f7f9f2]"
+              >
+                Content (CMS)
               </Link>
             ) : null}
             <SignOutButton />
