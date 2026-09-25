@@ -45,6 +45,24 @@ export type TreatmentLook = {
 
 type Row = TreatmentRow;
 
+/**
+ * The two bands with a small card beside the hero.
+ *
+ * Weight loss has the big card on the left, and its heading, wording and
+ * photo are fixed in code - so the card title and card image below would be
+ * saved and never seen. They are hidden for that band rather than removed,
+ * so anything already stored is kept.
+ */
+const HAS_HERO_CARD = new Set(["erectile-dysfunction", "period-delay"]);
+
+/**
+ * The one band whose blurb is drawn.
+ *
+ * On the home page each band fills that spot with its own content cards, so
+ * the blurb only surfaces where there are none - the Period delay page.
+ */
+const SHOWS_BLURB = "period-delay";
+
 const LABELS: Record<string, string> = {
   "weight-loss": "Weight loss",
   "erectile-dysfunction": "Erectile dysfunction",
@@ -146,12 +164,6 @@ export default function TreatmentsForm({
     const list = rows[i].detail.testimonials ?? [];
     updateDetail(i, {
       testimonials: list.map((t, idx) => (idx === ti ? { ...t, ...patch } : t)),
-    });
-  }
-
-  function updateBullet(i: number, b: number, value: string) {
-    update(i, {
-      bullets: rows[i].bullets.map((x, idx) => (idx === b ? value : x)),
     });
   }
 
@@ -297,68 +309,46 @@ export default function TreatmentsForm({
                   </LabelRow>
                   <input className={`${fieldInput} mt-1`} value={r.titleAccent ?? ""} onChange={(e) => update(i, { titleAccent: e.target.value })} />
                 </div>
-                <div className="sm:col-span-2">
-                  <label className={fieldLabel}>Hero card title</label>
-                  <textarea rows={2} className={`${fieldInput} mt-1`} value={r.cardTitle ?? ""} onChange={(e) => update(i, { cardTitle: e.target.value })} />
-                  <p className="mt-1 text-[12px] text-[#8a8a8a]">
-                    Shown on the small card beside the hero. A line break
-                    controls where it wraps.
-                    {embedded && r.key !== "weight-loss" ? (
-                      <> Also editable under <strong>Hero — right cards</strong> above; the two stay in step.</>
-                    ) : null}
-                  </p>
-                </div>
-                <div className="sm:col-span-2">
-                  <LabelRow k={`${r.key}.blurb`} label="Blurb">
-                    <label className={fieldLabel}>Blurb</label>
-                  </LabelRow>
-                  <textarea rows={2} className={`${fieldInput} mt-1`} value={r.blurb ?? ""} onChange={(e) => update(i, { blurb: e.target.value })} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className={fieldLabel}>Bullet points</span>
-                  <button
-                    type="button"
-                    onClick={() => update(i, { bullets: [...r.bullets, ""] })}
-                    className="rounded-lg border border-[#d8ddd0] px-3 py-1 text-[12px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0]"
-                  >
-                    + Add bullet
-                  </button>
-                </div>
-                <div className="mt-2 space-y-2">
-                  {r.bullets.map((b, bi) => (
-                    <div key={bi} className="flex items-center gap-2">
-                      <input
-                        aria-label={`Bullet ${bi + 1}`}
-                        className={fieldInput}
-                        value={b}
-                        onChange={(e) => updateBullet(i, bi, e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => update(i, { bullets: r.bullets.filter((_, x) => x !== bi) })}
-                        className="rounded px-1.5 py-1 text-[13px] text-[#8a2b2b] hover:bg-[#fdf3f3]"
-                        title="Remove"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                {HAS_HERO_CARD.has(r.key) ? (
+                  <div className="sm:col-span-2">
+                    <label className={fieldLabel}>Hero card title</label>
+                    <textarea rows={2} className={`${fieldInput} mt-1`} value={r.cardTitle ?? ""} onChange={(e) => update(i, { cardTitle: e.target.value })} />
+                    <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                      Shown on the small card beside the hero. A line break
+                      controls where it wraps.
+                      {embedded ? (
+                        <> Also editable under <strong>Hero — right cards</strong> above; the two stay in step.</>
+                      ) : null}
+                    </p>
+                  </div>
+                ) : null}
+                {r.key === SHOWS_BLURB ? (
+                  <div className="sm:col-span-2">
+                    <LabelRow k={`${r.key}.blurb`} label="Blurb">
+                      <label className={fieldLabel}>Blurb</label>
+                    </LabelRow>
+                    <textarea rows={2} className={`${fieldInput} mt-1`} value={r.blurb ?? ""} onChange={(e) => update(i, { blurb: e.target.value })} />
+                    <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                      The line under the hero on the Period delay page. The
+                      home page shows this band&apos;s cards in that spot
+                      instead, so it does not appear there.
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <span className={fieldLabel}>Hero card image</span>
-                  <p className="text-[12px] text-[#8a8a8a]">Small card beside the hero, at the top of the page.</p>
-                  <MediaPicker
-                    valueId={null}
-                    valueUrl={r.cardImage || null}
-                    onChange={(_id, url) => update(i, { cardImage: url ?? "" })}
-                  />
-                </div>
+                {HAS_HERO_CARD.has(r.key) ? (
+                  <div>
+                    <span className={fieldLabel}>Hero card image</span>
+                    <p className="text-[12px] text-[#8a8a8a]">Small card beside the hero, at the top of the page.</p>
+                    <MediaPicker
+                      valueId={null}
+                      valueUrl={r.cardImage || null}
+                      onChange={(_id, url) => update(i, { cardImage: url ?? "" })}
+                    />
+                  </div>
+                ) : null}
                 <div>
                   <span className={fieldLabel}>Section portrait</span>
                   <p className="text-[12px] text-[#8a8a8a]">The large photo at the top of this band.</p>
