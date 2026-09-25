@@ -379,6 +379,14 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"newsletter_heading\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"newsletter_subtext\" varchar",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"legal_text\" varchar",
+  // Column headings, the social accounts and the copyright line - everything
+  // in the footer that used to be fixed in code.
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"jood_title\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"treatments_title\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"policy_title\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"follow_title\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"copyright_line\" varchar",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"socials\" jsonb",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
   "CREATE TABLE IF NOT EXISTS \"posts_tags\" (\n  \"_order\" integer NOT NULL,\n  \"_parent_id\" integer NOT NULL,\n  \"id\" varchar NOT NULL,\n  \"tag\" varchar NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
@@ -560,7 +568,7 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v40-blog" : "v40";
+const SCHEMA_VERSION = blogCmsEnabled() ? "v41-blog" : "v41";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

@@ -116,6 +116,43 @@ export const Footer: GlobalConfig = {
       admin: { description: `"Policy" column. ${linkListDescription}` },
     },
     {
+      name: "joodTitle",
+      type: "text",
+      admin: { description: 'Heading above the first column. Blank uses "Jood".' },
+    },
+    {
+      name: "treatmentsTitle",
+      type: "text",
+      admin: { description: 'Heading above the second column. Blank uses "Treatments".' },
+    },
+    {
+      name: "policyTitle",
+      type: "text",
+      admin: { description: 'Heading above the third column. Blank uses "Policy".' },
+    },
+    {
+      name: "followTitle",
+      type: "text",
+      admin: { description: 'Heading above the social icons. Blank uses "Follow".' },
+    },
+    {
+      name: "socials",
+      type: "json",
+      admin: {
+        description:
+          "Social accounts: [{ platform, href }]. Platform picks the icon — " +
+          "tiktok, facebook, instagram, x, youtube or linkedin.",
+      },
+    },
+    {
+      name: "copyrightLine",
+      type: "text",
+      admin: {
+        description:
+          "The line above the legal text. {year} becomes the current year.",
+      },
+    },
+    {
       name: "logo",
       type: "text",
       admin: { description: "Footer logo image URL. Blank uses the built-in logo." },

@@ -10,6 +10,8 @@ import {
 } from "@/lib/textStyle";
 import {
   DEFAULT_FOOTER_TEXT,
+  DEFAULT_SOCIALS,
+  toSocials,
   DEFAULT_HEADER_LOGOS,
   DEFAULT_JOOD_LINKS,
   DEFAULT_MEGA,
@@ -85,6 +87,15 @@ export async function getFooterContent(): Promise<FooterContent> {
       joodLinks: toLinks(doc?.joodLinks, DEFAULT_JOOD_LINKS),
       treatmentLinks: toLinks(doc?.treatmentLinks, DEFAULT_TREATMENT_LINKS),
       policyLinks: toLinks(doc?.policyLinks, DEFAULT_POLICY_LINKS),
+      socials: toSocials(doc?.socials, DEFAULT_SOCIALS),
+      joodTitle: str(doc?.joodTitle, DEFAULT_FOOTER_TEXT.joodTitle),
+      treatmentsTitle: str(
+        doc?.treatmentsTitle,
+        DEFAULT_FOOTER_TEXT.treatmentsTitle,
+      ),
+      policyTitle: str(doc?.policyTitle, DEFAULT_FOOTER_TEXT.policyTitle),
+      followTitle: str(doc?.followTitle, DEFAULT_FOOTER_TEXT.followTitle),
+      copyrightLine: str(doc?.copyrightLine, DEFAULT_FOOTER_TEXT.copyrightLine),
       contactHeading: str(doc?.contactHeading, DEFAULT_FOOTER_TEXT.contactHeading),
       phone: str(doc?.phone, DEFAULT_FOOTER_TEXT.phone),
       email: str(doc?.email, DEFAULT_FOOTER_TEXT.email),
