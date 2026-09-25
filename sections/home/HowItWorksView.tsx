@@ -13,6 +13,8 @@ export type HiwStepProp = {
 export type HowItWorksContent = {
   heading?: string;
   headingEmphasis?: string;
+  /** The line between the heading and the three steps. */
+  intro?: string;
   /** Per-text size and weight, keyed by the Home field name. */
   text?: Partial<Record<HomeTextKey, TextStyle>>;
   steps?: HiwStepProp[];
@@ -48,6 +50,7 @@ export default function HowItWorksView({
   style,
   heading = "How it",
   headingEmphasis = "works",
+  intro = "Getting started takes just a few minutes. Our clinicians review every assessment to ensure your treatment is safe and appropriate for you.",
   steps,
 }: HowItWorksContent & { style?: SectionStyle } = {}) {
   const STEPS = steps?.length ? steps : DEFAULT_STEPS;
@@ -65,10 +68,8 @@ export default function HowItWorksView({
             {heading}{" "}
             <em {...textStyleProps(text.hiwHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em>
           </h2>
-          <p className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
-            Getting started takes just a few minutes. Our clinicians review
-            every assessment to ensure your treatment is safe and appropriate
-            for you.
+          <p {...textStyleProps(text.hiwIntro)} className="max-w-[562px] font-ui text-[15px] font-semibold leading-[22px] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
+            {intro}
           </p>
         </Reveal>
 

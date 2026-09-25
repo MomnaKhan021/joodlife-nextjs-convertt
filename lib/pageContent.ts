@@ -107,6 +107,7 @@ export async function getHomeContent(): Promise<HomeContent> {
         doc?.hiwHeadingEmphasis,
         DEFAULT_HIW_HEADING.hiwHeadingEmphasis,
       ),
+      hiwIntro: str(doc?.hiwIntro, DEFAULT_HIW_HEADING.hiwIntro),
       ctaTitle: str(doc?.ctaTitle, DEFAULT_CTA.ctaTitle),
       ctaTitleEmphasis: str(doc?.ctaTitleEmphasis, DEFAULT_CTA.ctaTitleEmphasis),
       ctaSubtitle: str(doc?.ctaSubtitle, DEFAULT_CTA.ctaSubtitle),

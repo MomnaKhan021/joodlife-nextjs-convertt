@@ -135,6 +135,7 @@ export const HOME_TEXT_KEYS = [
   "reviewsIntro",
   "hiwHeading",
   "hiwHeadingEmphasis",
+  "hiwIntro",
   "faqHeading",
   "faqHeadingEmphasis",
   "blogHeading",
