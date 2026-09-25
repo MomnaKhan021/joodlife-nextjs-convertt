@@ -36,6 +36,9 @@ export const DEFAULT_ANNOUNCEMENT = {
 export const DEFAULT_FAQ_HEADING = {
   faqHeading: "Frequently asked",
   faqHeadingEmphasis: "questions",
+  /** The button under the questions. */
+  faqCtaLabel: "Get started",
+  faqCtaHref: "/consultation",
 };
 
 export const DEFAULT_FAQS: Faq[] = [

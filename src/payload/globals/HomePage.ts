@@ -58,6 +58,16 @@ export const HomePage: GlobalConfig = {
       admin: { description: "Second part, shown in italics." },
     },
     {
+      name: "faqCtaLabel",
+      type: "text",
+      admin: { description: "Button under the questions. Blank uses \"Get started\"." },
+    },
+    {
+      name: "faqCtaHref",
+      type: "text",
+      admin: { description: "Where that button goes. Blank uses /consultation." },
+    },
+    {
       name: "faqs",
       type: "json",
       admin: {

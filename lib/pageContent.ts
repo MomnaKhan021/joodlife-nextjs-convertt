@@ -60,6 +60,8 @@ export async function getHomeContent(): Promise<HomeContent> {
       // A checkbox is a real boolean, so no string fallback here.
       announcementHidden: Boolean(doc?.announcementHidden),
       faqHeading: str(doc?.faqHeading, DEFAULT_FAQ_HEADING.faqHeading),
+      faqCtaLabel: str(doc?.faqCtaLabel, DEFAULT_FAQ_HEADING.faqCtaLabel),
+      faqCtaHref: str(doc?.faqCtaHref, DEFAULT_FAQ_HEADING.faqCtaHref),
       faqHeadingEmphasis: str(
         doc?.faqHeadingEmphasis,
         DEFAULT_FAQ_HEADING.faqHeadingEmphasis,
