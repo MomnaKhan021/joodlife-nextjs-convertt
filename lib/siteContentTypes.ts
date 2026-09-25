@@ -84,13 +84,60 @@ export const DEFAULT_POLICY_LINKS: SiteLink[] = [
   { label: "Privacy & Cookies", href: "/policies/privacy" },
 ];
 
+/** The social accounts the footer links to, and the icon each one draws. */
+export type SocialPlatform =
+  | "tiktok"
+  | "facebook"
+  | "instagram"
+  | "x"
+  | "youtube"
+  | "linkedin";
+
+export type SocialLink = { platform: SocialPlatform; href: string };
+
+export const SOCIAL_PLATFORMS: { value: SocialPlatform; label: string }[] = [
+  { value: "tiktok", label: "TikTok" },
+  { value: "facebook", label: "Facebook" },
+  { value: "instagram", label: "Instagram" },
+  { value: "x", label: "X" },
+  { value: "youtube", label: "YouTube" },
+  { value: "linkedin", label: "LinkedIn" },
+];
+
+export const DEFAULT_SOCIALS: SocialLink[] = [
+  { platform: "tiktok", href: "https://www.tiktok.com/@myjoodlife" },
+  { platform: "facebook", href: "https://www.facebook.com/myjoodlife/" },
+  {
+    platform: "instagram",
+    href: "https://www.instagram.com/myjoodlife?igsh=eWFnOXl0ZzVja2Vh&utm_source=qr",
+  },
+];
+
+/**
+ * The registration and compliance line under the copyright.
+ *
+ * Held here rather than in the component so the editor can show the real
+ * wording in its box. It used to default to an empty string, which meant the
+ * CMS showed a blank field while the site rendered a paragraph — so anyone
+ * looking to correct a registration number found nothing to correct.
+ */
+export const DEFAULT_LEGAL_TEXT =
+  "Superintendent Pharmacist: Zahhaad Khalil (2228969) Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd. Clinical, consultation and prescribing services are provided by UK-registered prescribers. All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.";
+
 export const DEFAULT_FOOTER_TEXT = {
+  /** Headings above each link column, and above the social icons. */
+  joodTitle: "Jood",
+  treatmentsTitle: "Treatments",
+  policyTitle: "Policy",
+  followTitle: "Follow",
   contactHeading: "Have a question?",
   phone: "07756 099075",
   email: "support@joodlife.com",
   newsletterHeading: "Sign Up For Our Newsletter",
   newsletterSubtext: "Stay up to date on our news, education and offers",
-  legalText: "",
+  /** {year} is replaced with the current year when the footer renders. */
+  copyrightLine: "© {year} Jood. All rights reserved.",
+  legalText: DEFAULT_LEGAL_TEXT,
   logo: "/assets/figma/footer-logo-2.png",
   contactIcon: "/assets/figma/icon-chat.svg",
 };
@@ -157,7 +204,26 @@ export type FooterContent = {
   joodLinks: SiteLink[];
   treatmentLinks: SiteLink[];
   policyLinks: SiteLink[];
+  socials: SocialLink[];
 } & typeof DEFAULT_FOOTER_TEXT;
+
+/** Accept only rows naming a platform we can draw; anything else falls back. */
+export function toSocials(value: unknown, fallback: SocialLink[]): SocialLink[] {
+  if (!Array.isArray(value)) return fallback;
+  const known = new Set(SOCIAL_PLATFORMS.map((p) => p.value));
+  const cleaned = value
+    .filter(
+      (v): v is SocialLink =>
+        Boolean(v) &&
+        typeof v === "object" &&
+        known.has((v as SocialLink).platform) &&
+        typeof (v as SocialLink).href === "string" &&
+        (v as SocialLink).href.trim() !== "",
+    )
+    .map((v) => ({ platform: v.platform, href: v.href.trim() }));
+  // An empty list is a deliberate "show no icons", not a reason to fall back.
+  return Array.isArray(value) ? cleaned : fallback;
+}
 
 /** Accept only well-formed link rows; anything else falls back. */
 export function toLinks(value: unknown, fallback: SiteLink[]): SiteLink[] {
@@ -235,6 +301,7 @@ export function footerFallback(): FooterContent {
     joodLinks: DEFAULT_JOOD_LINKS,
     treatmentLinks: DEFAULT_TREATMENT_LINKS,
     policyLinks: DEFAULT_POLICY_LINKS,
+    socials: DEFAULT_SOCIALS,
     ...DEFAULT_FOOTER_TEXT,
   };
 }

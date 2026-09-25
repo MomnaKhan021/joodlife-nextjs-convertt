@@ -9,6 +9,14 @@ import Image from "next/image";
 import { useState, type FormEvent } from "react";
 import PaymentBadges from "@/components/footer/PaymentBadges";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import {
+  DEFAULT_FOOTER_TEXT,
+  DEFAULT_LEGAL_TEXT,
+  DEFAULT_SOCIALS,
+  SOCIAL_PLATFORMS,
+  type SocialLink,
+  type SocialPlatform,
+} from "@/lib/siteContentTypes";
 
 /**
  * Footer — Figma node 141:2887.
@@ -159,6 +167,43 @@ function AccordionColumn({
  * brand mark inside. Hover brightens the background (no transform,
  * which previously glitched/clipped inside the accordion wrapper).
  */
+/**
+ * The drawings stay in code - they are artwork, not content. The CMS picks
+ * which of them appear, in what order, and where each one points.
+ */
+const SOCIAL_ICONS: Record<SocialPlatform, React.ReactNode> = {
+  tiktok: (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11.4 0H8.6v10.7c0 1.3-1 2.3-2.3 2.3a2.3 2.3 0 0 1-2.3-2.3A2.3 2.3 0 0 1 6.3 8.4V5.6A5.1 5.1 0 0 0 1.2 10.7 5.1 5.1 0 0 0 6.3 15.8a5.1 5.1 0 0 0 5.1-5.1V5.3c.9.6 2 1 3.2 1V3.5a3.6 3.6 0 0 1-3.2-3.5z" />
+    </svg>
+  ),
+  facebook: (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 8a8 8 0 1 0-9.25 7.9V10.3H4.72V8h2.03V6.24c0-2 1.2-3.1 3-3.1.87 0 1.78.15 1.78.15v1.96h-1c-.99 0-1.3.61-1.3 1.25V8h2.2l-.35 2.3H9.23v5.6A8 8 0 0 0 16 8z" />
+    </svg>
+  ),
+  instagram: (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 1.4c2.13 0 2.39 0 3.23.05.78.04 1.2.17 1.49.28.37.14.64.32.92.6.28.27.46.54.6.91.11.29.24.71.28 1.5.04.84.05 1.1.05 3.22 0 2.14 0 2.39-.05 3.23-.04.78-.17 1.2-.28 1.49-.14.37-.32.64-.6.92a2.48 2.48 0 0 1-.92.6c-.29.11-.71.24-1.49.28-.84.04-1.1.05-3.23.05-2.14 0-2.39 0-3.23-.05-.78-.04-1.2-.17-1.49-.28-.37-.14-.64-.32-.92-.6a2.48 2.48 0 0 1-.6-.92c-.11-.29-.24-.71-.28-1.49C1.4 10.4 1.4 10.13 1.4 8c0-2.14 0-2.39.05-3.23.04-.78.17-1.2.28-1.49.14-.37.32-.64.6-.92.27-.28.54-.46.91-.6.29-.11.71-.24 1.5-.28C5.6 1.4 5.86 1.4 8 1.4M8 0C5.83 0 5.55 0 4.7.05c-.85.04-1.43.17-1.94.37-.53.2-.97.48-1.42.92-.44.45-.72.9-.92 1.42-.2.51-.33 1.09-.37 1.94C0 5.55 0 5.83 0 8c0 2.17 0 2.45.05 3.3.04.85.17 1.43.37 1.94.2.53.48.97.92 1.42.45.44.9.72 1.42.92.51.2 1.09.33 1.94.37C5.55 16 5.83 16 8 16c2.17 0 2.45 0 3.3-.05.85-.04 1.43-.17 1.94-.37.53-.2.97-.48 1.42-.92.44-.45.72-.9.92-1.42.2-.51.33-1.09.37-1.94.05-.85.05-1.13.05-3.3 0-2.17 0-2.45-.05-3.3-.04-.85-.17-1.43-.37-1.94a3.88 3.88 0 0 0-.92-1.42 3.88 3.88 0 0 0-1.42-.92c-.51-.2-1.09-.33-1.94-.37C10.45 0 10.17 0 8 0zM8 3.9a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2zm0 6.77a2.67 2.67 0 1 1 0-5.34 2.67 2.67 0 0 1 0 5.34zm5.22-6.93a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z" />
+    </svg>
+  ),
+  x: (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.6 0h2.45l-5.36 6.12L16 16h-4.94l-3.87-5.06L2.76 16H.31l5.73-6.55L0 0h5.06l3.5 4.63L12.6 0zm-.86 14.55h1.36L4.32 1.38H2.87l8.87 13.17z" />
+    </svg>
+  ),
+  youtube: (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15.67 4.16a2.01 2.01 0 0 0-1.41-1.42C13.01 2.4 8 2.4 8 2.4s-5.01 0-6.26.34A2.01 2.01 0 0 0 .33 4.16C0 5.42 0 8 0 8s0 2.58.33 3.84c.18.69.72 1.23 1.41 1.42 1.25.34 6.26.34 6.26.34s5.01 0 6.26-.34a2.01 2.01 0 0 0 1.41-1.42C16 10.58 16 8 16 8s0-2.58-.33-3.84zM6.4 10.4V5.6L10.56 8 6.4 10.4z" />
+    </svg>
+  ),
+  linkedin: (
+    <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3.6 16H.27V5.32H3.6V16zM1.93 3.86A1.94 1.94 0 1 1 1.94 0a1.94 1.94 0 0 1 0 3.87zM16 16h-3.33v-5.2c0-1.24-.02-2.83-1.73-2.83-1.73 0-1.99 1.35-1.99 2.74V16H5.62V5.32h3.2v1.46h.04a3.5 3.5 0 0 1 3.15-1.73C15.38 5.05 16 7.27 16 10.15V16z" />
+    </svg>
+  ),
+};
+
 function SocialButton({
   href,
   label,
@@ -181,7 +226,15 @@ function SocialButton({
   );
 }
 
-function SocialColumn() {
+function SocialColumn({
+  title,
+  socials,
+  titleStyle,
+}: {
+  title: string;
+  socials: SocialLink[];
+  titleStyle?: React.CSSProperties;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-white/10 lg:border-b-0">
@@ -191,8 +244,8 @@ function SocialColumn() {
         aria-expanded={open}
         className="flex w-full cursor-pointer items-center justify-between py-4 lg:!cursor-default lg:py-0"
       >
-        <h3 className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
-          Follow
+        <h3 style={titleStyle} className="font-ui text-[16px] font-semibold leading-[22px] text-white lg:text-[16.3px] lg:leading-[20px]">
+          {title}
         </h3>
         <span className="lg:hidden">
           <ChevronIcon open={open} />
@@ -207,21 +260,15 @@ function SocialColumn() {
           {/* py on desktop gives the hover lift + shadow room so icons
               aren't clipped by the accordion wrappers. */}
           <div className="flex items-center gap-3 pb-5 lg:pb-0 lg:py-1.5">
-            <SocialButton href="https://www.tiktok.com/@myjoodlife" label="TikTok">
-              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11.4 0H8.6v10.7c0 1.3-1 2.3-2.3 2.3a2.3 2.3 0 0 1-2.3-2.3A2.3 2.3 0 0 1 6.3 8.4V5.6A5.1 5.1 0 0 0 1.2 10.7 5.1 5.1 0 0 0 6.3 15.8a5.1 5.1 0 0 0 5.1-5.1V5.3c.9.6 2 1 3.2 1V3.5a3.6 3.6 0 0 1-3.2-3.5z" />
-              </svg>
-            </SocialButton>
-            <SocialButton href="https://www.facebook.com/myjoodlife/" label="Facebook">
-              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 8a8 8 0 1 0-9.25 7.9V10.3H4.72V8h2.03V6.24c0-2 1.2-3.1 3-3.1.87 0 1.78.15 1.78.15v1.96h-1c-.99 0-1.3.61-1.3 1.25V8h2.2l-.35 2.3H9.23v5.6A8 8 0 0 0 16 8z" />
-              </svg>
-            </SocialButton>
-            <SocialButton href="https://www.instagram.com/myjoodlife?igsh=eWFnOXl0ZzVja2Vh&utm_source=qr" label="Instagram">
-              <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 1.4c2.13 0 2.39 0 3.23.05.78.04 1.2.17 1.49.28.37.14.64.32.92.6.28.27.46.54.6.91.11.29.24.71.28 1.5.04.84.05 1.1.05 3.22 0 2.14 0 2.39-.05 3.23-.04.78-.17 1.2-.28 1.49-.14.37-.32.64-.6.92a2.48 2.48 0 0 1-.92.6c-.29.11-.71.24-1.49.28-.84.04-1.1.05-3.23.05-2.14 0-2.39 0-3.23-.05-.78-.04-1.2-.17-1.49-.28-.37-.14-.64-.32-.92-.6a2.48 2.48 0 0 1-.6-.92c-.11-.29-.24-.71-.28-1.49C1.4 10.4 1.4 10.13 1.4 8c0-2.14 0-2.39.05-3.23.04-.78.17-1.2.28-1.49.14-.37.32-.64.6-.92.27-.28.54-.46.91-.6.29-.11.71-.24 1.5-.28C5.6 1.4 5.86 1.4 8 1.4M8 0C5.83 0 5.55 0 4.7.05c-.85.04-1.43.17-1.94.37-.53.2-.97.48-1.42.92-.44.45-.72.9-.92 1.42-.2.51-.33 1.09-.37 1.94C0 5.55 0 5.83 0 8c0 2.17 0 2.45.05 3.3.04.85.17 1.43.37 1.94.2.53.48.97.92 1.42.45.44.9.72 1.42.92.51.2 1.09.33 1.94.37C5.55 16 5.83 16 8 16c2.17 0 2.45 0 3.3-.05.85-.04 1.43-.17 1.94-.37.53-.2.97-.48 1.42-.92.44-.45.72-.9.92-1.42.2-.51.33-1.09.37-1.94.05-.85.05-1.13.05-3.3 0-2.17 0-2.45-.05-3.3-.04-.85-.17-1.43-.37-1.94a3.88 3.88 0 0 0-.92-1.42 3.88 3.88 0 0 0-1.42-.92c-.51-.2-1.09-.33-1.94-.37C10.45 0 10.17 0 8 0zM8 3.9a4.1 4.1 0 1 0 0 8.2 4.1 4.1 0 0 0 0-8.2zm0 6.77a2.67 2.67 0 1 1 0-5.34 2.67 2.67 0 0 1 0 5.34zm5.22-6.93a.96.96 0 1 1-1.92 0 .96.96 0 0 1 1.92 0z" />
-              </svg>
-            </SocialButton>
+            {socials.map((sn) => (
+              <SocialButton
+                key={`${sn.platform}-${sn.href}`}
+                href={sn.href}
+                label={SOCIAL_PLATFORMS.find((p) => p.value === sn.platform)?.label ?? sn.platform}
+              >
+                {SOCIAL_ICONS[sn.platform]}
+              </SocialButton>
+            ))}
           </div>
         </div>
       </div>
@@ -242,14 +289,23 @@ export type FooterProps = {
   email?: string;
   newsletterHeading?: string;
   newsletterSubtext?: string;
+  /** Headings above the three link columns and the social icons. */
+  joodTitle?: string;
+  treatmentsTitle?: string;
+  policyTitle?: string;
+  followTitle?: string;
+  /** Which social accounts to show, in order. */
+  socials?: SocialLink[];
+  /** The line above the legal text. {year} becomes the current year. */
+  copyrightLine?: string;
   legalText?: string;
   /** Image URLs; default to the assets that shipped with the design. */
   logo?: string;
   contactIcon?: string;
 };
 
-const DEFAULT_LEGAL =
-  "Superintendent Pharmacist: Zahhaad Khalil (2228969) Powered by Jood Pharmacy, a GPhC-registered pharmacy (9012990) operating under Jood Ltd. Clinical, consultation and prescribing services are provided by UK-registered prescribers. All medicines are dispensed and delivered in accordance with GPhC and MHRA guidance.";
+// The legal wording moved to lib/siteContentTypes so the editor can show it
+// in its box rather than an empty field — see DEFAULT_LEGAL_TEXT.
 
 export default function Footer(props: FooterProps = {}) {
   // Per-text size/weight; empty keeps every text as designed.
@@ -263,7 +319,14 @@ export default function Footer(props: FooterProps = {}) {
   const newsletterHeading = props.newsletterHeading || "Sign Up For Our Newsletter";
   const newsletterSubtext =
     props.newsletterSubtext || "Stay up to date on our news, education and offers";
-  const legalText = props.legalText || DEFAULT_LEGAL;
+  const joodTitle = props.joodTitle || DEFAULT_FOOTER_TEXT.joodTitle;
+  const treatmentsTitle =
+    props.treatmentsTitle || DEFAULT_FOOTER_TEXT.treatmentsTitle;
+  const policyTitle = props.policyTitle || DEFAULT_FOOTER_TEXT.policyTitle;
+  const followTitle = props.followTitle || DEFAULT_FOOTER_TEXT.followTitle;
+  // An empty list is a deliberate "no icons", so only undefined falls back.
+  const socials = props.socials ?? DEFAULT_SOCIALS;
+  const legalText = props.legalText || DEFAULT_LEGAL_TEXT;
   const logo = props.logo || "/assets/figma/footer-logo-2.png";
   const contactIcon = props.contactIcon || "/assets/figma/icon-chat.svg";
   /** wa.me needs digits only; drop spaces and a leading 0 for the UK code. */
@@ -311,24 +374,32 @@ export default function Footer(props: FooterProps = {}) {
 
             <div className="flex flex-1 flex-col lg:grid lg:grid-cols-4 lg:gap-8 lg:pl-6 lg:gap-10">
               <AccordionColumn
-              title="Jood"
+              title={joodTitle}
               items={JOOD_LINKS}
               titleStyle={textStyleProps(textStyles.columnTitle).style}
               linkStyle={textStyleProps(textStyles.linkLabel).style}
             />
               <AccordionColumn
-              title="Treatments"
+              title={treatmentsTitle}
               items={TREATMENTS}
               titleStyle={textStyleProps(textStyles.columnTitle).style}
               linkStyle={textStyleProps(textStyles.linkLabel).style}
             />
               <AccordionColumn
-              title="Policy"
+              title={policyTitle}
               items={POLICY}
               titleStyle={textStyleProps(textStyles.columnTitle).style}
               linkStyle={textStyleProps(textStyles.linkLabel).style}
             />
-              <SocialColumn />
+              {/* No accounts means no column — a heading over nothing is
+                  worse than one fewer column. */}
+              {socials.length > 0 ? (
+                <SocialColumn
+                  title={followTitle}
+                  socials={socials}
+                  titleStyle={textStyleProps(textStyles.columnTitle).style}
+                />
+              ) : null}
             </div>
 
             {/* Have-a-question card — cream bg per Figma */}
@@ -441,7 +512,11 @@ export default function Footer(props: FooterProps = {}) {
           {/* ───── ROW 3 — copyright + payment badges ───── */}
           <div className="flex flex-col gap-6 border-t border-white/10 py-8 md:flex-row md:items-center md:justify-between md:gap-10 md:py-8">
             <p {...textStyleProps(textStyles.legalText)} className="max-w-[620px] font-ui text-[12px] leading-[18px] tracking-[-0.01em] text-white/65 md:text-[13px] md:leading-[18px]">
-              © {year} Jood. All rights reserved. {legalText}
+              {(props.copyrightLine || DEFAULT_FOOTER_TEXT.copyrightLine).replace(
+                "{year}",
+                String(year),
+              )}{" "}
+              {legalText}
             </p>
             <PaymentBadges />
           </div>
