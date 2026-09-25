@@ -56,6 +56,8 @@ export default function SectionsForm({
   const [faqHeading, setFaqHeading] = useState(initial.faqHeading);
   const [faqEmphasis, setFaqEmphasis] = useState(initial.faqHeadingEmphasis);
   const [faqs, setFaqs] = useState<Faq[]>(initial.faqs);
+  const [faqCtaLabel, setFaqCtaLabel] = useState(initial.faqCtaLabel);
+  const [faqCtaHref, setFaqCtaHref] = useState(initial.faqCtaHref);
 
   // Owned here so the hero's right-hand cards (edited in the hero block)
   // and the treatment bands below stay in step — one piece of state.
@@ -184,6 +186,8 @@ export default function SectionsForm({
         faqHeading,
         faqHeadingEmphasis: faqEmphasis,
         faqs: faqs.filter((f) => f.q.trim() || f.a.trim()),
+        faqCtaLabel,
+        faqCtaHref,
         heroBadge,
         heroTitle,
         heroTitleEmphasis: heroEmphasis,
@@ -789,6 +793,33 @@ export default function SectionsForm({
               style={textStyles.faqHeadingEmphasis}
               onStyle={setText("faqHeadingEmphasis")}
             />
+            <div>
+              <label className={fieldLabel} htmlFor="faqBtn">
+                Button text
+              </label>
+              <input
+                id="faqBtn"
+                className={`${fieldInput} mt-1`}
+                value={faqCtaLabel}
+                onChange={(e) => setFaqCtaLabel(e.target.value)}
+                placeholder="Get started"
+              />
+              <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                The button under the questions.
+              </p>
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="faqBtnHref">
+                Button link
+              </label>
+              <input
+                id="faqBtnHref"
+                className={`${fieldInput} mt-1`}
+                value={faqCtaHref}
+                onChange={(e) => setFaqCtaHref(e.target.value)}
+                placeholder="/consultation"
+              />
+            </div>
           </div>
 
           {faqs.length === 0 ? (

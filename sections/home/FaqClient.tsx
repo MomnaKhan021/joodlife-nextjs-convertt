@@ -33,6 +33,9 @@ const DEFAULT_FAQS = [
 export type FaqContent = {
   heading?: string;
   headingEmphasis?: string;
+  /** The button under the questions. */
+  ctaLabel?: string;
+  ctaHref?: string;
   /** Per-text size and weight, keyed by the Home field name. */
   text?: Partial<Record<HomeTextKey, TextStyle>>;
   faqs?: { q: string; a: string }[];
@@ -43,6 +46,8 @@ export default function FaqClient({
   style,
   heading = "Frequently asked",
   headingEmphasis = "questions",
+  ctaLabel = "Get started",
+  ctaHref = "/consultation",
   faqs,
 }: FaqContent & { style?: SectionStyle } = {}) {
   const FAQS = faqs?.length ? faqs : DEFAULT_FAQS;
@@ -122,10 +127,10 @@ export default function FaqClient({
         </Reveal>
 
         <Link
-          href="/consultation"
+          href={ctaHref}
           className="btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-[#142e2a] px-12 font-ui text-[13px] font-semibold uppercase tracking-[-0.01em] text-white hover:bg-[#0c2421]"
         >
-          Get started
+          {ctaLabel}
         </Link>
       </div>
     </section>
