@@ -371,6 +371,9 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title_emphasis\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_subtitle\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_label\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_label_returning\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_href\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_image\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
@@ -568,7 +571,7 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v41-blog" : "v41";
+const SCHEMA_VERSION = blogCmsEnabled() ? "v42-blog" : "v42";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

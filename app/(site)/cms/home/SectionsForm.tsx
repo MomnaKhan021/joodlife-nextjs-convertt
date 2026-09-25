@@ -105,6 +105,11 @@ export default function SectionsForm({
   const [ctaTitle, setCtaTitle] = useState(initial.ctaTitle);
   const [ctaEmphasis, setCtaEmphasis] = useState(initial.ctaTitleEmphasis);
   const [ctaSubtitle, setCtaSubtitle] = useState(initial.ctaSubtitle);
+  const [ctaLabel, setCtaLabel] = useState(initial.ctaLabel);
+  const [ctaLabelReturning, setCtaLabelReturning] = useState(
+    initial.ctaLabelReturning,
+  );
+  const [ctaHref, setCtaHref] = useState(initial.ctaHref);
   const [ctaImage, setCtaImage] = useState(initial.ctaImage);
 
   const [saving, setSaving] = useState(false);
@@ -202,6 +207,9 @@ export default function SectionsForm({
         ctaTitle,
         ctaTitleEmphasis: ctaEmphasis,
         ctaSubtitle,
+        ctaLabel,
+        ctaLabelReturning,
+        ctaHref,
         ctaImage,
       };
   const { dirty, markSaved } = useDirty(
@@ -917,6 +925,46 @@ export default function SectionsForm({
                 onChange={setCtaSubtitle}
                 style={textStyles.ctaSubtitle}
                 onStyle={setText("ctaSubtitle")}
+              />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="ctaL">
+                Button text
+              </label>
+              <input
+                id="ctaL"
+                className={`${fieldInput} mt-1`}
+                value={ctaLabel}
+                onChange={(e) => setCtaLabel(e.target.value)}
+                placeholder="Get started"
+              />
+            </div>
+            <div>
+              <label className={fieldLabel} htmlFor="ctaLR">
+                Button text — returning patient
+              </label>
+              <input
+                id="ctaLR"
+                className={`${fieldInput} mt-1`}
+                value={ctaLabelReturning}
+                onChange={(e) => setCtaLabelReturning(e.target.value)}
+                placeholder="Reorder"
+              />
+              <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                Someone who has ordered before goes straight to reorder, so the
+                link below does not apply to them.
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <label className={fieldLabel} htmlFor="ctaH">
+                Button link
+              </label>
+              <input
+                id="ctaH"
+                className={`${fieldInput} mt-1`}
+                value={ctaHref}
+                onChange={(e) => setCtaHref(e.target.value)}
+                placeholder="/consultation"
               />
             </div>
           </div>
