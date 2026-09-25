@@ -108,6 +108,12 @@ export async function getHomeContent(): Promise<HomeContent> {
       ctaTitle: str(doc?.ctaTitle, DEFAULT_CTA.ctaTitle),
       ctaTitleEmphasis: str(doc?.ctaTitleEmphasis, DEFAULT_CTA.ctaTitleEmphasis),
       ctaSubtitle: str(doc?.ctaSubtitle, DEFAULT_CTA.ctaSubtitle),
+      ctaLabel: str(doc?.ctaLabel, DEFAULT_CTA.ctaLabel),
+      ctaLabelReturning: str(
+        doc?.ctaLabelReturning,
+        DEFAULT_CTA.ctaLabelReturning,
+      ),
+      ctaHref: str(doc?.ctaHref, DEFAULT_CTA.ctaHref),
       ctaImage: str(doc?.ctaImage, DEFAULT_CTA.ctaImage),
     };
   } catch (err) {

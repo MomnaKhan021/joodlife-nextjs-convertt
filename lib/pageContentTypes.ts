@@ -144,6 +144,10 @@ export const DEFAULT_CTA = {
   ctaTitleEmphasis: "toward a better you",
   ctaSubtitle:
     "Simple support for your goals, your routine, and your confidence.",
+  ctaLabel: "Get started",
+  // Shown instead of the label above once a patient has ordered before.
+  ctaLabelReturning: "Reorder",
+  ctaHref: "/consultation",
   ctaImage: "/assets/figma/cta-bg.png",
 };
 

@@ -150,6 +150,9 @@ export const HomePage: GlobalConfig = {
       admin: { description: "Second part of the CTA heading, shown in italics." },
     },
     { name: "ctaSubtitle", type: "textarea", admin: { rows: 2 } },
+    { name: "ctaLabel", type: "text" },
+    { name: "ctaLabelReturning", type: "text" },
+    { name: "ctaHref", type: "text" },
     {
       name: "ctaImage",
       type: "text",

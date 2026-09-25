@@ -19,6 +19,11 @@ export type CtaContent = {
   title?: string;
   titleEmphasis?: string;
   subtitle?: string;
+  /** Button words and destination. */
+  ctaLabel?: string;
+  /** Shown instead of ctaLabel once a patient has ordered before. */
+  ctaLabelReturning?: string;
+  ctaHref?: string;
   /** Per-text size and weight, keyed by the Home field name. */
   text?: Partial<Record<HomeTextKey, TextStyle>>;
   image?: string;
@@ -33,6 +38,9 @@ export default function CtaBannerView({
   title = "Take the first step",
   titleEmphasis = "toward a better you",
   subtitle = "Simple support for your goals, your routine, and your confidence.",
+  ctaLabel = "Get started",
+  ctaLabelReturning = "Reorder",
+  ctaHref = "/consultation",
   image = "/assets/figma/cta-bg.png",
 }: CtaContent & { style?: SectionStyle } = {}) {
   return (
@@ -108,10 +116,12 @@ export default function CtaBannerView({
             {/* RIGHT — outlined Get Started button */}
             <div className="relative z-10 order-2 flex w-full items-center justify-start px-6 pb-10 md:order-3 md:justify-end md:px-0 md:py-0">
               <a
-                href={isReturningPatient ? "/reorder" : "/consultation"}
+                href={isReturningPatient ? "/reorder" : ctaHref}
                 className="btn-cta inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg border border-[#142e2a]/40 bg-white px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] hover:border-[#142e2a] hover:bg-[#142e2a] hover:text-white md:text-[14px]"
               >
-                {isReturningPatient ? "Reorder" : "Get started"}
+                {isReturningPatient
+                  ? ctaLabelReturning.trim() || "Reorder"
+                  : ctaLabel}
               </a>
             </div>
           </div>
