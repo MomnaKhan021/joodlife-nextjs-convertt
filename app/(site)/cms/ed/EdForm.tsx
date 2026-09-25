@@ -29,6 +29,7 @@ import {
   type SectionStyle,
 } from "@/lib/sectionStyle";
 import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
+import TypeControl from "../TypeControl";
 import type { TextStyle } from "@/lib/textStyle";
 import type { CategoryPageContent } from "@/lib/categoryPageContentTypes";
 import type { Faq as CategoryFaq } from "@/lib/categoryFaqs";
@@ -79,6 +80,14 @@ export default function EdForm({
   const [faqs, setFaqs] = useState<CategoryFaq[]>(
     shared.faqs.erectileDysfunction,
   );
+  // The FAQ band's colour and text sizes live on the shared document beside
+  // the questions, so they are edited and written back together.
+  const [faqStyle, setFaqStyle] = useState<SectionStyle>(shared.styles.faqs);
+  const [faqText, setFaqText] = useState<Record<string, TextStyle>>(
+    shared.textStyles,
+  );
+  const setFaqTextFor = (k: string) => (next: TextStyle) =>
+    setFaqText((t) => ({ ...t, [k]: next }));
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -93,6 +102,8 @@ export default function EdForm({
       // replaced, so editing here cannot disturb the other two treatments.
       await saveGlobal("category-pages", {
         ...shared,
+        styles: { ...shared.styles, faqs: faqStyle },
+        textStyles: faqText,
         faqs: {
           ...shared.faqs,
           heading: faqHeading,
@@ -1261,52 +1272,19 @@ export default function EdForm({
           </div>
         </div>
 
-        {/* 8. Closing banner */}
+        {/* 8. FAQs — stored with the other treatment pages, edited here too */}
         <div className={cmsCard}>
           <div className="-mb-2 flex justify-end">
-            <SectionControl sectionKey="banner" value={styles.banner} onChange={setStyle("banner")} />
+            <SectionControl
+              sectionKey="faqs"
+              value={faqStyle}
+              onChange={setFaqStyle}
+            />
           </div>
-          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-            8. Closing banner
-          </h2>
-          <Pair
-            firstKey="banner.heading"
-            secondKey="banner.headingAccent"
-            label="Heading"
-            first={banner.heading}
-            second={banner.headingAccent}
-            onFirst={(v) => setBanner({ ...banner, heading: v })}
-            onSecond={(v) => setBanner({ ...banner, headingAccent: v })}
-          />
-          <AreaField
-            tsKey="banner.body"
-            label="Body"
-            rows={2}
-            value={banner.body}
-            onChange={(v) => setBanner({ ...banner, body: v })}
-          />
-          <CtaFields
-            labelKey="banner.ctaLabel"
-            label={banner.ctaLabel}
-            href={banner.ctaHref}
-            onLabel={(v) => setBanner({ ...banner, ctaLabel: v })}
-            onHref={(v) => setBanner({ ...banner, ctaHref: v })}
-          />
-          <PictureField
-            label="Photo"
-            src={banner.image}
-            onSrc={(v) => setBanner({ ...banner, image: v })}
-            alt={banner.imageAlt}
-            onAlt={(v) => setBanner({ ...banner, imageAlt: v })}
-          />
-        </div>
-
-        {/* 9. FAQs — stored with the other treatment pages, edited here too */}
-        <div className={cmsCard}>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h2 className="text-[15px] font-medium text-[#1a1a1a]">
-                9. Frequently asked questions
+                8. Frequently asked questions
               </h2>
               <p className="mt-1 text-[12px] leading-relaxed text-[#8a8a8a]">
                 The questions at the bottom of this page. They are stored with
@@ -1324,28 +1302,61 @@ export default function EdForm({
             </button>
           </div>
 
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+            <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+            {(
+              [
+                ["faqs.question", "Questions"],
+                ["faqs.answer", "Answers"],
+              ] as const
+            ).map(([k, lbl]) => (
+              <span key={k} className="flex items-center gap-2">
+                {lbl}
+                <TypeControl
+                  label={lbl}
+                  value={faqText[k]}
+                  onChange={setFaqTextFor(k)}
+                />
+              </span>
+            ))}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={fieldLabel} htmlFor="edFaqH">
                 Heading (shared)
               </label>
+              <div className="mt-1 flex items-center gap-2">
               <input
                 id="edFaqH"
-                className={`${fieldInput} mt-1`}
+                className={fieldInput}
                 value={faqHeading}
                 onChange={(e) => setFaqHeading(e.target.value)}
               />
+                <TypeControl
+                  label="Heading"
+                  value={faqText["faqs.heading"]}
+                  onChange={setFaqTextFor("faqs.heading")}
+                />
+              </div>
             </div>
             <div>
               <label className={fieldLabel} htmlFor="edFaqA">
                 Heading, italic part (shared)
               </label>
+              <div className="mt-1 flex items-center gap-2">
               <input
                 id="edFaqA"
-                className={`${fieldInput} mt-1`}
+                className={fieldInput}
                 value={faqAccent}
                 onChange={(e) => setFaqAccent(e.target.value)}
               />
+                <TypeControl
+                  label="Heading italic"
+                  value={faqText["faqs.headingAccent"]}
+                  onChange={setFaqTextFor("faqs.headingAccent")}
+                />
+              </div>
             </div>
           </div>
 
@@ -1398,6 +1409,46 @@ export default function EdForm({
             ) : null}
           </div>
         </div>
+        {/* 9. Closing banner */}
+        <div className={cmsCard}>
+          <div className="-mb-2 flex justify-end">
+            <SectionControl sectionKey="banner" value={styles.banner} onChange={setStyle("banner")} />
+          </div>
+          <h2 className="text-[15px] font-medium text-[#1a1a1a]">
+            9. Closing banner
+          </h2>
+          <Pair
+            firstKey="banner.heading"
+            secondKey="banner.headingAccent"
+            label="Heading"
+            first={banner.heading}
+            second={banner.headingAccent}
+            onFirst={(v) => setBanner({ ...banner, heading: v })}
+            onSecond={(v) => setBanner({ ...banner, headingAccent: v })}
+          />
+          <AreaField
+            tsKey="banner.body"
+            label="Body"
+            rows={2}
+            value={banner.body}
+            onChange={(v) => setBanner({ ...banner, body: v })}
+          />
+          <CtaFields
+            labelKey="banner.ctaLabel"
+            label={banner.ctaLabel}
+            href={banner.ctaHref}
+            onLabel={(v) => setBanner({ ...banner, ctaLabel: v })}
+            onHref={(v) => setBanner({ ...banner, ctaHref: v })}
+          />
+          <PictureField
+            label="Photo"
+            src={banner.image}
+            onSrc={(v) => setBanner({ ...banner, image: v })}
+            alt={banner.imageAlt}
+            onAlt={(v) => setBanner({ ...banner, imageAlt: v })}
+          />
+        </div>
+
       </div>
 
       <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
