@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { BlogPageContent } from "@/lib/blogPageContentTypes";
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import type { BlogPageStyleKey, SectionStyle } from "@/lib/sectionStyle";
@@ -39,28 +40,6 @@ export default function BlogPageForm({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function save() {
-    setSaving(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await saveGlobal("blog-page", {
-        styles,
-        textStyles,
-        hero,
-        list,
-        newsletter,
-        cta,
-      });
-      setSaved(true);
-      // The bar never leaves the screen, so the confirmation has to.
-      window.setTimeout(() => setSaved(false), 4000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
     initial.textStyles,
@@ -70,6 +49,34 @@ export default function BlogPageForm({
     set: (k: string) => (next: TextStyle) =>
       setTextStyles((t) => ({ ...t, [k]: next })),
   };
+
+  // What this screen would send. Compared with the version it loaded
+  // with, so Save is only offered when there is something to save.
+  const payload = {
+        styles,
+        textStyles,
+        hero,
+        list,
+        newsletter,
+        cta,
+      };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await saveGlobal("blog-page", payload);
+      setSaved(true);
+      markSaved();
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -437,7 +444,7 @@ export default function BlogPageForm({
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save blog listing page"}

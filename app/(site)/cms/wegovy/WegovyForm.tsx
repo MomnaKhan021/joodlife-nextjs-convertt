@@ -11,6 +11,7 @@ import {
 } from "@/lib/wegovyContentTypes";
 
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import {
@@ -64,6 +65,7 @@ function Ts({ k, label }: { k?: string; label: string }) {
 }
 
 function LabelRow({ children, k, label }: { children: React.ReactNode; k?: string; label: string }) {
+
   return (
     <div className="flex items-center justify-between gap-2">
       {children}
@@ -401,12 +403,19 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function save() {
-    setSaving(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await saveGlobal("wegovy-page", {
+
+  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
+    initial.textStyles,
+  );
+  const textStyleApi = {
+    get: (k: string) => textStyles[k],
+    set: (k: string) => (next: TextStyle) =>
+      setTextStyles((t) => ({ ...t, [k]: next })),
+  };
+
+  // What this screen would send. Compared with the version it loaded
+  // with, so Save is only offered when there is something to save.
+  const payload = {
         styles,
         textStyles,
         announcement,
@@ -430,8 +439,16 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         },
         faq: { ...faq, items: faq.items.filter((f) => f.q.trim() && f.a.trim()) },
         finalCta,
-      });
+      };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await saveGlobal("wegovy-page", payload);
       setSaved(true);
+      markSaved();
       // The bar never leaves the screen, so the confirmation has to.
       window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
@@ -440,15 +457,6 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
       setSaving(false);
     }
   }
-
-  const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>(
-    initial.textStyles,
-  );
-  const textStyleApi = {
-    get: (k: string) => textStyles[k],
-    set: (k: string) => (next: TextStyle) =>
-      setTextStyles((t) => ({ ...t, [k]: next })),
-  };
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -1693,7 +1701,7 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save Wegovy Pills page"}

@@ -10,6 +10,7 @@ import type {
   TreatmentRow,
 } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
@@ -75,6 +76,7 @@ export default function TreatmentsForm({
   onRowsChange,
   look,
   saveRef,
+  onLookChange,
 }: {
   initial: Row[];
   /** Band colours and text sizes; saved with the rest by this editor's own button. */
@@ -98,6 +100,14 @@ export default function TreatmentsForm({
    * outside would drop whatever it could not see.
    */
   saveRef?: { current: (() => Promise<void>) | null };
+  /**
+   * Reports the band colours and text sizes upward as they change.
+   *
+   * They live in this component's state, so a host screen saving on its own
+   * button has no other way to notice a colour was touched — and would leave
+   * Save disabled over an edit it could not see.
+   */
+  onLookChange?: (look: TreatmentLook) => void;
 }) {
   const [ownRows, setOwnRows] = useState<Row[]>(initial);
   const rows = controlledRows ?? ownRows;
@@ -145,28 +155,6 @@ export default function TreatmentsForm({
     });
   }
 
-  async function save() {
-    setSaving(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await saveGlobal("treatments", {
-        styles,
-        textStyles,
-        categories: rows.map((r) => ({
-          ...r,
-          bullets: r.bullets.filter((b) => b.trim()),
-        })),
-      });
-      setSaved(true);
-      // The bar never leaves the screen, so the confirmation has to.
-      window.setTimeout(() => setSaved(false), 4000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   const [styles, setStyles] = useState<Record<string, SectionStyle>>(
     look?.styles ?? mergeStyles(null, TREATMENT_STYLE_KEYS),
@@ -193,6 +181,42 @@ export default function TreatmentsForm({
       saveRef.current = null;
     };
   });
+
+  // Tell the host what the colours and sizes are now. Reporting the initial
+  // values on mount is harmless: the host compares values, so a report equal
+  // to what it started with is not a change.
+  useEffect(() => {
+    onLookChange?.({ styles, textStyles });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [styles, textStyles]);
+
+  // What this screen would send. Compared with the version it loaded
+  // with, so Save is only offered when there is something to save.
+  const payload = {
+        styles,
+        textStyles,
+        categories: rows.map((r) => ({
+          ...r,
+          bullets: r.bullets.filter((b) => b.trim()),
+        })),
+      };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await saveGlobal("treatments", payload);
+      setSaved(true);
+      markSaved();
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -695,7 +719,7 @@ export default function TreatmentsForm({
           <button
             type="button"
             onClick={() => void save()}
-            disabled={saving}
+            disabled={saving || !dirty}
             className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             {saving ? "Saving…" : "Save treatments"}

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "../MediaPicker";
+import { useDirty } from "../useDirty";
 import SectionControl from "../SectionControl";
 import TypeControl from "../TypeControl";
 import {
@@ -99,54 +100,6 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
     [slug, slugTouched, title],
   );
 
-  async function save(nextStatus?: string) {
-    setSaving(true);
-    setError(null);
-    const body = {
-      title,
-      slug: effectiveSlug,
-      excerpt: excerpt || null,
-      bodyHtml: bodyHtml || null,
-      status: nextStatus ?? status,
-      metaTitle: metaTitle || null,
-      metaDescription: metaDescription || null,
-      heroImage: heroId ?? null,
-      publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
-      styles,
-      textStyles,
-      redirectUrl: redirectUrl.trim() || null,
-      redirectPermanent,
-    };
-    try {
-      const res = await fetch(
-        isEdit ? `/api/pages/${initial!.id}` : "/api/pages",
-        {
-          method: isEdit ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(body),
-        },
-      );
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const detail =
-          json?.errors?.[0]?.message || json?.message || `HTTP ${res.status}`;
-        setError(
-          res.status === 403
-            ? `${detail}. If this says you're not allowed, the server URL in .env must match the port you're browsing on (Payload rejects cookie auth from other origins).`
-            : `Save failed: ${detail}`,
-        );
-        return;
-      }
-      if (nextStatus) setStatus(nextStatus);
-      router.push("/cms/pages");
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function remove() {
     if (!isEdit) return;
@@ -178,6 +131,60 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
   );
   const setText = (k: PageTextKey) => (next: TextStyle) =>
     setTextStyles((t) => ({ ...t, [k]: next }));
+
+  // What this editor would send, without the status the buttons
+  // supply. Compared with the version it loaded with, so a button is
+  // only offered when pressing it would change something.
+  const payload = {
+      title,
+      slug: effectiveSlug,
+      excerpt: excerpt || null,
+      bodyHtml: bodyHtml || null,
+      metaTitle: metaTitle || null,
+      metaDescription: metaDescription || null,
+      heroImage: heroId ?? null,
+      publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+      styles,
+      textStyles,
+      redirectUrl: redirectUrl.trim() || null,
+      redirectPermanent,
+    };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save(nextStatus?: string) {
+    setSaving(true);
+    setError(null);
+    const body = { ...payload, status: nextStatus ?? status };
+    try {
+      const res = await fetch(
+        isEdit ? `/api/pages/${initial!.id}` : "/api/pages",
+        {
+          method: isEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(body),
+        },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail =
+          json?.errors?.[0]?.message || json?.message || `HTTP ${res.status}`;
+        setError(
+          res.status === 403
+            ? `${detail}. If this says you're not allowed, the server URL in .env must match the port you're browsing on (Payload rejects cookie auth from other origins).`
+            : `Save failed: ${detail}`,
+        );
+        return;
+      }
+      if (nextStatus) setStatus(nextStatus);
+      markSaved();
+      router.push("/cms/pages");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-[900px]">
@@ -407,7 +414,12 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
       <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
         <button
           type="button"
-          disabled={saving || !title || !effectiveSlug}
+          disabled={
+            saving ||
+            !title ||
+            !effectiveSlug ||
+            (!dirty && status === "published")
+          }
           onClick={() => save("published")}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
@@ -415,7 +427,12 @@ export default function PageForm({ initial }: { initial?: PageDoc }) {
         </button>
         <button
           type="button"
-          disabled={saving || !title || !effectiveSlug}
+          disabled={
+            saving ||
+            !title ||
+            !effectiveSlug ||
+            (!dirty && status === "draft")
+          }
           onClick={() => save("draft")}
           className="rounded-lg border border-[#d8ddd0] bg-white px-4 py-2 text-[13px] font-medium text-[#1a1a1a] transition-colors hover:bg-[#f4f6f0] disabled:opacity-40"
         >

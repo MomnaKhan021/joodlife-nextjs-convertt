@@ -10,6 +10,7 @@ import {
   fieldLabel,
   saveGlobal,
 } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import MegaEditor from "../MegaEditor";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
@@ -32,6 +33,7 @@ import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 function LayoutThumb({ layout }: { layout: HeaderLayout }) {
   const logo = <rect width="26" height="8" rx="2" fill="currentColor" />;
   const line = (w: number) => <rect width={w} height="4" rx="2" fill="currentColor" opacity="0.35" />;
+
   return (
     <svg viewBox="0 0 120 28" className="h-8 w-full text-[#1a1a1a]" role="presentation">
       <rect x="0.5" y="0.5" width="119" height="27" rx="4" fill="#fff" stroke="#e4e7de" />
@@ -158,12 +160,10 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
     setTreatments(next);
   }
 
-  async function save() {
-    setSaving(true);
-    setError(null);
-    setSaved(false);
-    try {
-      await saveGlobal("header", {
+
+  // What this screen would send. Compared with the version it loaded
+  // with, so Save is only offered when there is something to save.
+  const payload = {
         styles: { header: style },
         settings,
         textStyles,
@@ -177,8 +177,16 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
         megaPromoHref: promoHref,
         logoDesktop,
         logoMobile,
-      });
+      };
+  const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await saveGlobal("header", payload);
       setSaved(true);
+      markSaved();
       // The bar never leaves the screen, so the confirmation has to.
       window.setTimeout(() => setSaved(false), 4000);
     } catch (e) {
@@ -450,7 +458,7 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save header"}

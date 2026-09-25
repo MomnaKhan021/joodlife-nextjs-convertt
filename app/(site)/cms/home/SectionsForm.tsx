@@ -13,6 +13,7 @@ import type {
 } from "@/lib/pageContentTypes";
 import type { TreatmentRow } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { useDirty } from "../useDirty";
 import TreatmentsEditor, { type TreatmentLook } from "../treatments/TreatmentsForm";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
@@ -62,6 +63,10 @@ export default function SectionsForm({
   // Filled in by the embedded treatments editor so "Save sections" can write
   // that global too — the band colours and text sizes live in its state.
   const saveTreatments = useRef<(() => Promise<void>) | null>(null);
+  // The bands' colours and sizes live inside that editor. It reports them so
+  // Save can tell whether one was touched — starting from the same values it
+  // was given, so an unedited screen is not dirty.
+  const [treatmentLookNow, setTreatmentLookNow] = useState(treatmentLook);
   const updateTreatment = (key: string, patch: Partial<TreatmentRow>) =>
     setTreatmentRows((prev) =>
       prev.map((r) => (r.key === key ? { ...r, ...patch } : r)),
@@ -150,7 +155,25 @@ export default function SectionsForm({
     setError(null);
     setSaved(false);
     try {
-      await saveGlobal("home-page", {
+      await saveGlobal("home-page", payload);
+      // The hero's right-hand cards are edited on this screen but belong to
+      // the treatments global. Saving only home-page left those edits on the
+      // floor, which reads as "the CMS ignored me" — so one button writes both.
+      await saveTreatments.current?.();
+      setSaved(true);
+      markSaved();
+      // The bar never leaves the screen, so the confirmation has to.
+      window.setTimeout(() => setSaved(false), 4000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Everything Save would write: this screen's own fields, plus the
+  // treatment bands it saves through the embedded editor.
+  const payload = {
         styles,
         textStyles,
         faqHeading,
@@ -180,20 +203,10 @@ export default function SectionsForm({
         ctaTitleEmphasis: ctaEmphasis,
         ctaSubtitle,
         ctaImage,
-      });
-      // The hero's right-hand cards are edited on this screen but belong to
-      // the treatments global. Saving only home-page left those edits on the
-      // floor, which reads as "the CMS ignored me" — so one button writes both.
-      await saveTreatments.current?.();
-      setSaved(true);
-      // The bar never leaves the screen, so the confirmation has to.
-      window.setTimeout(() => setSaved(false), 4000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
+      };
+  const { dirty, markSaved } = useDirty(
+    JSON.stringify({ payload, treatmentRows, treatmentLookNow }),
+  );
 
   return (
     <div className="mx-auto w-full max-w-[1000px]">
@@ -499,6 +512,7 @@ export default function SectionsForm({
           rows={treatmentRows}
           onRowsChange={setTreatmentRows}
           saveRef={saveTreatments}
+          onLookChange={setTreatmentLookNow}
         />
 
         {/* ---- Reviews ---- */}
@@ -921,7 +935,7 @@ export default function SectionsForm({
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || !dirty}
           className="rounded-lg bg-[#1a1a1a] px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save sections"}
