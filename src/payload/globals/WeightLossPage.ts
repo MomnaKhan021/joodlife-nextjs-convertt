@@ -27,6 +27,19 @@ export const WeightLossPage: GlobalConfig = {
     { name: "journey", type: "json", admin: { description: "Timeline and the two cards below it." } },
     { name: "features", type: "json", admin: { description: "Dark feature panel." } },
     { name: "quiz", type: "json", admin: { description: "Let's get to know you." } },
+    {
+      name: "textStyles",
+      type: "json",
+      admin: { description: "Per-text size and weight, keyed by section.field." },
+    },
+    {
+      name: "styles",
+      type: "json",
+      admin: {
+        description:
+          "Per-section background / text colour. Empty means the design as shipped.",
+      },
+    },
   ],
 };
 

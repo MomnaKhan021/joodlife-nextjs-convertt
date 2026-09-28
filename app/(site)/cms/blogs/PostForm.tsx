@@ -264,9 +264,12 @@ export default function PostForm({
 
       <div className="space-y-5 rounded-xl border border-[#e4e7de] bg-white p-6">
         <div>
-          <label className={label} htmlFor="title">
-            Title
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className={label} htmlFor="title">
+              Title
+            </label>
+            <TypeControl label="Title" value={textStyles.title} onChange={setText("title")} />
+          </div>
           <input
             id="title"
             className={input}
@@ -343,9 +346,12 @@ export default function PostForm({
         </div>
 
         <div>
-          <label className={label} htmlFor="excerpt">
-            Excerpt
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className={label} htmlFor="excerpt">
+              Excerpt
+            </label>
+            <TypeControl label="Intro" value={textStyles.excerpt} onChange={setText("excerpt")} />
+          </div>
           <textarea
             id="excerpt"
             className={`${input} min-h-[70px]`}
@@ -449,8 +455,6 @@ export default function PostForm({
             <span className="text-[12px] text-[#8a8a8a]">Text sizes:</span>
             {(
               [
-                ["title", "Title"],
-                ["excerpt", "Intro"],
                 ["meta", "Author & date"],
                 ["breadcrumb", "Breadcrumb"],
                 ["tags", "Tag pills"],

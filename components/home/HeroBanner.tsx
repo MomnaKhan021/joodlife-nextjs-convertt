@@ -3,6 +3,10 @@ import Reveal from "@/components/ui/Reveal";
 import AnimatedLbsBadge from "./AnimatedLbsBadge";
 import EligibilityCta from "@/components/ui/EligibilityCta";
 import { WL_DEFAULT, type WlHeroContent } from "@/lib/weightLossContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
+
+type Text = Partial<Record<string, TextStyle>>;
 
 /**
  * Hero banner — matches Figma node 141:1688 (Updated Home Page,
@@ -30,9 +34,11 @@ const BULLETS_MOBILE = [
 function TrustpilotRow({
   textClass = "text-white",
   label,
+  labelStyle,
 }: {
   textClass?: string;
   label: string;
+  labelStyle?: TextStyle;
 }) {
   return (
     <a
@@ -57,6 +63,7 @@ function TrustpilotRow({
         className="h-[16px] w-auto"
       />
       <span
+        {...textStyleProps(labelStyle)}
         className={`font-inter text-[14.2px] leading-[17px] tracking-[-0.03em] ${textClass}`}
       >
         {label}
@@ -65,7 +72,13 @@ function TrustpilotRow({
   );
 }
 
-function TickBullet({ children }: { children: React.ReactNode }) {
+function TickBullet({
+  children,
+  textStyle,
+}: {
+  children: React.ReactNode;
+  textStyle?: TextStyle;
+}) {
   return (
     <li className="flex items-center gap-2">
       <Image
@@ -76,7 +89,7 @@ function TickBullet({ children }: { children: React.ReactNode }) {
         className="h-6 w-6 shrink-0"
         aria-hidden
       />
-      <span className="font-ui text-[16.3px] font-medium leading-[20px] tracking-[-0.02em] text-[#d3dabe]">
+      <span {...textStyleProps(textStyle)} className="font-ui text-[16.3px] font-medium leading-[20px] tracking-[-0.02em] text-[#d3dabe]">
         {children}
       </span>
     </li>
@@ -85,8 +98,13 @@ function TickBullet({ children }: { children: React.ReactNode }) {
 
 export default function HeroBanner({
   content = WL_DEFAULT.hero,
+  style,
+  text = {},
 }: {
   content?: WlHeroContent;
+  /** Colours the dark card - the part of this section a reader sees. */
+  style?: SectionStyle;
+  text?: Text;
 } = {}) {
   const shippedOrder =
     content.bullets.length === WL_DEFAULT.hero.bullets.length &&
@@ -101,7 +119,7 @@ export default function HeroBanner({
     >
       {/* Desktop — 1400×720 card */}
       <div className="hidden md:block">
-        <div className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-[24px] bg-[#142e2a]">
+        <div {...styleProps(style)} className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-[24px] bg-[#142e2a]">
           <Reveal
             delay={0}
             as="div"
@@ -109,25 +127,25 @@ export default function HeroBanner({
           >
             {/* Left column — 580 wide per Figma */}
             <div className="relative z-10 flex w-[580px] max-w-[580px] flex-col items-start gap-7">
-              <TrustpilotRow label={content.reviewsLabel} />
+              <TrustpilotRow label={content.reviewsLabel} labelStyle={text["hero.reviewsLabel"]} />
 
-              <h1 className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
+              <h1 {...textStyleProps(text["hero.title"])} className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
                 {/* Figma wraps at two lines exactly. We force the first
                    line onto one line with whitespace-nowrap so the
                    slightly-wider PJS fallback (Gilroy-SemiBold is the
                    Figma face) doesn't push "loss," onto a third row. */}
                 <span className="block whitespace-nowrap">
                   {content.titleLead}{" "}
-                  <em className="font-serif italic font-normal tracking-[-0.02em]">
+                  <em {...textStyleProps(text["hero.titleAccent"])} className="font-serif italic font-normal tracking-[-0.02em]">
                     {content.titleAccent}
                   </em>
                 </span>
-                <span className="block">{content.titleTail}</span>
+                <span {...textStyleProps(text["hero.titleTail"])} className="block">{content.titleTail}</span>
               </h1>
 
               <ul className="flex flex-col gap-3">
                 {content.bullets.map((b) => (
-                  <TickBullet key={b}>{b}</TickBullet>
+                  <TickBullet key={b} textStyle={text["hero.bullet"]}>{b}</TickBullet>
                 ))}
               </ul>
 
@@ -135,6 +153,7 @@ export default function HeroBanner({
                 {/* Figma: primary 200×50, secondary 279×50 */}
                 {content.ctaLabel ? (
                   <a
+                    {...textStyleProps(text["hero.ctaLabel"])}
                     href={content.ctaHref}
                     className="btn-cta inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
                   >
@@ -145,6 +164,7 @@ export default function HeroBanner({
                   <EligibilityCta
                     href={content.secondaryHref}
                     label={content.secondaryLabel}
+                    style={textStyleProps(text["hero.secondaryLabel"]).style}
                     className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
                   />
                 ) : null}
@@ -179,26 +199,28 @@ export default function HeroBanner({
       <div className="px-4 pb-0 pt-3 md:hidden">
         <Reveal
           as="div"
+          style={styleProps(style).style}
           className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[12px] bg-[#142e2a]"
         >
           <div className="flex flex-col gap-5 px-4 pt-6 pb-3">
-            <TrustpilotRow label={content.reviewsLabel} />
+            <TrustpilotRow label={content.reviewsLabel} labelStyle={text["hero.reviewsLabel"]} />
 
-            <h1 className="font-sofia text-[36px] font-medium leading-[40px] tracking-[-0.033em] text-white">
+            <h1 {...textStyleProps(text["hero.title"])} className="font-sofia text-[36px] font-medium leading-[40px] tracking-[-0.033em] text-white">
               {content.titleLead}{" "}
-              <em className="font-serif italic font-normal">{content.titleAccent}</em>
+              <em {...textStyleProps(text["hero.titleAccent"])} className="font-serif italic font-normal">{content.titleAccent}</em>
               <br />
-              {content.titleTail}
+              <span {...textStyleProps(text["hero.titleTail"])}>{content.titleTail}</span>
             </h1>
 
             <ul className="flex flex-col gap-2.5">
               {mobileBullets.map((b) => (
-                <TickBullet key={b}>{b}</TickBullet>
+                <TickBullet key={b} textStyle={text["hero.bullet"]}>{b}</TickBullet>
               ))}
             </ul>
 
             {content.ctaLabel ? (
               <a
+                {...textStyleProps(text["hero.ctaLabel"])}
                 href={content.ctaHref}
                 className="btn-cta mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
               >

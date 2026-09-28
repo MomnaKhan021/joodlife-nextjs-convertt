@@ -11,6 +11,8 @@ import {
 } from "react";
 
 import { WL_DEFAULT, type WlBmiContent } from "@/lib/weightLossContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 // The icons are matched to the pills by position; the words come from the CMS.
 const FLOATING_BADGES = [
@@ -108,8 +110,12 @@ const DEFAULT_WEIGHT = 98;
 
 export default function BmiCalculator({
   content = WL_DEFAULT.bmi,
+  style,
+  text = {},
 }: {
   content?: WlBmiContent;
+  style?: SectionStyle;
+  text?: Partial<Record<string, TextStyle>>;
 } = {}) {
   const badges = FLOATING_BADGES.map((b, i) => ({
     ...b,
@@ -161,17 +167,18 @@ export default function BmiCalculator({
   return (
     <section
       aria-label="BMI Calculator — Jood Life"
+      {...styleProps(style)}
       className="w-full bg-white"
       ref={sectionRef}
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-12 pb-10 md:pb-12">
-          <h2 className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text["bmi.heading"])} className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
             {content.heading}{" "}
-            <em className="font-serif italic font-normal">{content.headingAccent}</em>{" "}
-            {content.headingTail}
+            <em {...textStyleProps(text["bmi.headingAccent"])} className="font-serif italic font-normal">{content.headingAccent}</em>{" "}
+            <span {...textStyleProps(text["bmi.headingTail"])}>{content.headingTail}</span>
           </h2>
-          <p className="max-w-[530px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#0c2421]/85 md:text-[16.3px] md:leading-[20px]">
+          <p {...textStyleProps(text["bmi.body"])} className="max-w-[530px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#0c2421]/85 md:text-[16.3px] md:leading-[20px]">
             {content.body}
           </p>
         </div>
@@ -179,10 +186,10 @@ export default function BmiCalculator({
         <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
           <div className="flex h-full flex-col justify-between gap-6 rounded-[24px] bg-[#f7f9f2] p-8 md:min-h-[503px]">
             <div className="flex flex-col items-center gap-1.5 text-center">
-              <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
+              <p {...textStyleProps(text["bmi.calcTitle"])} className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
                 {content.calcTitle}
               </p>
-              <p className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-[#142e2a]/80 md:text-[16.3px] md:leading-[20px]">
+              <p {...textStyleProps(text["bmi.calcSubtitle"])} className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-[#142e2a]/80 md:text-[16.3px] md:leading-[20px]">
                 {content.calcSubtitle}
               </p>
             </div>
@@ -270,6 +277,7 @@ export default function BmiCalculator({
 
               <button
                 type="button"
+                {...textStyleProps(text["bmi.buttonLabel"])}
                 className="btn-cta mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white hover:bg-[#0c2421]"
               >
                 {content.buttonLabel}
@@ -310,7 +318,7 @@ export default function BmiCalculator({
                     className="h-[22px] w-[22px]"
                     aria-hidden
                   />
-                  <span className="font-ui text-[13px] font-medium leading-[18px] tracking-[-0.005em] text-[#171717] md:text-[14.5px] md:leading-[20px]">
+                  <span {...textStyleProps(text["bmi.badge"])} className="font-ui text-[13px] font-medium leading-[18px] tracking-[-0.005em] text-[#171717] md:text-[14.5px] md:leading-[20px]">
                     {b.label}
                   </span>
                   <span className="ml-auto grid h-[18px] w-[18px] place-items-center rounded-full bg-[#ff7300] text-[10px] font-bold text-white">
@@ -323,7 +331,7 @@ export default function BmiCalculator({
 
           <div className="flex h-full flex-col justify-between gap-6 rounded-[23px] bg-[#f7f9f2] p-8 md:min-h-[503px]">
             <div className="flex flex-col items-center gap-1.5 text-center">
-              <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[26px]">
+              <p {...textStyleProps(text["bmi.loseTitle"])} className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[26px]">
                 {content.loseTitle}
               </p>
               <div className="flex items-baseline gap-2">
@@ -359,7 +367,7 @@ export default function BmiCalculator({
             </div>
 
             <div className="mt-auto flex flex-col items-center gap-3">
-              <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
+              <p {...textStyleProps(text["bmi.startTitle"])} className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
                 {content.startTitle}
               </p>
               <div className="rounded-md bg-white px-4 py-2 shadow-sm">

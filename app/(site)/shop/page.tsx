@@ -7,6 +7,8 @@ import Reveal from "@/components/ui/Reveal";
 import ShopGrid from "@/components/shop/ShopGrid";
 import { listStorefrontProducts } from "@/lib/products";
 import { getShopContent } from "@/lib/productPageContent";
+import { styleProps } from "@/lib/sectionStyle";
+import { textStyleProps } from "@/lib/textStyle";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +28,14 @@ export default async function ShopPage() {
       <Header />
 
       {/* Heading — left aligned, "for you." on second line in italic serif */}
-      <section className="mx-auto w-full max-w-[1440px] px-6 pt-12 pb-8 md:px-[60px] md:pt-16 md:pb-10">
+      <section {...styleProps(shop.style)} className="mx-auto w-full max-w-[1440px] px-6 pt-12 pb-8 md:px-[60px] md:pt-16 md:pb-10">
         <Reveal>
-          <h1 className="font-display text-[clamp(1.875rem,8.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.025em] text-[#142e2a] md:text-[56px] md:leading-[60px]">
+          <h1 {...textStyleProps(shop.textStyles["heading"])} className="font-display text-[clamp(1.875rem,8.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.025em] text-[#142e2a] md:text-[56px] md:leading-[60px]">
             {shop.heading}
             {shop.headingAccent ? (
               <>
                 <br />
-                <em className="font-serif italic font-normal">{shop.headingAccent}</em>
+                <em {...textStyleProps(shop.textStyles["headingAccent"])} className="font-serif italic font-normal">{shop.headingAccent}</em>
               </>
             ) : null}
           </h1>
@@ -57,7 +59,7 @@ export default async function ShopPage() {
         )}
 
         {shop.footnote ? (
-          <p className="mt-8 font-ui text-[12px] text-[#142e2a]/55 md:mt-10">
+          <p {...textStyleProps(shop.textStyles["footnote"])} className="mt-8 font-ui text-[12px] text-[#142e2a]/55 md:mt-10">
             {shop.footnote}
           </p>
         ) : null}

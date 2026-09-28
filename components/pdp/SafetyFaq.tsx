@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PlusIcon } from "./PdpIcons";
 import type { PDPProduct } from "@/lib/pdp-products";
 import { PDP_FAQS } from "@/lib/pdp-products";
+import { textStyleProps } from "@/lib/textStyle";
 
 interface SafetyFaqProps {
   product: PDPProduct;
@@ -50,26 +51,26 @@ export default function SafetyFaq({ product }: SafetyFaqProps) {
 
       {/* Body */}
       <div className="flex flex-col gap-6">
-        <h2 className="font-display text-[32px] font-semibold leading-[38px] tracking-[-0.025em] text-[#142e2a] md:text-[40px] md:leading-[48px]">
+        <h2 {...textStyleProps(product.textStyles?.["safetyTitle"])} className="font-display text-[32px] font-semibold leading-[38px] tracking-[-0.025em] text-[#142e2a] md:text-[40px] md:leading-[48px]">
           {safeSplit ? (
             <>
               {title.slice(0, -" safe?".length)}{" "}
-              <em className="font-serif italic font-normal">safe?</em>
+              <em {...textStyleProps(product.textStyles?.["safetyTitleAccent"])} className="font-serif italic font-normal">safe?</em>
             </>
           ) : (
             title
           )}
         </h2>
 
-        <p className="font-ui text-[15px] leading-[24px] tracking-[-0.01em] text-[#142e2a]/85 md:text-[16px] md:leading-[26px]">
+        <p {...textStyleProps(product.textStyles?.["safetyBody"])} className="font-ui text-[15px] leading-[24px] tracking-[-0.01em] text-[#142e2a]/85 md:text-[16px] md:leading-[26px]">
           {product.safetyBody}
         </p>
 
         <div className="flex flex-col gap-2">
-          <h3 className="font-display text-[15px] font-bold leading-[20px] text-[#142e2a] md:text-[16px]">
+          <h3 {...textStyleProps(product.textStyles?.["sideEffectsHeading"])} className="font-display text-[15px] font-bold leading-[20px] text-[#142e2a] md:text-[16px]">
             {product.sideEffectsHeading ?? "What are the common side effects?"}
           </h3>
-          <p className="font-ui text-[14px] leading-[22px] text-[#142e2a]/85 md:text-[15px] md:leading-[24px]">
+          <p {...textStyleProps(product.textStyles?.["safetySideEffects"])} className="font-ui text-[14px] leading-[22px] text-[#142e2a]/85 md:text-[15px] md:leading-[24px]">
             {product.safetySideEffects}
           </p>
         </div>
@@ -89,7 +90,7 @@ export default function SafetyFaq({ product }: SafetyFaqProps) {
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left md:py-5"
                 >
-                  <span className="font-ui text-[14px] font-medium leading-[20px] text-[#142e2a] md:text-[15px] md:leading-[22px]">
+                  <span {...textStyleProps(product.textStyles?.["faqQuestion"])} className="font-ui text-[14px] font-medium leading-[20px] text-[#142e2a] md:text-[15px] md:leading-[22px]">
                     {f.q}
                   </span>
                   <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#f7f9f2]">
@@ -104,7 +105,7 @@ export default function SafetyFaq({ product }: SafetyFaqProps) {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="pb-4 font-ui text-[13px] leading-[20px] text-[#142e2a]/75 md:pb-5 md:text-[14px] md:leading-[22px]">
+                    <p {...textStyleProps(product.textStyles?.["faqAnswer"])} className="pb-4 font-ui text-[13px] leading-[20px] text-[#142e2a]/75 md:pb-5 md:text-[14px] md:leading-[22px]">
                       {f.a}
                     </p>
                   </div>
@@ -115,7 +116,7 @@ export default function SafetyFaq({ product }: SafetyFaqProps) {
         </ul>
 
         {(product.safetyCtaLabel ?? "Check Eligible") ? (
-          <a
+          <a {...textStyleProps(product.textStyles?.["safetyCta"])}
             href={product.safetyCtaHref || "/consultation?product=weight-loss"}
             className="mt-2 inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
           >

@@ -4,6 +4,10 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import Reveal from "@/components/ui/Reveal";
 import { WL_DEFAULT, type WlQuizContent } from "@/lib/weightLossContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
+
+type Text = Partial<Record<string, TextStyle>>;
 
 /**
  * Quiz banner — "Let's get to know you" + "Feel Energetic"
@@ -64,9 +68,11 @@ function useAnimatedProgress(target: number, isActive: boolean, ms = DURATION_MS
 function FeelEnergeticOverlay({
   active,
   content,
+  text,
 }: {
   active: boolean;
   content: WlQuizContent;
+  text: Text;
 }) {
   const progress = useAnimatedProgress(PROGRESS_TARGET, active);
   const pct = progress * 100;
@@ -78,7 +84,7 @@ function FeelEnergeticOverlay({
         className="inline-flex w-fit items-center justify-center rounded-[40px] bg-white/[0.16] backdrop-blur-md"
         style={{ height: 36, padding: "8px 14px" }}
       >
-        <span className="font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white">
+        <span {...textStyleProps(text["quiz.pill"])} className="font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white">
           {content.pill}
         </span>
       </span>
@@ -95,14 +101,14 @@ function FeelEnergeticOverlay({
       >
         {/* Top row: copy + "loos up to 20kg" */}
         <div className="flex items-start justify-between gap-4 pb-5">
-          <p className="max-w-[352px] font-ui text-[14.5px] leading-[19px] tracking-[-0.02em] text-white md:text-[16.3px] md:leading-[20px]">
+          <p {...textStyleProps(text["quiz.progressText"])} className="max-w-[352px] font-ui text-[14.5px] leading-[19px] tracking-[-0.02em] text-white md:text-[16.3px] md:leading-[20px]">
             {content.progressText}
           </p>
           <div className="flex flex-col items-end leading-none">
-            <span className="font-ui text-[14.5px] leading-[20px] tracking-[-0.02em] text-white md:text-[16.3px]">
+            <span {...textStyleProps(text["quiz.progressLabel"])} className="font-ui text-[14.5px] leading-[20px] tracking-[-0.02em] text-white md:text-[16.3px]">
               {content.progressLabel}
             </span>
-            <span
+            <span {...textStyleProps(text["quiz.progressValue"])}
               className="mt-1 font-display font-medium leading-none tabular-nums text-white"
               style={{ fontSize: 32, letterSpacing: "0.04em" }}
             >
@@ -134,7 +140,7 @@ function FeelEnergeticOverlay({
         {/* Weight labels — evenly spaced */}
         <div className="mt-2 flex justify-between font-ui text-[12px] font-medium text-white md:text-[16.3px] md:leading-[20px]">
           {content.weightLabels.map((w) => (
-            <span key={w}>{w}</span>
+            <span key={w} {...textStyleProps(text["quiz.weightLabel"])}>{w}</span>
           ))}
         </div>
       </div>
@@ -144,8 +150,12 @@ function FeelEnergeticOverlay({
 
 export default function QuizBanner({
   content = WL_DEFAULT.quiz,
+  style,
+  text = {},
 }: {
   content?: WlQuizContent;
+  style?: SectionStyle;
+  text?: Text;
 } = {}) {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const [overlayActive, setOverlayActive] = useState(false);
@@ -171,6 +181,7 @@ export default function QuizBanner({
   return (
     <section
       aria-label="Personalization quiz"
+      {...styleProps(style)}
       className="w-full bg-white py-[30px] md:py-10"
     >
       <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
@@ -179,12 +190,12 @@ export default function QuizBanner({
           as="div"
           className="flex flex-col items-center gap-3 pb-10 text-center md:pb-[60px]"
         >
-          <h2 className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.025em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
+          <h2 {...textStyleProps(text["quiz.heading"])} className="font-display text-[32px] leading-[36px] font-semibold tracking-[-0.025em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
             {content.heading}{" "}
-            <em className="font-serif italic font-normal">{content.headingAccent}</em>{" "}
-            {content.headingTail}
+            <em {...textStyleProps(text["quiz.headingAccent"])} className="font-serif italic font-normal">{content.headingAccent}</em>{" "}
+            <span {...textStyleProps(text["quiz.headingTail"])}>{content.headingTail}</span>
           </h2>
-          <p className="max-w-[546px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
+          <p {...textStyleProps(text["quiz.body"])} className="max-w-[546px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#142e2a] md:text-[16.3px] md:leading-[20px]">
             {content.body}
           </p>
         </Reveal>
@@ -195,7 +206,7 @@ export default function QuizBanner({
           <div className="flex flex-col items-center gap-8 rounded-[20px] bg-[#142e2a] px-8 py-10 text-center md:h-[584px] md:px-12 md:py-12">
             <div className="relative h-[234px] w-[234px]">
               <div className="absolute left-0 top-0 flex h-[194px] w-[160px] flex-col items-center gap-2 rounded-[17px] bg-[#d3dabe] px-5 py-2">
-                <span className="font-ui text-[12px] leading-[14px] text-[#142e2a]">
+                <span {...textStyleProps(text["quiz.planLabel"])} className="font-ui text-[12px] leading-[14px] text-[#142e2a]">
                   {content.planLabel}
                 </span>
                 <div className="relative h-[128px] w-[134px]">
@@ -211,7 +222,7 @@ export default function QuizBanner({
                 </div>
               </div>
               <div className="absolute right-0 bottom-0 flex h-[192px] w-[159px] flex-col items-center justify-between rounded-[17px] bg-white px-3 py-3">
-                <p className="font-ui text-[16.3px] leading-[20px] text-[#142e2a]">
+                <p {...textStyleProps(text["quiz.question"])} className="font-ui text-[16.3px] leading-[20px] text-[#142e2a]">
                   {content.question}
                 </p>
                 <div className="flex w-full items-center gap-2">
@@ -226,12 +237,12 @@ export default function QuizBanner({
               </div>
             </div>
 
-            <p className="max-w-[500px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-white md:text-[16.3px] md:leading-[20px]">
+            <p {...textStyleProps(text["quiz.cardBody"])} className="max-w-[500px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-white md:text-[16.3px] md:leading-[20px]">
               {content.cardBody}
             </p>
 
             {content.ctaLabel ? (
-              <a
+              <a {...textStyleProps(text["quiz.ctaLabel"])}
                 href={content.ctaHref}
                 className="btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-10 font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
               >
@@ -253,7 +264,7 @@ export default function QuizBanner({
               className="object-cover object-center"
               priority={false}
             />
-            <FeelEnergeticOverlay active={overlayActive} content={content} />
+            <FeelEnergeticOverlay active={overlayActive} content={content} text={text} />
           </div>
         </Reveal>
       </div>

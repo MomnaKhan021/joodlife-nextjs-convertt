@@ -78,6 +78,10 @@ export type PDPProduct = {
 
   /* Page copy the CMS can set (lib/productPageContentTypes.ts). Each is
      optional; left unset, the component shows the wording it shipped with. */
+  ratingPillLabel?: string;
+  strengthHeading?: string;
+  priceNote?: string;
+  eligibilityCta?: string;
   whyChooseTitle?: string;
   howItWorksTitle?: string;
   /** Empty means the sentence built from the product's name. */
@@ -91,6 +95,8 @@ export type PDPProduct = {
   safetyCtaHref?: string;
   safetyImage?: string;
   safetyImageAlt?: string;
+  /** Per-text size and weight from the CMS; unset renders the design. */
+  textStyles?: Partial<Record<string, import("@/lib/textStyle").TextStyle>>;
 };
 
 const SHARED_COMPARISON: ComparisonRow[] = [

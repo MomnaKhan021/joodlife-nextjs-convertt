@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 type Direction = "up" | "down" | "left" | "right" | "none";
 
@@ -10,6 +10,8 @@ interface RevealProps {
   delay?: number;
   className?: string;
   as?: "div" | "section" | "article" | "li";
+  /** Extra inline style (a CMS colour, say); the animation style wins on overlap. */
+  style?: CSSProperties;
 }
 
 export default function Reveal({
@@ -18,6 +20,7 @@ export default function Reveal({
   delay = 0,
   className = "",
   as = "div",
+  style,
 }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -55,6 +58,7 @@ export default function Reveal({
       ref={ref as never}
       className={className}
       style={{
+        ...style,
         opacity: visible ? 1 : 0,
         transform: visible ? "translate3d(0,0,0)" : translate,
         transition: `opacity 700ms ease-out ${delay}ms, transform 700ms ease-out ${delay}ms`,

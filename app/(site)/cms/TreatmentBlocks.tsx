@@ -16,12 +16,31 @@ import {
 } from "./FormKit";
 import { fieldLabel } from "./LinkFields";
 import MediaPicker from "./MediaPicker";
+import { Ts } from "./TextStyleContext";
 
 /**
  * Editors for the two blocks the treatment pages have in common: the
  * scrolling trust strip and the dark feature panel. The weight loss and
  * period delay screens each edit their own copy of them.
  */
+
+/**
+ * One size/weight control per repeated text - every tick, chip or card
+ * title in a list shares it, so the list stays even.
+ */
+export function RepeatedText({ items }: { items: readonly (readonly [string, string])[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg bg-[#fafbf7] px-3 py-2 text-[13px] text-[#1a1a1a]">
+      <span className="text-[12px] text-[#8a8a8a]">Repeated text — one setting covers every item:</span>
+      {items.map(([k, lbl]) => (
+        <span key={k} className="flex items-center gap-2">
+          {lbl}
+          <Ts k={k} label={lbl} />
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function IconPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
@@ -43,6 +62,7 @@ export function UspEditor({
 }) {
   return (
     <div className="space-y-3">
+      <RepeatedText items={[["uspStrip.itemLabel", "Item text"]]} />
       <div className="flex justify-end">
         <button type="button" className={cmsAddBtn} onClick={() => onChange([...items, { icon: "", label: "" }])}>
           + Add item
@@ -90,15 +110,17 @@ export function FeatureGridEditor({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Heading" value={value.heading} onChange={(v) => onChange({ ...value, heading: v })} />
+        <TextField tsKey="featureGrid.heading" label="Heading" value={value.heading} onChange={(v) => onChange({ ...value, heading: v })} />
         <TextField
+          tsKey="featureGrid.headingAccent"
           label="Heading (italic part)"
           value={value.headingAccent}
           onChange={(v) => onChange({ ...value, headingAccent: v })}
         />
       </div>
-      <AreaField label="Text" rows={2} value={value.body} onChange={(v) => onChange({ ...value, body: v })} />
+      <AreaField tsKey="featureGrid.body" label="Text" rows={2} value={value.body} onChange={(v) => onChange({ ...value, body: v })} />
       <CtaFields
+        labelKey="featureGrid.ctaLabel"
         title="First button"
         label={value.ctaLabel}
         href={value.ctaHref}
@@ -106,11 +128,18 @@ export function FeatureGridEditor({
         onHref={(v) => onChange({ ...value, ctaHref: v })}
       />
       <CtaFields
+        labelKey="featureGrid.secondaryLabel"
         title="Second button"
         label={value.secondaryLabel}
         href={value.secondaryHref}
         onLabel={(v) => onChange({ ...value, secondaryLabel: v })}
         onHref={(v) => onChange({ ...value, secondaryHref: v })}
+      />
+      <RepeatedText
+        items={[
+          ["featureGrid.featureTitle", "Feature titles"],
+          ["featureGrid.featureCopy", "Feature lines"],
+        ]}
       />
       <div className="flex items-center justify-between">
         <span className={fieldLabel}>Features</span>

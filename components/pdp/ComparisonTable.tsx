@@ -5,6 +5,8 @@ import {
   COMPARISON_DEFAULT,
   type ComparisonContent,
 } from "@/lib/productPageContentTypes";
+import { styleProps } from "@/lib/sectionStyle";
+import { textStyleProps } from "@/lib/textStyle";
 
 interface ComparisonTableProps {
   active: PDPProduct["comparisonActive"];
@@ -32,13 +34,14 @@ export default function ComparisonTable({
   content = COMPARISON_DEFAULT,
 }: ComparisonTableProps) {
   const COMPARISON_TABLE = content.rows;
+  const ts = content.textStyles;
   return (
-    <div className="rounded-[24px] bg-[#f7f9f2] p-3 md:p-10 lg:p-12">
+    <div {...styleProps(content.style)} className="rounded-[24px] bg-[#f7f9f2] p-3 md:p-10 lg:p-12">
       <div className="flex flex-col items-center gap-2 pb-8 text-center md:pb-10">
-        <h2 className="font-display text-[26px] font-semibold leading-[32px] tracking-[-0.025em] text-[#142e2a] md:text-[36px] md:leading-[44px]">
+        <h2 {...textStyleProps(ts["heading"])} className="font-display text-[26px] font-semibold leading-[32px] tracking-[-0.025em] text-[#142e2a] md:text-[36px] md:leading-[44px]">
           {content.heading}
         </h2>
-        <p className="mt-3 max-w-[640px] font-ui text-[14px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:text-[15px] md:leading-[22px]">
+        <p {...textStyleProps(ts["body"])} className="mt-3 max-w-[640px] font-ui text-[14px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:text-[15px] md:leading-[22px]">
           {content.body}
         </p>
       </div>
@@ -78,7 +81,7 @@ export default function ComparisonTable({
                       </span>
                       <span
                         className="font-display text-[12px] font-bold leading-[15px] tracking-[-0.01em] md:text-[16px] md:leading-[20px]"
-                        style={{ color: c.text }}
+                        style={{ color: c.text, ...textStyleProps(ts.columnLabel).style }}
                       >
                         {content.columns[c.key]}
                       </span>
@@ -92,8 +95,8 @@ export default function ComparisonTable({
             {COMPARISON_TABLE.map((row, rowIdx) => {
               const isLast = rowIdx === COMPARISON_TABLE.length - 1;
               return (
-                <tr key={row.label}>
-                  <td
+                <tr {...textStyleProps(ts["rowLabel"])} key={row.label}>
+                  <td {...textStyleProps(ts["rowLabel"])}
                     className={[
                       "border-t border-[#142e2a]/10 px-1.5 py-3 font-ui text-[11px] font-semibold leading-[15px] text-[#142e2a] md:px-4 md:py-4 md:text-[14px] md:leading-[18px]",
                     ].join(" ")}
@@ -115,6 +118,7 @@ export default function ComparisonTable({
                         ].join(" ")}
                         style={{
                           background: `linear-gradient(180deg, ${c.from}, ${c.to})`,
+                          ...textStyleProps(ts.cell).style,
                         }}
                       >
                         {value}
@@ -156,10 +160,11 @@ export default function ComparisonTable({
         </table>
       </div>
 
-      <p className="mt-6 max-w-[720px] font-ui text-[13px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:mt-8 md:text-[14px]">
-        Our UK clinicians will recommend the most appropriate treatment
-        following an individual clinical assessment.
-      </p>
+      {content.note ? (
+        <p {...textStyleProps(ts.note)} className="mt-6 max-w-[720px] font-ui text-[13px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:mt-8 md:text-[14px]">
+          {content.note}
+        </p>
+      ) : null}
     </div>
   );
 }

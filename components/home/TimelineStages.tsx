@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { WL_DEFAULT, type WlJourneyContent } from "@/lib/weightLossContentTypes";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 
 /**
  * Timeline section header + stages — Figma node 141:2349.
@@ -23,8 +24,10 @@ const STAGGER_MS = 600;
 
 export default function TimelineStages({
   content = WL_DEFAULT.journey,
+  text = {},
 }: {
   content?: WlJourneyContent;
+  text?: Partial<Record<string, TextStyle>>;
 } = {}) {
   const STAGES = content.stages.map((s) => ({
     pill: s.pill,
@@ -76,22 +79,22 @@ export default function TimelineStages({
       {/* Heading block */}
       <div className="flex flex-col items-start gap-5 text-left md:gap-6">
         {/* TIMELINE pill — solid white at 30% */}
-        <span className="inline-flex h-[35px] items-center justify-center rounded-full bg-white/30 px-5 font-ui text-[12px] font-medium uppercase leading-[16px] tracking-[0.08em] text-white">
+        <span {...textStyleProps(text["journey.badge"])} className="inline-flex h-[35px] items-center justify-center rounded-full bg-white/30 px-5 font-ui text-[12px] font-medium uppercase leading-[16px] tracking-[0.08em] text-white">
           {content.badge}
         </span>
 
         {/* Desktop heading */}
-        <h2 className="hidden font-display text-[48px] font-semibold leading-[52px] tracking-[-0.025em] text-white md:block">
+        <h2 {...textStyleProps(text["journey.heading"])} className="hidden font-display text-[48px] font-semibold leading-[52px] tracking-[-0.025em] text-white md:block">
           {content.heading}
           <br />
-          <em className="font-serif italic font-normal">{content.headingAccent}</em>
+          <em {...textStyleProps(text["journey.headingAccent"])} className="font-serif italic font-normal">{content.headingAccent}</em>
         </h2>
 
         {/* Mobile heading — different copy per Figma mobile frame */}
-        <h2 className="font-display text-[28px] font-semibold leading-[34px] tracking-[-0.025em] text-white md:hidden">
+        <h2 {...textStyleProps(text["journey.heading"])} className="font-display text-[28px] font-semibold leading-[34px] tracking-[-0.025em] text-white md:hidden">
           {content.mobileHeading}{" "}
-          <em className="font-serif italic font-normal">{content.mobileHeadingAccent}</em>{" "}
-          {content.mobileHeadingTail}
+          <em {...textStyleProps(text["journey.headingAccent"])} className="font-serif italic font-normal">{content.mobileHeadingAccent}</em>{" "}
+          <span {...textStyleProps(text["journey.heading"])}>{content.mobileHeadingTail}</span>
         </h2>
       </div>
 
@@ -159,7 +162,7 @@ export default function TimelineStages({
             {STAGES.map((s, i) => {
               const active = i < lit;
               return (
-                <div
+                <div {...textStyleProps(text["journey.stagePill"])}
                   key={s.pill}
                   className="flex flex-col items-start gap-4 text-left"
                   style={{
@@ -173,13 +176,13 @@ export default function TimelineStages({
                   }}
                 >
                   {/* Stage pill — white/10%, uppercase, tracking */}
-                  <span className="inline-flex items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[12px] font-medium uppercase leading-[14px] tracking-[0.08em] text-white">
+                  <span {...textStyleProps(text["journey.stagePill"])} className="inline-flex items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[12px] font-medium uppercase leading-[14px] tracking-[0.08em] text-white">
                     {s.pill}
                   </span>
-                  <h3 className="font-ui text-[24px] font-bold leading-[26px] tracking-[-0.02em] text-white">
+                  <h3 {...textStyleProps(text["journey.stageTitle"])} className="font-ui text-[24px] font-bold leading-[26px] tracking-[-0.02em] text-white">
                     {s.title}
                   </h3>
-                  <p className="max-w-[380px] font-ui text-[16px] font-normal leading-[20px] tracking-[-0.02em] text-white/90">
+                  <p {...textStyleProps(text["journey.stageBody"])} className="max-w-[380px] font-ui text-[16px] font-normal leading-[20px] tracking-[-0.02em] text-white/90">
                     {s.copyDesktop}
                   </p>
                 </div>
@@ -193,7 +196,7 @@ export default function TimelineStages({
           {STAGES.map((s, i) => {
             const active = i < lit;
             return (
-              <li
+              <li {...textStyleProps(text["journey.stagePill"])}
                 key={s.pill}
                 className="flex flex-col items-start gap-3"
                 style={{
@@ -206,13 +209,13 @@ export default function TimelineStages({
                   transitionDelay: active ? `${i * 80}ms` : "0ms",
                 }}
               >
-                <span className="inline-flex w-fit items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[12px] font-medium uppercase leading-[14px] tracking-[0.08em] text-white">
+                <span {...textStyleProps(text["journey.stagePill"])} className="inline-flex w-fit items-center justify-center rounded-3xl bg-white/10 px-4 py-[10px] font-ui text-[12px] font-medium uppercase leading-[14px] tracking-[0.08em] text-white">
                   {s.pill}
                 </span>
-                <h3 className="font-ui text-[22px] font-bold leading-[26px] tracking-[-0.02em] text-white">
+                <h3 {...textStyleProps(text["journey.stageTitle"])} className="font-ui text-[22px] font-bold leading-[26px] tracking-[-0.02em] text-white">
                   {s.title}
                 </h3>
-                <p className="font-ui text-[15px] font-normal leading-[20px] tracking-[-0.02em] text-white/90">
+                <p {...textStyleProps(text["journey.stageBody"])} className="font-ui text-[15px] font-normal leading-[20px] tracking-[-0.02em] text-white/90">
                   {s.copyMobile}
                 </p>
               </li>

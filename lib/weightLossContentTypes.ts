@@ -19,6 +19,18 @@ import {
   type Feature,
   type UspItem,
 } from "@/lib/categoryPageContentTypes";
+import {
+  WEIGHT_LOSS_STYLE_KEYS,
+  mergeStyles,
+  type SectionStyle,
+  type WeightLossStyleKey,
+} from "@/lib/sectionStyle";
+import {
+  WEIGHT_LOSS_TEXT_KEYS,
+  mergeTextStyles,
+  type TextStyle,
+  type WeightLossTextKey,
+} from "@/lib/textStyle";
 
 /* ── per-section shapes ─────────────────────────────────── */
 
@@ -122,6 +134,10 @@ export type WlQuizContent = {
 };
 
 export type WeightLossContent = {
+  /** Per-section background / text colour. */
+  styles: Record<WeightLossStyleKey, SectionStyle>;
+  /** Per-text size and weight, keyed section.field. */
+  textStyles: Record<WeightLossTextKey, TextStyle>;
   hero: WlHeroContent;
   usp: { items: UspItem[] };
   bmi: WlBmiContent;
@@ -143,6 +159,9 @@ const QUIZ_BODY =
   "Answer a few simple questions so we can match you with the right treatment and support for lasting results.";
 
 export const WL_DEFAULT: WeightLossContent = {
+  // Nothing set, so every section and text keeps its designed look.
+  styles: mergeStyles(null, WEIGHT_LOSS_STYLE_KEYS),
+  textStyles: mergeTextStyles(null, WEIGHT_LOSS_TEXT_KEYS),
   hero: {
     reviewsLabel: "4.4 (50+) Reviews",
     titleLead: "Innovative",
@@ -332,6 +351,8 @@ export function mergeWeightLoss(stored: unknown): WeightLossContent {
   const qu = obj(d.quiz);
 
   return {
+    styles: mergeStyles(d.styles, WEIGHT_LOSS_STYLE_KEYS),
+    textStyles: mergeTextStyles(d.textStyles, WEIGHT_LOSS_TEXT_KEYS),
     hero: {
       reviewsLabel: str(he.reviewsLabel, B.hero.reviewsLabel),
       titleLead: str(he.titleLead, B.hero.titleLead),

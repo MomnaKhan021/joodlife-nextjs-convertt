@@ -561,6 +561,8 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"quiz\" jsonb",
   "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
   "CREATE TABLE IF NOT EXISTS \"product_pages\" (\"id\" serial, \"products\" jsonb, \"comparison\" jsonb, \"shop\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"products\" jsonb",
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"comparison\" jsonb",
@@ -591,7 +593,7 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v45-blog" : "v45";
+const SCHEMA_VERSION = blogCmsEnabled() ? "v46-blog" : "v46";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

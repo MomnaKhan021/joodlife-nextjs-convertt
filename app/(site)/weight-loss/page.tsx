@@ -34,22 +34,23 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function WeightLossPage() {
-  const { hero, usp, bmi, journey, features, quiz } = await getWeightLossContent();
+  const { hero, usp, bmi, journey, features, quiz, styles, textStyles } =
+    await getWeightLossContent();
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
 
-      <HeroBanner content={hero} />
-      <UspStrip items={usp.items} />
+      <HeroBanner content={hero} style={styles.hero} text={textStyles} />
+      <UspStrip items={usp.items} style={styles.uspStrip} text={textStyles} />
       <div id="assessment" className="scroll-mt-28">
-        <BmiCalculator content={bmi} />
+        <BmiCalculator content={bmi} style={styles.bmi} text={textStyles} />
       </div>
       <Reviews />
-      <JourneyPlan content={journey} />
-      <FeatureGrid content={features} />
+      <JourneyPlan content={journey} style={styles.journey} text={textStyles} />
+      <FeatureGrid content={features} style={styles.featureGrid} text={textStyles} />
       <HowItWorks />
-      <QuizBanner content={quiz} />
+      <QuizBanner content={quiz} style={styles.quiz} text={textStyles} />
       <Faq />
       <Blog />
       <CtaBanner />

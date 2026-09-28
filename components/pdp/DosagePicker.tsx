@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
 import type { Dosage } from "@/lib/pdp-products";
 
 interface DosagePickerProps {
   dosages: Dosage[];
   fromPrice: string;
+  /** Page copy from the CMS; each falls back to the wording it shipped with. */
+  heading?: string;
+  priceNote?: string;
+  ctaLabel?: string;
+  text?: Partial<Record<string, TextStyle>>;
   /** Called when "Am I Eligible?" CTA is clicked */
   onEligibilityCheck?: (dosage: Dosage) => void;
 }
@@ -23,6 +29,10 @@ export default function DosagePicker({
   dosages,
   fromPrice,
   onEligibilityCheck,
+  heading = "Select your strength",
+  priceNote = "per 4-week pen",
+  ctaLabel = "Check if I'm Eligible",
+  text,
 }: DosagePickerProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -41,8 +51,8 @@ export default function DosagePicker({
     <div className="flex flex-col gap-5">
       {!isSimple && (
         <>
-          <h3 className="font-display text-[18px] font-semibold leading-[22px] tracking-[-0.01em] text-[#142e2a]">
-            Select your strength
+          <h3 {...textStyleProps(text?.["strengthHeading"])} className="font-display text-[18px] font-semibold leading-[22px] tracking-[-0.01em] text-[#142e2a]">
+            {heading}
           </h3>
 
           {/* Dosage cards grid */}
@@ -95,11 +105,11 @@ export default function DosagePicker({
               </span>
             )}
           </span>
-          {!isSimple && (
-            <span className="font-ui text-[14px] text-[#142e2a]/70">
-              per 4-week pen
+          {!isSimple && priceNote ? (
+            <span {...textStyleProps(text?.["priceNote"])} className="font-ui text-[14px] text-[#142e2a]/70">
+              {priceNote}
             </span>
-          )}
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3">
@@ -109,9 +119,10 @@ export default function DosagePicker({
           <button
             type="button"
             onClick={() => onEligibilityCheck?.(dosages[selectedIndex])}
+            {...textStyleProps(text?.["eligibilityCta"])}
             className="inline-flex h-[54px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[14px] font-bold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#142e2a]"
           >
-            Check if I&apos;m Eligible
+            {ctaLabel}
           </button>
         </div>
       </div>

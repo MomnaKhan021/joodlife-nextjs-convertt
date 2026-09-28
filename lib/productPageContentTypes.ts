@@ -25,12 +25,36 @@ import {
   type GraphPoint,
   type PDPProduct,
 } from "@/lib/pdp-products";
+import {
+  PRODUCT_STYLE_KEYS,
+  mergeStyles,
+  type ProductStyleKey,
+  type SectionStyle,
+} from "@/lib/sectionStyle";
+import {
+  COMPARISON_TEXT_KEYS,
+  PRODUCT_TEXT_KEYS,
+  SHOP_TEXT_KEYS,
+  mergeTextStyles,
+  type ComparisonTextKey,
+  type ProductTextKey,
+  type ShopTextKey,
+  type TextStyle,
+} from "@/lib/textStyle";
 
 export type IconLabel = { icon: string; label: string };
 export type ProductFaq = { q: string; a: string };
 
 /** The page copy one product page carries, all of it editable. */
 export type ProductCopy = {
+  /** The word in the rating pill above the heading. */
+  ratingPillLabel: string;
+  /** Above the dose cards. */
+  strengthHeading: string;
+  /** Under the price; empty hides it. */
+  priceNote: string;
+  /** The button under the price. */
+  eligibilityCta: string;
   /** Serif italic after the product name in the page heading. */
   italicWord: string;
   trustLine: string[];
@@ -61,6 +85,10 @@ export type ProductCopy = {
   safetyCtaHref: string;
   safetyImage: string;
   safetyImageAlt: string;
+  /** Per-section background / text colour for this product's page. */
+  styles: Record<ProductStyleKey, SectionStyle>;
+  /** Per-text size and weight for this product's page. */
+  textStyles: Record<ProductTextKey, TextStyle>;
 };
 
 export type ComparisonColumns = {
@@ -74,12 +102,19 @@ export type ComparisonContent = {
   body: string;
   columns: ComparisonColumns;
   rows: ComparisonRow[];
+  /** The line under the table. */
+  note: string;
+  /** One table for every product, so one set of colours and sizes. */
+  style: SectionStyle;
+  textStyles: Record<ComparisonTextKey, TextStyle>;
 };
 
 export type ShopPageContent = {
   heading: string;
   headingAccent: string;
   footnote: string;
+  style: SectionStyle;
+  textStyles: Record<ShopTextKey, TextStyle>;
 };
 
 export type ProductPagesContent = {
@@ -103,6 +138,9 @@ export const COMPARISON_DEFAULT: ComparisonContent = {
     wegovy: "Wegovy Injection",
   },
   rows: COMPARISON_TABLE,
+  note: "Our UK clinicians will recommend the most appropriate treatment following an individual clinical assessment.",
+  style: mergeStyles(null, ["table"] as const).table,
+  textStyles: mergeTextStyles(null, COMPARISON_TEXT_KEYS),
 };
 
 export const SHOP_DEFAULT: ShopPageContent = {
@@ -110,6 +148,8 @@ export const SHOP_DEFAULT: ShopPageContent = {
   headingAccent: "for you.",
   footnote:
     "*Prices shown are starting prices. Final cost depends on your treatment plan after clinical review.",
+  style: mergeStyles(null, ["shop"] as const).shop,
+  textStyles: mergeTextStyles(null, SHOP_TEXT_KEYS),
 };
 
 /**
@@ -138,6 +178,10 @@ export function shippedCopy(slug: string, productTitle: string): ProductCopy {
   const shipped = PDP_PRODUCTS[slug];
   const p: PDPProduct = shipped ?? blankEditorial(productTitle);
   return {
+    ratingPillLabel: "Trustpilot",
+    strengthHeading: "Select your strength",
+    priceNote: "per 4-week pen",
+    eligibilityCta: "Check if I'm Eligible",
     italicWord: p.italicWord,
     trustLine: p.trustLine,
     serviceChips: p.serviceChips,
@@ -163,6 +207,8 @@ export function shippedCopy(slug: string, productTitle: string): ProductCopy {
     safetyCtaHref: "/consultation?product=weight-loss",
     safetyImage: SAFETY_IMAGE,
     safetyImageAlt: SAFETY_IMAGE_ALT,
+    styles: mergeStyles(null, PRODUCT_STYLE_KEYS),
+    textStyles: mergeTextStyles(null, PRODUCT_TEXT_KEYS),
   };
 }
 
@@ -170,6 +216,10 @@ export function shippedCopy(slug: string, productTitle: string): ProductCopy {
 export function applyCopy(p: PDPProduct, c: ProductCopy): PDPProduct {
   return {
     ...p,
+    ratingPillLabel: c.ratingPillLabel,
+    strengthHeading: c.strengthHeading,
+    priceNote: c.priceNote,
+    eligibilityCta: c.eligibilityCta,
     italicWord: c.italicWord,
     trustLine: c.trustLine,
     serviceChips: c.serviceChips,
@@ -204,6 +254,7 @@ export function applyCopy(p: PDPProduct, c: ProductCopy): PDPProduct {
     safetyCtaHref: c.safetyCtaHref,
     safetyImage: c.safetyImage,
     safetyImageAlt: c.safetyImageAlt,
+    textStyles: c.textStyles,
   };
 }
 
@@ -269,6 +320,10 @@ export function mergeProductCopy(
   const s = obj(stored);
   const B = shippedCopy(slug, productTitle);
   return {
+    ratingPillLabel: str(s.ratingPillLabel, B.ratingPillLabel),
+    strengthHeading: str(s.strengthHeading, B.strengthHeading),
+    priceNote: optStr(s.priceNote, B.priceNote),
+    eligibilityCta: str(s.eligibilityCta, B.eligibilityCta),
     italicWord: optStr(s.italicWord, B.italicWord),
     trustLine: strList(s.trustLine, B.trustLine),
     serviceChips: iconLabels(s.serviceChips, B.serviceChips),
@@ -304,6 +359,8 @@ export function mergeProductCopy(
     safetyCtaHref: str(s.safetyCtaHref, B.safetyCtaHref),
     safetyImage: str(s.safetyImage, B.safetyImage),
     safetyImageAlt: optStr(s.safetyImageAlt, B.safetyImageAlt),
+    styles: mergeStyles(s.styles, PRODUCT_STYLE_KEYS),
+    textStyles: mergeTextStyles(s.textStyles, PRODUCT_TEXT_KEYS),
   };
 }
 
@@ -314,6 +371,7 @@ export function mergeComparison(stored: unknown): ComparisonContent {
   return {
     heading: str(s.heading, B.heading),
     body: optStr(s.body, B.body),
+    note: optStr(s.note, B.note),
     columns: {
       wegovyTablet: str(c.wegovyTablet, B.columns.wegovyTablet),
       mounjaro: str(c.mounjaro, B.columns.mounjaro),
@@ -334,6 +392,8 @@ export function mergeComparison(stored: unknown): ComparisonContent {
       // An empty table is never what anyone meant.
       return out.length ? out : B.rows;
     })(),
+    style: mergeStyles({ table: s.style }, ["table"] as const).table,
+    textStyles: mergeTextStyles(s.textStyles, COMPARISON_TEXT_KEYS),
   };
 }
 
@@ -343,6 +403,8 @@ export function mergeShop(stored: unknown): ShopPageContent {
     heading: str(s.heading, SHOP_DEFAULT.heading),
     headingAccent: optStr(s.headingAccent, SHOP_DEFAULT.headingAccent),
     footnote: optStr(s.footnote, SHOP_DEFAULT.footnote),
+    style: mergeStyles({ shop: s.style }, ["shop"] as const).shop,
+    textStyles: mergeTextStyles(s.textStyles, SHOP_TEXT_KEYS),
   };
 }
 

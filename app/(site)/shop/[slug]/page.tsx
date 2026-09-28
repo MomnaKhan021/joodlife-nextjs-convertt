@@ -22,6 +22,7 @@ import {
   getComparison,
   getProductCopy,
 } from "@/lib/productPageContent";
+import { styleProps } from "@/lib/sectionStyle";
 
 // Render on demand: the product's images, variants, and prices come from the
 // dashboard (DB), so edits appear immediately and the build never needs a DB.
@@ -151,6 +152,7 @@ export default async function ProductPage({ params }: Params) {
       {/* ──────────────  HERO: Gallery + Info  ────────────── */}
       <section
         aria-label={`${product.title} — product overview`}
+        {...styleProps(copy.styles.overview)}
         className="w-full bg-white py-[30px] md:py-10"
       >
         <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
@@ -174,6 +176,7 @@ export default async function ProductPage({ params }: Params) {
       {showWhatIs ? (
           <section
             aria-label={`What is ${product.title}?`}
+            {...styleProps(copy.styles.whatIs)}
             className="w-full bg-white py-[30px] md:py-10"
           >
             <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
@@ -198,6 +201,7 @@ export default async function ProductPage({ params }: Params) {
       {showSafety ? (
           <section
             aria-label={`Is ${product.title} safe?`}
+            {...styleProps(copy.styles.safety)}
             className="w-full bg-white py-[30px] md:py-10"
           >
             <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
