@@ -75,6 +75,28 @@ export type PDPProduct = {
    * list of benefits, shown on the "Choose your treatment" cards. */
   cardStat?: { percent: string; text: string };
   cardBenefits?: string[];
+
+  /* Page copy the CMS can set (lib/productPageContentTypes.ts). Each is
+     optional; left unset, the component shows the wording it shipped with. */
+  ratingPillLabel?: string;
+  strengthHeading?: string;
+  priceNote?: string;
+  eligibilityCta?: string;
+  whyChooseTitle?: string;
+  howItWorksTitle?: string;
+  /** Empty means the sentence built from the product's name. */
+  howItWorksBody?: string;
+  whatIsCtaLabel?: string;
+  whatIsCtaHref?: string;
+  sideEffectsHeading?: string;
+  /** Rendered as written when set; unset means the shared list. */
+  faqs?: { q: string; a: string }[];
+  safetyCtaLabel?: string;
+  safetyCtaHref?: string;
+  safetyImage?: string;
+  safetyImageAlt?: string;
+  /** Per-text size and weight from the CMS; unset renders the design. */
+  textStyles?: Partial<Record<string, import("@/lib/textStyle").TextStyle>>;
 };
 
 const SHARED_COMPARISON: ComparisonRow[] = [

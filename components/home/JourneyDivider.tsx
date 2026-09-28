@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 /**
  * Wavy curve divider between the Timeline header and the cards.
@@ -35,7 +35,7 @@ const DOTS: Array<[number, number]> = [
 
 const STAGGER_MS = 220;
 
-export default function JourneyDivider() {
+export default function JourneyDivider({ style }: { style?: CSSProperties } = {}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const strokeRef = useRef<SVGPathElement | null>(null);
   const [lit, setLit] = useState(0);
@@ -88,6 +88,7 @@ export default function JourneyDivider() {
     <div
       ref={ref}
       aria-hidden
+      style={style}
       className="relative -mb-px -mt-px h-[140px] w-full bg-[#142e2a] md:h-[200px]"
     >
       <svg

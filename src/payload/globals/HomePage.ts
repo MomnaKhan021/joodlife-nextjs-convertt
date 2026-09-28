@@ -144,6 +144,14 @@ export const HomePage: GlobalConfig = {
       admin: { description: "Second part of the heading, shown in italics." },
     },
     {
+      name: "hiwIntro",
+      type: "textarea",
+      admin: {
+        rows: 3,
+        description: "The line under the heading. Blank uses the shipped one.",
+      },
+    },
+    {
       name: "hiwSteps",
       type: "json",
       admin: {

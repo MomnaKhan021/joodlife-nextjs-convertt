@@ -119,6 +119,9 @@ export type HiwStep = {
 export const DEFAULT_HIW_HEADING = {
   hiwHeading: "How it",
   hiwHeadingEmphasis: "works",
+  /** The line between the heading and the three steps. */
+  hiwIntro:
+    "Getting started takes just a few minutes. Our clinicians review every assessment to ensure your treatment is safe and appropriate for you.",
 };
 
 export const DEFAULT_HIW_STEPS: HiwStep[] = [

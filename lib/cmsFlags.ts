@@ -8,19 +8,23 @@
  * unpublishing or editing there changes real content, and importing the
  * starter articles adds rows.
  *
- * So the blog editors ship switched OFF and are turned on deliberately, once
- * the rest has been watched on the live site for a while. Unset means off:
- * a deploy that forgets the variable is the safe one, not the risky one.
+ * They shipped switched off and stayed off while the rest of the CMS was
+ * watched on the live site. They are now on by default, because the articles
+ * are meant to be edited from here. The switch stays as a way back:
  *
- *   CMS_BLOG_ENABLED=true   → blog editors, the starter import, and the
- *                             free-text category field are all available
- *   unset / anything else   → they are not, and `posts` keeps exactly the
- *                             shape and behaviour it has today
+ *   CMS_BLOG_ENABLED=false  → blog editors, the starter import, and the
+ *                             free-text category field are all hidden again
+ *   unset / anything else   → they are available
+ *
+ * Turning it back off hides the editors; it does not undo the one schema
+ * change the switch covers (`posts.category` from a fixed list to free
+ * text). That change only widens the column - every stored value survives it
+ * - so the old select field reads the same rows it always did.
  *
  * One switch covers the UI, the API route, the Payload field type and the
  * schema change, because half-applying those is how a column ends up out of
  * step with the code that writes it.
  */
 export function blogCmsEnabled(): boolean {
-  return process.env.CMS_BLOG_ENABLED === "true";
+  return process.env.CMS_BLOG_ENABLED !== "false";
 }

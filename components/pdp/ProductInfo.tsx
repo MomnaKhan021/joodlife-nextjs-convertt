@@ -7,6 +7,7 @@ import { dlViewItem, toDlItem } from "@/lib/dataLayer";
 import DosagePicker from "./DosagePicker";
 import { PlusIcon } from "./PdpIcons";
 import type { Dosage, PDPProduct } from "@/lib/pdp-products";
+import { textStyleProps } from "@/lib/textStyle";
 
 interface ProductInfoProps {
   product: PDPProduct;
@@ -81,8 +82,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         className="inline-flex w-fit items-center gap-2 rounded-full bg-[#f7f9f2] px-3 py-1.5 transition-colors hover:bg-[#e7ecd7] focus-visible:outline-2 focus-visible:outline-[#00b67a]"
         aria-label="View reviews on Trustpilot"
       >
-        <span className="font-ui text-[12px] font-semibold text-[#142e2a]">
-          Trustpilot
+        <span {...textStyleProps(product.textStyles?.["ratingLabel"])} className="font-ui text-[12px] font-semibold text-[#142e2a]">
+          {product.ratingPillLabel ?? "Trustpilot"}
         </span>
         <span className="flex items-center gap-0.5" aria-hidden>
           {[0, 1, 2, 3, 4].map((i) => (
@@ -98,13 +99,13 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       </a>
 
       {/* Heading */}
-      <h1 className="font-display text-[34px] font-bold leading-[38px] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[44px]">
+      <h1 {...textStyleProps(product.textStyles?.["heading"])} className="font-display text-[34px] font-bold leading-[38px] tracking-[-0.02em] text-[#142e2a] md:text-[40px] md:leading-[44px]">
         {product.title}{" "}
-        <em className="font-serif italic font-normal">{product.italicWord}</em>
+        <em {...textStyleProps(product.textStyles?.["headingAccent"])} className="font-serif italic font-normal">{product.italicWord}</em>
       </h1>
 
       {/* Lede */}
-      <p className="font-ui text-[14px] leading-[22px] tracking-[-0.005em] text-[#142e2a]/80 md:text-[15px] md:leading-[24px]">
+      <p {...textStyleProps(product.textStyles?.["lede"])} className="font-ui text-[14px] leading-[22px] tracking-[-0.005em] text-[#142e2a]/80 md:text-[15px] md:leading-[24px]">
         {product.lede}
       </p>
 
@@ -113,13 +114,17 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         dosages={product.dosages}
         fromPrice={product.fromPrice}
         onEligibilityCheck={handleEligibility}
+        heading={product.strengthHeading}
+        priceNote={product.priceNote}
+        ctaLabel={product.eligibilityCta}
+        text={product.textStyles}
       />
 
       {/* Trust line — directly below the price */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-ui text-[12px] font-medium text-[#142e2a]">
         {product.trustLine.map((t, i) => (
           <span key={t} className="inline-flex items-center gap-4">
-            <span>{t}</span>
+            <span {...textStyleProps(product.textStyles?.["trustLine"])}>{t}</span>
             {i < product.trustLine.length - 1 ? (
               <span aria-hidden className="text-[#142e2a]/30">
                 &middot;
@@ -132,14 +137,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* 3 service chips */}
       <div className="flex flex-wrap gap-2">
         {product.serviceChips.map((c) => (
-          <span
+          <span {...textStyleProps(product.textStyles?.["serviceChip"])}
             key={c.label}
             className="inline-flex items-center gap-2 rounded-full bg-[#f7f9f2] px-3 py-2"
           >
             <span aria-hidden className="text-[15px] leading-none">
               {c.icon}
             </span>
-            <span className="font-ui text-[12px] font-medium text-[#142e2a]">
+            <span {...textStyleProps(product.textStyles?.["serviceChip"])} className="font-ui text-[12px] font-medium text-[#142e2a]">
               {c.label}
             </span>
           </span>
@@ -148,16 +153,18 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Why choose Jood? — benefits (moved below CTA) */}
       <div className="flex flex-col gap-3">
-        <p className="font-ui text-[13px] font-semibold text-[#142e2a]/70">
-          Why choose Jood?
-        </p>
+        {(product.whyChooseTitle ?? "Why choose Jood?") ? (
+          <p {...textStyleProps(product.textStyles?.["whyChooseTitle"])} className="font-ui text-[13px] font-semibold text-[#142e2a]/70">
+            {product.whyChooseTitle ?? "Why choose Jood?"}
+          </p>
+        ) : null}
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
           {product.features.map((f) => (
             <div key={f.label} className="flex items-start gap-2">
               <span aria-hidden className="text-[15px] leading-[18px]">
                 {f.icon}
               </span>
-              <span className="font-ui text-[11px] font-medium leading-[14px] tracking-[-0.01em] text-[#142e2a] md:text-[12px] md:leading-[15px]">
+              <span {...textStyleProps(product.textStyles?.["feature"])} className="font-ui text-[11px] font-medium leading-[14px] tracking-[-0.01em] text-[#142e2a] md:text-[12px] md:leading-[15px]">
                 {f.label}
               </span>
             </div>
@@ -168,7 +175,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* Accordions: How it works / Is X safe? / Side effects (always-open) */}
       <ul className="flex flex-col">
         {[
-          { q: "How it works" },
+          { q: product.howItWorksTitle || "How it works" },
           { q: `Is ${product.title} safe?` },
         ].map((a, i) => {
           const isOpen = openAccordion === i;
@@ -180,7 +187,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 onClick={() => setOpenAccordion(isOpen ? null : i)}
                 className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left"
               >
-                <span className="font-ui text-[14px] font-medium leading-[20px] text-[#142e2a]">
+                <span {...textStyleProps(product.textStyles?.["accordionTitle"])} className="font-ui text-[14px] font-medium leading-[20px] text-[#142e2a]">
                   {a.q}
                 </span>
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#f7f9f2]">
@@ -195,9 +202,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="pb-4 font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
+                  <p {...textStyleProps(product.textStyles?.["accordionBody"])} className="pb-4 font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
                     {i === 0
-                      ? `Get prescribed ${product.title} after a quick online consultation. We deliver to your door and support you through every step.`
+                      ? product.howItWorksBody ||
+                        `Get prescribed ${product.title} after a quick online consultation. We deliver to your door and support you through every step.`
                       : product.safetyBody}
                   </p>
                 </div>
@@ -209,10 +217,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         {/* Side effects — always-open block */}
         <li className="border-t border-[#142e2a]/12 last:border-b">
           <div className="flex flex-col gap-3 py-4">
-            <h4 className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
+            <h4 {...textStyleProps(product.textStyles?.["sideEffectsTitle"])} className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
               {product.title} side effects
             </h4>
-            <p className="font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
+            <p {...textStyleProps(product.textStyles?.["sideEffectsBody"])} className="font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
               {product.safetySideEffects}
             </p>
           </div>

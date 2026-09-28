@@ -102,6 +102,7 @@ export default function SectionsForm({
 
   const [hiwHeading, setHiwHeading] = useState(initial.hiwHeading);
   const [hiwEmphasis, setHiwEmphasis] = useState(initial.hiwHeadingEmphasis);
+  const [hiwIntro, setHiwIntro] = useState(initial.hiwIntro);
   const [hiwSteps, setHiwSteps] = useState<HiwStep[]>(initial.hiwSteps);
 
   const [ctaTitle, setCtaTitle] = useState(initial.ctaTitle);
@@ -207,6 +208,7 @@ export default function SectionsForm({
         blogHeadingEmphasis: blogEmphasis,
         hiwHeading,
         hiwHeadingEmphasis: hiwEmphasis,
+        hiwIntro,
         hiwSteps: hiwSteps.filter((s) => s.title.trim() || s.copy.trim()),
         ctaTitle,
         ctaTitleEmphasis: ctaEmphasis,
@@ -704,6 +706,20 @@ export default function SectionsForm({
               style={textStyles.hiwHeadingEmphasis}
               onStyle={setText("hiwHeadingEmphasis")}
             />
+            <div className="sm:col-span-2">
+              <AreaField
+                id="hiwI"
+                label="Intro"
+                rows={2}
+                value={hiwIntro}
+                onChange={setHiwIntro}
+                style={textStyles.hiwIntro}
+                onStyle={setText("hiwIntro")}
+              />
+              <p className="mt-1 text-[12px] text-[#8a8a8a]">
+                The line between the heading and the three steps.
+              </p>
+            </div>
           </div>
 
           {hiwSteps.length === 0 ? (

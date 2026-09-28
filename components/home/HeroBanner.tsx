@@ -2,6 +2,11 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import AnimatedLbsBadge from "./AnimatedLbsBadge";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { WL_DEFAULT, type WlHeroContent } from "@/lib/weightLossContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
+
+type Text = Partial<Record<string, TextStyle>>;
 
 /**
  * Hero banner — matches Figma node 141:1688 (Updated Home Page,
@@ -17,19 +22,24 @@ import EligibilityCta from "@/components/ui/EligibilityCta";
  *   3. Guidance for lasting results
  */
 
-const BULLETS_DESKTOP = [
-  "Lose up to 27% body weight",
-  "Plans tailored to you",
-  "Guidance for lasting results",
-];
-
+// Phones list the shipped bullets in a different order (per the Figma
+// mobile frame). Once the list has been edited in the CMS, both sizes show
+// the editor's order - there is no second list to keep in step.
 const BULLETS_MOBILE = [
   "Lose up to 27% body weight",
   "Guidance for lasting results",
   "Plans tailored to you",
 ];
 
-function TrustpilotRow({ textClass = "text-white" }: { textClass?: string }) {
+function TrustpilotRow({
+  textClass = "text-white",
+  label,
+  labelStyle,
+}: {
+  textClass?: string;
+  label: string;
+  labelStyle?: TextStyle;
+}) {
   return (
     <a
       href="https://www.trustpilot.com/review/joodlife.com"
@@ -53,15 +63,22 @@ function TrustpilotRow({ textClass = "text-white" }: { textClass?: string }) {
         className="h-[16px] w-auto"
       />
       <span
+        {...textStyleProps(labelStyle)}
         className={`font-inter text-[14.2px] leading-[17px] tracking-[-0.03em] ${textClass}`}
       >
-        4.4 (50+) Reviews
+        {label}
       </span>
     </a>
   );
 }
 
-function TickBullet({ children }: { children: React.ReactNode }) {
+function TickBullet({
+  children,
+  textStyle,
+}: {
+  children: React.ReactNode;
+  textStyle?: TextStyle;
+}) {
   return (
     <li className="flex items-center gap-2">
       <Image
@@ -72,14 +89,28 @@ function TickBullet({ children }: { children: React.ReactNode }) {
         className="h-6 w-6 shrink-0"
         aria-hidden
       />
-      <span className="font-ui text-[16.3px] font-medium leading-[20px] tracking-[-0.02em] text-[#d3dabe]">
+      <span {...textStyleProps(textStyle)} className="font-ui text-[16.3px] font-medium leading-[20px] tracking-[-0.02em] text-[#d3dabe]">
         {children}
       </span>
     </li>
   );
 }
 
-export default function HeroBanner() {
+export default function HeroBanner({
+  content = WL_DEFAULT.hero,
+  style,
+  text = {},
+}: {
+  content?: WlHeroContent;
+  /** Colours the dark card - the part of this section a reader sees. */
+  style?: SectionStyle;
+  text?: Text;
+} = {}) {
+  const shippedOrder =
+    content.bullets.length === WL_DEFAULT.hero.bullets.length &&
+    content.bullets.every((b, i) => b === WL_DEFAULT.hero.bullets[i]);
+  const mobileBullets = shippedOrder ? BULLETS_MOBILE : content.bullets;
+
   return (
     <section
       aria-label="Hero"
@@ -88,7 +119,7 @@ export default function HeroBanner() {
     >
       {/* Desktop — 1400×720 card */}
       <div className="hidden md:block">
-        <div className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-[24px] bg-[#142e2a]">
+        <div {...styleProps(style)} className="relative mx-auto h-[720px] w-full max-w-[1400px] overflow-hidden rounded-[24px] bg-[#142e2a]">
           <Reveal
             delay={0}
             as="div"
@@ -96,41 +127,47 @@ export default function HeroBanner() {
           >
             {/* Left column — 580 wide per Figma */}
             <div className="relative z-10 flex w-[580px] max-w-[580px] flex-col items-start gap-7">
-              <TrustpilotRow />
+              <TrustpilotRow label={content.reviewsLabel} labelStyle={text["hero.reviewsLabel"]} />
 
-              <h1 className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
+              <h1 {...textStyleProps(text["hero.title"])} className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
                 {/* Figma wraps at two lines exactly. We force the first
                    line onto one line with whitespace-nowrap so the
                    slightly-wider PJS fallback (Gilroy-SemiBold is the
                    Figma face) doesn't push "loss," onto a third row. */}
                 <span className="block whitespace-nowrap">
-                  Innovative{" "}
-                  <em className="font-serif italic font-normal tracking-[-0.02em]">
-                    weight loss,
+                  {content.titleLead}{" "}
+                  <em {...textStyleProps(text["hero.titleAccent"])} className="font-serif italic font-normal tracking-[-0.02em]">
+                    {content.titleAccent}
                   </em>
                 </span>
-                <span className="block">made just for you.</span>
+                <span {...textStyleProps(text["hero.titleTail"])} className="block">{content.titleTail}</span>
               </h1>
 
               <ul className="flex flex-col gap-3">
-                {BULLETS_DESKTOP.map((b) => (
-                  <TickBullet key={b}>{b}</TickBullet>
+                {content.bullets.map((b) => (
+                  <TickBullet key={b} textStyle={text["hero.bullet"]}>{b}</TickBullet>
                 ))}
               </ul>
 
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 {/* Figma: primary 200×50, secondary 279×50 */}
-                <a
-                  href="/consultation"
-                  className="btn-cta inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
-                >
-                  Get started
-                </a>
-                <EligibilityCta
-                  href="#eligibility"
-                  label="See if you are eligible"
-                  className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
-                />
+                {content.ctaLabel ? (
+                  <a
+                    {...textStyleProps(text["hero.ctaLabel"])}
+                    href={content.ctaHref}
+                    className="btn-cta inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
+                  >
+                    {content.ctaLabel}
+                  </a>
+                ) : null}
+                {content.secondaryLabel ? (
+                  <EligibilityCta
+                    href={content.secondaryHref}
+                    label={content.secondaryLabel}
+                    style={textStyleProps(text["hero.secondaryLabel"]).style}
+                    className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
+                  />
+                ) : null}
               </div>
             </div>
 
@@ -140,7 +177,7 @@ export default function HeroBanner() {
               className="pointer-events-none absolute bottom-0 right-[23px] h-[635px] w-[817px]"
             >
               <Image
-                src="/assets/hero/hero-desktop.png"
+                src={content.image}
                 alt=""
                 fill
                 sizes="817px"
@@ -162,35 +199,39 @@ export default function HeroBanner() {
       <div className="px-4 pb-0 pt-3 md:hidden">
         <Reveal
           as="div"
+          style={styleProps(style).style}
           className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[12px] bg-[#142e2a]"
         >
           <div className="flex flex-col gap-5 px-4 pt-6 pb-3">
-            <TrustpilotRow />
+            <TrustpilotRow label={content.reviewsLabel} labelStyle={text["hero.reviewsLabel"]} />
 
-            <h1 className="font-sofia text-[36px] font-medium leading-[40px] tracking-[-0.033em] text-white">
-              Innovative{" "}
-              <em className="font-serif italic font-normal">weight loss,</em>
+            <h1 {...textStyleProps(text["hero.title"])} className="font-sofia text-[36px] font-medium leading-[40px] tracking-[-0.033em] text-white">
+              {content.titleLead}{" "}
+              <em {...textStyleProps(text["hero.titleAccent"])} className="font-serif italic font-normal">{content.titleAccent}</em>
               <br />
-              made just for you.
+              <span {...textStyleProps(text["hero.titleTail"])}>{content.titleTail}</span>
             </h1>
 
             <ul className="flex flex-col gap-2.5">
-              {BULLETS_MOBILE.map((b) => (
-                <TickBullet key={b}>{b}</TickBullet>
+              {mobileBullets.map((b) => (
+                <TickBullet key={b} textStyle={text["hero.bullet"]}>{b}</TickBullet>
               ))}
             </ul>
 
-            <a
-              href="/consultation"
-              className="btn-cta mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
-            >
-              Get started
-            </a>
+            {content.ctaLabel ? (
+              <a
+                {...textStyleProps(text["hero.ctaLabel"])}
+                href={content.ctaHref}
+                className="btn-cta mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
+              >
+                {content.ctaLabel}
+              </a>
+            ) : null}
           </div>
 
           <div className="relative h-[320px] w-full">
             <Image
-              src="/assets/hero/hero-mobile.png"
+              src={content.mobileImage}
               alt=""
               fill
               sizes="100vw"

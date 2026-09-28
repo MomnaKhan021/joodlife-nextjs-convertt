@@ -15,6 +15,8 @@ import Blog from "@/sections/home/Blog";
 import CtaBanner from "@/sections/home/CtaBanner";
 import Footer from "@/sections/home/Footer";
 
+import { getWeightLossContent } from "@/lib/weightLossContent";
+
 export const metadata: Metadata = {
   title: "Weight Loss Treatment — Clinically guided GLP-1 plans | JoodLife",
   description:
@@ -27,22 +29,28 @@ export const metadata: Metadata = {
  * weight-loss landing sections: hero, BMI assessment, journey plan,
  * treatment plan, how-it-works, social proof and CTA.
  */
-export default function WeightLossPage() {
+// The copy comes from the CMS, so the page renders per request like the
+// other treatment pages rather than being frozen at build time.
+export const dynamic = "force-dynamic";
+
+export default async function WeightLossPage() {
+  const { hero, usp, bmi, journey, features, quiz, styles, textStyles } =
+    await getWeightLossContent();
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <AnnouncementBar />
       <Header />
 
-      <HeroBanner />
-      <UspStrip />
+      <HeroBanner content={hero} style={styles.hero} text={textStyles} />
+      <UspStrip items={usp.items} style={styles.uspStrip} text={textStyles} />
       <div id="assessment" className="scroll-mt-28">
-        <BmiCalculator />
+        <BmiCalculator content={bmi} style={styles.bmi} text={textStyles} />
       </div>
       <Reviews />
-      <JourneyPlan />
-      <FeatureGrid />
+      <JourneyPlan content={journey} style={styles.journey} text={textStyles} />
+      <FeatureGrid content={features} style={styles.featureGrid} text={textStyles} />
       <HowItWorks />
-      <QuizBanner />
+      <QuizBanner content={quiz} style={styles.quiz} text={textStyles} />
       <Faq />
       <Blog />
       <CtaBanner />

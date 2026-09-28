@@ -135,6 +135,7 @@ export const HOME_TEXT_KEYS = [
   "reviewsIntro",
   "hiwHeading",
   "hiwHeadingEmphasis",
+  "hiwIntro",
   "faqHeading",
   "faqHeadingEmphasis",
   "blogHeading",
@@ -428,6 +429,118 @@ export function textStylesFor(
   }
   return out;
 }
+
+/**
+ * /weight-loss, keyed section.field. The trust strip and feature panel use
+ * the same names as the shared treatment-page blocks, because they are the
+ * same components.
+ */
+export const WEIGHT_LOSS_TEXT_KEYS = [
+  "hero.reviewsLabel",
+  "hero.title",
+  "hero.titleAccent",
+  "hero.titleTail",
+  "hero.bullet",
+  "hero.ctaLabel",
+  "hero.secondaryLabel",
+  "uspStrip.itemLabel",
+  "bmi.heading",
+  "bmi.headingAccent",
+  "bmi.headingTail",
+  "bmi.body",
+  "bmi.calcTitle",
+  "bmi.calcSubtitle",
+  "bmi.buttonLabel",
+  "bmi.badge",
+  "bmi.loseTitle",
+  "bmi.startTitle",
+  "journey.badge",
+  "journey.heading",
+  "journey.headingAccent",
+  "journey.stagePill",
+  "journey.stageTitle",
+  "journey.stageBody",
+  "journey.transformTitle",
+  "journey.transformAccent",
+  "journey.transformBody",
+  "journey.transformBodyAccent",
+  "journey.chipLabel",
+  "journey.chipSub",
+  "journey.transformCta",
+  "journey.guidanceTitle",
+  "journey.guidanceNote",
+  "journey.guidanceLabel",
+  "journey.guidancePill",
+  "journey.guidanceSide",
+  "journey.guidanceAccent",
+  "journey.guidanceBody",
+  "journey.guidanceBodyAccent",
+  "journey.guidanceCta",
+  "featureGrid.heading",
+  "featureGrid.headingAccent",
+  "featureGrid.body",
+  "featureGrid.ctaLabel",
+  "featureGrid.secondaryLabel",
+  "featureGrid.featureTitle",
+  "featureGrid.featureCopy",
+  "quiz.heading",
+  "quiz.headingAccent",
+  "quiz.headingTail",
+  "quiz.body",
+  "quiz.planLabel",
+  "quiz.question",
+  "quiz.cardBody",
+  "quiz.ctaLabel",
+  "quiz.pill",
+  "quiz.progressText",
+  "quiz.progressLabel",
+  "quiz.progressValue",
+  "quiz.weightLabel",
+] as const;
+export type WeightLossTextKey = (typeof WEIGHT_LOSS_TEXT_KEYS)[number];
+
+/** One product page's texts. Stored per product, beside its copy. */
+export const PRODUCT_TEXT_KEYS = [
+  "ratingLabel",
+  "strengthHeading",
+  "priceNote",
+  "eligibilityCta",
+  "heading",
+  "headingAccent",
+  "lede",
+  "trustLine",
+  "serviceChip",
+  "whyChooseTitle",
+  "feature",
+  "accordionTitle",
+  "accordionBody",
+  "sideEffectsTitle",
+  "sideEffectsBody",
+  "whatIsTitle",
+  "whatIsTitleAccent",
+  "whatIsBody",
+  "whatIsCalloutTitle",
+  "whatIsCallout",
+  "whatIsBullet",
+  "whatIsCta",
+  "safetyTitle",
+  "safetyTitleAccent",
+  "safetyBody",
+  "sideEffectsHeading",
+  "safetySideEffects",
+  "faqQuestion",
+  "faqAnswer",
+  "safetyCta",
+] as const;
+export type ProductTextKey = (typeof PRODUCT_TEXT_KEYS)[number];
+
+/** The comparison table shared by the product pages. */
+export const COMPARISON_TEXT_KEYS = ["heading", "body", "columnLabel", "rowLabel", "cell", "note"] as const;
+export type ComparisonTextKey = (typeof COMPARISON_TEXT_KEYS)[number];
+
+/** The heading and footnote on /shop. */
+export const SHOP_TEXT_KEYS = ["heading", "headingAccent", "footnote"] as const;
+export type ShopTextKey = (typeof SHOP_TEXT_KEYS)[number];
 
 /** One blog article's own texts. Stored on the post, not a global. */
 export const POST_TEXT_KEYS = [

@@ -230,4 +230,19 @@ export type TreatmentStyleKey = (typeof TREATMENT_STYLE_KEYS)[number];
 
 /** A single article or custom page: one band around its content. */
 export const ARTICLE_STYLE_KEYS = ["article", "related"] as const;
+
+/** /weight-loss sections, in page order. */
+export const WEIGHT_LOSS_STYLE_KEYS = [
+  "hero",
+  "uspStrip",
+  "bmi",
+  "journey",
+  "featureGrid",
+  "quiz",
+] as const;
+export type WeightLossStyleKey = (typeof WEIGHT_LOSS_STYLE_KEYS)[number];
+
+/** A product page's own sections. The comparison table has its own. */
+export const PRODUCT_STYLE_KEYS = ["overview", "whatIs", "safety"] as const;
+export type ProductStyleKey = (typeof PRODUCT_STYLE_KEYS)[number];
 export type ArticleStyleKey = (typeof ARTICLE_STYLE_KEYS)[number];

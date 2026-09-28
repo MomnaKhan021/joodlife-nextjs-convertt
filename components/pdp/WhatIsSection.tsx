@@ -1,6 +1,8 @@
 import WeightLossGraph from "./WeightLossGraph";
 import { MeasureIcon } from "./PdpIcons";
 import type { PDPProduct } from "@/lib/pdp-products";
+import { safeInlineHtml } from "@/lib/productPageContentTypes";
+import { textStyleProps } from "@/lib/textStyle";
 
 interface WhatIsSectionProps {
   product: PDPProduct;
@@ -20,17 +22,20 @@ export default function WhatIsSection({ product, hideCta = false }: WhatIsSectio
     <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-16">
       {/* LEFT — copy block */}
       <div className="flex flex-col gap-6">
-        <h2 className="font-display text-[34px] font-semibold leading-[38px] tracking-[-0.02em] text-[#142e2a] md:text-[44px] md:leading-[48px]">
+        <h2 {...textStyleProps(product.textStyles?.["whatIsTitle"])} className="font-display text-[34px] font-semibold leading-[38px] tracking-[-0.02em] text-[#142e2a] md:text-[44px] md:leading-[48px]">
           {product.whatIsTitle.split(" ").slice(0, -1).join(" ")}{" "}
-          <em className="font-serif italic font-normal">
+          <em {...textStyleProps(product.textStyles?.["whatIsTitleAccent"])} className="font-serif italic font-normal">
             {product.whatIsTitle.split(" ").slice(-1).join(" ").replace("?", "")}
             ?
           </em>
         </h2>
 
         <p
+          {...textStyleProps(product.textStyles?.["whatIsBody"])}
           className="font-ui text-[15px] leading-[24px] tracking-[-0.01em] text-[#142e2a]/85 md:text-[16px] md:leading-[26px]"
-          dangerouslySetInnerHTML={{ __html: product.whatIsBody }}
+          // Editable in the CMS, so only bold, italic and line breaks
+          // survive; anything else is shown as typed.
+          dangerouslySetInnerHTML={{ __html: safeInlineHtml(product.whatIsBody) }}
         />
 
         {/* Callout */}
@@ -40,11 +45,11 @@ export default function WhatIsSection({ product, hideCta = false }: WhatIsSectio
           </span>
           <div className="flex flex-col gap-1">
             {product.whatIsCalloutTitle ? (
-              <p className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a] md:text-[15px] md:leading-[22px]">
+              <p {...textStyleProps(product.textStyles?.["whatIsCalloutTitle"])} className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a] md:text-[15px] md:leading-[22px]">
                 {product.whatIsCalloutTitle}
               </p>
             ) : null}
-            <p className="font-ui text-[14px] leading-[20px] text-[#142e2a]/85 md:text-[15px] md:leading-[22px]">
+            <p {...textStyleProps(product.textStyles?.["whatIsCallout"])} className="font-ui text-[14px] leading-[20px] text-[#142e2a]/85 md:text-[15px] md:leading-[22px]">
               {product.whatIsCallout}
             </p>
           </div>
@@ -53,7 +58,7 @@ export default function WhatIsSection({ product, hideCta = false }: WhatIsSectio
         {/* Bullets — 2 column grid */}
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-6">
           {product.whatIsBullets.map((b) => (
-            <li
+            <li {...textStyleProps(product.textStyles?.["whatIsBullet"])}
               key={b}
               className="flex items-start gap-2 font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a] md:text-[15px]"
             >
@@ -62,23 +67,25 @@ export default function WhatIsSection({ product, hideCta = false }: WhatIsSectio
           ))}
         </ul>
 
-        {hideCta ? null : (
-          <a
-            href="/consultation"
+        {hideCta || (product.whatIsCtaLabel ?? "Get started") === "" ? null : (
+          <a {...textStyleProps(product.textStyles?.["whatIsCta"])}
+            href={product.whatIsCtaHref || "/consultation"}
             className="inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
           >
-            Get started
+            {product.whatIsCtaLabel ?? "Get started"}
           </a>
         )}
       </div>
 
-      {/* RIGHT — animated graph */}
-      <WeightLossGraph
-        points={product.graph.points}
-        yLabels={product.graph.yLabels}
-        xLabels={product.graph.xLabels}
-        callout={product.graph.callout}
-      />
+      {/* RIGHT — animated graph; a line needs at least two points */}
+      {product.graph.points.length >= 2 ? (
+        <WeightLossGraph
+          points={product.graph.points}
+          yLabels={product.graph.yLabels}
+          xLabels={product.graph.xLabels}
+          callout={product.graph.callout}
+        />
+      ) : null}
     </div>
   );
 }

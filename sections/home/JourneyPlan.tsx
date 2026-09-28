@@ -2,6 +2,11 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import JourneyDivider from "@/components/home/JourneyDivider";
 import TimelineStages from "@/components/home/TimelineStages";
+import { WL_DEFAULT, type WlJourneyContent } from "@/lib/weightLossContentTypes";
+import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { textStyleProps, type TextStyle } from "@/lib/textStyle";
+
+type Text = Partial<Record<string, TextStyle>>;
 
 /**
  * Journey + Transformation — Figma Component 94.
@@ -39,6 +44,16 @@ type ChipDef = {
   side: "left" | "right";
   icon: React.ReactNode;
 };
+
+/** Icon and side for each chip slot, in order; the words come from the CMS. */
+const CHIP_SLOTS: Pick<ChipDef, "side" | "icon">[] = [
+  { side: "left", icon: <PillIcon /> },
+  { side: "left", icon: <SupportIcon /> },
+  { side: "left", icon: <ResultIcon /> },
+  { side: "right", icon: <DeliveryIcon /> },
+  { side: "right", icon: <GuidanceIcon /> },
+  { side: "right", icon: <WhatappIcon /> },
+];
 
 function PillIcon() {
   return (
@@ -163,26 +178,18 @@ function WhatappIcon() {
   );
 }
 
-const CHIPS: ChipDef[] = [
-  { label: "Medication", sub: "Name",              side: "left",  icon: <PillIcon /> },
-  { label: "Support",    sub: "On going",          side: "left",  icon: <SupportIcon /> },
-  { label: "Result",     sub: "Loss upto 26 %",    side: "left",  icon: <ResultIcon /> },
-  { label: "Delivery",   sub: "Next Day",          side: "right", icon: <DeliveryIcon /> },
-  { label: "Guidance",   sub: "For lasting result",side: "right", icon: <GuidanceIcon /> },
-  { label: "Whatapp",    sub: "24/7 support",      side: "right", icon: <WhatappIcon /> },
-];
 
-function Chip({ chip }: { chip: ChipDef }) {
+function Chip({ chip, text }: { chip: ChipDef; text: Text }) {
   return (
     <div className="inline-flex w-fit items-center gap-3 rounded-2xl bg-[#0c2421]/85 px-3 py-2 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.55)] backdrop-blur-sm">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white">
         {chip.icon}
       </span>
       <div className="flex flex-col leading-tight">
-        <span className="font-ui text-[18px] font-bold leading-[22px] tracking-[-0.02em] text-[#dff49f]">
+        <span {...textStyleProps(text["journey.chipLabel"])} className="font-ui text-[18px] font-bold leading-[22px] tracking-[-0.02em] text-[#dff49f]">
           {chip.label}
         </span>
-        <span className="font-ui text-[12px] font-normal leading-[16px] tracking-[-0.01em] text-white/85">
+        <span {...textStyleProps(text["journey.chipSub"])} className="font-ui text-[12px] font-normal leading-[16px] tracking-[-0.01em] text-white/85">
           {chip.sub}
         </span>
       </div>
@@ -190,24 +197,28 @@ function Chip({ chip }: { chip: ChipDef }) {
   );
 }
 
-function TransformationCard() {
+function TransformationCard({ content, text }: { content: WlJourneyContent; text: Text }) {
+  const CHIPS: ChipDef[] = CHIP_SLOTS.map((slot, i) => ({
+    ...slot,
+    label: content.chips[i]?.label ?? "",
+    sub: content.chips[i]?.sub ?? "",
+  }));
   return (
     <div className="relative flex h-full flex-col gap-6 rounded-[24px] bg-[#0a1f1c]/55 p-6 backdrop-blur-md md:p-8">
       {/* Heading */}
-      <h3 className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
-        It&rsquo;s more than treatment,
+      <h3 {...textStyleProps(text["journey.transformTitle"])} className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
+        {content.transformTitle}
         <br />
-        <em className="font-serif italic font-normal text-[#dff49f]">
-          it&rsquo;s transformation
+        <em {...textStyleProps(text["journey.transformAccent"])} className="font-serif italic font-normal text-[#dff49f]">
+          {content.transformAccent}
         </em>
       </h3>
 
       {/* Description with green highlight on second clause */}
-      <p className="mx-auto max-w-[400px] text-center font-ui text-[14px] font-normal leading-[20px] tracking-[-0.01em] text-white/85 md:text-[15px] md:leading-[22px]">
-        A provider licensed in your state will review your information, so
-        that they can{" "}
-        <span className="text-[#dff49f]">
-          design a plan around your body&rsquo;s needs.
+      <p {...textStyleProps(text["journey.transformBody"])} className="mx-auto max-w-[400px] text-center font-ui text-[14px] font-normal leading-[20px] tracking-[-0.01em] text-white/85 md:text-[15px] md:leading-[22px]">
+        {content.transformBody}{" "}
+        <span {...textStyleProps(text["journey.transformBodyAccent"])} className="text-[#dff49f]">
+          {content.transformBodyAccent}
         </span>
       </p>
 
@@ -221,8 +232,8 @@ function TransformationCard() {
         {/* Center photo */}
         <div className="absolute bottom-0 left-1/2 h-[340px] w-[180px] -translate-x-1/2 overflow-hidden md:h-[420px] md:w-[220px]">
           <Image
-            src="/assets/figma/journey-transformation-photo.png"
-            alt="Personalised plan patient"
+            src={content.transformImage}
+            alt={content.transformImageAlt}
             fill
             sizes="(max-width: 768px) 180px, 220px"
             quality={95}
@@ -233,7 +244,7 @@ function TransformationCard() {
         {/* Left column of chips */}
         <div className="absolute left-0 top-6 z-20 flex flex-col items-start gap-3 md:gap-4">
           {CHIPS.filter((c) => c.side === "left").map((c) => (
-            <Chip key={c.label} chip={c} />
+            <Chip key={c.label + c.sub} chip={c} text={text} />
           ))}
         </div>
 
@@ -241,18 +252,20 @@ function TransformationCard() {
             out beside the figure */}
         <div className="absolute right-0 top-[120px] z-20 flex flex-col items-end gap-3 md:top-[140px] md:gap-4">
           {CHIPS.filter((c) => c.side === "right").map((c) => (
-            <Chip key={c.label} chip={c} />
+            <Chip key={c.label + c.sub} chip={c} text={text} />
           ))}
         </div>
       </div>
 
       {/* CTA — translucent button matching Figma's GET PERSONALIZED PLAN */}
-      <a
-        href="#get-personalized"
-        className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
-      >
-        Get personalised plan
-      </a>
+      {content.transformCtaLabel ? (
+        <a {...textStyleProps(text["journey.transformCta"])}
+          href={content.transformCtaHref}
+          className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-full max-w-[292px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
+        >
+          {content.transformCtaLabel}
+        </a>
+      ) : null}
     </div>
   );
 }
@@ -286,12 +299,12 @@ function PhoneGlyph() {
   );
 }
 
-function ExpertGuidanceCard() {
+function ExpertGuidanceCard({ content, text }: { content: WlJourneyContent; text: Text }) {
   return (
     <div className="relative flex h-full flex-col gap-5 rounded-[24px] bg-[#0a1f1c]/55 p-6 backdrop-blur-md md:p-8">
       {/* Heading */}
-      <h3 className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
-        Continuous, Expert Guidance
+      <h3 {...textStyleProps(text["journey.guidanceTitle"])} className="text-center font-display text-[26px] font-semibold leading-[32px] tracking-[-0.02em] text-white md:text-[30px] md:leading-[36px]">
+        {content.guidanceTitle}
       </h3>
 
       {/* Phone mockup centred between two vertical labels */}
@@ -302,10 +315,10 @@ function ExpertGuidanceCard() {
             <span className="text-white/70">
               <ClockGlyph />
             </span>
-            Free Consultation Every Month
+            <span {...textStyleProps(text["journey.guidanceNote"])}>{content.guidanceNote}</span>
           </div>
-          <span className="rotate-180 font-display text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[24px]">
-            Monthly Check-in
+          <span {...textStyleProps(text["journey.guidanceLabel"])} className="rotate-180 font-display text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[24px]">
+            {content.guidanceLabel}
           </span>
         </div>
 
@@ -320,14 +333,14 @@ function ExpertGuidanceCard() {
                   <span className="grid h-5 w-5 place-items-center rounded-full bg-[#142e2a] text-white">
                     <PhoneGlyph />
                   </span>
-                  Treatment Check-in
+                  <span {...textStyleProps(text["journey.guidancePill"])}>{content.guidancePill}</span>
                 </span>
               </div>
               {/* Doctor photo */}
               <div className="relative h-[calc(100%-44px)] w-full overflow-hidden rounded-[18px]">
                 <Image
-                  src="/assets/figma/journey-expert-phone.png"
-                  alt="Treatment check-in dashboard"
+                  src={content.guidanceImage}
+                  alt={content.guidanceImageAlt}
                   fill
                   sizes="(max-width: 768px) 220px, 260px"
                   quality={95}
@@ -340,38 +353,49 @@ function ExpertGuidanceCard() {
 
         {/* Right vertical label: HEALTH ASSESSMENT */}
         <div className="flex items-center justify-center pr-1 [writing-mode:vertical-rl] md:pr-2">
-          <span className="font-ui text-[12px] font-semibold uppercase tracking-[0.18em] text-white md:text-[13px]">
-            Health Assessment
+          <span {...textStyleProps(text["journey.guidanceSide"])} className="font-ui text-[12px] font-semibold uppercase tracking-[0.18em] text-white md:text-[13px]">
+            {content.guidanceSide}
           </span>
         </div>
       </div>
 
       {/* "at Every Step" italic accent */}
       <p className="text-center">
-        <em className="font-serif text-[26px] italic leading-[32px] text-[#dff49f] md:text-[30px] md:leading-[36px]">
-          at Every Step
+        <em {...textStyleProps(text["journey.guidanceAccent"])} className="font-serif text-[26px] italic leading-[32px] text-[#dff49f] md:text-[30px] md:leading-[36px]">
+          {content.guidanceAccent}
         </em>
       </p>
 
       {/* Description — green highlight on "throughout your journey" */}
-      <p className="mx-auto max-w-[400px] text-center font-ui text-[14px] font-normal leading-[20px] tracking-[-0.01em] text-white/85 md:text-[15px] md:leading-[22px]">
-        Get access to qualified medical professionals who are here to support
-        you{" "}
-        <span className="text-[#dff49f]">throughout your journey</span> whenever
-        you need advice.
+      <p {...textStyleProps(text["journey.guidanceBody"])} className="mx-auto max-w-[400px] text-center font-ui text-[14px] font-normal leading-[20px] tracking-[-0.01em] text-white/85 md:text-[15px] md:leading-[22px]">
+        {content.guidanceBody}{" "}
+        <span {...textStyleProps(text["journey.guidanceBodyAccent"])} className="text-[#dff49f]">{content.guidanceBodyAccent}</span>{" "}
+        <span {...textStyleProps(text["journey.guidanceBody"])}>{content.guidanceBodyTail}</span>
       </p>
 
-      <a
-        href="/consultation"
-        className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
-      >
-        Get started
-      </a>
+      {content.guidanceCtaLabel ? (
+        <a {...textStyleProps(text["journey.guidanceCta"])}
+          href={content.guidanceCtaHref}
+          className="btn-cta mx-auto mt-2 inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg border border-white/30 bg-black/20 font-ui text-[13px] font-semibold uppercase tracking-[0.05em] text-white backdrop-blur-md hover:bg-black/35"
+        >
+          {content.guidanceCtaLabel}
+        </a>
+      ) : null}
     </div>
   );
 }
 
-export default function JourneyPlan() {
+export default function JourneyPlan({
+  content = WL_DEFAULT.journey,
+  style,
+  text = {},
+}: {
+  content?: WlJourneyContent;
+  /** Colours the dark bands and the curve between them. */
+  style?: SectionStyle;
+  text?: Text;
+} = {}) {
+  const band = styleProps(style).style;
   return (
     <section
       aria-label="Journey and personalised plan"
@@ -380,7 +404,7 @@ export default function JourneyPlan() {
       <div className="mx-auto w-full max-w-[1400px] px-4 md:px-10 lg:px-[60px]">
         <div className="relative overflow-hidden rounded-[20px] md:rounded-3xl">
           {/* DARK zone (contains timeline) */}
-          <div className="relative bg-[#142e2a] px-5 pt-12 pb-24 md:px-20 md:pt-[100px] md:pb-[180px]">
+          <div style={band} className="relative bg-[#142e2a] px-5 pt-12 pb-24 md:px-20 md:pt-[100px] md:pb-[180px]">
             {/* faint dot pattern */}
             <div
               aria-hidden
@@ -393,22 +417,22 @@ export default function JourneyPlan() {
             />
 
             <Reveal as="div" className="relative z-10">
-              <TimelineStages />
+              <TimelineStages content={content} text={text} />
             </Reveal>
           </div>
 
           {/* CURVE DIVIDER — full-width with animated dots */}
-          <JourneyDivider />
+          <JourneyDivider style={band} />
 
           {/* Lower zone — same dark green throughout per Figma. The
               wavy curve above is purely decorative; the colour does
               NOT change between top and bottom. */}
-          <div className="relative bg-[#142e2a] px-5 pt-0 pb-12 md:px-20 md:pb-[80px]">
+          <div style={band} className="relative bg-[#142e2a] px-5 pt-0 pb-12 md:px-20 md:pb-[80px]">
             {/* Hero portrait straddles the divider above */}
             <div className="relative -mt-[160px] mb-10 flex justify-center md:-mt-[280px] md:mb-16">
               <Image
-                src="/assets/figma/journey-woman-desktop.png"
-                alt="Smiling customer"
+                src={content.image}
+                alt={content.imageAlt}
                 width={560}
                 height={447}
                 className="h-auto w-[280px] md:w-[520px]"
@@ -427,10 +451,10 @@ export default function JourneyPlan() {
               className="relative z-10 grid gap-5 md:grid-cols-2 md:gap-6"
             >
               <div className="order-2 md:order-1">
-                <TransformationCard />
+                <TransformationCard content={content} text={text} />
               </div>
               <div className="order-1 md:order-2">
-                <ExpertGuidanceCard />
+                <ExpertGuidanceCard content={content} text={text} />
               </div>
             </Reveal>
           </div>

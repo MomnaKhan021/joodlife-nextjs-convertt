@@ -369,6 +369,7 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_heading_emphasis\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_heading\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_heading_emphasis\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_intro\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"hiw_steps\" jsonb",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"cta_title_emphasis\" varchar",
@@ -550,6 +551,25 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
   "ALTER TABLE \"ed_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
 
+  // /weight-loss and the product pages - new tables, nothing existing touched.
+  "CREATE TABLE IF NOT EXISTS \"weight_loss_page\" (\"id\" serial, \"hero\" jsonb, \"usp\" jsonb, \"bmi\" jsonb, \"journey\" jsonb, \"features\" jsonb, \"quiz\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"usp\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"bmi\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"journey\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"features\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"quiz\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"weight_loss_page\" ADD COLUMN IF NOT EXISTS \"text_styles\" jsonb",
+  "CREATE TABLE IF NOT EXISTS \"product_pages\" (\"id\" serial, \"products\" jsonb, \"comparison\" jsonb, \"shop\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"products\" jsonb",
+  "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"comparison\" jsonb",
+  "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"shop\" jsonb",
+  "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
@@ -573,7 +593,7 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v43-blog" : "v43";
+const SCHEMA_VERSION = blogCmsEnabled() ? "v46-blog" : "v46";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
