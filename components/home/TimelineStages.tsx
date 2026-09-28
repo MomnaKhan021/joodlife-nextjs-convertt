@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { WL_DEFAULT, type WlJourneyContent } from "@/lib/weightLossContentTypes";
+
 /**
  * Timeline section header + stages — Figma node 141:2349.
  *
@@ -16,32 +18,20 @@ import { useEffect, useRef, useState } from "react";
  *   - Stage descriptions: 16px Saans regular / line-height 20
  */
 
-const STAGES = [
-  {
-    pill: "Today",
-    title: "Simple assessment",
-    copyDesktop:
-      "Quick online consultation with prescription and delivery if eligible.",
-    copyMobile:
-      "Quick online consultation with prescription and delivery if eligible and coaches through the app.",
-  },
-  {
-    pill: "1 - 6 Months",
-    title: "Healthy weight loss",
-    copyDesktop: "Steady weight loss with ongoing clinical support.",
-    copyMobile: "Steady weight loss with ongoing clinical support.",
-  },
-  {
-    pill: "6 - 12 Months",
-    title: "Lasting change",
-    copyDesktop: "Maintain results with continued guidance and care.",
-    copyMobile: "Maintain results with continued guidance and care.",
-  },
-];
 
 const STAGGER_MS = 600;
 
-export default function TimelineStages() {
+export default function TimelineStages({
+  content = WL_DEFAULT.journey,
+}: {
+  content?: WlJourneyContent;
+} = {}) {
+  const STAGES = content.stages.map((s) => ({
+    pill: s.pill,
+    title: s.title,
+    copyDesktop: s.body,
+    copyMobile: s.mobileBody,
+  }));
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [lit, setLit] = useState(0);
 
@@ -87,21 +77,21 @@ export default function TimelineStages() {
       <div className="flex flex-col items-start gap-5 text-left md:gap-6">
         {/* TIMELINE pill — solid white at 30% */}
         <span className="inline-flex h-[35px] items-center justify-center rounded-full bg-white/30 px-5 font-ui text-[12px] font-medium uppercase leading-[16px] tracking-[0.08em] text-white">
-          Timeline
+          {content.badge}
         </span>
 
         {/* Desktop heading */}
         <h2 className="hidden font-display text-[48px] font-semibold leading-[52px] tracking-[-0.025em] text-white md:block">
-          What to expect in
+          {content.heading}
           <br />
-          <em className="font-serif italic font-normal">your journey</em>
+          <em className="font-serif italic font-normal">{content.headingAccent}</em>
         </h2>
 
         {/* Mobile heading — different copy per Figma mobile frame */}
         <h2 className="font-display text-[28px] font-semibold leading-[34px] tracking-[-0.025em] text-white md:hidden">
-          What to expect{" "}
-          <em className="font-serif italic font-normal">in your first month</em>{" "}
-          with Jood
+          {content.mobileHeading}{" "}
+          <em className="font-serif italic font-normal">{content.mobileHeadingAccent}</em>{" "}
+          {content.mobileHeadingTail}
         </h2>
       </div>
 

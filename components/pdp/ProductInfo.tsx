@@ -148,9 +148,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Why choose Jood? — benefits (moved below CTA) */}
       <div className="flex flex-col gap-3">
-        <p className="font-ui text-[13px] font-semibold text-[#142e2a]/70">
-          Why choose Jood?
-        </p>
+        {(product.whyChooseTitle ?? "Why choose Jood?") ? (
+          <p className="font-ui text-[13px] font-semibold text-[#142e2a]/70">
+            {product.whyChooseTitle ?? "Why choose Jood?"}
+          </p>
+        ) : null}
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
           {product.features.map((f) => (
             <div key={f.label} className="flex items-start gap-2">
@@ -168,7 +170,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* Accordions: How it works / Is X safe? / Side effects (always-open) */}
       <ul className="flex flex-col">
         {[
-          { q: "How it works" },
+          { q: product.howItWorksTitle || "How it works" },
           { q: `Is ${product.title} safe?` },
         ].map((a, i) => {
           const isOpen = openAccordion === i;
@@ -197,7 +199,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 <div className="overflow-hidden">
                   <p className="pb-4 font-ui text-[13px] leading-[20px] text-[#142e2a]/75">
                     {i === 0
-                      ? `Get prescribed ${product.title} after a quick online consultation. We deliver to your door and support you through every step.`
+                      ? product.howItWorksBody ||
+                        `Get prescribed ${product.title} after a quick online consultation. We deliver to your door and support you through every step.`
                       : product.safetyBody}
                   </p>
                 </div>

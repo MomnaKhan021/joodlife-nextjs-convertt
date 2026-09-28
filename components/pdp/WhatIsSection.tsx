@@ -1,6 +1,7 @@
 import WeightLossGraph from "./WeightLossGraph";
 import { MeasureIcon } from "./PdpIcons";
 import type { PDPProduct } from "@/lib/pdp-products";
+import { safeInlineHtml } from "@/lib/productPageContentTypes";
 
 interface WhatIsSectionProps {
   product: PDPProduct;
@@ -30,7 +31,9 @@ export default function WhatIsSection({ product, hideCta = false }: WhatIsSectio
 
         <p
           className="font-ui text-[15px] leading-[24px] tracking-[-0.01em] text-[#142e2a]/85 md:text-[16px] md:leading-[26px]"
-          dangerouslySetInnerHTML={{ __html: product.whatIsBody }}
+          // Editable in the CMS, so only bold, italic and line breaks
+          // survive; anything else is shown as typed.
+          dangerouslySetInnerHTML={{ __html: safeInlineHtml(product.whatIsBody) }}
         />
 
         {/* Callout */}
@@ -62,23 +65,25 @@ export default function WhatIsSection({ product, hideCta = false }: WhatIsSectio
           ))}
         </ul>
 
-        {hideCta ? null : (
+        {hideCta || (product.whatIsCtaLabel ?? "Get started") === "" ? null : (
           <a
-            href="/consultation"
+            href={product.whatIsCtaHref || "/consultation"}
             className="inline-flex h-[50px] w-full max-w-[200px] items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white transition-colors duration-200 hover:bg-[#0c2421]"
           >
-            Get started
+            {product.whatIsCtaLabel ?? "Get started"}
           </a>
         )}
       </div>
 
-      {/* RIGHT — animated graph */}
-      <WeightLossGraph
-        points={product.graph.points}
-        yLabels={product.graph.yLabels}
-        xLabels={product.graph.xLabels}
-        callout={product.graph.callout}
-      />
+      {/* RIGHT — animated graph; a line needs at least two points */}
+      {product.graph.points.length >= 2 ? (
+        <WeightLossGraph
+          points={product.graph.points}
+          yLabels={product.graph.yLabels}
+          xLabels={product.graph.xLabels}
+          callout={product.graph.callout}
+        />
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import AnimatedLbsBadge from "./AnimatedLbsBadge";
 import EligibilityCta from "@/components/ui/EligibilityCta";
+import { WL_DEFAULT, type WlHeroContent } from "@/lib/weightLossContentTypes";
 
 /**
  * Hero banner — matches Figma node 141:1688 (Updated Home Page,
@@ -17,19 +18,22 @@ import EligibilityCta from "@/components/ui/EligibilityCta";
  *   3. Guidance for lasting results
  */
 
-const BULLETS_DESKTOP = [
-  "Lose up to 27% body weight",
-  "Plans tailored to you",
-  "Guidance for lasting results",
-];
-
+// Phones list the shipped bullets in a different order (per the Figma
+// mobile frame). Once the list has been edited in the CMS, both sizes show
+// the editor's order - there is no second list to keep in step.
 const BULLETS_MOBILE = [
   "Lose up to 27% body weight",
   "Guidance for lasting results",
   "Plans tailored to you",
 ];
 
-function TrustpilotRow({ textClass = "text-white" }: { textClass?: string }) {
+function TrustpilotRow({
+  textClass = "text-white",
+  label,
+}: {
+  textClass?: string;
+  label: string;
+}) {
   return (
     <a
       href="https://www.trustpilot.com/review/joodlife.com"
@@ -55,7 +59,7 @@ function TrustpilotRow({ textClass = "text-white" }: { textClass?: string }) {
       <span
         className={`font-inter text-[14.2px] leading-[17px] tracking-[-0.03em] ${textClass}`}
       >
-        4.4 (50+) Reviews
+        {label}
       </span>
     </a>
   );
@@ -79,7 +83,16 @@ function TickBullet({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function HeroBanner() {
+export default function HeroBanner({
+  content = WL_DEFAULT.hero,
+}: {
+  content?: WlHeroContent;
+} = {}) {
+  const shippedOrder =
+    content.bullets.length === WL_DEFAULT.hero.bullets.length &&
+    content.bullets.every((b, i) => b === WL_DEFAULT.hero.bullets[i]);
+  const mobileBullets = shippedOrder ? BULLETS_MOBILE : content.bullets;
+
   return (
     <section
       aria-label="Hero"
@@ -96,7 +109,7 @@ export default function HeroBanner() {
           >
             {/* Left column — 580 wide per Figma */}
             <div className="relative z-10 flex w-[580px] max-w-[580px] flex-col items-start gap-7">
-              <TrustpilotRow />
+              <TrustpilotRow label={content.reviewsLabel} />
 
               <h1 className="font-display text-[60px] font-semibold leading-[68px] tracking-[-0.027em] text-white">
                 {/* Figma wraps at two lines exactly. We force the first
@@ -104,33 +117,37 @@ export default function HeroBanner() {
                    slightly-wider PJS fallback (Gilroy-SemiBold is the
                    Figma face) doesn't push "loss," onto a third row. */}
                 <span className="block whitespace-nowrap">
-                  Innovative{" "}
+                  {content.titleLead}{" "}
                   <em className="font-serif italic font-normal tracking-[-0.02em]">
-                    weight loss,
+                    {content.titleAccent}
                   </em>
                 </span>
-                <span className="block">made just for you.</span>
+                <span className="block">{content.titleTail}</span>
               </h1>
 
               <ul className="flex flex-col gap-3">
-                {BULLETS_DESKTOP.map((b) => (
+                {content.bullets.map((b) => (
                   <TickBullet key={b}>{b}</TickBullet>
                 ))}
               </ul>
 
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 {/* Figma: primary 200×50, secondary 279×50 */}
-                <a
-                  href="/consultation"
-                  className="btn-cta inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
-                >
-                  Get started
-                </a>
-                <EligibilityCta
-                  href="#eligibility"
-                  label="See if you are eligible"
-                  className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
-                />
+                {content.ctaLabel ? (
+                  <a
+                    href={content.ctaHref}
+                    className="btn-cta inline-flex h-[50px] w-[200px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
+                  >
+                    {content.ctaLabel}
+                  </a>
+                ) : null}
+                {content.secondaryLabel ? (
+                  <EligibilityCta
+                    href={content.secondaryHref}
+                    label={content.secondaryLabel}
+                    className="btn-cta inline-flex h-[50px] w-[279px] items-center justify-center rounded-lg border border-white/40 bg-transparent font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-white hover:bg-white/10"
+                  />
+                ) : null}
               </div>
             </div>
 
@@ -140,7 +157,7 @@ export default function HeroBanner() {
               className="pointer-events-none absolute bottom-0 right-[23px] h-[635px] w-[817px]"
             >
               <Image
-                src="/assets/hero/hero-desktop.png"
+                src={content.image}
                 alt=""
                 fill
                 sizes="817px"
@@ -165,32 +182,34 @@ export default function HeroBanner() {
           className="relative mx-auto flex w-full flex-col overflow-hidden rounded-[12px] bg-[#142e2a]"
         >
           <div className="flex flex-col gap-5 px-4 pt-6 pb-3">
-            <TrustpilotRow />
+            <TrustpilotRow label={content.reviewsLabel} />
 
             <h1 className="font-sofia text-[36px] font-medium leading-[40px] tracking-[-0.033em] text-white">
-              Innovative{" "}
-              <em className="font-serif italic font-normal">weight loss,</em>
+              {content.titleLead}{" "}
+              <em className="font-serif italic font-normal">{content.titleAccent}</em>
               <br />
-              made just for you.
+              {content.titleTail}
             </h1>
 
             <ul className="flex flex-col gap-2.5">
-              {BULLETS_MOBILE.map((b) => (
+              {mobileBullets.map((b) => (
                 <TickBullet key={b}>{b}</TickBullet>
               ))}
             </ul>
 
-            <a
-              href="/consultation"
-              className="btn-cta mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
-            >
-              Get started
-            </a>
+            {content.ctaLabel ? (
+              <a
+                href={content.ctaHref}
+                className="btn-cta mt-1 inline-flex h-[50px] w-[239px] items-center justify-center rounded-lg bg-white font-ui text-[16.3px] font-semibold leading-[20px] tracking-[-0.02em] text-[#142f2b] hover:bg-[#d3dabe]"
+              >
+                {content.ctaLabel}
+              </a>
+            ) : null}
           </div>
 
           <div className="relative h-[320px] w-full">
             <Image
-              src="/assets/hero/hero-mobile.png"
+              src={content.mobileImage}
               alt=""
               fill
               sizes="100vw"

@@ -1,9 +1,15 @@
 import Image from "next/image";
 
-import { COMPARISON_TABLE, type PDPProduct } from "@/lib/pdp-products";
+import { type PDPProduct } from "@/lib/pdp-products";
+import {
+  COMPARISON_DEFAULT,
+  type ComparisonContent,
+} from "@/lib/productPageContentTypes";
 
 interface ComparisonTableProps {
   active: PDPProduct["comparisonActive"];
+  /** Heading, column names and rows; the shipped table when omitted. */
+  content?: ComparisonContent;
 }
 
 // Per-column palette matching the Figma: soft vertical gradients — blue,
@@ -21,15 +27,19 @@ const COLUMNS = [
  * Each column has a soft pastel background pulled from the Figma
  * column header pills.
  */
-export default function ComparisonTable({ active }: ComparisonTableProps) {
+export default function ComparisonTable({
+  active,
+  content = COMPARISON_DEFAULT,
+}: ComparisonTableProps) {
+  const COMPARISON_TABLE = content.rows;
   return (
     <div className="rounded-[24px] bg-[#f7f9f2] p-3 md:p-10 lg:p-12">
       <div className="flex flex-col items-center gap-2 pb-8 text-center md:pb-10">
         <h2 className="font-display text-[26px] font-semibold leading-[32px] tracking-[-0.025em] text-[#142e2a] md:text-[36px] md:leading-[44px]">
-          Which treatment is right for you?
+          {content.heading}
         </h2>
         <p className="mt-3 max-w-[640px] font-ui text-[14px] leading-[20px] tracking-[-0.01em] text-[#142e2a]/70 md:text-[15px] md:leading-[22px]">
-          Compare our most popular weight loss treatments.
+          {content.body}
         </p>
       </div>
 
@@ -70,7 +80,7 @@ export default function ComparisonTable({ active }: ComparisonTableProps) {
                         className="font-display text-[12px] font-bold leading-[15px] tracking-[-0.01em] md:text-[16px] md:leading-[20px]"
                         style={{ color: c.text }}
                       >
-                        {c.label}
+                        {content.columns[c.key]}
                       </span>
                     </div>
                   </th>

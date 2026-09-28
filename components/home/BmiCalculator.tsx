@@ -10,6 +10,9 @@ import {
   type RefObject,
 } from "react";
 
+import { WL_DEFAULT, type WlBmiContent } from "@/lib/weightLossContentTypes";
+
+// The icons are matched to the pills by position; the words come from the CMS.
 const FLOATING_BADGES = [
   { icon: "/assets/images/icon-affordable.png", label: "Affordable pricing" },
   { icon: "/assets/images/icon-personalized.png", label: "Personalised support" },
@@ -103,7 +106,15 @@ const WEIGHT_MIN = 50;
 const WEIGHT_MAX = 400;
 const DEFAULT_WEIGHT = 98;
 
-export default function BmiCalculator() {
+export default function BmiCalculator({
+  content = WL_DEFAULT.bmi,
+}: {
+  content?: WlBmiContent;
+} = {}) {
+  const badges = FLOATING_BADGES.map((b, i) => ({
+    ...b,
+    label: content.badges[i] ?? b.label,
+  }));
   const [ft, setFt] = useState("5");
   const [inch, setInch] = useState("8");
   const [lbs, setLbs] = useState("98");
@@ -156,13 +167,12 @@ export default function BmiCalculator() {
       <div className="mx-auto w-full max-w-[1400px] px-6 py-[30px] md:px-10 md:py-10 lg:px-[60px]">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-12 pb-10 md:pb-12">
           <h2 className="max-w-[680px] font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#0b3b3c] md:text-[48px] md:leading-[52px]">
-            Everyone&rsquo;s talking about{" "}
-            <em className="font-serif italic font-normal">jood life</em> because
-            it works.
+            {content.heading}{" "}
+            <em className="font-serif italic font-normal">{content.headingAccent}</em>{" "}
+            {content.headingTail}
           </h2>
           <p className="max-w-[530px] font-ui text-[15px] leading-[22px] tracking-[-0.02em] text-[#0c2421]/85 md:text-[16.3px] md:leading-[20px]">
-            Clinically proven treatments, medically supervised guidance, and
-            thousand of real transformation all one powerful program.
+            {content.body}
           </p>
         </div>
 
@@ -170,10 +180,10 @@ export default function BmiCalculator() {
           <div className="flex h-full flex-col justify-between gap-6 rounded-[24px] bg-[#f7f9f2] p-8 md:min-h-[503px]">
             <div className="flex flex-col items-center gap-1.5 text-center">
               <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
-                Check your
+                {content.calcTitle}
               </p>
               <p className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-[#142e2a]/80 md:text-[16.3px] md:leading-[20px]">
-                Enter your height and weight below
+                {content.calcSubtitle}
               </p>
             </div>
 
@@ -262,15 +272,15 @@ export default function BmiCalculator() {
                 type="button"
                 className="btn-cta mt-auto h-[50px] rounded-lg bg-[#142e2a] font-ui text-[13px] font-semibold uppercase tracking-[0.06em] text-white hover:bg-[#0c2421]"
               >
-                Calculate BMI
+                {content.buttonLabel}
               </button>
             </form>
           </div>
 
           <div className="relative h-full overflow-hidden rounded-[24px] md:min-h-[503px]">
             <Image
-              src="/assets/figma/happy-woman-2.png"
-              alt="Happy customer showing results"
+              src={content.image}
+              alt={content.imageAlt}
               fill
               sizes="(max-width: 768px) 100vw, 440px"
               quality={95}
@@ -278,7 +288,7 @@ export default function BmiCalculator() {
               priority
             />
             <div className="absolute left-4 top-1/2 flex -translate-y-1/2 flex-col gap-3 md:left-5">
-              {FLOATING_BADGES.map((b, i) => (
+              {badges.map((b, i) => (
                 <div
                   key={b.label}
                   className="flex items-center gap-3 rounded-full pl-4 pr-5 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm"
@@ -314,7 +324,7 @@ export default function BmiCalculator() {
           <div className="flex h-full flex-col justify-between gap-6 rounded-[23px] bg-[#f7f9f2] p-8 md:min-h-[503px]">
             <div className="flex flex-col items-center gap-1.5 text-center">
               <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[24px] md:leading-[26px]">
-                You could lose:
+                {content.loseTitle}
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-[48px] leading-[69px] font-semibold tracking-[-0.02em] tabular-nums text-[#0c2421] md:text-[56px]">
@@ -350,7 +360,7 @@ export default function BmiCalculator() {
 
             <div className="mt-auto flex flex-col items-center gap-3">
               <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[25px] md:leading-[26px]">
-                Starting weight:
+                {content.startTitle}
               </p>
               <div className="rounded-md bg-white px-4 py-2 shadow-sm">
                 <p className="font-display text-[22px] leading-[26px] font-semibold tracking-[-0.01em] tabular-nums text-[#142e2a] md:text-[25px] md:leading-[26px]">
