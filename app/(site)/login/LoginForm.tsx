@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { describeRequestError } from "@/lib/auth-errors";
-import { firstAllowedHref } from "@/lib/adminSections";
 
 const schema = z.object({
   // Normalise before validating so a stray trailing space / odd casing from
@@ -79,20 +78,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         const body = await res.json().catch(() => ({}));
         throw new Error(messageFromPayloadError(body));
       }
-      // Payload returns the signed-in user. Dashboard users (admin/staff) go
-      // straight to their dashboard instead of the customer profile — unless
-      // the URL asked for a specific page via ?next=, which always wins.
-      const body = (await res.json().catch(() => ({}))) as {
-        user?: { role?: string; permissions?: unknown };
-      };
-      const role = body.user?.role;
-      const rawPerms = body.user?.permissions;
-      const perms = Array.isArray(rawPerms) ? rawPerms.map(String) : [];
-      const target =
-        redirectTo === "/profile" && (role === "admin" || role === "staff")
-          ? firstAllowedHref(role, perms)
-          : redirectTo;
-      router.replace(target);
+      router.replace(redirectTo);
       router.refresh();
     } catch (err) {
       console.error("Login failed:", err);
