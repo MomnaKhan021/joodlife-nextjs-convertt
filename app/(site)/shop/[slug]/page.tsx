@@ -21,6 +21,7 @@ import {
   applyCopy,
   getComparison,
   getProductCopy,
+  getProductUsp,
 } from "@/lib/productPageContent";
 import { styleProps } from "@/lib/sectionStyle";
 
@@ -131,9 +132,10 @@ export default async function ProductPage({ params }: Params) {
   // The page copy from the CMS, over what the product shipped with. A
   // product added in the dashboard starts blank, so its medicine-specific
   // sections stay hidden until someone writes them there.
-  const [copy, comparison] = await Promise.all([
+  const [copy, comparison, usp] = await Promise.all([
     getProductCopy(slug, merged.title),
     getComparison(),
+    getProductUsp(),
   ]);
   const product = applyCopy(merged, copy);
   const productId = dbProduct?.id;
@@ -167,7 +169,7 @@ export default async function ProductPage({ params }: Params) {
       </section>
 
       {/* ──────────────  USP marquee  ────────────── */}
-      <UspStrip />
+      <UspStrip items={usp.items} style={usp.style} text={usp.textStyles} />
 
       {/* ──────────────  What is X? + animated graph  ────────────── */}
       {/* These three describe a specific medicine, so they appear only for a

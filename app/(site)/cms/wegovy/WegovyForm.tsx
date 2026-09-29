@@ -476,7 +476,14 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
           <code className="rounded bg-[#eef1e8] px-1.5 py-0.5">
             /wegovy-pills
           </code>{" "}
-          — the sections below are in the order they appear on the page.
+          — the sections below are in the order they appear on the page. This
+          is the information page; the page where people choose a dose and buy
+          is <code className="rounded bg-[#eef1e8] px-1.5 py-0.5">/shop/wegovy-pill</code>,
+          under{" "}
+          <Link href="/cms/products" className="underline underline-offset-2">
+            Shop product pages
+          </Link>
+          .
         </p>
         <p className="mt-2 rounded-lg border border-[#f0e2c0] bg-[#fffaf0] px-3 py-2 text-[12px] leading-relaxed text-[#8a6100]">
           This page advertises a prescription medicine. The efficacy figures,
@@ -1104,6 +1111,15 @@ export default function WegovyForm({ initial }: { initial: WegovyContent }) {
             onSrc={(v) => setHowItWorks({ ...howItWorks, image: v })}
           />
         </div>
+
+        <p className="rounded-lg border border-dashed border-[#d8ddd0] px-4 py-3 text-[13px] text-[#616161]">
+          Between &ldquo;How it works&rdquo; and &ldquo;Real results&rdquo; the page shows
+          the Home page&apos;s reviews - edit them under{" "}
+          <Link href="/cms/home" className="underline underline-offset-2">
+            Home page
+          </Link>
+          .
+        </p>
 
         {/* 7. Real results */}
         <div className={card}>

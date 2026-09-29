@@ -26,6 +26,11 @@ export const ProductPages: GlobalConfig = {
       admin: { description: "Page copy per product, keyed by the product's slug." },
     },
     {
+      name: "usp",
+      type: "json",
+      admin: { description: "The scrolling trust strip on every product page." },
+    },
+    {
       name: "comparison",
       type: "json",
       admin: { description: "The comparison table shared by the product pages." },

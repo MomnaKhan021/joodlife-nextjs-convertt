@@ -26,6 +26,10 @@ import {
   type PDPProduct,
 } from "@/lib/pdp-products";
 import {
+  CATEGORY_PAGE_DEFAULT,
+  type UspItem,
+} from "@/lib/categoryPageContentTypes";
+import {
   PRODUCT_STYLE_KEYS,
   mergeStyles,
   type ProductStyleKey,
@@ -118,6 +122,34 @@ export type ShopPageContent = {
   style: SectionStyle;
   textStyles: Record<ShopTextKey, TextStyle>;
 };
+
+/** The scrolling strip under the price - one strip for every product page. */
+export type ProductUsp = {
+  items: UspItem[];
+  style: SectionStyle;
+  textStyles: Record<string, TextStyle>;
+};
+
+export const PRODUCT_USP_DEFAULT: ProductUsp = {
+  items: CATEGORY_PAGE_DEFAULT.uspStrip.items,
+  style: mergeStyles(null, ["usp"] as const).usp,
+  textStyles: mergeTextStyles(null, ["uspStrip.itemLabel"] as const),
+};
+
+export function mergeProductUsp(stored: unknown): ProductUsp {
+  const s = obj(stored);
+  const items = Array.isArray(s.items)
+    ? s.items
+        .map(obj)
+        .map((r) => ({ icon: String(r.icon ?? ""), label: String(r.label ?? "") }))
+        .filter((r) => r.label.trim() !== "")
+    : [];
+  return {
+    items: items.length ? items : PRODUCT_USP_DEFAULT.items,
+    style: mergeStyles({ usp: s.style }, ["usp"] as const).usp,
+    textStyles: mergeTextStyles(s.textStyles, ["uspStrip.itemLabel"] as const),
+  };
+}
 
 export type ProductPagesContent = {
   /** Keyed by product slug. Only products with stored copy appear. */

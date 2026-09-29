@@ -569,6 +569,7 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"shop\" jsonb",
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+  "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"usp\" jsonb",
 
   // The small fixed words around the site, and the home blog heading's tail.
   "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"labels\" jsonb",
@@ -600,7 +601,7 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v47-blog" : "v47";
+const SCHEMA_VERSION = blogCmsEnabled() ? "v48-blog" : "v48";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
