@@ -41,7 +41,7 @@ function Card({
   const muted = dark ? "text-white/85" : "text-[#142e2a]/80";
   return (
     <div
-      className={`flex w-full flex-col overflow-hidden rounded-xl ${dark ? "text-white" : "bg-[#fbf3ef] text-[#142e2a]"}`}
+      className={`fnd-lift flex w-full flex-col overflow-hidden rounded-xl ${dark ? "text-white" : "bg-[#fbf3ef] text-[#142e2a]"}`}
       style={dark ? { background: "linear-gradient(180deg, #3f6f67 0%, #23473f 45%, #142e2a 100%)" } : undefined}
     >
       <div className={`flex h-[60px] items-center justify-center border-b px-3 text-center md:h-[87px] ${line}`}>
@@ -86,22 +86,26 @@ export default function Comparison() {
         </Reveal>
         <Reveal as="div" delay={100}>
           <div className="mx-auto grid max-w-[690px] grid-cols-2 gap-[10px]">
-            <Card
-              title={c.pillTitle}
-              price={c.pillPrice}
-              taken={c.pillTaken}
-              rows={c.pillRows}
-              dark
-              icon={<Image src="/assets/foundayo/pill-white.png" alt="" width={28} height={22} className="h-[22px] w-auto" />}
-            />
-            <Card
-              title={c.penTitle}
-              price={c.penPrice}
-              taken={c.penTaken}
-              rows={c.penRows}
-              dark={false}
-              icon={<Image src="/assets/foundayo/pen.png" alt="" width={28} height={28} className="h-7 w-auto" />}
-            />
+            <Reveal direction="right">
+              <Card
+                title={c.pillTitle}
+                price={c.pillPrice}
+                taken={c.pillTaken}
+                rows={c.pillRows}
+                dark
+                icon={<Image src="/assets/foundayo/pill-white.png" alt="" width={28} height={22} className="h-[22px] w-auto" />}
+              />
+            </Reveal>
+            <Reveal direction="left" delay={140}>
+              <Card
+                title={c.penTitle}
+                price={c.penPrice}
+                taken={c.penTaken}
+                rows={c.penRows}
+                dark={false}
+                icon={<Image src="/assets/foundayo/pen.png" alt="" width={28} height={28} className="h-7 w-auto" />}
+              />
+            </Reveal>
           </div>
         </Reveal>
         <Reveal as="div" delay={150}>

@@ -21,9 +21,9 @@ export default function Dosing() {
               <p className="mt-4 max-w-[640px] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px] md:leading-[22px]">{c.body}</p>
             </Reveal>
 
-            <Reveal as="div" delay={120} className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
-              {c.doses.map((d) => (
-                <div key={d.mg} className="relative flex flex-col items-center gap-1 rounded-2xl bg-[#fbf3ef] px-3 pb-5 pt-7 text-center">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
+              {c.doses.map((d, i) => (
+                <Reveal as="div" key={d.mg} delay={i * 110} className="fnd-lift relative flex flex-col items-center gap-1 rounded-2xl bg-[#fbf3ef] px-3 pb-5 pt-7 text-center">
                   {d.start ? (
                     <span className="absolute -top-2.5 rounded-full bg-[#142e2a] px-3 py-1 font-ui text-[10px] font-semibold text-[#b4ff9f]">
                       {c.startBadge}
@@ -35,13 +35,13 @@ export default function Dosing() {
                   <span className="mt-3 font-ui text-[14px] font-semibold text-[#142e2a]">
                     {d.price}<span className="font-normal text-[#142e2a]/60">/mo</span>
                   </span>
-                </div>
+                </Reveal>
               ))}
-            </Reveal>
+            </div>
 
             <Reveal as="div" delay={160} className="mt-4">
               <div
-                className="flex flex-col gap-4 rounded-2xl px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between"
+                className="fnd-lift flex flex-col gap-4 rounded-2xl px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between"
                 style={{ background: "linear-gradient(90deg, #143b36 0%, #1d4b43 100%)" }}
               >
                 <div className="flex items-center gap-3">

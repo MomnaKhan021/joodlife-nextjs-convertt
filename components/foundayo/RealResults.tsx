@@ -14,7 +14,7 @@ export default function RealResults() {
     <section aria-label="Real results with Foundayo" className="w-full bg-white">
       <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 px-6 py-[30px] md:px-10 md:py-10 lg:grid-cols-2 lg:px-[60px]">
         <Reveal as="div" className="h-full">
-          <div className="relative flex h-full min-h-[520px] flex-col justify-between gap-5 overflow-hidden rounded-[24px] bg-[#3b5a3a] p-4 md:min-h-[580px] md:p-5">
+          <div className="fnd-lift relative flex h-full min-h-[520px] flex-col justify-between gap-5 overflow-hidden rounded-[24px] bg-[#3b5a3a] p-4 md:min-h-[580px] md:p-5">
             <Image src={c.bokeh} alt="" fill aria-hidden sizes="(max-width:1024px) 100vw, 50vw" className="object-cover object-center" />
             <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(60,90,55,0.2) 0%, rgba(40,70,45,0.55) 60%, rgba(25,50,35,0.85) 100%)" }} />
 
@@ -50,7 +50,7 @@ export default function RealResults() {
         </Reveal>
 
         <Reveal as="div" delay={120} className="h-full">
-          <div className="relative h-full min-h-[520px] overflow-hidden rounded-[24px] md:min-h-[580px]">
+          <div className="fnd-lift relative h-full min-h-[520px] overflow-hidden rounded-[24px] md:min-h-[580px]">
             <Image src={c.photo} alt={c.photoAlt} fill sizes="(max-width:1024px) 100vw, 50vw" className="object-cover object-[center_20%]" />
             <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-[#3a2b25]/80 px-5 py-5 backdrop-blur-sm md:inset-x-5 md:bottom-5">
               <span className="grid h-10 w-10 place-items-center rounded-full bg-white">

@@ -14,7 +14,7 @@ export default function FinalCta() {
     <section aria-label="Ready to start the Foundayo journey" className="w-full bg-white pb-10 md:pb-16">
       <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
         <Reveal as="div">
-          <div className="relative overflow-hidden rounded-[24px] bg-[#fbf3ef] md:h-[300px]">
+          <div className="fnd-lift relative overflow-hidden rounded-[24px] bg-[#fbf3ef] md:h-[300px]">
             <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70 md:block" />
             <div className="relative grid h-full grid-cols-1 md:grid-cols-[400px_minmax(0,1fr)_auto] md:items-center md:gap-8 md:px-[50px]">
               <div className="relative order-2 z-10 flex flex-col items-start gap-4 px-6 pb-6 pt-5 md:order-1 md:px-0 md:py-0">

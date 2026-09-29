@@ -15,9 +15,9 @@ import { FOUNDAYO, type FoundayoCard } from "@/lib/foundayoContent";
  */
 function Card({ c }: { c: FoundayoCard }) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#fbf3ef]">
-      <div className="relative h-[300px] w-full overflow-hidden">
-        <Image src={c.image} alt={c.alt} fill sizes="(max-width:1024px) 60vw, 25vw" className="object-cover object-center" />
+    <article className="fnd-lift flex h-full flex-col overflow-hidden rounded-2xl bg-[#fbf3ef]">
+      <div className="group relative h-[300px] w-full overflow-hidden">
+        <Image src={c.image} alt={c.alt} fill sizes="(max-width:1024px) 60vw, 25vw" className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105" />
         {c.badge ? (
           <div className="absolute right-6 top-[38%] rounded-xl bg-[#f6d9cf]/90 px-4 py-3 text-[#142e2a] shadow-[0_8px_24px_-12px_rgba(20,46,42,0.4)] backdrop-blur-sm">
             <p className="font-ui text-[11px] font-medium opacity-70">{c.badge.top}</p>
@@ -62,9 +62,11 @@ export default function WhatIs() {
           a11y={{ enabled: true }}
           className="!py-2 !pl-6 !pr-0 md:!pl-10 lg:!pl-[60px]"
         >
-          {c.cards.map((card) => (
+          {c.cards.map((card, i) => (
             <SwiperSlide key={card.title} className="!h-auto">
-              <Card c={card} />
+              <Reveal delay={i * 110} className="h-full">
+                <Card c={card} />
+              </Reveal>
             </SwiperSlide>
           ))}
         </Swiper>
