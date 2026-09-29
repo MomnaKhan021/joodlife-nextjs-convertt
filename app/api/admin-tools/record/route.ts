@@ -16,6 +16,7 @@ import { IS_REORDER_SQL } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { canUseType, isAdminUser } from "@/lib/adminToolsAuth";
 import { sendOrderCancelledEmail } from "@/lib/account-email";
 import {
   fireHubSpot,
@@ -569,14 +570,23 @@ async function mirrorOrderCommentsToHubSpot(
   }
 }
 
+/** The signed-in dashboard user (admin or staff), else null. Each handler
+ *  then checks the specific type against their granted sections. */
 async function authorize() {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!user || (user as unknown as { role?: string }).role !== "admin") {
+  const role = (user as unknown as { role?: string } | null)?.role;
+  if (!user || (role !== "admin" && role !== "staff")) {
     return null;
   }
   return user;
 }
+
+const noAccess = () =>
+  NextResponse.json(
+    { ok: false, error: "You don't have access to this section" },
+    { status: 403 }
+  );
 
 export async function GET(req: NextRequest) {
   const user = await authorize();
@@ -589,6 +599,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const type = (url.searchParams.get("type") ?? "").trim();
   const id = (url.searchParams.get("id") ?? "").trim();
+  if (!canUseType(user, type)) return noAccess();
   const spec = SPECS[type];
   if (!spec) {
     return NextResponse.json(
@@ -704,6 +715,11 @@ export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const type = (url.searchParams.get("type") ?? "").trim();
   const id = (url.searchParams.get("id") ?? "").trim();
+  // Staff edit only their granted types. User records stay admin-only:
+  // role and permissions are editable columns, so opening them to staff
+  // would let someone promote themselves.
+  if (!canUseType(user, type)) return noAccess();
+  if (type === "users" && !isAdminUser(user)) return noAccess();
   const spec = SPECS[type];
   if (!spec) {
     return NextResponse.json(
@@ -928,7 +944,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const user = await authorize();
-  if (!user) {
+  // Hard delete is admin-only regardless of granted sections.
+  if (!user || !isAdminUser(user)) {
     return NextResponse.json(
       { ok: false, error: "Admin role required" },
       { status: 403 }
