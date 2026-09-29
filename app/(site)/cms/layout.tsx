@@ -36,20 +36,26 @@ export default async function CmsLayout({
   if (!canAccessCms(user.role, user.permissions)) redirect("/");
 
   // The current path is forwarded by middleware as x-admin-pathname, since
-  // layouts can't read the pathname from props.
+  // layouts can't read the pathname from props. When it is absent we cannot
+  // know where we are, so the path checks are skipped rather than guessed:
+  // guessing "/cms" once sent staff into an endless redirect to their own
+  // page (a blank screen). Access to the content itself is enforced by
+  // Payload's own rules regardless — these are navigation guards.
   const h = await headers();
-  const path = h.get("x-admin-pathname") ?? "/cms";
+  const path = h.get("x-admin-pathname");
 
   // A switched-off section is closed to everyone, admins included. The nav
   // already hides it; this is what stops a bookmarked or typed URL from
   // walking straight into an editor that is meant to be unavailable.
-  if (isDisabledCmsPath(path)) redirect("/cms");
+  if (path && isDisabledCmsPath(path)) redirect("/cms");
 
   // Per-section permission guard for staff. Admins pass everything.
-  if (user.role === "staff") {
+  if (path && user.role === "staff") {
     const section = sectionForCmsPath(path);
     if (!canAccessCmsPath(user.role, user.permissions, section)) {
-      redirect(firstAllowedCmsHref(user.role, user.permissions));
+      const target = firstAllowedCmsHref(user.role, user.permissions);
+      // Never bounce to the page we are already on — that loops forever.
+      if (target !== path) redirect(target);
     }
   }
 
