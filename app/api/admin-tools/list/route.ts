@@ -19,6 +19,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { IS_REORDER_SQL } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
+import { canUseType } from "@/lib/adminToolsAuth";
+
 import { getPayloadInstance } from "@/lib/payload";
 import { hideBeforeSql, HIDE_TYPES } from "@/lib/adminHide";
 import { hiddenOrdersSql } from "@/lib/adminHiddenOrders";
@@ -166,15 +168,17 @@ const SPECS: Record<string, SpecRow> = {
 export async function GET(req: NextRequest) {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!user || (user as unknown as { role?: string }).role !== "admin") {
-    return NextResponse.json(
-      { ok: false, error: "Admin role required" },
-      { status: 403 }
-    );
-  }
 
   const url = new URL(req.url);
   const type = (url.searchParams.get("type") ?? "").trim();
+  // Admins list everything; staff only the types their granted sections
+  // cover (the same rule the data-browser uses to pick their tabs).
+  if (!canUseType(user, type)) {
+    return NextResponse.json(
+      { ok: false, error: "You don't have access to this section" },
+      { status: 403 }
+    );
+  }
   const spec = SPECS[type];
   if (!spec) {
     return NextResponse.json(

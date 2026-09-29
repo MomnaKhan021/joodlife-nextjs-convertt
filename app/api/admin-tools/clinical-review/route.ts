@@ -13,6 +13,7 @@ import { realOrderPredicate } from "@/lib/reorderSql";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { canUseSection } from "@/lib/adminToolsAuth";
 import { sendSuitabilityApprovedEmail } from "@/lib/account-email";
 import { hideBeforeSql } from "@/lib/adminHide";
 import { nextOrderNumber } from "@/lib/orderNumber";
@@ -33,14 +34,6 @@ function esc(s: string | null | undefined): string {
   return s === null || s === undefined ? "NULL" : "'" + s.replace(/'/g, "''") + "'";
 }
 
-function isAdmin(user: unknown): boolean {
-  return Boolean(
-    user &&
-      typeof user === "object" &&
-      (user as { role?: string }).role === "admin",
-  );
-}
-
 type DrizzleLike = { execute: (q: unknown) => Promise<unknown> };
 
 export async function POST(req: NextRequest) {
@@ -52,8 +45,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!isAdmin(user)) {
-    return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+  if (!canUseSection(user, "clinical")) {
+    return NextResponse.json({ ok: false, error: "You don't have access to Clinical Check" }, { status: 403 });
   }
 
   let body: { id?: number; decision?: string; reason?: string };
@@ -277,8 +270,8 @@ export async function GET(req: NextRequest) {
   }
 
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  if (!isAdmin(user)) {
-    return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+  if (!canUseSection(user, "clinical")) {
+    return NextResponse.json({ ok: false, error: "You don't have access to Clinical Check" }, { status: 403 });
   }
 
   const statusParam = req.nextUrl.searchParams.get("status");

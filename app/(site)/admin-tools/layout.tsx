@@ -37,17 +37,24 @@ export default async function AdminToolsLayout({
   // Per-section guard for staff. Admins pass everything. Staff may only
   // open sections in their permissions list — the current path is
   // forwarded by middleware as x-admin-pathname/x-admin-search.
+  //
+  // Only run it when that header actually arrived. Without it we cannot
+  // know where we are, and guessing "/admin-tools" (home, admin-only) sent
+  // staff into an endless redirect to their own page — a blank screen.
+  // The data APIs enforce permissions regardless; this is a navigation guard.
   if (user.role === "staff") {
     const h = await headers();
-    const path = h.get("x-admin-pathname") ?? "/admin-tools";
+    const path = h.get("x-admin-pathname");
     // The no-access notice must stay reachable, else redirecting a
     // permission-less staff member there would loop forever.
-    if (!path.startsWith("/admin-tools/no-access")) {
+    if (path && !path.startsWith("/admin-tools/no-access")) {
       const search = h.get("x-admin-search") ?? "";
       const type = new URLSearchParams(search).get("type");
       const section = sectionForPath(path, type);
       if (!canAccessSection(user.role, user.permissions, section)) {
-        redirect(firstAllowedHref(user.role, user.permissions));
+        const target = firstAllowedHref(user.role, user.permissions);
+        // Never bounce to the page we are already on — that loops forever.
+        if (target !== path && target !== path + search) redirect(target);
       }
     }
   }

@@ -45,11 +45,35 @@ export const SECTIONS: { key: SectionKey; label: string; href: string; descripti
   { key: "discounts", label: "Discounts", href: "/admin-tools/data-browser?type=discounts", description: "Manage discount codes" },
   { key: "content", label: "Content", href: "/admin-tools/data-browser?type=posts", description: "Blog posts & media" },
   { key: "cms-pages", label: "CMS — Pages", href: "/cms/pages", description: "Create & edit site pages" },
-  { key: "cms-navigation", label: "CMS — Header & Footer", href: "/cms/navigation", description: "Site navigation & footer content" },
-  { key: "cms-sections", label: "CMS — Page sections", href: "/cms/sections", description: "Home & landing page section content" },
+  { key: "cms-navigation", label: "CMS — Header & Footer", href: "/cms/header", description: "Site navigation & footer content" },
+  { key: "cms-sections", label: "CMS — Page sections", href: "/cms/home", description: "Home & landing page section content" },
 ];
 
 export const SECTION_KEYS = SECTIONS.map((s) => s.key);
+
+/** The CMS-only grant keys — they live on /cms, not the operations dashboard. */
+const CMS_ONLY_KEYS: SectionKey[] = ["cms-pages", "cms-navigation", "cms-sections"];
+
+/** Operations-dashboard section keys (everything grantable except CMS-only). */
+export const OPS_SECTION_KEYS: SectionKey[] = SECTION_KEYS.filter(
+  (k) => !CMS_ONLY_KEYS.includes(k),
+);
+
+/**
+ * True if this user may open the operations dashboard (/admin-tools) at all —
+ * admins always, and staff who hold at least one operations section. Used to
+ * decide whether to show them the "Orders & admin" entry point; the per-page
+ * guards still enforce which individual sections they can see.
+ */
+export function canAccessAdminTools(
+  role: string,
+  permissions: string[] | undefined,
+): boolean {
+  if (role === "admin") return true;
+  if (role !== "staff") return false;
+  const perms = permissions ?? [];
+  return OPS_SECTION_KEYS.some((k) => perms.includes(k));
+}
 
 /** Which data-browser ?type= maps to which section. */
 export function sectionForType(type: string | null | undefined): SectionKey | null {
@@ -88,6 +112,13 @@ export function sectionForPath(
   if (p === "/admin-tools") return "home";
   if (p.startsWith("/admin-tools/analytics")) return "analytics";
   if (p.startsWith("/admin-tools/clinical-queue")) return "clinical";
+  // Rejected consultations and abandoned checkouts are clinical follow-up
+  // work: the sidebar (AdminShell NAV) files both under "clinical", so the
+  // guard must agree. An unmapped path is treated as admin-only, which used
+  // to bounce staff off these two pages on every full refresh even though a
+  // click had let them in. Keep this list in step with the sidebar's hrefs.
+  if (p.startsWith("/admin-tools/rejected")) return "clinical";
+  if (p.startsWith("/admin-tools/marketing-queue")) return "clinical";
   if (p.startsWith("/admin-tools/dispensing-queue")) return "dispensing";
   if (p.startsWith("/admin-tools/dispatching")) return "dispatching";
   if (p.startsWith("/admin-tools/inventory")) return "inventory";

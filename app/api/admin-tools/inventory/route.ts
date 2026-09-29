@@ -1,5 +1,5 @@
 /**
- * Inventory REST surface (admin-only).
+ * Inventory REST surface (admins, and staff granted the Inventory section).
  *
  * GET    /api/admin-tools/inventory        → list all batches (newest first)
  * POST   /api/admin-tools/inventory        → create a batch
@@ -7,31 +7,31 @@
  * DELETE /api/admin-tools/inventory?id=N   → remove a batch
  *
  * Uses the Payload local API with overrideAccess after we've confirmed the
- * caller is an admin, so the collection's own access rules stay authoritative
- * for the native /admin UI while this route serves the custom dashboard.
+ * caller may use this section, so the collection's own access rules stay
+ * authoritative for the native /admin UI while this route serves the custom
+ * dashboard.
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { headers as nextHeaders } from "next/headers";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { canUseAnySection, canUseSection } from "@/lib/adminToolsAuth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-async function requireAdmin() {
+async function requireUser() {
   const payload = await getPayloadInstance();
   const { user } = await payload.auth({ headers: await nextHeaders() });
-  const isAdmin = Boolean(
-    user && (user as { role?: string }).role === "admin",
-  );
-  return { payload, isAdmin };
+  return { payload, user };
 }
 
 export async function GET() {
   try {
-    const { payload, isAdmin } = await requireAdmin();
-    if (!isAdmin) {
-      return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+    const { payload, user } = await requireUser();
+    // Inventory staff, plus To Dispatch staff — that queue shows stock levels.
+    if (!canUseAnySection(user, ["inventory", "dispensing"])) {
+      return NextResponse.json({ ok: false, error: "You don't have access to Inventory" }, { status: 403 });
     }
     const result = await payload.find({
       collection: "inventory",
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { payload, isAdmin } = await requireAdmin();
-    if (!isAdmin) {
-      return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+    const { payload, user } = await requireUser();
+    if (!canUseSection(user, "inventory")) {
+      return NextResponse.json({ ok: false, error: "You don't have access to Inventory" }, { status: 403 });
     }
     const created = await payload.create({
       collection: "inventory",
@@ -103,9 +103,9 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Missing or bad ?id" }, { status: 400 });
   }
   try {
-    const { payload, isAdmin } = await requireAdmin();
-    if (!isAdmin) {
-      return NextResponse.json({ ok: false, error: "Admin role required" }, { status: 403 });
+    const { payload, user } = await requireUser();
+    if (!canUseSection(user, "inventory")) {
+      return NextResponse.json({ ok: false, error: "You don't have access to Inventory" }, { status: 403 });
     }
     await payload.delete({ collection: "inventory", id, overrideAccess: true });
     return NextResponse.json({ ok: true });

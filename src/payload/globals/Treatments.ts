@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -26,7 +26,7 @@ export const Treatments: GlobalConfig = {
     description:
       "Copy and imagery for the three treatment categories. Blank fields use the built-in text.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections") },
   fields: [
     {
       name: "categories",

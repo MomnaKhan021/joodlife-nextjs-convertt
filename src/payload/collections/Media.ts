@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -30,8 +31,8 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: isPublic,
-    create: isAdmin,
-    update: isAdmin,
+    create: canWriteCms("content"),
+    update: canWriteCms("content"),
     delete: isAdmin,
   },
   fields: [

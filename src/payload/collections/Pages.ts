@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { isAdmin } from "../access/isAdmin";
+import { canWriteCms, userCanWriteCms } from "../access/canWriteCms";
 
 /**
  * Editable site pages.
@@ -22,7 +23,8 @@ import { isAdmin } from "../access/isAdmin";
  *
  * Access:
  *   - read: published pages are public; drafts admin-only
- *   - create/update/delete: admin-only
+ *   - create/update: admin or staff granted the owning CMS section
+ *   - delete: admin-only
  *
  * NOTE: hard-coded routes win over this collection. A page with slug
  * "shop" never renders, because `app/(site)/shop/page.tsx` matches first.
@@ -69,11 +71,11 @@ export const Pages: CollectionConfig = {
   access: {
     // Public read for published pages; admins see everything.
     read: ({ req: { user } }) => {
-      if (user?.role === "admin") return true;
+      if (userCanWriteCms(user, ["cms-pages"])) return true;
       return { status: { equals: "published" } };
     },
-    create: isAdmin,
-    update: isAdmin,
+    create: canWriteCms("cms-pages"),
+    update: canWriteCms("cms-pages"),
     delete: isAdmin,
   },
   hooks: {

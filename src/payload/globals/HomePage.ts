@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -21,7 +21,7 @@ export const HomePage: GlobalConfig = {
     group: "Content",
     description: "Home page sections. Empty fields use the built-in copy.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections", "cms-navigation") },
   fields: [
     // ---- Announcement bar (sitewide, above the header) ----
     {
