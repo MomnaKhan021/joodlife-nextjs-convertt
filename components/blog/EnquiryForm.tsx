@@ -1,5 +1,6 @@
 "use client";
 
+import { BLOG_LABELS_DEFAULT, type BlogLabels } from "@/lib/uiLabels";
 import { useState } from "react";
 
 /**
@@ -7,7 +8,13 @@ import { useState } from "react";
  * journal layout). Sends to /api/enquiry, which records the enquiry on the
  * patient's HubSpot contact — nothing is stored locally.
  */
-export default function EnquiryForm({ source }: { source?: string }) {
+export default function EnquiryForm({
+  source,
+  labels = BLOG_LABELS_DEFAULT,
+}: {
+  source?: string;
+  labels?: BlogLabels;
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -39,10 +46,10 @@ export default function EnquiryForm({ source }: { source?: string }) {
     return (
       <div className="rounded-2xl border border-[#142e2a]/10 bg-[#f7f9f2] p-8 text-center">
         <p className="font-display text-[20px] font-semibold text-[#142e2a]">
-          Thank you — we&rsquo;ve received your enquiry ✅
+          {labels.enquiryThanks}
         </p>
         <p className="mt-2 font-ui text-[14px] text-[#142e2a]/70">
-          Our team will get back to you by email as soon as possible.
+          {labels.enquiryThanksBody}
         </p>
       </div>
     );
@@ -54,33 +61,33 @@ export default function EnquiryForm({ source }: { source?: string }) {
       className="rounded-2xl border border-[#142e2a]/10 bg-[#f7f9f2] p-6 md:p-8"
     >
       <h2 className="font-display text-[22px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[26px]">
-        Have a question? <em className="font-serif font-normal italic">Send an enquiry</em>
+        {labels.enquiryHeading}{" "}
+        <em className="font-serif font-normal italic">{labels.enquiryHeadingAccent}</em>
       </h2>
       <p className="mt-1.5 font-ui text-[13.5px] leading-[20px] text-[#142e2a]/70">
-        Ask us anything about this article or our treatments — a member of the
-        JoodLife team will reply by email.
+        {labels.enquiryBody}
       </p>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-1.5">
-          <span className="font-ui text-[13px] font-semibold text-[#142e2a]">Name</span>
+          <span className="font-ui text-[13px] font-semibold text-[#142e2a]">{labels.enquiryName}</span>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={labels.enquiryNamePlaceholder}
             autoComplete="name"
             className="h-12 rounded-lg border border-[#142e2a]/20 bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none transition-shadow focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/25"
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="font-ui text-[13px] font-semibold text-[#142e2a]">Email *</span>
+          <span className="font-ui text-[13px] font-semibold text-[#142e2a]">{labels.enquiryEmail}</span>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={labels.enquiryEmailPlaceholder}
             autoComplete="email"
             className="h-12 rounded-lg border border-[#142e2a]/20 bg-white px-4 font-ui text-[14px] text-[#142e2a] outline-none transition-shadow focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/25"
           />
@@ -88,13 +95,13 @@ export default function EnquiryForm({ source }: { source?: string }) {
       </div>
 
       <label className="mt-4 flex flex-col gap-1.5">
-        <span className="font-ui text-[13px] font-semibold text-[#142e2a]">Message *</span>
+        <span className="font-ui text-[13px] font-semibold text-[#142e2a]">{labels.enquiryMessage}</span>
         <textarea
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
-          placeholder="Write your question here…"
+          placeholder={labels.enquiryMessagePlaceholder}
           className="rounded-lg border border-[#142e2a]/20 bg-white px-4 py-3 font-ui text-[14px] leading-[22px] text-[#142e2a] outline-none transition-shadow focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/25"
         />
       </label>
@@ -120,7 +127,7 @@ export default function EnquiryForm({ source }: { source?: string }) {
         disabled={state === "sending"}
         className="btn-cta mt-5 inline-flex h-12 items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold text-white transition-colors hover:bg-[#0c2421] disabled:opacity-60"
       >
-        {state === "sending" ? "Sending…" : "Send enquiry"}
+        {state === "sending" ? labels.enquirySending : labels.enquirySubmit}
       </button>
     </form>
   );

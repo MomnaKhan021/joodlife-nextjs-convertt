@@ -166,16 +166,6 @@ export const CMS_NAV: CmsNavItem[] = [
     status: "ready",
     match: "/cms/products",
   },
-  {
-    key: "cms-sections",
-    group: "site-pages",
-    label: "Shared across treatments",
-    href: "/cms/category-pages",
-    description:
-      "Trust strip, features and FAQs on the ED and period-delay pages",
-    status: "ready",
-    match: "/cms/category-pages",
-  },
 
   /* ── Custom pages ─────────────────────────────────────── */
   {

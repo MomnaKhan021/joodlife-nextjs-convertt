@@ -49,7 +49,8 @@ const DEMO_POSTS: BlogCardPost[] = [
 ];
 
 export default async function Blog() {
-  const { blogHeading, blogHeadingEmphasis, styles, textStyles } = await getHomeContent();
+  const { blogHeading, blogHeadingEmphasis, blogHeadingTail, blogCardCta, styles, textStyles } =
+    await getHomeContent();
   const style = styles.blog;
   let posts: BlogCardPost[] = [];
   try {
@@ -78,6 +79,8 @@ export default async function Blog() {
         text={textStyles}
         heading={blogHeading}
         headingEmphasis={blogHeadingEmphasis}
+        headingTail={blogHeadingTail}
+        cardCta={blogCardCta}
       />
     </section>
   );

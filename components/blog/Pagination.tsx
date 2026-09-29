@@ -12,11 +12,15 @@ export default function Pagination({
   basePath,
   category,
   style,
+  previousLabel = "← Previous",
+  nextLabel = "Next →",
 }: {
   page: number;
   totalPages: number;
   basePath: string; // e.g. "/blogs"
   category?: string | null;
+  previousLabel?: string;
+  nextLabel?: string;
   /** CMS size/weight; the links inherit it from the strip. */
   style?: React.CSSProperties;
 }) {
@@ -43,7 +47,7 @@ export default function Pagination({
         href={page > 1 ? buildHref(page - 1) : null}
         aria-label="Previous page"
       >
-        ← Previous
+        {previousLabel}
       </PagerLink>
 
       <ul className="flex items-center gap-1 px-2">
@@ -76,7 +80,7 @@ export default function Pagination({
         href={page < totalPages ? buildHref(page + 1) : null}
         aria-label="Next page"
       >
-        Next →
+        {nextLabel}
       </PagerLink>
     </nav>
   );

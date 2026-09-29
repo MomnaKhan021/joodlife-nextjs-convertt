@@ -182,6 +182,7 @@ export type TreatmentOverride = {
   imageAlt?: string;
   href?: string;
   learnMoreHref?: string;
+  learnMoreLabel?: string;
 };
 
 /** The fields the editor exposes, in the order it shows them. */
@@ -218,6 +219,7 @@ export function toTreatmentOverrides(value: unknown): TreatmentOverride[] {
       imageAlt: pick(v.imageAlt),
       href: pick(v.href),
       learnMoreHref: pick(v.learnMoreHref),
+      learnMoreLabel: pick(v.learnMoreLabel),
       detail: toDetail(v.detail),
     }));
 }
@@ -368,6 +370,7 @@ export function mergeCategories(
           imageAlt: o.imageAlt ?? base.imageAlt,
           href: o.href ?? base.href,
           learnMoreHref: o.learnMoreHref ?? base.learnMoreHref,
+          learnMoreLabel: o.learnMoreLabel ?? base.learnMoreLabel,
         };
   }
   return out;
@@ -393,6 +396,7 @@ export type TreatmentRow = {
   imageAlt: string;
   href: string;
   learnMoreHref: string;
+  learnMoreLabel: string;
 };
 
 /** Overrides pre-filled from the built-in values, for the editor form. */
@@ -418,6 +422,7 @@ export function overridesFromDefaults(
       imageAlt: o?.imageAlt ?? base.imageAlt,
       href: o?.href ?? base.href,
       learnMoreHref: o?.learnMoreHref ?? base.learnMoreHref ?? "",
+      learnMoreLabel: o?.learnMoreLabel ?? base.learnMoreLabel ?? "",
       detail: mergeDetails(saved)[key],
     };
   });

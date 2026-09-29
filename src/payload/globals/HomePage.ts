@@ -135,6 +135,16 @@ export const HomePage: GlobalConfig = {
       type: "text",
       admin: { description: "Second part of the heading, shown in italics." },
     },
+    {
+      name: "blogHeadingTail",
+      type: "text",
+      admin: { description: "After the italic part of the blog heading. Blank ends the heading there." },
+    },
+    {
+      name: "blogCardCta",
+      type: "text",
+      admin: { description: "The button on each blog card. Blank uses \"Read Blog Post\"." },
+    },
 
     // ---- How it works ----
     { name: "hiwHeading", type: "text" },

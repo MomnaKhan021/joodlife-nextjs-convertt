@@ -12,6 +12,8 @@ import SectionControl from "../SectionControl";
 import type { BlogPageStyleKey, SectionStyle } from "@/lib/sectionStyle";
 import { LabelRow, Ts, TextStyleCtx } from "../TextStyleContext";
 import type { TextStyle } from "@/lib/textStyle";
+import LabelsCard from "../LabelsCard";
+import { BLOG_LABELS_DEFAULT, type BlogLabels } from "@/lib/uiLabels";
 
 /**
  * Editor for the /blogs listing page, in page order: the photo hero, the
@@ -35,6 +37,7 @@ export default function BlogPageForm({
   const [list, setList] = useState(initial.list);
   const [newsletter, setNewsletter] = useState(initial.newsletter);
   const [cta, setCta] = useState(initial.cta);
+  const [labels, setLabels] = useState<BlogLabels>(initial.labels);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -58,6 +61,7 @@ export default function BlogPageForm({
         hero,
         list,
         newsletter,
+        labels,
         cta,
       };
   const { dirty, markSaved } = useDirty(JSON.stringify(payload));
@@ -439,6 +443,47 @@ export default function BlogPageForm({
           </div>
         </div>
       </div>
+
+      <LabelsCard
+        title="5. Buttons and labels"
+        note="The small words on /blogs and on every article page."
+        value={labels}
+        defaults={BLOG_LABELS_DEFAULT}
+        onChange={setLabels}
+        fields={[
+          { key: "readMore", label: "Button on each article card" },
+          { key: "allArticles", label: "First category tab" },
+          { key: "previous", label: "Previous page" },
+          { key: "next", label: "Next page" },
+          { key: "breadcrumbHome", label: "Article breadcrumb — home" },
+          { key: "breadcrumbJournal", label: "Article breadcrumb — journal" },
+          { key: "backToJournal", label: "Link under an article" },
+          { key: "moreFromJournal", label: "Heading above related articles" },
+          { key: "viewAll", label: "Link beside that heading" },
+        ]}
+      />
+      <LabelsCard
+        title="6. Enquiry form"
+        note="The question form under every article. Enquiries still go to the same inbox."
+        value={labels}
+        defaults={BLOG_LABELS_DEFAULT}
+        onChange={setLabels}
+        fields={[
+          { key: "enquiryHeading", label: "Heading" },
+          { key: "enquiryHeadingAccent", label: "Heading (italic part)" },
+          { key: "enquiryBody", label: "Text", area: true },
+          { key: "enquiryName", label: "Name label" },
+          { key: "enquiryNamePlaceholder", label: "Name placeholder" },
+          { key: "enquiryEmail", label: "Email label" },
+          { key: "enquiryEmailPlaceholder", label: "Email placeholder" },
+          { key: "enquiryMessage", label: "Message label" },
+          { key: "enquiryMessagePlaceholder", label: "Message placeholder" },
+          { key: "enquirySubmit", label: "Send button" },
+          { key: "enquirySending", label: "While sending" },
+          { key: "enquiryThanks", label: "After sending — heading" },
+          { key: "enquiryThanksBody", label: "After sending — text", area: true },
+        ]}
+      />
 
       <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
         <button

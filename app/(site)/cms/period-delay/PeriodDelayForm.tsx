@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import type { CategoryPageContent, Faq } from "@/lib/categoryPageContentTypes";
-import type { SectionStyle } from "@/lib/sectionStyle";
-import type { TextStyle } from "@/lib/textStyle";
-import type { TreatmentRow } from "@/lib/treatmentContentTypes";
+import {
+  mergeCategoryPage,
+  type CategoryPageContent,
+  type Faq,
+} from "@/lib/categoryPageContentTypes";
+import { TREATMENT_STYLE_KEYS, mergeStyles, type SectionStyle } from "@/lib/sectionStyle";
+import { TREATMENT_TEXT_KEYS, mergeTextStyles, type TextStyle } from "@/lib/textStyle";
+import {
+  overridesFromDefaults,
+  toTreatmentOverrides,
+  type TreatmentRow,
+} from "@/lib/treatmentContentTypes";
 
 import {
   AreaField,
@@ -18,6 +26,7 @@ import {
   moved,
 } from "../FormKit";
 import { saveGlobal } from "../LinkFields";
+import { keepChange, keepChangedKeys, loadLatest } from "../mergeSave";
 import SaveBar from "../SaveBar";
 import SectionControl from "../SectionControl";
 import { TextStyleCtx, type TextStyleApi } from "../TextStyleContext";
@@ -117,13 +126,56 @@ export default function PeriodDelayForm({
   };
   const { dirty, markSaved } = useDirty(JSON.stringify({ treatmentsPayload, sharedPayload }));
 
+  // What this screen last loaded or saved - edits are measured against it.
+  const baseRef = useRef({ treatmentsPayload, sharedPayload });
+
   async function save() {
     setSaving(true);
     setError(null);
     setSaved(false);
     try {
-      await saveGlobal("treatments", treatmentsPayload);
-      await saveGlobal("category-pages", sharedPayload);
+      const base = baseRef.current;
+
+      // Both documents are written by other screens too (Home; ED). Re-read
+      // each and keep only what was edited here.
+      const lt = await loadLatest("treatments");
+      const ltStyles = mergeStyles(lt.styles, TREATMENT_STYLE_KEYS);
+      const ltText = mergeTextStyles(lt.textStyles, TREATMENT_TEXT_KEYS);
+      await saveGlobal("treatments", {
+        styles: keepChangedKeys(treatmentsPayload.styles, base.treatmentsPayload.styles, ltStyles),
+        textStyles: keepChangedKeys(
+          treatmentsPayload.textStyles,
+          base.treatmentsPayload.textStyles,
+          ltText,
+        ),
+        categories: overridesFromDefaults(toTreatmentOverrides(lt.categories)).map((stored) => {
+          const mine = treatmentsPayload.categories.find((r) => r.key === stored.key);
+          const was = base.treatmentsPayload.categories.find((r) => r.key === stored.key);
+          const row = mine && was ? keepChange(mine, was, stored) : stored;
+          return { ...row, bullets: row.bullets.filter((b) => b.trim()) };
+        }),
+      });
+
+      const ls = mergeCategoryPage(await loadLatest("category-pages"));
+      const bs = base.sharedPayload;
+      await saveGlobal("category-pages", {
+        ...ls,
+        styles: keepChangedKeys(sharedPayload.styles, bs.styles, ls.styles),
+        textStyles: keepChangedKeys(sharedPayload.textStyles, bs.textStyles, ls.textStyles),
+        uspStrip: keepChange(sharedPayload.uspStrip, bs.uspStrip, ls.uspStrip),
+        featureGrid: keepChange(sharedPayload.featureGrid, bs.featureGrid, ls.featureGrid),
+        faqs: {
+          ...ls.faqs,
+          heading: keepChange(sharedPayload.faqs.heading, bs.faqs.heading, ls.faqs.heading),
+          headingAccent: keepChange(
+            sharedPayload.faqs.headingAccent,
+            bs.faqs.headingAccent,
+            ls.faqs.headingAccent,
+          ),
+          periodDelay: keepChange(sharedPayload.faqs.periodDelay, bs.faqs.periodDelay, ls.faqs.periodDelay),
+        },
+      });
+      baseRef.current = { treatmentsPayload, sharedPayload };
       setSaved(true);
       markSaved();
       window.setTimeout(() => setSaved(false), 4000);
@@ -199,6 +251,12 @@ export default function PeriodDelayForm({
                 value={hero.ctaLabel}
                 onChange={(v) => setHero({ ...hero, ctaLabel: v })}
                 placeholder="Get Started"
+              />
+              <TextField
+                label="“Learn More” button text"
+                value={hero.learnMoreLabel}
+                onChange={(v) => setHero({ ...hero, learnMoreLabel: v })}
+                placeholder="Learn More"
               />
               <TextField
                 label="“Learn More” link"

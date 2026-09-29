@@ -570,6 +570,13 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
   "ALTER TABLE \"product_pages\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
 
+  // The small fixed words around the site, and the home blog heading's tail.
+  "ALTER TABLE \"header\" ADD COLUMN IF NOT EXISTS \"labels\" jsonb",
+  "ALTER TABLE \"footer\" ADD COLUMN IF NOT EXISTS \"labels\" jsonb",
+  "ALTER TABLE \"blog_page\" ADD COLUMN IF NOT EXISTS \"labels\" jsonb",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_heading_tail\" varchar",
+  "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_card_cta\" varchar",
+
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
@@ -593,7 +600,7 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v46-blog" : "v46";
+const SCHEMA_VERSION = blogCmsEnabled() ? "v47-blog" : "v47";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

@@ -667,6 +667,12 @@ export default function ProductsForm({
                 onChange={(v) => setShop({ ...shop, headingAccent: v })}
               />
             </div>
+            <TextField
+              label="Button on each product card"
+              value={shop.cardCta}
+              placeholder="Get Started"
+              onChange={(v) => setShop({ ...shop, cardCta: v })}
+            />
             <AreaField tsKey="footnote" label="Note under the products" rows={2} value={shop.footnote} onChange={(v) => setShop({ ...shop, footnote: v })} />
           </div>
         </TextStyleCtx.Provider>

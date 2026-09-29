@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getBlogPageContent } from "@/lib/blogPageContent";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -67,7 +68,10 @@ export default async function BlogPostPage({
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const related = await getRelatedPosts(post, 3);
+  const [related, { labels }] = await Promise.all([
+    getRelatedPosts(post, 3),
+    getBlogPageContent(),
+  ]);
   const date = formatPublishedDate(post.publishedAt);
 
   // JSON-LD structured data — gives Google a clean signal for rich snippets.
@@ -103,13 +107,13 @@ export default async function BlogPostPage({
             <ol className="flex flex-wrap items-center gap-1.5">
               <li>
                 <Link href="/" className="hover:text-[#142e2a]">
-                  Home
+                  {labels.breadcrumbHome}
                 </Link>
               </li>
               <li aria-hidden>/</li>
               <li>
                 <Link href="/blogs" className="hover:text-[#142e2a]">
-                  Journal
+                  {labels.breadcrumbJournal}
                 </Link>
               </li>
               {post.category ? (
@@ -210,7 +214,7 @@ export default async function BlogPostPage({
               href="/blogs"
               className="inline-flex items-center gap-2 font-ui text-[14px] font-semibold text-[#142e2a]"
             >
-              ← Back to journal
+              {labels.backToJournal}
             </Link>
           </div>
         </div>
@@ -218,7 +222,7 @@ export default async function BlogPostPage({
 
       {/* Enquiry — ask a question about this article (goes to HubSpot) */}
       <section aria-label="Send an enquiry" className="mx-auto w-full max-w-[760px] px-6 pb-4 md:px-0">
-        <EnquiryForm source={`https://joodlife.shop/blogs/${post.slug}`} />
+        <EnquiryForm source={`https://joodlife.shop/blogs/${post.slug}`} labels={labels} />
       </section>
 
       {/* Related */}
@@ -234,14 +238,14 @@ export default async function BlogPostPage({
                 {...textStyleProps(post.textStyles.relatedHeading)}
                 className="font-display text-[26px] font-semibold tracking-[-0.01em] text-[#142e2a] md:text-[34px]"
               >
-                More from the journal
+                {labels.moreFromJournal}
               </h2>
               <Link
                 href="/blogs"
                 {...textStyleProps(post.textStyles.relatedLink)}
                 className="font-ui text-[14px] font-semibold text-[#142e2a]/80 transition hover:text-[#142e2a]"
               >
-                View all →
+                {labels.viewAll}
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -250,6 +254,7 @@ export default async function BlogPostPage({
                   key={r.id}
                   post={r}
                   text={{ cardTitle: post.textStyles.relatedCardTitle }}
+                  readMore={labels.readMore}
                 />
               ))}
             </div>

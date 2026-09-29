@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   BENEFIT_ICONS,
@@ -23,6 +23,8 @@ import {
   moved,
 } from "../FormKit";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { keepChange, keepChangedKeys, loadLatest } from "../mergeSave";
+import { mergeCategoryPage } from "@/lib/categoryPageContentTypes";
 import { useDirty } from "../useDirty";
 import SectionControl from "../SectionControl";
 import {
@@ -38,7 +40,7 @@ import type { Faq as CategoryFaq } from "@/lib/categoryFaqs";
 /**
  * Editor for /erectile-dysfunction — eight sections, in the order a reader
  * meets them. The questions near the foot of the page are shared with the
- * other treatment pages and live under Treatment pages instead.
+ * period delay page, whose screen edits that document too.
  */
 
 const BENEFIT_ICON_LABEL: Record<BenefitIcon, string> = {
@@ -99,9 +101,30 @@ export default function EdForm({
     setError(null);
     setSaved(false);
     try {
-      // The shared document is written back whole with only the ED list
-      // replaced, so editing here cannot disturb the other two treatments.
-      await saveGlobal("category-pages", sharedPayload);
+      // The Period delay screen writes the shared document too. Re-read it
+      // and change only the ED parts that were edited here.
+      const bs = baseRef.current;
+      const ls = mergeCategoryPage(await loadLatest("category-pages"));
+      await saveGlobal("category-pages", {
+        ...ls,
+        styles: keepChangedKeys(sharedPayload.styles, bs.styles, ls.styles),
+        textStyles: keepChangedKeys(sharedPayload.textStyles, bs.textStyles, ls.textStyles),
+        faqs: {
+          ...ls.faqs,
+          heading: keepChange(sharedPayload.faqs.heading, bs.faqs.heading, ls.faqs.heading),
+          headingAccent: keepChange(
+            sharedPayload.faqs.headingAccent,
+            bs.faqs.headingAccent,
+            ls.faqs.headingAccent,
+          ),
+          erectileDysfunction: keepChange(
+            sharedPayload.faqs.erectileDysfunction,
+            bs.faqs.erectileDysfunction,
+            ls.faqs.erectileDysfunction,
+          ),
+        },
+      });
+      baseRef.current = sharedPayload;
       await saveGlobal("ed-page", edPayload);
       setSaved(true);
       markSaved();
@@ -168,6 +191,9 @@ export default function EdForm({
   const { dirty, markSaved } = useDirty(
     JSON.stringify({ sharedPayload, edPayload }),
   );
+  // What this screen last loaded or saved of the shared document - edits are
+  // measured against it when saving.
+  const baseRef = useRef(sharedPayload);
 
   return (
     <TextStyleCtx.Provider value={textStyleApi}>
@@ -187,15 +213,12 @@ export default function EdForm({
           <code className="rounded bg-[#eef1e8] px-1.5 py-0.5">
             /erectile-dysfunction
           </code>{" "}
-          — the sections below are in the order they appear. The questions near
-          the foot of the page are under{" "}
-          <Link
-            href="/cms/category-pages"
-            className="underline underline-offset-2"
-          >
-            Treatment pages
-          </Link>
-          .
+          — the sections below are in the order they appear. The heading above
+          the questions, and its colour and sizes, are shared with the{" "}
+          <Link href="/cms/period-delay" className="underline underline-offset-2">
+            Period delay
+          </Link>{" "}
+          page.
         </p>
       </header>
 

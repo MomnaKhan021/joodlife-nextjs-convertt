@@ -113,6 +113,8 @@ export type ShopPageContent = {
   heading: string;
   headingAccent: string;
   footnote: string;
+  /** The button on each product card. */
+  cardCta: string;
   style: SectionStyle;
   textStyles: Record<ShopTextKey, TextStyle>;
 };
@@ -148,6 +150,7 @@ export const SHOP_DEFAULT: ShopPageContent = {
   headingAccent: "for you.",
   footnote:
     "*Prices shown are starting prices. Final cost depends on your treatment plan after clinical review.",
+  cardCta: "Get Started",
   style: mergeStyles(null, ["shop"] as const).shop,
   textStyles: mergeTextStyles(null, SHOP_TEXT_KEYS),
 };
@@ -403,6 +406,7 @@ export function mergeShop(stored: unknown): ShopPageContent {
     heading: str(s.heading, SHOP_DEFAULT.heading),
     headingAccent: optStr(s.headingAccent, SHOP_DEFAULT.headingAccent),
     footnote: optStr(s.footnote, SHOP_DEFAULT.footnote),
+    cardCta: str(s.cardCta, SHOP_DEFAULT.cardCta),
     style: mergeStyles({ shop: s.style }, ["shop"] as const).shop,
     textStyles: mergeTextStyles(s.textStyles, SHOP_TEXT_KEYS),
   };

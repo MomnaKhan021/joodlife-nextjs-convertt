@@ -14,12 +14,15 @@ export default function CategoryTabs({
   categories,
   active,
   basePath,
+  allLabel = "All articles",
 }: {
   /** Per-text size and weight from the blog page. */
   text?: Partial<Record<string, TextStyle>>;
   categories: Category[];
   active: string | null;
   basePath: string;
+  /** The first tab. */
+  allLabel?: string;
   /** Kept for API compatibility; not shown in this design. */
   totalCount?: number;
 }) {
@@ -35,7 +38,7 @@ export default function CategoryTabs({
         active={active === null}
         style={textStyleProps(text?.["categoryTab"]).style}
       >
-        All articles
+        {allLabel}
       </Pill>
       {categories.map((c) => (
         <Pill

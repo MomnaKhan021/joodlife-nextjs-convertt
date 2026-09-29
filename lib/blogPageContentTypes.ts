@@ -9,6 +9,7 @@
  * import it. `lib/blogPageContent.ts` is the server-side reader.
  */
 
+import { BLOG_LABELS_DEFAULT, mergeLabels, type BlogLabels } from "@/lib/uiLabels";
 import {
   BLOG_PAGE_STYLE_KEYS,
   mergeStyles,
@@ -59,6 +60,8 @@ export type BlogPageContent = {
   list: BlogListIntro;
   newsletter: BlogNewsletter;
   cta: BlogCta;
+  /** Buttons and labels around the articles, and the enquiry form. */
+  labels: BlogLabels;
   /** Per-section background / text colour. */
   styles: Record<BlogPageStyleKey, SectionStyle>;
   /** Per-text size and weight, keyed by section.field. */
@@ -69,6 +72,7 @@ const LIBRARY_BLURB =
   "Explore expert tips and proven advice to support your weight loss and wellbeing goals. Learn how to create a healthier lifestyle that truly lasts.";
 
 export const BLOG_PAGE_DEFAULT: BlogPageContent = {
+  labels: BLOG_LABELS_DEFAULT,
   styles: mergeStyles(null, BLOG_PAGE_STYLE_KEYS),
   textStyles: mergeTextStyles(null, BLOG_PAGE_TEXT_KEYS),
   hero: {
@@ -136,6 +140,7 @@ export function mergeBlogPage(stored: unknown): BlogPageContent {
   const c = obj(d.cta);
 
   return {
+    labels: mergeLabels(d.labels, BLOG_LABELS_DEFAULT),
     styles: mergeStyles(obj(stored).styles, BLOG_PAGE_STYLE_KEYS),
     textStyles: mergeTextStyles(obj(stored).textStyles, BLOG_PAGE_TEXT_KEYS),
     hero: {

@@ -16,6 +16,8 @@ import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import TypeControl from "../TypeControl";
 import { TextField } from "../FormKit";
+import LabelsCard from "../LabelsCard";
+import { HEADER_LABELS_DEFAULT, type HeaderLabels } from "@/lib/uiLabels";
 import type { HeaderTextKey, TextStyle } from "@/lib/textStyle";
 import {
   DEFAULT_HEADER_SETTINGS,
@@ -119,6 +121,7 @@ export type HeaderInitial = {
   megaPromoHref: string;
   logoDesktop: string;
   logoMobile: string;
+  labels: HeaderLabels;
 };
 
 /** Editor for everything in the site header, including the mega menu. */
@@ -144,6 +147,7 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
   const [promoHref, setPromoHref] = useState(initial.megaPromoHref);
   const [logoDesktop, setLogoDesktop] = useState(initial.logoDesktop);
   const [logoMobile, setLogoMobile] = useState(initial.logoMobile);
+  const [labels, setLabels] = useState<HeaderLabels>(initial.labels);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -177,6 +181,7 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
         megaPromoHref: promoHref,
         logoDesktop,
         logoMobile,
+        labels,
       };
   const { dirty, markSaved } = useDirty(JSON.stringify(payload));
   async function save() {
@@ -453,6 +458,40 @@ export default function HeaderForm({ initial }: { initial: HeaderInitial }) {
           </div>
         </div>
       </div>
+
+      <LabelsCard
+        title="Phone menu"
+        note="The buttons in the menu that opens from the burger icon on a phone, and the login pill in the header. The treatments list uses the menu heading and items above."
+        value={labels}
+        defaults={HEADER_LABELS_DEFAULT}
+        onChange={setLabels}
+        fields={[
+          { key: "login", label: "Login pill — signed out" },
+          { key: "account", label: "Login pill — signed in" },
+          { key: "drawerCta", label: "Menu button" },
+          { key: "drawerCtaHref", label: "Menu button link" },
+          { key: "drawerBack", label: "Back button" },
+          { key: "drawerExplore", label: "Treatments screen button" },
+          { key: "drawerExploreHref", label: "Treatments screen button link" },
+        ]}
+      />
+      <LabelsCard
+        title="Cart panel"
+        note="The panel that slides in from the right when someone opens their cart."
+        value={labels}
+        defaults={HEADER_LABELS_DEFAULT}
+        onChange={setLabels}
+        fields={[
+          { key: "cartTitle", label: "Title" },
+          { key: "cartEmpty", label: "Empty cart — heading" },
+          { key: "cartEmptyBody", label: "Empty cart — text" },
+          { key: "cartBrowse", label: "Empty cart — button" },
+          { key: "cartSubtotal", label: "Subtotal label" },
+          { key: "cartCheckout", label: "Checkout button" },
+          { key: "cartConsultation", label: "Consultation button" },
+          { key: "cartNote", label: "Note under the subtotal", area: true },
+        ]}
+      />
 
       <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
         <button
