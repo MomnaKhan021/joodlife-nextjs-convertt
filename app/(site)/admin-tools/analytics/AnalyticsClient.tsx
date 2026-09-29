@@ -402,25 +402,30 @@ export default function AnalyticsClient() {
   const load = useCallback(async (r: Range) => {
     setLoading(true);
     setError(null);
+    const qs = rangeQuery(r);
+    // Marketing comes from Brevo and is the slow, optional part of this page.
+    // Kick it off now but never make the core metrics wait for it: the numbers
+    // appear as soon as our own database answers, and the marketing tiles fill
+    // in when Brevo does. Same parse-regardless-of-status semantics as before.
+    const marketing: Promise<MarketingResponse | null> = fetch(
+      `/api/admin-tools/marketing?${qs}`,
+      { credentials: "include" },
+    )
+      .then((kRes) => kRes.json().catch(() => null) as Promise<MarketingResponse | null>)
+      .catch(() => null);
     try {
-      const qs = rangeQuery(r);
-      const [mRes, kRes] = await Promise.all([
-        fetch(`/api/admin-tools/metrics?${qs}`, { credentials: "include" }),
-        fetch(`/api/admin-tools/marketing?${qs}`, { credentials: "include" }).catch(() => null),
-      ]);
+      const mRes = await fetch(`/api/admin-tools/metrics?${qs}`, { credentials: "include" });
       const json: MetricsResponse = await mRes.json();
       if (!mRes.ok || !json.ok) {
         throw new Error(json.detail ? `${json.error}: ${json.detail}` : json.error ?? `HTTP ${mRes.status}`);
       }
       setData(json);
-      if (kRes) {
-        setMkt(await kRes.json().catch(() => null));
-      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
+    setMkt(await marketing);
   }, []);
 
   useEffect(() => {
