@@ -386,9 +386,9 @@ export default function EditClient({
                 } catch {
                   /* not valid JSON yet → treat as empty */
                 }
-                // Permissions only apply to staff; disable the whole group
-                // for customers/admins (admins already have full access).
-                const permsDisabled = values["role"] !== "staff";
+                // Only customers cannot hold permissions; staff use them and
+                // admins may tick them freely (admins have full access anyway).
+                const permsDisabled = values["role"] === "customer";
                 const toggle = (key: string) => {
                   if (permsDisabled) return;
                   const next = selected.includes(key)
