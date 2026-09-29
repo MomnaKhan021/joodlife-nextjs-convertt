@@ -51,6 +51,30 @@ export const SECTIONS: { key: SectionKey; label: string; href: string; descripti
 
 export const SECTION_KEYS = SECTIONS.map((s) => s.key);
 
+/** The CMS-only grant keys — they live on /cms, not the operations dashboard. */
+const CMS_ONLY_KEYS: SectionKey[] = ["cms-pages", "cms-navigation", "cms-sections"];
+
+/** Operations-dashboard section keys (everything grantable except CMS-only). */
+export const OPS_SECTION_KEYS: SectionKey[] = SECTION_KEYS.filter(
+  (k) => !CMS_ONLY_KEYS.includes(k),
+);
+
+/**
+ * True if this user may open the operations dashboard (/admin-tools) at all —
+ * admins always, and staff who hold at least one operations section. Used to
+ * decide whether to show them the "Orders & admin" entry point; the per-page
+ * guards still enforce which individual sections they can see.
+ */
+export function canAccessAdminTools(
+  role: string,
+  permissions: string[] | undefined,
+): boolean {
+  if (role === "admin") return true;
+  if (role !== "staff") return false;
+  const perms = permissions ?? [];
+  return OPS_SECTION_KEYS.some((k) => perms.includes(k));
+}
+
 /** Which data-browser ?type= maps to which section. */
 export function sectionForType(type: string | null | undefined): SectionKey | null {
   switch (type) {
