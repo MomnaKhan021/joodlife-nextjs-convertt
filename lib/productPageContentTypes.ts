@@ -26,6 +26,10 @@ import {
   type PDPProduct,
 } from "@/lib/pdp-products";
 import {
+  CATEGORY_PAGE_DEFAULT,
+  type UspItem,
+} from "@/lib/categoryPageContentTypes";
+import {
   PRODUCT_STYLE_KEYS,
   mergeStyles,
   type ProductStyleKey,
@@ -113,9 +117,39 @@ export type ShopPageContent = {
   heading: string;
   headingAccent: string;
   footnote: string;
+  /** The button on each product card. */
+  cardCta: string;
   style: SectionStyle;
   textStyles: Record<ShopTextKey, TextStyle>;
 };
+
+/** The scrolling strip under the price - one strip for every product page. */
+export type ProductUsp = {
+  items: UspItem[];
+  style: SectionStyle;
+  textStyles: Record<string, TextStyle>;
+};
+
+export const PRODUCT_USP_DEFAULT: ProductUsp = {
+  items: CATEGORY_PAGE_DEFAULT.uspStrip.items,
+  style: mergeStyles(null, ["usp"] as const).usp,
+  textStyles: mergeTextStyles(null, ["uspStrip.itemLabel"] as const),
+};
+
+export function mergeProductUsp(stored: unknown): ProductUsp {
+  const s = obj(stored);
+  const items = Array.isArray(s.items)
+    ? s.items
+        .map(obj)
+        .map((r) => ({ icon: String(r.icon ?? ""), label: String(r.label ?? "") }))
+        .filter((r) => r.label.trim() !== "")
+    : [];
+  return {
+    items: items.length ? items : PRODUCT_USP_DEFAULT.items,
+    style: mergeStyles({ usp: s.style }, ["usp"] as const).usp,
+    textStyles: mergeTextStyles(s.textStyles, ["uspStrip.itemLabel"] as const),
+  };
+}
 
 export type ProductPagesContent = {
   /** Keyed by product slug. Only products with stored copy appear. */
@@ -148,6 +182,7 @@ export const SHOP_DEFAULT: ShopPageContent = {
   headingAccent: "for you.",
   footnote:
     "*Prices shown are starting prices. Final cost depends on your treatment plan after clinical review.",
+  cardCta: "Get Started",
   style: mergeStyles(null, ["shop"] as const).shop,
   textStyles: mergeTextStyles(null, SHOP_TEXT_KEYS),
 };
@@ -403,6 +438,7 @@ export function mergeShop(stored: unknown): ShopPageContent {
     heading: str(s.heading, SHOP_DEFAULT.heading),
     headingAccent: optStr(s.headingAccent, SHOP_DEFAULT.headingAccent),
     footnote: optStr(s.footnote, SHOP_DEFAULT.footnote),
+    cardCta: str(s.cardCta, SHOP_DEFAULT.cardCta),
     style: mergeStyles({ shop: s.style }, ["shop"] as const).shop,
     textStyles: mergeTextStyles(s.textStyles, SHOP_TEXT_KEYS),
   };

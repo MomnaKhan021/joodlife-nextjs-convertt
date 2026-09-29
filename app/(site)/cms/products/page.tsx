@@ -1,6 +1,7 @@
 import { PDP_PRODUCTS } from "@/lib/pdp-products";
 import {
   mergeComparison,
+  mergeProductUsp,
   mergeProductCopy,
   mergeShop,
   storedProducts,
@@ -36,6 +37,7 @@ export default async function CmsProductsPage() {
       tabs={tabs.map((t) => ({ ...t, hasShippedCopy: !!PDP_PRODUCTS[t.slug] }))}
       initialCopies={copies}
       initialComparison={mergeComparison(doc.comparison)}
+      initialUsp={mergeProductUsp(doc.usp)}
       initialShop={mergeShop(doc.shop)}
       // A product saved before but not listed now (say, switched off in the
       // dashboard) is written back exactly as it was found.

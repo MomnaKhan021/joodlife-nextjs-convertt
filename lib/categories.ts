@@ -58,6 +58,8 @@ export type Category = {
    * Defaults to `href` when unset (weight-loss points at the Wegovy pills page).
    */
   learnMoreHref?: string;
+  /** Text of that button. Unset shows "Learn More". */
+  learnMoreLabel?: string;
   /** Small label above the title on the gateway card. */
   eyebrow: string;
   /** Button on the gateway card. Empty falls back to "Get Started". */

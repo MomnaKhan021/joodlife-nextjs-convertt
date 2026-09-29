@@ -12,6 +12,12 @@
  */
 
 import {
+  FOOTER_LABELS_DEFAULT,
+  HEADER_LABELS_DEFAULT,
+  type FooterLabels,
+  type HeaderLabels,
+} from "@/lib/uiLabels";
+import {
   DEFAULT_HEADER_SETTINGS,
   type HeaderSettings,
 } from "@/lib/headerLayout";
@@ -193,6 +199,8 @@ export type HeaderContent = {
   navLinks: SiteLink[];
   megaTreatments: MegaTreatment[];
   megaPromoBullets: string[];
+  /** Phone menu buttons, the login pill and the cart panel. */
+  labels: HeaderLabels;
 } & typeof DEFAULT_MEGA &
   typeof DEFAULT_HEADER_LOGOS;
 
@@ -205,6 +213,8 @@ export type FooterContent = {
   treatmentLinks: SiteLink[];
   policyLinks: SiteLink[];
   socials: SocialLink[];
+  /** Contact labels and the newsletter box placeholder. */
+  labels: FooterLabels;
 } & typeof DEFAULT_FOOTER_TEXT;
 
 /** Accept only rows naming a platform we can draw; anything else falls back. */
@@ -289,6 +299,7 @@ export function headerFallback(): HeaderContent {
     navLinks: DEFAULT_NAV_LINKS,
     megaTreatments: DEFAULT_MEGA_TREATMENTS,
     megaPromoBullets: DEFAULT_MEGA_BULLETS,
+    labels: HEADER_LABELS_DEFAULT,
     ...DEFAULT_MEGA,
     ...DEFAULT_HEADER_LOGOS,
   };
@@ -302,6 +313,7 @@ export function footerFallback(): FooterContent {
     treatmentLinks: DEFAULT_TREATMENT_LINKS,
     policyLinks: DEFAULT_POLICY_LINKS,
     socials: DEFAULT_SOCIALS,
+    labels: FOOTER_LABELS_DEFAULT,
     ...DEFAULT_FOOTER_TEXT,
   };
 }

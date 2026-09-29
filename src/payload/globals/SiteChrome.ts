@@ -72,6 +72,11 @@ export const Header: GlobalConfig = {
     { name: "megaPromoCta", type: "text" },
     { name: "megaPromoHref", type: "text" },
     {
+      name: "labels",
+      type: "json",
+      admin: { description: "Phone menu buttons, the login pill and the cart panel." },
+    },
+    {
       name: "textStyles",
       type: "json",
       admin: { description: "Per-text size and weight, keyed by field name." },
@@ -180,6 +185,11 @@ export const Footer: GlobalConfig = {
     {
       name: "newsletterHeading",
       type: "text",
+    },
+    {
+      name: "labels",
+      type: "json",
+      admin: { description: "Contact labels and the newsletter box placeholder." },
     },
     {
       name: "newsletterSubtext",

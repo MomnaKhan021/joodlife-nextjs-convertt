@@ -14,6 +14,7 @@ import {
   type HeaderSettings,
 } from "@/lib/headerLayout";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
+import { HEADER_LABELS_DEFAULT, type HeaderLabels } from "@/lib/uiLabels";
 import {
   textStyleProps,
   type HeaderTextKey,
@@ -45,6 +46,7 @@ export default function HeaderClient({
   textStyles = {},
   logoDesktop = "/assets/icons/logo-wesmount.svg",
   logoMobile = "/assets/icons/logo-wesmount-mobile.svg",
+  labels = HEADER_LABELS_DEFAULT,
 }: {
   navLinks?: NavLink[];
   mega?: MegaMenuContent;
@@ -57,6 +59,8 @@ export default function HeaderClient({
   /** Logo image URLs; default to the assets that shipped with the design. */
   logoDesktop?: string;
   logoMobile?: string;
+  /** Phone menu buttons, the login pill and the cart panel. */
+  labels?: HeaderLabels;
 } = {}) {
   const NAV_LINKS = navLinks?.length ? navLinks : DEFAULT_NAV_LINKS;
   const { layout, sticky } = settings;
@@ -159,7 +163,7 @@ export default function HeaderClient({
 
   const desktopAccount = (
     <div className="flex items-center">
-      <AuthPill loggedIn={loggedIn} />
+      <AuthPill loggedIn={loggedIn} labels={labels} />
     </div>
   );
 
@@ -247,7 +251,7 @@ export default function HeaderClient({
         </Link>
 
         <div className="flex items-center gap-2">
-          <AuthPill loggedIn={loggedIn} mobile />
+          <AuthPill loggedIn={loggedIn} labels={labels} mobile />
 
           {/* Hamburger */}
           <button
@@ -363,18 +367,18 @@ export default function HeaderClient({
                         strokeLinecap="round"
                       />
                     </svg>
-                    {loggedIn ? "Account" : "Log in"}
+                    {loggedIn ? labels.account : labels.login}
                   </Link>
                 </li>
               </ul>
 
               <div className="mt-auto px-4 pb-6">
                 <Link
-                  href="/consultation"
+                  href={labels.drawerCtaHref}
                   onClick={closeMobile}
                   className="btn-cta inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-base font-bold text-white hover:bg-[#142e2a]/90"
                 >
-                  Get started
+                  {labels.drawerCta}
                 </Link>
               </div>
             </div>
@@ -389,10 +393,11 @@ export default function HeaderClient({
                 <svg width="8" height="13" viewBox="0 0 8 13" fill="none" aria-hidden>
                   <path d="M6.5 1.5l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Back
+                {labels.drawerBack}
               </button>
               <p className="mt-2 mb-3 font-display text-[24px] font-bold tracking-[-0.02em] text-[#142e2a]">
-                Our Treatments
+                {/* The same heading as the desktop treatments menu. */}
+                {mega?.megaHeading || "Our Treatments"}
               </p>
               <ul className="flex flex-col gap-1">
                 {TREATMENTS.map((t) => (
@@ -421,11 +426,11 @@ export default function HeaderClient({
                 ))}
               </ul>
               <Link
-                href="/shop"
+                href={labels.drawerExploreHref}
                 onClick={closeMobile}
                 className="btn-cta mt-auto inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#142e2a] font-ui text-[15px] font-semibold text-white hover:bg-[#0c2421]"
               >
-                Explore Treatment
+                {labels.drawerExplore}
               </Link>
             </div>
           </div>
@@ -433,14 +438,22 @@ export default function HeaderClient({
       </nav>
 
       {/* Cart drawer (single instance shared across desktop + mobile) */}
-      <CartDrawer />
+      <CartDrawer labels={labels} />
     </header>
   );
 }
 
 /** Outlined pill in the header — "Log in" for guests, "Account" (→ profile)
  *  once signed in. Branded (Jood green), responsive: smaller on mobile. */
-function AuthPill({ loggedIn, mobile = false }: { loggedIn: boolean; mobile?: boolean }) {
+function AuthPill({
+  loggedIn,
+  labels,
+  mobile = false,
+}: {
+  loggedIn: boolean;
+  labels: HeaderLabels;
+  mobile?: boolean;
+}) {
   return (
     <Link
       href={loggedIn ? "/profile" : "/login"}
@@ -448,7 +461,7 @@ function AuthPill({ loggedIn, mobile = false }: { loggedIn: boolean; mobile?: bo
         mobile ? "h-9 px-4 text-[13.5px]" : "h-10 px-6 text-[15px]"
       }`}
     >
-      {loggedIn ? "Account" : "Log in"}
+      {loggedIn ? labels.account : labels.login}
     </Link>
   );
 }

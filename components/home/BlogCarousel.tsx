@@ -27,10 +27,16 @@ export default function BlogCarousel({
   posts,
   heading = "Recent",
   headingEmphasis = "blog",
+  headingTail = "posts",
+  cardCta = "Read Blog Post",
 }: {
   posts: BlogCardPost[];
   heading?: string;
   headingEmphasis?: string;
+  /** After the italic part; empty ends the heading there. */
+  headingTail?: string;
+  /** The button on each card. */
+  cardCta?: string;
   /** Per-text size and weight, keyed by the Home field name. */
   text?: Partial<Record<HomeTextKey, TextStyle>>;
 }) {
@@ -43,7 +49,8 @@ export default function BlogCarousel({
     <div className="mx-auto w-full max-w-[1400px] px-6 md:px-10 lg:px-[60px]">
       <div className="flex items-center justify-between gap-4 pb-8 md:pb-10">
         <h2 {...textStyleProps(text.blogHeading)} className="font-display text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-          {heading} <em {...textStyleProps(text.blogHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em> posts
+          {heading} <em {...textStyleProps(text.blogHeadingEmphasis)} className="font-serif italic font-normal">{headingEmphasis}</em>
+          {headingTail ? ` ${headingTail}` : null}
         </h2>
         <div className="hidden items-center gap-3 md:flex">
           <button
@@ -136,7 +143,7 @@ export default function BlogCarousel({
                     {post.title}
                   </h3>
                   <span className="inline-flex h-11 w-fit items-center justify-center rounded-lg bg-white/15 px-6 font-ui text-[13px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/25 backdrop-blur-sm transition-colors duration-200 group-hover:bg-white group-hover:text-[#142e2a] md:h-12 md:text-[14px]">
-                    Read Blog Post
+                    {cardCta}
                   </span>
                 </div>
               </div>

@@ -10,7 +10,11 @@ import "swiper/css/pagination";
 
 import type { StorefrontProduct } from "@/lib/products";
 
-type Props = { products: StorefrontProduct[] };
+type Props = {
+  products: StorefrontProduct[];
+  /** The button on each card; from the Product pages screen. */
+  cardCta?: string;
+};
 
 /**
  * Renders the shop card grid on desktop (md+) and a horizontal
@@ -21,14 +25,14 @@ type Props = { products: StorefrontProduct[] };
  * comes from the StorefrontProduct row, so adding a new product
  * via /admin is enough to make it appear here without a code change.
  */
-export default function ShopGrid({ products }: Props) {
+export default function ShopGrid({ products, cardCta = "Get Started" }: Props) {
   return (
     <>
       {/* Desktop / tablet — 3-up grid */}
       <ul className="hidden grid-cols-1 gap-6 sm:grid sm:grid-cols-2 md:gap-7 lg:grid-cols-3">
         {products.map((p, i) => (
           <li key={p.id}>
-            <ShopCard product={p} index={i} />
+            <ShopCard product={p} index={i} cta={cardCta} />
           </li>
         ))}
       </ul>
@@ -52,7 +56,7 @@ export default function ShopGrid({ products }: Props) {
         >
           {products.map((p, i) => (
             <SwiperSlide key={p.id} className="!h-auto">
-              <ShopCard product={p} index={i} />
+              <ShopCard product={p} index={i} cta={cardCta} />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -88,9 +92,11 @@ export default function ShopGrid({ products }: Props) {
 function ShopCard({
   product: p,
   index,
+  cta,
 }: {
   product: StorefrontProduct;
   index: number;
+  cta: string;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -196,7 +202,7 @@ function ShopCard({
           href={`/shop/${p.slug}`}
           className="inline-flex h-[34px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-4 font-ui text-[12px] font-semibold text-[#142e2a] transition-colors duration-200 hover:bg-[#f7f9f2] md:h-[38px] md:px-5 md:text-[13px]"
         >
-          Get Started
+          {cta}
         </Link>
       </div>
 

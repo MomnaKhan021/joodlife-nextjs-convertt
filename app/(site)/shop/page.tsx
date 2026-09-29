@@ -55,7 +55,7 @@ export default async function ShopPage() {
             </p>
           </div>
         ) : (
-          <ShopGrid products={products} />
+          <ShopGrid products={products} cardCta={shop.cardCta} />
         )}
 
         {shop.footnote ? (

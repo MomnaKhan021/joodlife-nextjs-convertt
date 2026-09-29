@@ -187,7 +187,7 @@ export default function CategoryPreview({
                   href={category.learnMoreHref ?? category.href}
                   className="btn-cta inline-flex min-h-[50px] flex-1 items-center justify-center rounded-lg border border-white/70 bg-black/20 px-3 py-1.5 text-center font-ui text-[12px] font-semibold leading-tight text-white backdrop-blur-sm hover:bg-white/10 md:min-h-12 md:flex-none md:px-7 md:text-[15px]"
                 >
-                  Learn More
+                  {category.learnMoreLabel || "Learn More"}
                 </Link>
               </div>
             </Reveal>
@@ -349,7 +349,7 @@ function SkyPreview({
                   href={category.learnMoreHref ?? category.href}
                   className="btn-cta inline-flex h-[50px] flex-1 items-center justify-center rounded-lg border border-white bg-white/6 px-4 text-center font-ui text-[16px] font-medium leading-5 tracking-[-0.32px] text-white hover:bg-white/12 md:w-[182px] md:flex-none"
                 >
-                  Learn More
+                  {category.learnMoreLabel || "Learn More"}
                 </Link>
               </div>
             </Reveal>

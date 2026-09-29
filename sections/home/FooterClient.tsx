@@ -1,5 +1,6 @@
 "use client";
 
+import { FOOTER_LABELS_DEFAULT, type FooterLabels } from "@/lib/uiLabels";
 import {
   textStyleProps,
   type FooterTextKey,
@@ -302,6 +303,8 @@ export type FooterProps = {
   /** Image URLs; default to the assets that shipped with the design. */
   logo?: string;
   contactIcon?: string;
+  /** Contact labels and the newsletter box placeholder. */
+  labels?: FooterLabels;
 };
 
 // The legal wording moved to lib/siteContentTypes so the editor can show it
@@ -329,6 +332,7 @@ export default function Footer(props: FooterProps = {}) {
   const legalText = props.legalText || DEFAULT_LEGAL_TEXT;
   const logo = props.logo || "/assets/figma/footer-logo-2.png";
   const contactIcon = props.contactIcon || "/assets/figma/icon-chat.svg";
+  const labels = props.labels ?? FOOTER_LABELS_DEFAULT;
   /** wa.me needs digits only; drop spaces and a leading 0 for the UK code. */
   const waNumber = "44" + phone.replace(/\D/g, "").replace(/^0/, "");
   const [email, setEmail] = useState("");
@@ -411,7 +415,7 @@ export default function Footer(props: FooterProps = {}) {
                 <Image src={contactIcon} alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
                 <div className="flex flex-col">
                   <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
-                    WhatsApp
+                    {labels.whatsapp}
                   </span>
                   <a
                     {...textStyleProps(textStyles.phone)}
@@ -428,7 +432,7 @@ export default function Footer(props: FooterProps = {}) {
                 <Image src={contactIcon} alt="" width={20} height={20} className="mt-0.5 h-5 w-5" aria-hidden />
                 <div className="flex flex-col">
                   <span className="font-ui text-[14px] font-semibold leading-[20px] text-[#142e2a]">
-                    Email
+                    {labels.email}
                   </span>
                   <a
                     href={`mailto:${contactEmail}`}
@@ -467,7 +471,7 @@ export default function Footer(props: FooterProps = {}) {
                       setEmail(e.target.value);
                       if (status !== "idle") setStatus("idle");
                     }}
-                    placeholder="Your email here"
+                    placeholder={labels.newsletterPlaceholder}
                     aria-label="Your email"
                     className="h-full flex-1 bg-transparent font-ui text-[14px] tracking-[-0.02em] text-white placeholder:text-white/70 outline-none md:text-[16.3px]"
                   />

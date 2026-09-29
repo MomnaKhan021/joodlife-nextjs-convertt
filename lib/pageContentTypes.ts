@@ -105,6 +105,10 @@ export const DEFAULT_REVIEWS_HEADING = {
 };
 
 export const DEFAULT_BLOG_HEADING = {
+  /** After the italic part of the blog heading. */
+  blogHeadingTail: "posts",
+  /** The button on each blog card. */
+  blogCardCta: "Read Blog Post",
   blogHeading: "Recent",
   blogHeadingEmphasis: "blog",
 };

@@ -5,9 +5,11 @@ import { cache } from "react";
 import {
   mergeComparison,
   mergeProductCopy,
+  mergeProductUsp,
   mergeShop,
   storedProducts,
   type ComparisonContent,
+  type ProductUsp,
   type ProductCopy,
   type ShopPageContent,
 } from "@/lib/productPageContentTypes";
@@ -52,6 +54,10 @@ export async function getProductCopy(
 
 export async function getComparison(): Promise<ComparisonContent> {
   return mergeComparison((await readDoc())?.comparison);
+}
+
+export async function getProductUsp(): Promise<ProductUsp> {
+  return mergeProductUsp((await readDoc())?.usp);
 }
 
 export async function getShopContent(): Promise<ShopPageContent> {

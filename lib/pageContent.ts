@@ -101,6 +101,12 @@ export async function getHomeContent(): Promise<HomeContent> {
         doc?.blogHeadingEmphasis,
         DEFAULT_BLOG_HEADING.blogHeadingEmphasis,
       ),
+      // May be emptied on purpose - the heading then ends at the italic.
+      blogHeadingTail:
+        typeof doc?.blogHeadingTail === "string"
+          ? doc.blogHeadingTail
+          : DEFAULT_BLOG_HEADING.blogHeadingTail,
+      blogCardCta: str(doc?.blogCardCta, DEFAULT_BLOG_HEADING.blogCardCta),
       hiwSteps: toHiwSteps(doc?.hiwSteps, DEFAULT_HIW_STEPS),
       hiwHeading: str(doc?.hiwHeading, DEFAULT_HIW_HEADING.hiwHeading),
       hiwHeadingEmphasis: str(

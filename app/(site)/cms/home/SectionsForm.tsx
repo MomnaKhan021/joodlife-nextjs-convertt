@@ -99,6 +99,8 @@ export default function SectionsForm({
 
   const [blogHeading, setBlogHeading] = useState(initial.blogHeading);
   const [blogEmphasis, setBlogEmphasis] = useState(initial.blogHeadingEmphasis);
+  const [blogTail, setBlogTail] = useState(initial.blogHeadingTail);
+  const [blogCardCta, setBlogCardCta] = useState(initial.blogCardCta);
 
   const [hiwHeading, setHiwHeading] = useState(initial.hiwHeading);
   const [hiwEmphasis, setHiwEmphasis] = useState(initial.hiwHeadingEmphasis);
@@ -206,6 +208,8 @@ export default function SectionsForm({
         trustpilotUrl: tpUrl,
         blogHeading,
         blogHeadingEmphasis: blogEmphasis,
+        blogHeadingTail: blogTail,
+        blogCardCta,
         hiwHeading,
         hiwHeadingEmphasis: hiwEmphasis,
         hiwIntro,
@@ -923,9 +927,23 @@ export default function SectionsForm({
               style={textStyles.blogHeadingEmphasis}
               onStyle={setText("blogHeadingEmphasis")}
             />
+            <TextField
+              id="blogT"
+              label="After the italic"
+              value={blogTail}
+              onChange={setBlogTail}
+              hint="Leave empty to end the heading at the italic part."
+            />
+            <TextField
+              id="blogC"
+              label="Button on each card"
+              value={blogCardCta}
+              onChange={setBlogCardCta}
+              placeholder="Read Blog Post"
+            />
           </div>
           <p className="text-[12px] text-[#8a8a8a]">
-            Renders as: {blogHeading} <em>{blogEmphasis}</em> posts
+            Renders as: {blogHeading} <em>{blogEmphasis}</em> {blogTail}
           </p>
         </div>
 

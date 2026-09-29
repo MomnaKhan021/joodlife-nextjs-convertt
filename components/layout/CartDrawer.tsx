@@ -5,13 +5,18 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import { useCart } from "@/components/cart/CartContext";
+import { HEADER_LABELS_DEFAULT, type HeaderLabels } from "@/lib/uiLabels";
 
 /**
  * Right-side slide-in cart drawer. Reads from the global CartContext
  * so the same drawer is shared between the desktop nav and the mobile
  * menu. Backdrop + ESC + click-outside-to-close, body-scroll lock.
  */
-export default function CartDrawer() {
+export default function CartDrawer({
+  labels = HEADER_LABELS_DEFAULT,
+}: {
+  labels?: HeaderLabels;
+} = {}) {
   const {
     items,
     drawerOpen,
@@ -76,7 +81,7 @@ export default function CartDrawer() {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#142e2a]/10 px-5 h-14">
           <h2 className="font-display text-[18px] font-semibold tracking-[-0.02em] text-[#142e2a]">
-            Your cart{" "}
+            {labels.cartTitle}{" "}
             {itemCount > 0 ? (
               <span className="ml-1 font-ui text-[14px] font-medium text-[#142e2a]/55">
                 ({itemCount})
@@ -104,10 +109,10 @@ export default function CartDrawer() {
             </div>
             <div>
               <h3 className="font-display text-[20px] font-semibold text-[#142e2a]">
-                Your cart is empty
+                {labels.cartEmpty}
               </h3>
               <p className="mt-1 font-ui text-[14px] text-[#142e2a]/70">
-                Browse the shop to find your treatment plan.
+                {labels.cartEmptyBody}
               </p>
             </div>
             <Link
@@ -115,7 +120,7 @@ export default function CartDrawer() {
               onClick={closeDrawer}
               className="btn-cta inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white hover:bg-[#0c2421]"
             >
-              Browse shop
+              {labels.cartBrowse}
             </Link>
           </div>
         ) : (
@@ -210,27 +215,27 @@ export default function CartDrawer() {
         {items.length > 0 ? (
           <div className="border-t border-[#142e2a]/10 px-5 py-4">
             <div className="flex items-center justify-between font-ui text-[14px] text-[#142e2a]/75">
-              <span>Subtotal</span>
+              <span>{labels.cartSubtotal}</span>
               <span className="font-display text-[18px] font-semibold text-[#142e2a]">
                 {formatPrice(subtotal)}
               </span>
             </div>
             <p className="mt-1 font-ui text-[12px] text-[#142e2a]/55">
-              Tax + delivery calculated at checkout. A clinical consultation is required before dispatch.
+              {labels.cartNote}
             </p>
             <Link
               href="/checkout"
               onClick={closeDrawer}
               className="btn-cta mt-3 inline-flex h-[50px] w-full items-center justify-center rounded-lg bg-[#142e2a] px-6 font-ui text-[13px] font-semibold uppercase tracking-[0.04em] text-white hover:bg-[#0c2421]"
             >
-              Checkout
+              {labels.cartCheckout}
             </Link>
             <Link
               href="/consultation"
               onClick={closeDrawer}
               className="btn-cta mt-2 inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-[#142e2a]/15 bg-white px-6 font-ui text-[12px] font-semibold uppercase tracking-[0.04em] text-[#142e2a] hover:bg-[#f7f9f2]"
             >
-              Start consultation
+              {labels.cartConsultation}
             </Link>
           </div>
         ) : null}

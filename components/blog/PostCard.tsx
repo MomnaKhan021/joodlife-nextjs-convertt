@@ -22,12 +22,15 @@ export default function PostCard({
   post,
   variant = "default",
   priority = false,
+  readMore = "Read Blog Post",
 }: {
   /** Per-text size and weight from the blog page. */
   text?: Partial<Record<string, TextStyle>>;
   post: StorefrontPost;
   variant?: Variant;
   priority?: boolean;
+  /** The button on the card; from the Blog listing page screen. */
+  readMore?: string;
 }) {
   const href = `/blogs/${post.slug}`;
   const cat = post.categoryLabel || null;
@@ -84,7 +87,7 @@ export default function PostCard({
           </p>
         ) : null}
         <span className="inline-flex w-full items-center justify-center rounded-full border border-white/25 bg-white/10 px-5 py-2.5 font-ui text-[13px] font-semibold text-white backdrop-blur-sm transition group-hover:bg-white group-hover:text-[#142e2a] md:w-auto md:self-start">
-          Read Blog Post
+          {readMore}
         </span>
         {date && !isFeature ? (
           <span className="sr-only">{date}</span>

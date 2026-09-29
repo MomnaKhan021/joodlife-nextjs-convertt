@@ -13,7 +13,7 @@ export default async function Header() {
   // `style`, `settings` and `textStyles` are pulled out explicitly: whatever is left over
   // becomes `mega`, so anything not named here would be handed to the mega
   // menu by mistake.
-  const { navLinks, style, settings, textStyles, logoDesktop, logoMobile, ...mega } =
+  const { navLinks, style, settings, textStyles, logoDesktop, logoMobile, labels, ...mega } =
     await getHeaderContent();
   return (
     <HeaderClient
@@ -24,6 +24,7 @@ export default async function Header() {
       textStyles={textStyles}
       logoDesktop={logoDesktop}
       logoMobile={logoMobile}
+      labels={labels}
     />
   );
 }

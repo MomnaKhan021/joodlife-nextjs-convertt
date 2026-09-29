@@ -124,9 +124,9 @@ export const CMS_NAV: CmsNavItem[] = [
   {
     key: "cms-sections",
     group: "site-pages",
-    label: "Wegovy Pills",
+    label: "Wegovy Pills info page",
     href: "/cms/wegovy",
-    description: "All eleven sections of /wegovy-pills",
+    description: "The /wegovy-pills information page - all eleven sections",
     status: "ready",
     match: "/cms/wegovy",
   },
@@ -160,21 +160,11 @@ export const CMS_NAV: CmsNavItem[] = [
   {
     key: "cms-sections",
     group: "site-pages",
-    label: "Product pages",
+    label: "Shop product pages",
     href: "/cms/products",
-    description: "Mounjaro, Foundayo, Wegovy Pill and the /shop heading",
+    description: "The buy pages under /shop/ - one tab per product - and the /shop heading",
     status: "ready",
     match: "/cms/products",
-  },
-  {
-    key: "cms-sections",
-    group: "site-pages",
-    label: "Shared across treatments",
-    href: "/cms/category-pages",
-    description:
-      "Trust strip, features and FAQs on the ED and period-delay pages",
-    status: "ready",
-    match: "/cms/category-pages",
   },
 
   /* ── Custom pages ─────────────────────────────────────── */

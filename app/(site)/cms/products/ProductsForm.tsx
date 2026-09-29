@@ -10,6 +10,7 @@ import {
   type IconLabel,
   type ProductCopy,
   type ProductFaq,
+  type ProductUsp,
   type ShopPageContent,
 } from "@/lib/productPageContentTypes";
 import type { ProductStyleKey } from "@/lib/sectionStyle";
@@ -31,7 +32,7 @@ import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
 import SaveBar from "../SaveBar";
 import SectionControl from "../SectionControl";
 import { TextStyleCtx, Ts, type TextStyleApi } from "../TextStyleContext";
-import { RepeatedText } from "../TreatmentBlocks";
+import { RepeatedText, UspEditor } from "../TreatmentBlocks";
 import { useDirty } from "../useDirty";
 
 /**
@@ -152,18 +153,21 @@ export default function ProductsForm({
   initialCopies,
   initialComparison,
   initialShop,
+  initialUsp,
   untouched,
 }: {
   tabs: (ProductTab & { hasShippedCopy: boolean })[];
   initialCopies: Record<string, ProductCopy>;
   initialComparison: ComparisonContent;
   initialShop: ShopPageContent;
+  initialUsp: ProductUsp;
   untouched: Record<string, unknown>;
 }) {
   const [active, setActive] = useState(tabs[0]?.slug ?? "");
   const [copies, setCopies] = useState(initialCopies);
   const [comparison, setComparison] = useState(initialComparison);
   const [shop, setShop] = useState(initialShop);
+  const [usp, setUsp] = useState(initialUsp);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -189,6 +193,7 @@ export default function ProductsForm({
     },
     comparison: { ...comparison, rows: comparison.rows.filter((r) => r.label.trim()) },
     shop,
+    usp: { ...usp, items: usp.items.filter((u) => u.label.trim()) },
   };
   const { dirty, markSaved } = useDirty(JSON.stringify(payload));
 
@@ -245,124 +250,162 @@ export default function ProductsForm({
               }`}
             >
               {t.title}
+              <span className={`ml-2 text-[11px] font-normal ${t.slug === active ? "text-white/70" : "text-[#8a8a8a]"}`}>
+                /shop/{t.slug}
+              </span>
             </button>
           ))}
         </div>
 
         {tab && c ? (
-          <TextStyleCtx.Provider value={tsApi(c.textStyles, (textStyles) => set({ textStyles: textStyles as ProductCopy["textStyles"] }))}>
-            <div className="space-y-5">
-              <Regulated>
-                This is medical information about a prescription medicine. Change it
-                only with the pharmacist&apos;s approval.
-                {tab.hasShippedCopy
-                  ? null
-                  : ` ${tab.title} has no page copy yet, so its "What is", safety and question sections are hidden until they have a title.`}
-              </Regulated>
+          <>
+            <TextStyleCtx.Provider value={tsApi(c.textStyles, (textStyles) => set({ textStyles: textStyles as ProductCopy["textStyles"] }))}>
+              <div className="space-y-5">
+                <Regulated>
+                  This is medical information about a prescription medicine. Change it
+                  only with the pharmacist&apos;s approval.
+                  {tab.hasShippedCopy
+                    ? null
+                    : ` ${tab.title} has no page copy yet, so its "What is", safety and question sections are hidden until they have a title.`}
+                </Regulated>
+                {active === "wegovy-pill" ? (
+                  <p className="rounded-lg border border-dashed border-[#d8ddd0] px-4 py-3 text-[13px] text-[#616161]">
+                    This tab is the buy page at <code>/shop/wegovy-pill</code>. The longer
+                    information page at <code>/wegovy-pills</code> is a separate page, edited under{" "}
+                    <Link href="/cms/wegovy" className="underline underline-offset-2">
+                      Wegovy Pills info page
+                    </Link>
+                    .
+                  </p>
+                ) : null}
 
-              {/* 1. Beside the price */}
+                {/* 1. Beside the price */}
+                <div className={cmsCard}>
+                  <CardHead
+                    title="1. Beside the price"
+                    note="The top of the page: name, description, price and the lists under it."
+                    control={sectionControl("overview")}
+                  />
+                  <RepeatedText
+                    items={[
+                      ["trustLine", "Trust line"],
+                      ["serviceChip", "Service chips"],
+                      ["feature", "Benefits"],
+                      ["accordionTitle", "Drop-down titles"],
+                      ["accordionBody", "Drop-down text"],
+                    ]}
+                  />
+                  <div className={styleBar}>
+                    <span className="text-[12px] text-[#8a8a8a]">Set in the dashboard, sized here:</span>
+                    <StyleOnly k="heading" label="Product name" />
+                    <StyleOnly k="lede" label="Description" />
+                  </div>
+                  <TextField
+                    tsKey="ratingLabel"
+                    label="Rating pill"
+                    value={c.ratingPillLabel}
+                    onChange={(v) => set({ ratingPillLabel: v })}
+                    hint="The word beside the stars above the heading."
+                  />
+                  <TextField
+                    tsKey="headingAccent"
+                    label="Heading — italic word after the name"
+                    value={c.italicWord}
+                    onChange={(v) => set({ italicWord: v })}
+                    hint={`The heading reads "${tab.title} ${c.italicWord}".`}
+                  />
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <TextField
+                      tsKey="strengthHeading"
+                      label="Above the doses"
+                      value={c.strengthHeading}
+                      onChange={(v) => set({ strengthHeading: v })}
+                    />
+                    <TextField
+                      tsKey="priceNote"
+                      label="Under the price"
+                      value={c.priceNote}
+                      onChange={(v) => set({ priceNote: v })}
+                      hint="Leave empty to hide it."
+                    />
+                    <TextField
+                      tsKey="eligibilityCta"
+                      label="Button text"
+                      value={c.eligibilityCta}
+                      onChange={(v) => set({ eligibilityCta: v })}
+                    />
+                  </div>
+                  <StringList
+                    items={c.trustLine}
+                    onChange={(trustLine) => set({ trustLine })}
+                    label="Trust line under the price"
+                    addLabel="+ Add"
+                  />
+                  <IconLabelList
+                    label="Service chips"
+                    items={c.serviceChips}
+                    onChange={(serviceChips) => set({ serviceChips })}
+                    hint="The small box on the left takes an emoji."
+                  />
+                  <TextField
+                    tsKey="whyChooseTitle"
+                    label="Benefits heading"
+                    value={c.whyChooseTitle}
+                    onChange={(v) => set({ whyChooseTitle: v })}
+                    hint="Leave empty to show the list without a heading."
+                  />
+                  <IconLabelList label="Benefits" items={c.features} onChange={(features) => set({ features })} />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <TextField
+                      label="First drop-down — title"
+                      value={c.howItWorksTitle}
+                      onChange={(v) => set({ howItWorksTitle: v })}
+                    />
+                    <AreaField
+                      label="First drop-down — text"
+                      rows={3}
+                      value={c.howItWorksBody}
+                      onChange={(v) => set({ howItWorksBody: v })}
+                      hint={`Empty shows: "${howItWorksFallback(tab.title)}"`}
+                    />
+                  </div>
+                  <div className={styleBar}>
+                    <span className="text-[12px] text-[#8a8a8a]">
+                      The second drop-down and the side-effects block use the safety text in
+                      section 3. Sized here:
+                    </span>
+                    <StyleOnly k="sideEffectsTitle" label="Side-effects title" />
+                    <StyleOnly k="sideEffectsBody" label="Side-effects text" />
+                  </div>
+                </div>
+
+              </div>
+            </TextStyleCtx.Provider>
+
+            {/* 2. Trust strip - one strip for every product page */}
+            <TextStyleCtx.Provider
+              value={tsApi(usp.textStyles, (textStyles) => setUsp({ ...usp, textStyles }))}
+            >
               <div className={cmsCard}>
                 <CardHead
-                  title="1. Beside the price"
-                  note="The top of the page: name, description, price and the lists under it."
-                  control={sectionControl("overview")}
+                  title="2. Trust strip"
+                  note="The scrolling line under the price. One strip, shown on every product page."
+                  control={
+                    <SectionControl
+                      sectionKey="uspStrip"
+                      value={usp.style}
+                      onChange={(style) => setUsp({ ...usp, style })}
+                    />
+                  }
                 />
-                <RepeatedText
-                  items={[
-                    ["trustLine", "Trust line"],
-                    ["serviceChip", "Service chips"],
-                    ["feature", "Benefits"],
-                    ["accordionTitle", "Drop-down titles"],
-                    ["accordionBody", "Drop-down text"],
-                  ]}
-                />
-                <div className={styleBar}>
-                  <span className="text-[12px] text-[#8a8a8a]">Set in the dashboard, sized here:</span>
-                  <StyleOnly k="heading" label="Product name" />
-                  <StyleOnly k="lede" label="Description" />
-                </div>
-                <TextField
-                  tsKey="ratingLabel"
-                  label="Rating pill"
-                  value={c.ratingPillLabel}
-                  onChange={(v) => set({ ratingPillLabel: v })}
-                  hint="The word beside the stars above the heading."
-                />
-                <TextField
-                  tsKey="headingAccent"
-                  label="Heading — italic word after the name"
-                  value={c.italicWord}
-                  onChange={(v) => set({ italicWord: v })}
-                  hint={`The heading reads "${tab.title} ${c.italicWord}".`}
-                />
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <TextField
-                    tsKey="strengthHeading"
-                    label="Above the doses"
-                    value={c.strengthHeading}
-                    onChange={(v) => set({ strengthHeading: v })}
-                  />
-                  <TextField
-                    tsKey="priceNote"
-                    label="Under the price"
-                    value={c.priceNote}
-                    onChange={(v) => set({ priceNote: v })}
-                    hint="Leave empty to hide it."
-                  />
-                  <TextField
-                    tsKey="eligibilityCta"
-                    label="Button text"
-                    value={c.eligibilityCta}
-                    onChange={(v) => set({ eligibilityCta: v })}
-                  />
-                </div>
-                <StringList
-                  items={c.trustLine}
-                  onChange={(trustLine) => set({ trustLine })}
-                  label="Trust line under the price"
-                  addLabel="+ Add"
-                />
-                <IconLabelList
-                  label="Service chips"
-                  items={c.serviceChips}
-                  onChange={(serviceChips) => set({ serviceChips })}
-                  hint="The small box on the left takes an emoji."
-                />
-                <TextField
-                  tsKey="whyChooseTitle"
-                  label="Benefits heading"
-                  value={c.whyChooseTitle}
-                  onChange={(v) => set({ whyChooseTitle: v })}
-                  hint="Leave empty to show the list without a heading."
-                />
-                <IconLabelList label="Benefits" items={c.features} onChange={(features) => set({ features })} />
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField
-                    label="First drop-down — title"
-                    value={c.howItWorksTitle}
-                    onChange={(v) => set({ howItWorksTitle: v })}
-                  />
-                  <AreaField
-                    label="First drop-down — text"
-                    rows={3}
-                    value={c.howItWorksBody}
-                    onChange={(v) => set({ howItWorksBody: v })}
-                    hint={`Empty shows: "${howItWorksFallback(tab.title)}"`}
-                  />
-                </div>
-                <div className={styleBar}>
-                  <span className="text-[12px] text-[#8a8a8a]">
-                    The second drop-down and the side-effects block use the safety text in
-                    section 3. Sized here:
-                  </span>
-                  <StyleOnly k="sideEffectsTitle" label="Side-effects title" />
-                  <StyleOnly k="sideEffectsBody" label="Side-effects text" />
-                </div>
+                <UspEditor items={usp.items} onChange={(items) => setUsp({ ...usp, items })} />
               </div>
+            </TextStyleCtx.Provider>
 
-              {/* 2. What is */}
+            <TextStyleCtx.Provider value={tsApi(c.textStyles, (textStyles) => set({ textStyles: textStyles as ProductCopy["textStyles"] }))}>
+              {/* 3. What is */}
               <div className={cmsCard}>
-                <CardHead title="2. What is …?" control={sectionControl("whatIs")} />
+                <CardHead title="3. What is …?" control={sectionControl("whatIs")} />
                 <RepeatedText items={[["whatIsBullet", "Points"]]} />
                 <TextField
                   tsKey="whatIsTitle"
@@ -463,9 +506,110 @@ export default function ProductsForm({
                 </div>
               </div>
 
-              {/* 3. Safety */}
+            </TextStyleCtx.Provider>
+
+            {/* 4. Comparison - one table for every product page */}
+            <TextStyleCtx.Provider
+              value={tsApi(comparison.textStyles, (textStyles) =>
+                setComparison({ ...comparison, textStyles: textStyles as ComparisonContent["textStyles"] }),
+              )}
+            >
               <div className={cmsCard}>
-                <CardHead title="3. Safety and questions" control={sectionControl("safety")} />
+                <CardHead
+                  title="4. Comparison table"
+                  note="Shared by the Mounjaro, Wegovy injection and Wegovy Pill pages - one table, with the page's own product outlined. The colour here is the table's card."
+                  control={
+                    <SectionControl
+                      sectionKey="comparison"
+                      value={comparison.style}
+                      onChange={(style) => setComparison({ ...comparison, style })}
+                    />
+                  }
+                />
+                <RepeatedText
+                  items={[
+                    ["columnLabel", "Column names"],
+                    ["rowLabel", "Row labels"],
+                    ["cell", "Table cells"],
+                  ]}
+                />
+                <TextField tsKey="heading" label="Heading" value={comparison.heading} onChange={(v) => setComparison({ ...comparison, heading: v })} />
+                <TextField tsKey="body" label="Text under it" value={comparison.body} onChange={(v) => setComparison({ ...comparison, body: v })} />
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {COLUMN_KEYS.map((k) => (
+                    <TextField
+                      key={k}
+                      label={`Column — ${initialComparison.columns[k]}`}
+                      value={comparison.columns[k]}
+                      onChange={(v) => setComparison({ ...comparison, columns: { ...comparison.columns, [k]: v } })}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className={cmsAddBtn}
+                    onClick={() =>
+                      setComparison({
+                        ...comparison,
+                        rows: [...comparison.rows, { label: "", mounjaro: "", wegovy: "", wegovyTablet: "" }],
+                      })
+                    }
+                  >
+                    + Add row
+                  </button>
+                </div>
+                {comparison.rows.map((r, i) => (
+                  <div key={i} className="rounded-lg border border-[#eef1e8] p-3">
+                    <RowTools
+                      title="Row"
+                      index={i}
+                      count={comparison.rows.length}
+                      onMove={(dir) => setComparison({ ...comparison, rows: moved(comparison.rows, i, dir) })}
+                      onRemove={() => setComparison({ ...comparison, rows: comparison.rows.filter((_, j) => j !== i) })}
+                    />
+                    <div className="grid gap-3 sm:grid-cols-4">
+                      <TextField
+                        label="Row label"
+                        value={r.label}
+                        onChange={(v) =>
+                          setComparison({
+                            ...comparison,
+                            rows: comparison.rows.map((x, j) => (j === i ? { ...x, label: v } : x)),
+                          })
+                        }
+                      />
+                      {COLUMN_KEYS.map((k) => (
+                        <TextField
+                          key={k}
+                          label={comparison.columns[k]}
+                          value={r[k] ?? ""}
+                          onChange={(v) =>
+                            setComparison({
+                              ...comparison,
+                              rows: comparison.rows.map((x, j) => (j === i ? { ...x, [k]: v } : x)),
+                            })
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <AreaField
+                  tsKey="note"
+                  label="Line under the table"
+                  rows={2}
+                  value={comparison.note}
+                  onChange={(v) => setComparison({ ...comparison, note: v })}
+                  hint="Leave empty to hide it."
+                />
+              </div>
+            </TextStyleCtx.Provider>
+
+            <TextStyleCtx.Provider value={tsApi(c.textStyles, (textStyles) => set({ textStyles: textStyles as ProductCopy["textStyles"] }))}>
+              {/* 5. Safety */}
+              <div className={cmsCard}>
+                <CardHead title="5. Safety and questions" control={sectionControl("safety")} />
                 <RepeatedText
                   items={[
                     ["faqQuestion", "Questions"],
@@ -536,110 +680,15 @@ export default function ProductsForm({
                   onAlt={(v) => set({ safetyImageAlt: v })}
                 />
               </div>
-            </div>
-          </TextStyleCtx.Provider>
+            </TextStyleCtx.Provider>
+          </>
         ) : (
           <p className="text-[13px] text-[#616161]">No products found.</p>
         )}
 
-        {/* Comparison */}
-        <TextStyleCtx.Provider
-          value={tsApi(comparison.textStyles, (textStyles) =>
-            setComparison({ ...comparison, textStyles: textStyles as ComparisonContent["textStyles"] }),
-          )}
-        >
-          <div className={cmsCard}>
-            <CardHead
-              title="Comparison table"
-              note="Shared by the Mounjaro, Wegovy injection and Wegovy Pill pages - one table, with the page's own product outlined. The colour here is the table's card."
-              control={
-                <SectionControl
-                  sectionKey="comparison"
-                  value={comparison.style}
-                  onChange={(style) => setComparison({ ...comparison, style })}
-                />
-              }
-            />
-            <RepeatedText
-              items={[
-                ["columnLabel", "Column names"],
-                ["rowLabel", "Row labels"],
-                ["cell", "Table cells"],
-              ]}
-            />
-            <TextField tsKey="heading" label="Heading" value={comparison.heading} onChange={(v) => setComparison({ ...comparison, heading: v })} />
-            <TextField tsKey="body" label="Text under it" value={comparison.body} onChange={(v) => setComparison({ ...comparison, body: v })} />
-            <div className="grid gap-4 sm:grid-cols-3">
-              {COLUMN_KEYS.map((k) => (
-                <TextField
-                  key={k}
-                  label={`Column — ${initialComparison.columns[k]}`}
-                  value={comparison.columns[k]}
-                  onChange={(v) => setComparison({ ...comparison, columns: { ...comparison.columns, [k]: v } })}
-                />
-              ))}
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className={cmsAddBtn}
-                onClick={() =>
-                  setComparison({
-                    ...comparison,
-                    rows: [...comparison.rows, { label: "", mounjaro: "", wegovy: "", wegovyTablet: "" }],
-                  })
-                }
-              >
-                + Add row
-              </button>
-            </div>
-            {comparison.rows.map((r, i) => (
-              <div key={i} className="rounded-lg border border-[#eef1e8] p-3">
-                <RowTools
-                  title="Row"
-                  index={i}
-                  count={comparison.rows.length}
-                  onMove={(dir) => setComparison({ ...comparison, rows: moved(comparison.rows, i, dir) })}
-                  onRemove={() => setComparison({ ...comparison, rows: comparison.rows.filter((_, j) => j !== i) })}
-                />
-                <div className="grid gap-3 sm:grid-cols-4">
-                  <TextField
-                    label="Row label"
-                    value={r.label}
-                    onChange={(v) =>
-                      setComparison({
-                        ...comparison,
-                        rows: comparison.rows.map((x, j) => (j === i ? { ...x, label: v } : x)),
-                      })
-                    }
-                  />
-                  {COLUMN_KEYS.map((k) => (
-                    <TextField
-                      key={k}
-                      label={comparison.columns[k]}
-                      value={r[k] ?? ""}
-                      onChange={(v) =>
-                        setComparison({
-                          ...comparison,
-                          rows: comparison.rows.map((x, j) => (j === i ? { ...x, [k]: v } : x)),
-                        })
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-            <AreaField
-              tsKey="note"
-              label="Line under the table"
-              rows={2}
-              value={comparison.note}
-              onChange={(v) => setComparison({ ...comparison, note: v })}
-              hint="Leave empty to hide it."
-            />
-          </div>
-        </TextStyleCtx.Provider>
-
+        <h2 className="pt-4 text-[13px] font-semibold uppercase tracking-wide text-[#8a8a8a]">
+          The shop listing at /shop
+        </h2>
         {/* Shop listing */}
         <TextStyleCtx.Provider
           value={tsApi(shop.textStyles, (textStyles) =>
@@ -667,6 +716,12 @@ export default function ProductsForm({
                 onChange={(v) => setShop({ ...shop, headingAccent: v })}
               />
             </div>
+            <TextField
+              label="Button on each product card"
+              value={shop.cardCta}
+              placeholder="Get Started"
+              onChange={(v) => setShop({ ...shop, cardCta: v })}
+            />
             <AreaField tsKey="footnote" label="Note under the products" rows={2} value={shop.footnote} onChange={(v) => setShop({ ...shop, footnote: v })} />
           </div>
         </TextStyleCtx.Provider>

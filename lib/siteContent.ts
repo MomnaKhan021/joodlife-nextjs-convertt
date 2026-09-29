@@ -1,6 +1,11 @@
 import "server-only";
 
 import { getPayloadInstance } from "@/lib/payload";
+import {
+  FOOTER_LABELS_DEFAULT,
+  HEADER_LABELS_DEFAULT,
+  mergeLabels,
+} from "@/lib/uiLabels";
 import { mergeHeaderSettings } from "@/lib/headerLayout";
 import { mergeStyles } from "@/lib/sectionStyle";
 import {
@@ -59,6 +64,7 @@ export async function getHeaderContent(): Promise<HeaderContent> {
       navLinks: toLinks(doc?.navLinks, DEFAULT_NAV_LINKS),
       megaTreatments: toTreatments(doc?.megaTreatments, DEFAULT_MEGA_TREATMENTS),
       megaPromoBullets: toStrings(doc?.megaPromoBullets, DEFAULT_MEGA_BULLETS),
+      labels: mergeLabels(doc?.labels, HEADER_LABELS_DEFAULT),
       megaHeading: str(doc?.megaHeading, DEFAULT_MEGA.megaHeading),
       megaPromoTitle: str(doc?.megaPromoTitle, DEFAULT_MEGA.megaPromoTitle),
       megaPromoEmphasis: str(doc?.megaPromoEmphasis, DEFAULT_MEGA.megaPromoEmphasis),
@@ -88,6 +94,7 @@ export async function getFooterContent(): Promise<FooterContent> {
       treatmentLinks: toLinks(doc?.treatmentLinks, DEFAULT_TREATMENT_LINKS),
       policyLinks: toLinks(doc?.policyLinks, DEFAULT_POLICY_LINKS),
       socials: toSocials(doc?.socials, DEFAULT_SOCIALS),
+      labels: mergeLabels(doc?.labels, FOOTER_LABELS_DEFAULT),
       joodTitle: str(doc?.joodTitle, DEFAULT_FOOTER_TEXT.joodTitle),
       treatmentsTitle: str(
         doc?.treatmentsTitle,

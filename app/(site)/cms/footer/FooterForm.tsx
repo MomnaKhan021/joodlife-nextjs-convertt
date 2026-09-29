@@ -19,6 +19,8 @@ import { useDirty } from "../useDirty";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
 import { AreaField, TextField } from "../FormKit";
+import LabelsCard from "../LabelsCard";
+import { FOOTER_LABELS_DEFAULT, type FooterLabels } from "@/lib/uiLabels";
 import type { FooterTextKey, TextStyle } from "@/lib/textStyle";
 import { EMPTY_STYLE, type SectionStyle } from "@/lib/sectionStyle";
 import TypeControl from "../TypeControl";
@@ -50,6 +52,7 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
   const [legalText, setLegalText] = useState(initial.legalText);
   const [logo, setLogo] = useState(initial.logo);
   const [contactIcon, setContactIcon] = useState(initial.contactIcon);
+  const [labels, setLabels] = useState<FooterLabels>(initial.labels);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -69,6 +72,7 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
         email,
         newsletterHeading,
         newsletterSubtext,
+        labels,
         joodTitle,
         treatmentsTitle,
         policyTitle,
@@ -357,6 +361,19 @@ export default function FooterForm({ initial }: { initial: FooterContent }) {
           </div>
         </div>
       </div>
+
+      <LabelsCard
+        title="Small labels"
+        note="The words beside the phone number and email, and the text inside the newsletter box."
+        value={labels}
+        defaults={FOOTER_LABELS_DEFAULT}
+        onChange={setLabels}
+        fields={[
+          { key: "whatsapp", label: "Phone label" },
+          { key: "email", label: "Email label" },
+          { key: "newsletterPlaceholder", label: "Newsletter box placeholder" },
+        ]}
+      />
 
       <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 border-t border-[#e4e7de] bg-[#f7f9f2]/95 py-3 backdrop-blur">
         <button

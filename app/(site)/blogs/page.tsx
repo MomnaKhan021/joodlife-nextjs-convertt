@@ -63,7 +63,7 @@ export default async function BlogsPage({
     getBlogPageContent(),
   ]);
 
-  const { hero, list, newsletter, cta, styles, textStyles } = content;
+  const { hero, list, newsletter, cta, styles, textStyles, labels } = content;
 
   const { posts, total, totalPages } = paginated;
   const isFiltered = !!category;
@@ -132,6 +132,7 @@ export default async function BlogsPage({
             categories={categories}
             active={category}
             basePath={BASE_PATH}
+            allLabel={labels.allArticles}
           />
         </div>
       </section>
@@ -139,7 +140,7 @@ export default async function BlogsPage({
       {/* Featured post (page 1, no filter) */}
       {featured ? (
         <section className="mx-auto w-full max-w-[1440px] px-4 pb-6 md:px-[60px] md:pb-8">
-          <PostCard post={featured} text={textStyles} variant="feature" priority />
+          <PostCard post={featured} text={textStyles} variant="feature" priority readMore={labels.readMore} />
         </section>
       ) : null}
 
@@ -157,6 +158,7 @@ export default async function BlogsPage({
                     post={p}
                     text={textStyles}
                     priority={!showFeatured && i < 3}
+                    readMore={labels.readMore}
                   />
                 ))}
               </div>
@@ -168,6 +170,8 @@ export default async function BlogsPage({
               totalPages={totalPages}
               basePath={BASE_PATH}
               category={category}
+              previousLabel={labels.previous}
+              nextLabel={labels.next}
             />
 
             {total > 0 ? (

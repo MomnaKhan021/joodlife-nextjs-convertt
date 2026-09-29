@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type {
   Chip,
@@ -10,6 +10,8 @@ import type {
   TreatmentRow,
 } from "@/lib/treatmentContentTypes";
 import { fieldInput, fieldLabel, saveGlobal } from "../LinkFields";
+import { keepChange, keepChangedKeys, loadLatest } from "../mergeSave";
+import { overridesFromDefaults, toTreatmentOverrides } from "@/lib/treatmentContentTypes";
 import { useDirty } from "../useDirty";
 import MediaPicker from "../MediaPicker";
 import SectionControl from "../SectionControl";
@@ -213,12 +215,34 @@ export default function TreatmentsForm({
         })),
       };
   const { dirty, markSaved } = useDirty(JSON.stringify(payload));
+  // What this screen last loaded or saved - edits are measured against it.
+  const baseRef = useRef({ rows, styles, textStyles });
+
   async function save() {
     setSaving(true);
     setError(null);
     setSaved(false);
     try {
-      await saveGlobal("treatments", payload);
+      // The Period delay screen writes this document too. Re-read it and keep
+      // only what was edited here, so neither screen undoes the other.
+      const latest = await loadLatest("treatments");
+      const latestRows = overridesFromDefaults(toTreatmentOverrides(latest.categories));
+      const base = baseRef.current;
+      await saveGlobal("treatments", {
+        styles: keepChangedKeys(styles, base.styles, mergeStyles(latest.styles, TREATMENT_STYLE_KEYS)),
+        textStyles: keepChangedKeys(
+          textStyles,
+          base.textStyles,
+          mergeTextStyles(latest.textStyles, TREATMENT_TEXT_KEYS),
+        ),
+        categories: latestRows.map((stored) => {
+          const mine = rows.find((r) => r.key === stored.key);
+          const was = base.rows.find((r) => r.key === stored.key);
+          const row = mine && was ? keepChange(mine, was, stored) : stored;
+          return { ...row, bullets: row.bullets.filter((b) => b.trim()) };
+        }),
+      });
+      baseRef.current = { rows, styles, textStyles };
       setSaved(true);
       markSaved();
       // The bar never leaves the screen, so the confirmation has to.
@@ -690,6 +714,10 @@ export default function TreatmentsForm({
                   <div>
                     <label className={fieldLabel}>&ldquo;Learn more&rdquo; link</label>
                     <input className={`${fieldInput} mt-1`} value={r.learnMoreHref ?? ""} onChange={(e) => update(i, { learnMoreHref: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={fieldLabel}>&ldquo;Learn more&rdquo; button text</label>
+                    <input className={`${fieldInput} mt-1`} value={r.learnMoreLabel ?? ""} placeholder="Learn More" onChange={(e) => update(i, { learnMoreLabel: e.target.value })} />
                   </div>
                 </div>
                 <p className="mt-2 text-[12px] leading-relaxed text-[#8a6100]">
