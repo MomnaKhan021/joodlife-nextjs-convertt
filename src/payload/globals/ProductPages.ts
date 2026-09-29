@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -18,7 +18,7 @@ export const ProductPages: GlobalConfig = {
     group: "Content",
     description: "Product page copy and the shop heading — edit in /cms/products.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections") },
   fields: [
     {
       name: "products",

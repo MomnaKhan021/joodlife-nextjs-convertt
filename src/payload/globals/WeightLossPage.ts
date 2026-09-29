@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -19,7 +19,7 @@ export const WeightLossPage: GlobalConfig = {
     group: "Content",
     description: "The weight loss page — edit in /cms/weight-loss.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections") },
   fields: [
     { name: "hero", type: "json", admin: { description: "Hero card." } },
     { name: "usp", type: "json", admin: { description: "Scrolling trust strip." } },
