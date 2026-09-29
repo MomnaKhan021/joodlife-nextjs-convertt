@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -19,7 +19,7 @@ export const WegovyPage: GlobalConfig = {
     group: "Content",
     description: "The Wegovy Pills landing page — edit in /cms/wegovy.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections") },
   fields: [
     { name: "announcement", type: "json", admin: { description: "Strip above the header." } },
     { name: "hero", type: "json", admin: { description: "Photo hero and its claims." } },

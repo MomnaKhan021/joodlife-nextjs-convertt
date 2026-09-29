@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { isAdmin } from "../access/isAdmin";
+import { canWriteCms, userCanWriteCms } from "../access/canWriteCms";
 import { blogCmsEnabled } from "@/lib/cmsFlags";
 
 /**
@@ -21,7 +22,8 @@ import { blogCmsEnabled } from "@/lib/cmsFlags";
  *
  * Access:
  *   - read: published posts are public; drafts admin-only
- *   - create/update/delete: admin-only
+ *   - create/update: admin or staff granted the owning CMS section
+ *   - delete: admin-only
  */
 export const Posts: CollectionConfig = {
   slug: "posts",
@@ -35,11 +37,11 @@ export const Posts: CollectionConfig = {
   access: {
     // Public read for published posts; admins see everything.
     read: ({ req: { user } }) => {
-      if (user?.role === "admin") return true;
+      if (userCanWriteCms(user, ["content"])) return true;
       return { status: { equals: "published" } };
     },
-    create: isAdmin,
-    update: isAdmin,
+    create: canWriteCms("content"),
+    update: canWriteCms("content"),
     delete: isAdmin,
   },
   hooks: {

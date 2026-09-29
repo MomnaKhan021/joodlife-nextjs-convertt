@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -28,7 +28,7 @@ export const Header: GlobalConfig = {
     group: "Content",
     description: "Top navigation. Leave empty to use the built-in defaults.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-navigation") },
   fields: [
     {
       name: "navLinks",
@@ -98,7 +98,7 @@ export const Footer: GlobalConfig = {
     group: "Content",
     description: "Footer links and contact details.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-navigation") },
   fields: [
     {
       name: "joodLinks",

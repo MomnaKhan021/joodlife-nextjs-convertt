@@ -45,8 +45,8 @@ export const SECTIONS: { key: SectionKey; label: string; href: string; descripti
   { key: "discounts", label: "Discounts", href: "/admin-tools/data-browser?type=discounts", description: "Manage discount codes" },
   { key: "content", label: "Content", href: "/admin-tools/data-browser?type=posts", description: "Blog posts & media" },
   { key: "cms-pages", label: "CMS — Pages", href: "/cms/pages", description: "Create & edit site pages" },
-  { key: "cms-navigation", label: "CMS — Header & Footer", href: "/cms/navigation", description: "Site navigation & footer content" },
-  { key: "cms-sections", label: "CMS — Page sections", href: "/cms/sections", description: "Home & landing page section content" },
+  { key: "cms-navigation", label: "CMS — Header & Footer", href: "/cms/header", description: "Site navigation & footer content" },
+  { key: "cms-sections", label: "CMS — Page sections", href: "/cms/home", description: "Home & landing page section content" },
 ];
 
 export const SECTION_KEYS = SECTIONS.map((s) => s.key);

@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -19,7 +19,7 @@ export const BlogCategories: GlobalConfig = {
     group: "Content",
     description: "Blog categories — edit in /cms/blog-categories.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("content") },
   fields: [
     {
       name: "items",

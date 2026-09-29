@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -18,7 +18,7 @@ export const EdPage: GlobalConfig = {
     group: "Content",
     description: "The erectile dysfunction page — edit in /cms/ed.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections") },
   fields: [
     { name: "hero", type: "json", admin: { description: "Photo hero banner." } },
     { name: "reviews", type: "json", admin: { description: "Patient review wall." } },

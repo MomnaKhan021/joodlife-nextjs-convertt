@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { isAdmin } from "../access/isAdmin";
+import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
@@ -17,7 +17,7 @@ export const Support: GlobalConfig = {
     group: "Content",
     description: "The Support page — hero, FAQs and success stories.",
   },
-  access: { read: isPublic, update: isAdmin },
+  access: { read: isPublic, update: canWriteCms("cms-sections") },
   fields: [
     {
       name: "hero",
