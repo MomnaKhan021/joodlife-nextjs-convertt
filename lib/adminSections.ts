@@ -112,6 +112,13 @@ export function sectionForPath(
   if (p === "/admin-tools") return "home";
   if (p.startsWith("/admin-tools/analytics")) return "analytics";
   if (p.startsWith("/admin-tools/clinical-queue")) return "clinical";
+  // Rejected consultations and abandoned checkouts are clinical follow-up
+  // work: the sidebar (AdminShell NAV) files both under "clinical", so the
+  // guard must agree. An unmapped path is treated as admin-only, which used
+  // to bounce staff off these two pages on every full refresh even though a
+  // click had let them in. Keep this list in step with the sidebar's hrefs.
+  if (p.startsWith("/admin-tools/rejected")) return "clinical";
+  if (p.startsWith("/admin-tools/marketing-queue")) return "clinical";
   if (p.startsWith("/admin-tools/dispensing-queue")) return "dispensing";
   if (p.startsWith("/admin-tools/dispatching")) return "dispatching";
   if (p.startsWith("/admin-tools/inventory")) return "inventory";
