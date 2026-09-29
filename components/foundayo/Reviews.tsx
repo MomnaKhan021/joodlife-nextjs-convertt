@@ -18,6 +18,8 @@ export default async function Reviews() {
       reviews={items.length ? items : undefined}
       trustpilotScore={trustpilotScore}
       trustpilotUrl={trustpilotUrl}
+      // The Figma sets the intro in regular weight (the home page uses semibold).
+      text={{ reviewsIntro: { weight: "regular" } }}
     />
   );
 }

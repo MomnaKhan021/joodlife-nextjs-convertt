@@ -43,8 +43,8 @@ export default function HowItWorks() {
           </Reveal>
 
           {/* tablet + callouts */}
-          <div className="relative mx-auto mt-4 w-full max-w-[1000px]" style={{ minHeight: 320 }}>
-            <div className="relative mx-auto aspect-square w-[62%] max-w-[560px] md:w-[56%]">
+          <div className="relative mx-auto mt-2 w-full max-w-[1000px] py-5 md:mt-4 md:min-h-[320px] md:py-0">
+            <div className="relative mx-auto aspect-square w-[58%] max-w-[560px] md:w-[56%]">
               <Image src={c.image} alt="Foundayo tablet" fill sizes="(max-width:768px) 62vw, 560px" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" />
             </div>
             {CALLOUTS.map((k, i) => (

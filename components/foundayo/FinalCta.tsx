@@ -33,7 +33,7 @@ export default function FinalCta() {
                 />
               </div>
               <div className="relative order-1 h-[280px] w-full md:order-2 md:h-[300px]">
-                <Image src={c.image} alt={c.imageAlt} fill sizes="(max-width:768px) 100vw, 400px" quality={92} className="object-contain object-bottom md:object-[60%_bottom]" />
+                <Image src={c.image} alt={c.imageAlt} fill sizes="(max-width:768px) 100vw, 400px" quality={90} className="object-contain object-bottom md:object-[60%_bottom]" />
               </div>
               <div className="relative z-10 order-3 hidden md:flex md:items-center">
                 <EligibilityCta
