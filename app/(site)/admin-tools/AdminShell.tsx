@@ -325,9 +325,11 @@ export default function AdminShell({
       ? NAV
       : NAV.filter((n) => n.section && permissions.includes(n.section));
 
-  // Close the mobile drawer on navigation.
+  // Close the mobile drawer on navigation. Deferred a microtask so it isn't a
+  // synchronous setState in the effect body (react-hooks/set-state-in-effect);
+  // the drawer simply closes a tick later, which is imperceptible.
   useEffect(() => {
-    setOpen(false);
+    queueMicrotask(() => setOpen(false));
   }, [pathname, type]);
 
   async function logout() {
@@ -368,6 +370,12 @@ export default function AdminShell({
           <Link
             key={item.label}
             href={item.href}
+            // Staff switch between sections a lot; pushing each onto history
+            // meant Back walked through every switch instead of returning to
+            // their profile. Replacing keeps one admin entry, so the single
+            // push (profile -> admin) stays underneath and Back -> profile.
+            // Admins keep normal history.
+            replace={role === "staff"}
             className={`flex items-center gap-3 rounded-[8px] px-3 py-2 text-[14px] font-medium transition-colors ${
               active
                 ? "bg-[#ebebeb] text-[#1a1a1a]"
