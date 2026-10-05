@@ -106,7 +106,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const expected = process.env.REPORT_API_TOKEN ?? "";
+  // Trimmed: a value pasted into Vercel can carry a trailing newline or
+  // space, which would otherwise make the correct token never match.
+  const expected = (process.env.REPORT_API_TOKEN ?? "").trim();
   if (expected.length < MIN_TOKEN_LENGTH) {
     return reply({ ok: false, error: "The reporting API is not configured." }, 503);
   }
