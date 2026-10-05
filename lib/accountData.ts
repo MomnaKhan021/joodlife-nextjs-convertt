@@ -72,7 +72,7 @@ export type OrderSummary = {
  * the column holds a JSON array, a JSON object, or (from the HubSpot sync) a
  * plain "Name (dose) x2, …" string, so all three shapes are handled.
  */
-function parseItems(raw: unknown): OrderItem[] {
+export function parseItems(raw: unknown): OrderItem[] {
   let val: unknown = raw;
   if (typeof raw === "string") {
     try {
