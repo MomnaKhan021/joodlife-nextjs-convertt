@@ -29,7 +29,8 @@ export const DEFAULT_ANNOUNCEMENT = {
   announcementBadge: "New",
   announcementText:
     "Foundayo® (oral tirzepatide) – a new tablet option for weight management is now available",
-  announcementHref: "/wegovy-pills",
+  // The notice is about the daily tablet, which now has its own landing page.
+  announcementHref: "/foundayo",
   announcementHidden: false,
 };
 
