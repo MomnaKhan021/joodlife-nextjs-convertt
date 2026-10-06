@@ -84,7 +84,7 @@ export default function HowItWorks() {
     <section aria-label="How GLP-1 works" className="w-full bg-white">
       <div className="relative w-full overflow-hidden bg-[#c9694f] md:rounded-[30px]">
         {/* Figma fills this band with a textured terracotta photo, not a flat gradient. */}
-        <Image src={c.background} alt="" aria-hidden fill sizes="100vw" className="object-cover object-center" />
+        <Image src={c.background} alt="" aria-hidden fill sizes="100vw" className="object-cover object-center" quality={90} />
         <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-4 pb-[46px] pt-[60px] md:px-10 md:pb-[60px] md:pt-[62px] lg:px-[60px]">
           <Reveal as="div" className="mx-auto max-w-[600px] text-center">
             <h2 className={`${H2} text-white`}>
@@ -104,7 +104,7 @@ export default function HowItWorks() {
               style={{ left: pct(DESKTOP.tablet.x, DESKTOP.W), top: 0, width: pct(DESKTOP.tablet.w, DESKTOP.W), height: "100%" }}
             >
               <div className="fnd-float relative h-full w-full">
-                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="546px" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" />
+                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="546px" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" quality={90} />
               </div>
             </Reveal>
             <Layer box={DESKTOP} items={D} labels={c.callouts} prefix="d" textClass="font-ui text-[25px] font-medium leading-[25.6px] tracking-[-0.5px]" />
@@ -117,7 +117,7 @@ export default function HowItWorks() {
               style={{ left: pct(MOBILE.tablet.x, MOBILE.W), top: pct(MOBILE.tablet.y, MOBILE.H), width: pct(MOBILE.tablet.w, MOBILE.W), height: pct(MOBILE.tablet.h, MOBILE.H) }}
             >
               <div className="fnd-float relative h-full w-full">
-                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="70vw" className="object-contain drop-shadow-[0_20px_40px_rgba(90,30,20,0.35)]" />
+                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="70vw" className="object-contain drop-shadow-[0_20px_40px_rgba(90,30,20,0.35)]" quality={90} />
               </div>
             </Reveal>
             <Layer box={MOBILE} items={M} labels={c.callouts} prefix="m" textClass="font-ui text-[16px] font-medium leading-[19.2px] tracking-[-0.5px]" />

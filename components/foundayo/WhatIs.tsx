@@ -27,8 +27,7 @@ function Card({ c }: { c: FoundayoCard }) {
           alt={c.alt}
           fill
           sizes="(max-width:768px) 334px, 426px"
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        />
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" quality={90} />
         {c.badge ? (
           // Sits exactly over the badge baked into the art (x 264, y 110 of
           // 426×416) and is wider, so "↓ Supported" reads in full — the

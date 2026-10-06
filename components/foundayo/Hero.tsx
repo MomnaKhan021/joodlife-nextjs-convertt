@@ -5,8 +5,10 @@ import { FOUNDAYO } from "@/lib/foundayoContent";
 import { BODY, BTN_WHITE } from "./type";
 
 /**
- * Hero — Figma 2003:1228 (desktop, 749px under the header) and 2003:564
- * (mobile, 607px). Full-bleed photo, copy in white on the left:
+ * Hero — from Figma 2003:1228 / 2003:564, but shorter than the frames
+ * (749 / 607px) at the client's request: 640px desktop, 520px mobile.
+ * Full-bleed photo, copy in white on the left over a dark wash that is
+ * heaviest on the left and along the bottom so the text always reads:
  * 50/55 headline (32/35.2 mobile), 18.3/23.8 intro (16/20.8 mobile),
  * Trustpilot row, 372×50 white CTA (full width on mobile), reassurance
  * line and three ticked bullets.
@@ -24,31 +26,40 @@ export default function Hero() {
   return (
     <section
       aria-label="Weight loss tablet — tried every diet?"
-      className="relative flex min-h-[607px] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[749px] md:items-center"
+      className="relative flex min-h-[520px] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[600px] md:items-center lg:min-h-[640px]"
     >
-      <div className="fnd-kenburns absolute inset-0">
+      {/* Static photo: the old slow zoom (transform: scale) made the browser
+          rasterise the image once and stretch it, which read as blur. */}
+      <div className="absolute inset-0">
         <Image
           src={c.image}
           alt={c.imageAlt}
           fill
           priority
+          quality={95}
           sizes="100vw"
           className="object-cover object-[72%_center] md:object-[center_35%]"
         />
       </div>
-      {/* legibility wash — heavier on mobile, where the copy sits over the photo */}
+      {/* Legibility wash. Mobile: the copy sits at the bottom, so darken from
+          mid-frame down. Desktop: a left-to-right wash behind the copy plus a
+          lighter one along the bottom edge. */}
       <div
         aria-hidden
         className="absolute inset-0 md:hidden"
-        style={{ background: "linear-gradient(180deg, rgba(40,25,20,0.15) 0%, rgba(40,25,20,0.45) 35%, rgba(40,25,20,0.7) 100%)" }}
+        style={{ background: "linear-gradient(180deg, rgba(30,18,14,0.1) 0%, rgba(30,18,14,0.4) 32%, rgba(30,18,14,0.82) 62%, rgba(30,18,14,0.92) 100%)" }}
       />
       <div
         aria-hidden
         className="absolute inset-0 hidden md:block"
-        style={{ background: "linear-gradient(90deg, rgba(35,22,18,0.55) 0%, rgba(35,22,18,0.35) 32%, rgba(35,22,18,0.05) 58%, rgba(35,22,18,0) 75%)" }}
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(30,18,14,0.78) 0%, rgba(30,18,14,0.64) 26%, rgba(30,18,14,0.32) 50%, rgba(30,18,14,0) 70%), " +
+            "linear-gradient(180deg, rgba(30,18,14,0) 60%, rgba(30,18,14,0.45) 100%)",
+        }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-[22px] pt-10 md:px-10 md:py-[110px] lg:px-[60px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-[22px] pt-10 md:px-10 md:py-[60px] lg:px-[60px]">
         <div className="max-w-[372px] md:max-w-[540px]">
           <Reveal delay={60}>
             <h1 className="text-white">

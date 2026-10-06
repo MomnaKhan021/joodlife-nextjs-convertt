@@ -26,7 +26,7 @@ export default function RealResults() {
       <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 px-4 py-[30px] md:px-10 md:py-20 lg:grid-cols-2 lg:px-[60px]">
         <Reveal as="div" className="h-full">
           <div className="fnd-lift relative flex h-full flex-col gap-4 overflow-hidden rounded-xl bg-[#4a4074] px-2 pb-2 pt-[30px] md:min-h-[763px] md:gap-8 md:px-5 md:pb-10 md:pt-10">
-            <Image src={c.bokeh} alt="" fill aria-hidden sizes="(max-width:1024px) 100vw, 650px" className="object-cover object-center" />
+            <Image src={c.bokeh} alt="" fill aria-hidden sizes="(max-width:1024px) 100vw, 650px" className="object-cover object-center" quality={90} />
             <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(60,90,55,0.15) 0%, rgba(40,70,45,0.35) 60%, rgba(25,60,55,0.65) 100%)" }} />
 
             <h2 className={`${H2} relative px-2 text-white md:px-0`}>
@@ -63,7 +63,7 @@ export default function RealResults() {
 
         <Reveal as="div" delay={120} className="h-full">
           <div className="fnd-lift relative h-[500px] overflow-hidden rounded-xl md:h-full md:min-h-[763px]">
-            <Image src={c.photo} alt={c.photoAlt} fill sizes="(max-width:1024px) 100vw, 650px" className="object-cover object-[center_20%]" />
+            <Image src={c.photo} alt={c.photoAlt} fill sizes="(max-width:1024px) 100vw, 650px" className="object-cover object-[center_20%]" quality={90} />
             <div className="absolute inset-x-2 bottom-2 rounded-xl bg-[#5a3d2c]/55 px-5 py-5 backdrop-blur-[42px] md:inset-x-5 md:bottom-10 md:flex md:items-start md:gap-6 md:p-5">
               <IconCircle>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3c-4 3-7 6.5-7 10.5A7 7 0 0 0 12 21a7 7 0 0 0 7-7.5C19 9.5 16 6 12 3z" fill="#142e2a" /><path d="M12 20V10M12 14l-3-3M12 17l3-3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" /></svg>

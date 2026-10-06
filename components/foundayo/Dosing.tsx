@@ -78,7 +78,7 @@ export default function Dosing() {
 
           <Reveal as="div" delay={100} className="hidden lg:block">
             <div className="relative ml-auto aspect-[561/513] w-full max-w-[561px]">
-              <Image src={c.image} alt={c.imageAlt} fill sizes="561px" className="object-contain object-right" />
+              <Image src={c.image} alt={c.imageAlt} fill sizes="561px" className="object-contain object-right" quality={90} />
             </div>
           </Reveal>
         </div>

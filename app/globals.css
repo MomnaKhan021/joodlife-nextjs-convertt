@@ -192,16 +192,6 @@ a[href] {
   }
 }
 
-/* Slow "Ken Burns" drift for the hero photo — gives the fold gentle life. */
-@keyframes fnd-kenburns {
-  from { transform: scale(1.08); }
-  to { transform: scale(1); }
-}
-.fnd-kenburns {
-  animation: fnd-kenburns 9s ease-out both;
-  will-change: transform;
-}
-
 /* Floating drift for the "How it works" tablet. */
 @keyframes fnd-float {
   0%, 100% { transform: translate3d(0, 0, 0); }
