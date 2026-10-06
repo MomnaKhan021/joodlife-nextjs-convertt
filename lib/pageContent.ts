@@ -33,6 +33,12 @@ import {
 
 export * from "@/lib/pageContentTypes";
 
+const LEGACY_TABLET_NOTICE_HREF = "/wegovy-pills";
+/** See the announcementHref note in getHomeContent. */
+function upgradeAnnouncementHref(href: string): string {
+  return href.trim() === LEGACY_TABLET_NOTICE_HREF ? "/foundayo" : href;
+}
+
 export async function getHomeContent(): Promise<HomeContent> {
   try {
     const payload = await getPayloadInstance();
@@ -53,9 +59,12 @@ export async function getHomeContent(): Promise<HomeContent> {
         doc?.announcementText,
         DEFAULT_ANNOUNCEMENT.announcementText,
       ),
-      announcementHref: str(
-        doc?.announcementHref,
-        DEFAULT_ANNOUNCEMENT.announcementHref,
+      // The tablet notice was saved in the CMS pointing at /wegovy-pills on
+      // 25 Sep 2026, before the tablet had its own page. That one stored value
+      // is read as the pre-/foundayo link and sent to /foundayo; any other
+      // saved link is honoured as-is. Remove once the CMS value is updated.
+      announcementHref: upgradeAnnouncementHref(
+        str(doc?.announcementHref, DEFAULT_ANNOUNCEMENT.announcementHref),
       ),
       // A checkbox is a real boolean, so no string fallback here.
       announcementHidden: Boolean(doc?.announcementHidden),
