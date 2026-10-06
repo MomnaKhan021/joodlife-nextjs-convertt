@@ -46,7 +46,40 @@ type OrderRow = {
   created_at: string | null;
   /** History-aware supply type from the server (record route). */
   is_reorder?: boolean | string | null;
+  /** Ad attribution, matched from the customer's consultation (record route).
+   *  null/undefined = no tracked campaign found for this customer. */
+  acquisition?: {
+    utm?: Record<string, string> | null;
+    journey?: {
+      firstSource?: string;
+      convertedSource?: string;
+      totalSessions?: number;
+      daysToConversion?: number;
+      sessions?: { src?: string; med?: string; camp?: string; cont?: string; land?: string; at?: string }[];
+    } | null;
+  } | null;
 };
+
+/** Derive a readable ad-source summary from the order's attribution. */
+function acquisitionSummary(acq: OrderRow["acquisition"]) {
+  const utm = acq?.utm ?? undefined;
+  const j = acq?.journey ?? undefined;
+  const lastMed = j?.sessions?.[j.sessions.length - 1]?.med;
+  const source =
+    j?.convertedSource || j?.firstSource || utm?.utm_source ||
+    (utm?.fbclid ? "Facebook" : utm?.gclid ? "Google" : "");
+  const medium = utm?.utm_medium || lastMed || (utm?.fbclid ? "paid" : utm?.gclid ? "cpc" : "");
+  const campaign = utm?.utm_campaign || "";
+  const content = utm?.utm_content || "";
+  const sessions = j?.totalSessions ?? j?.sessions?.length ?? 0;
+  const days = j?.daysToConversion ?? 0;
+  const paid =
+    /^(paid|cpc|ppc|display|paid[\s_-]?social)$/i.test(medium) || !!utm?.fbclid || !!utm?.gclid;
+  const clickId = utm?.fbclid ? "Meta (fbclid)" : utm?.gclid ? "Google (gclid)" : "";
+  const title = (v: string) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : v);
+  const hasData = !!(source || campaign || content || (utm && Object.keys(utm).length));
+  return { source: title(source), medium, campaign, content, sessions, days, paid, clickId, hasData };
+}
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -893,6 +926,70 @@ export default function OrderDetailClient({ id }: { id: string }) {
                 <p className="text-[13px] text-[#142e2a]">JoodLife</p>
               </div>
             </Card>
+
+            {/* Acquisition — where this order came from (ad / campaign) */}
+            {(() => {
+              const a = acquisitionSummary(order.acquisition);
+              return (
+                <Card>
+                  <div className="px-5 py-4">
+                    <h2 className="text-[14px] font-semibold">Acquisition</h2>
+                    {a.hasData ? (
+                      <>
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-[13px] font-medium text-[#142e2a]">
+                            {a.source || "Unknown source"}
+                            {a.medium ? <span className="text-[#616161]"> · {a.medium}</span> : null}
+                          </span>
+                          {a.paid ? (
+                            <span className="rounded-full bg-[#dff2e4] px-2 py-0.5 text-[11px] font-semibold text-[#146c43]">
+                              Paid ad
+                            </span>
+                          ) : null}
+                        </div>
+                        <dl className="mt-3 flex flex-col gap-1.5">
+                          {a.campaign ? (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-[12px] text-[#616161]">Campaign</dt>
+                              <dd className="text-[12px] text-[#142e2a] text-right">{a.campaign}</dd>
+                            </div>
+                          ) : null}
+                          {a.content ? (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-[12px] text-[#616161]">Ad / content</dt>
+                              <dd className="text-[12px] text-[#142e2a] text-right">{a.content}</dd>
+                            </div>
+                          ) : null}
+                          {a.clickId ? (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-[12px] text-[#616161]">Click ID</dt>
+                              <dd className="text-[12px] text-[#142e2a] text-right">{a.clickId} ✓</dd>
+                            </div>
+                          ) : null}
+                          {a.sessions ? (
+                            <div className="flex justify-between gap-3">
+                              <dt className="text-[12px] text-[#616161]">Journey</dt>
+                              <dd className="text-[12px] text-[#142e2a] text-right">
+                                {a.sessions} session{a.sessions === 1 ? "" : "s"}
+                                {a.days ? ` over ${a.days} day${a.days === 1 ? "" : "s"}` : ""}
+                              </dd>
+                            </div>
+                          ) : null}
+                        </dl>
+                        <p className="mt-3 text-[11px] leading-[15px] text-[#9a9a9a]">
+                          From the customer&rsquo;s consultation. Full journey is in Clinical Check.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-[12px] leading-[16px] text-[#616161]">
+                        No tracked ad source — this customer&rsquo;s visit wasn&rsquo;t tagged with a
+                        campaign or ad click (counts as Direct), or they have no consultation on record yet.
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              );
+            })()}
 
             {/* Customer */}
             <Card>

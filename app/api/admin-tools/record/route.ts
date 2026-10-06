@@ -687,6 +687,36 @@ export async function GET(req: NextRequest) {
         /* non-fatal — the tag falls back to the order-number heuristic */
       }
     }
+    // Ad attribution for the order page. The campaign/journey that drove a
+    // patient is captured at consultation submit (answers._utm / ._journey by
+    // components/analytics/UtmCapture), not on the order. Surface it here by
+    // matching the order's customer email to their most recent consultation
+    // that carries attribution, so the order page can show where it came from.
+    if (row && type === "orders") {
+      try {
+        const email = typeof row.customer_email === "string" ? row.customer_email.trim() : "";
+        if (email) {
+          const aRes = await drizzle.execute(
+            sql.raw(
+              `SELECT answers -> '_utm' AS utm, answers -> '_journey' AS journey
+                 FROM "consultations"
+                WHERE LOWER(email) = LOWER(${esc(email)})
+                  AND ((answers ->> '_utm') IS NOT NULL OR (answers ->> '_journey') IS NOT NULL)
+                ORDER BY created_at DESC NULLS LAST, id DESC
+                LIMIT 1`,
+            ),
+          );
+          const a = readRows<{ utm?: unknown; journey?: unknown }>(aRes)[0];
+          if (a && (a.utm || a.journey)) {
+            row.acquisition = { utm: a.utm ?? null, journey: a.journey ?? null };
+          } else {
+            row.acquisition = null;
+          }
+        }
+      } catch {
+        /* attribution is best-effort — never block the order load */
+      }
+    }
     return NextResponse.json({
       ok: true,
       row,
