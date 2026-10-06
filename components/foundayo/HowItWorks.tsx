@@ -2,83 +2,137 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import EligibilityCta from "@/components/ui/EligibilityCta";
 import { FOUNDAYO } from "@/lib/foundayoContent";
+import { ACCENT, BODY, BTN_DARK, BTN_TEXT, H2 } from "./type";
 
 /**
- * "How does foundayo work?" — full-bleed terracotta band (edge to edge on
- * every viewport) with the half-glitter tablet floating in the middle and
- * four callouts joined to it by right-angle connectors. Content is capped at
- * 1440px inside so text stays readable on wide screens.
+ * "How does GLP-1 work?" — Figma 2003:1441 (1440×898, 30px corners) and
+ * 2003:759 (mobile). Terracotta band, the half-glitter tablet in the middle
+ * with four callouts on right-angle connectors.
+ *
+ * The callout layer is a box laid out in Figma coordinates — desktop
+ * 1048×516 (the tablet's height, from x=196 in the frame), mobile 390×345 —
+ * and every element is placed in percentages of it, so the layout scales
+ * with the band instead of drifting off the tablet. Callouts 25/25.6
+ * desktop, 16/19.2 mobile.
  */
-const Line = ({ d, w, h, dot }: { d: string; w: number; h: number; dot: [number, number] }) => (
-  <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" className="block" aria-hidden>
-    <path d={d} stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx={dot[0]} cy={dot[1]} r="2.5" fill="white" />
-  </svg>
-);
+type Edge = "tl" | "tr" | "bl" | "br";
+type Conn = { x: number; y: number; w: number; h: number; borders: string; dot: Edge };
+type Callout = { x: number; y: number; w: number; conn: Conn };
 
-const CALLOUTS = [
-  { pos: "left-[16%] top-[22%]", mPos: "left-[2%] top-[20%]", align: "items-start text-left", after: true,
-    d: <Line d="M1 2 V32 H188" w={200} h={46} dot={[188, 32]} />, m: <Line d="M1 2 V22 H88" w={100} h={32} dot={[88, 22]} /> },
-  { pos: "right-[14%] top-[22%]", mPos: "right-[2%] top-[20%]", align: "items-end text-right", after: true,
-    d: <Line d="M199 2 V32 H12" w={200} h={46} dot={[12, 32]} />, m: <Line d="M99 2 V22 H12" w={100} h={32} dot={[12, 22]} /> },
-  { pos: "left-[16%] bottom-[16%]", mPos: "left-[2%] bottom-[14%]", align: "items-start text-left", after: false,
-    d: <Line d="M1 44 V14 H188" w={200} h={46} dot={[188, 14]} />, m: <Line d="M1 30 V10 H88" w={100} h={32} dot={[88, 10]} /> },
-  { pos: "right-[14%] bottom-[16%]", mPos: "right-[2%] bottom-[14%]", align: "items-end text-right", after: false,
-    d: <Line d="M199 44 V14 H12" w={200} h={46} dot={[12, 14]} />, m: <Line d="M99 30 V10 H12" w={100} h={32} dot={[12, 10]} /> },
+// Desktop box 1048×516. Connector borders draw the right angle; dot marks the
+// end that touches the tablet.
+const DESKTOP = { W: 1048, H: 516, tablet: { x: 264, y: 0, w: 546, h: 516 } };
+const D: Callout[] = [
+  { x: 0, y: 67, w: 156, conn: { x: 0, y: 127, w: 235, h: 30, borders: "border-l border-b", dot: "br" } },
+  { x: 891, y: 74, w: 157, conn: { x: 769, y: 97, w: 114, h: 30, borders: "border-t border-l", dot: "bl" } },
+  { x: 0, y: 417, w: 248, conn: { x: 0, y: 379, w: 234, h: 30, borders: "border-l border-t", dot: "tr" } },
+  { x: 891, y: 417, w: 157, conn: { x: 767, y: 379, w: 134, h: 30, borders: "border-t border-r", dot: "tl" } },
 ];
+// Mobile box 390×345 (full frame width).
+const MOBILE = { W: 390, H: 345, tablet: { x: 60, y: 18, w: 270, h: 268 } };
+const M: Callout[] = [
+  { x: 20, y: 28, w: 89, conn: { x: 20, y: 73, w: 77, h: 30, borders: "border-l border-b", dot: "br" } },
+  { x: 280, y: 4, w: 98, conn: { x: 222, y: 22, w: 51, h: 25, borders: "border-t border-l", dot: "bl" } },
+  { x: 20, y: 305, w: 120, conn: { x: 20, y: 261, w: 107, h: 46, borders: "border-l border-t", dot: "tr" } },
+  { x: 280, y: 295, w: 98, conn: { x: 298, y: 238, w: 37, h: 47, borders: "border-t border-r", dot: "tl" } },
+];
+
+const DOT: Record<Edge, string> = {
+  tl: "-left-[3.5px] -top-[3.5px]",
+  tr: "-right-[3.5px] -top-[3.5px]",
+  bl: "-left-[3.5px] -bottom-[3.5px]",
+  br: "-right-[3.5px] -bottom-[3.5px]",
+};
+const pct = (v: number, of: number) => `${(v / of) * 100}%`;
+
+function Layer({ box, items, labels, textClass, prefix }: {
+  box: typeof DESKTOP;
+  items: Callout[];
+  labels: string[];
+  textClass: string;
+  prefix: string;
+}) {
+  return (
+    <>
+      {items.map((k, i) => (
+        <Reveal key={`${prefix}${i}`} as="div" delay={200 + i * 120} className="absolute inset-0">
+          <span
+            aria-hidden
+            className={`absolute border-white ${k.conn.borders}`}
+            style={{ left: pct(k.conn.x, box.W), top: pct(k.conn.y, box.H), width: pct(k.conn.w, box.W), height: pct(k.conn.h, box.H) }}
+          >
+            <span className={`absolute h-[7px] w-[7px] rounded-full bg-white ${DOT[k.conn.dot]}`} />
+          </span>
+          <p
+            className={`absolute whitespace-pre-line text-white ${textClass}`}
+            style={{ left: pct(k.x, box.W), top: pct(k.y, box.H), width: k.w }}
+          >
+            {labels[i]}
+          </p>
+        </Reveal>
+      ))}
+    </>
+  );
+}
 
 export default function HowItWorks() {
   const c = FOUNDAYO.howItWorks;
   return (
-    <section aria-label="How Foundayo works" className="w-full bg-white py-[30px] md:py-10">
-      {/* Full-bleed terracotta band */}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ background: "radial-gradient(120% 90% at 50% 55%, #e68d72 0%, #d3735a 45%, #b3533d 100%)" }}
-      >
-        <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-5 py-12 md:px-10 md:py-[70px] lg:px-[60px]">
-          <Reveal as="div" className="mx-auto max-w-[640px] text-center">
-            <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-[48px] md:leading-[52px]">
-              {c.heading} <em className="font-serif font-normal italic">{c.headingAccent}</em>
+    <section aria-label="How GLP-1 works" className="w-full bg-white">
+      <div className="relative w-full overflow-hidden bg-[#c9694f] md:rounded-[30px]">
+        {/* Figma fills this band with a textured terracotta photo, not a flat gradient. */}
+        <Image src={c.background} alt="" aria-hidden fill sizes="100vw" className="object-cover object-center" />
+        <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-4 pb-[46px] pt-[60px] md:px-10 md:pb-[60px] md:pt-[62px] lg:px-[60px]">
+          <Reveal as="div" className="mx-auto max-w-[600px] text-center">
+            <h2 className={`${H2} text-white`}>
+              {c.heading}
+              <br className="md:hidden" /> <em className={ACCENT}>{c.headingAccent}</em>
             </h2>
-            <p className="mx-auto mt-3 max-w-[560px] font-ui text-[13.5px] leading-[19px] text-white/90 md:mt-4 md:text-[15px] md:leading-[22px]">{c.intro}</p>
+            <p className={`${BODY} mx-auto mt-[10px] max-w-[600px] text-white md:mt-3`}>{c.intro}</p>
           </Reveal>
 
-          {/* tablet + callouts */}
-          <div className="relative mx-auto mt-2 w-full max-w-[1000px] py-5 md:mt-4 md:min-h-[360px] md:py-0">
-            <Reveal className="relative mx-auto aspect-square w-[58%] max-w-[520px] md:w-[52%]">
-              <div className="fnd-float h-full w-full">
-                <Image src={c.image} alt="Foundayo tablet" fill sizes="(max-width:768px) 58vw, 520px" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" />
+          {/* Desktop: 1048×516 callout box */}
+          <div
+            className="relative mx-auto mt-4 hidden w-full max-w-[1048px] lg:block"
+            style={{ aspectRatio: `${DESKTOP.W} / ${DESKTOP.H}` }}
+          >
+            <Reveal
+              className="absolute"
+              style={{ left: pct(DESKTOP.tablet.x, DESKTOP.W), top: 0, width: pct(DESKTOP.tablet.w, DESKTOP.W), height: "100%" }}
+            >
+              <div className="fnd-float relative h-full w-full">
+                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="546px" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" />
               </div>
             </Reveal>
-            {CALLOUTS.map((k, i) => (
-              <Reveal as="div" key={i} delay={200 + i * 130} className={`absolute ${k.pos} hidden max-w-[220px] flex-col lg:flex ${k.align}`}>
-                {!k.after && k.d}
-                <p className="whitespace-pre-line font-ui text-[18px] font-semibold leading-[24px] text-white">{c.callouts[i]}</p>
-                {k.after && k.d}
-              </Reveal>
-            ))}
-            <div className="absolute inset-0 lg:hidden">
-              {CALLOUTS.map((k, i) => (
-                <Reveal as="div" key={`m-${i}`} delay={150 + i * 110} className={`absolute ${k.mPos} flex max-w-[120px] flex-col ${k.align}`}>
-                  {!k.after && k.m}
-                  <p className="whitespace-pre-line font-ui text-[11px] font-semibold leading-[14px] text-white sm:text-[13px] sm:leading-[17px]">{c.callouts[i]}</p>
-                  {k.after && k.m}
-                </Reveal>
-              ))}
-            </div>
+            <Layer box={DESKTOP} items={D} labels={c.callouts} prefix="d" textClass="font-ui text-[25px] font-medium leading-[25.6px] tracking-[-0.5px]" />
           </div>
 
-          <Reveal as="div" delay={120} className="mx-auto mt-6 max-w-[720px] text-center">
-            <p className="font-ui text-[12.5px] leading-[18px] text-white/90 md:text-[14px] md:leading-[20px]">{c.body}</p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          {/* Mobile / tablet: 390×345 callout box, full frame width */}
+          <div className="relative -mx-4 mt-4 lg:hidden" style={{ aspectRatio: `${MOBILE.W} / ${MOBILE.H}` }}>
+            <Reveal
+              className="absolute"
+              style={{ left: pct(MOBILE.tablet.x, MOBILE.W), top: pct(MOBILE.tablet.y, MOBILE.H), width: pct(MOBILE.tablet.w, MOBILE.W), height: pct(MOBILE.tablet.h, MOBILE.H) }}
+            >
+              <div className="fnd-float relative h-full w-full">
+                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="70vw" className="object-contain drop-shadow-[0_20px_40px_rgba(90,30,20,0.35)]" />
+              </div>
+            </Reveal>
+            <Layer box={MOBILE} items={M} labels={c.callouts} prefix="m" textClass="font-ui text-[16px] font-medium leading-[19.2px] tracking-[-0.5px]" />
+          </div>
+
+          <Reveal as="div" delay={120} className="mx-auto mt-6 max-w-[730px] text-center md:mt-[34px]">
+            <p className="font-ui text-[14px] leading-[16.8px] tracking-[-0.3px] text-white md:text-[16.3px] md:leading-[19.5px]">{c.body}</p>
+            <div className="mt-[22px] grid grid-cols-2 gap-[12px] md:mt-5 md:flex md:justify-center">
               <EligibilityCta
                 product="weight-loss"
                 href={c.ctaHref}
                 label={c.ctaLabel}
-                className="fnd-lift inline-flex h-[46px] items-center justify-center rounded-lg bg-[#142e2a] px-8 font-ui text-[14px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-[#0c2421] md:h-[50px] md:px-9"
+                className={`fnd-lift !h-[46px] !px-4 md:!h-[50px] md:w-[187px] ${BTN_DARK}`}
               />
-              <a href={c.secondaryHref} className="fnd-lift inline-flex h-[46px] items-center justify-center rounded-lg border border-white/50 px-8 font-ui text-[14px] font-semibold tracking-[-0.01em] text-white transition-colors hover:bg-white/10 md:h-[50px] md:px-9">
+              <a
+                href={c.secondaryHref}
+                className={`fnd-lift ${BTN_TEXT} inline-flex h-[46px] items-center justify-center rounded-lg border border-white bg-white/[0.06] px-4 text-white backdrop-blur-[33px] transition-colors hover:bg-white/15 md:h-[50px] md:w-[184px]`}
+              >
                 {c.secondaryLabel}
               </a>
             </div>

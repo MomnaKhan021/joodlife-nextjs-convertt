@@ -4,8 +4,10 @@ import ReviewsClient from "@/sections/home/ReviewsClient";
 import { FOUNDAYO } from "@/lib/foundayoContent";
 
 /**
- * "3000+ happy customers" — the shared Trustpilot slider (real, verified
- * reviews) under the Foundayo heading and intro from the Figma.
+ * "Loved for the support" — Figma 2003:1465. Uses the shared Trustpilot
+ * slider with the site's real, verified reviews rather than the design's
+ * sample cards: the design notes flag several of those cards as having no
+ * real review behind them, and only genuine reviews may be shown.
  */
 export default async function Reviews() {
   const { reviews, trustpilotScore, trustpilotUrl } = await getHomeContent();
@@ -18,8 +20,8 @@ export default async function Reviews() {
       reviews={items.length ? items : undefined}
       trustpilotScore={trustpilotScore}
       trustpilotUrl={trustpilotUrl}
-      // The Figma sets the intro in regular weight (the home page uses semibold).
-      text={{ reviewsIntro: { weight: "regular" } }}
+      // Figma sets the intro in medium (the home page uses semibold).
+      text={{ reviewsIntro: { weight: "medium" } }}
     />
   );
 }

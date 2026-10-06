@@ -1,5 +1,5 @@
 /**
- * Shared type scale for /weight-loss-tablet, taken from the Figma
+ * Shared type scale for /foundayo, taken from the Figma
  * (AFTER – Jood updated copy). Figma's stand-in fonts map to the site's:
  * DM Sans → font-ui, Outfit → font-display (Gilroy), Fraunces → font-serif
  * (ITC Clearface), as the design's own notes ask.

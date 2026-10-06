@@ -58,6 +58,9 @@ const nextConfig: NextConfig = {
       // built-in /admin chrome. Landing on /admin sends staff to the new
       // dashboard. (Deep Payload links like /admin/collections/* still work.)
       { source: "/admin", destination: "/admin-tools", permanent: false },
+      // The tablet landing page was briefly published at /weight-loss-tablet;
+      // its home is /foundayo, so keep any shared link working.
+      { source: "/weight-loss-tablet", destination: "/foundayo", permanent: true },
     ];
   },
   /**

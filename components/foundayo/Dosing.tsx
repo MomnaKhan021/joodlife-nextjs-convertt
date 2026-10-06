@@ -2,70 +2,83 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import EligibilityCta from "@/components/ui/EligibilityCta";
 import { FOUNDAYO } from "@/lib/foundayoContent";
+import { ACCENT, BODY, BTN_TEXT, H2, WRAP } from "./type";
 
 /**
- * "Foundayo pill dosing & pricing" — intro copy with the hand-and-tablet image
- * on the right, four dose cards on light pink, then the commit-and-save bar.
+ * "Simple dosing & pricing" — Figma 2003:1720 and the mobile frame.
+ * Copy column 616px wide: heading, intro, four 145×157 step cards (#fff8f6,
+ * 12px corners), the 616×98 commit-and-save bar; the hand-and-tablet image
+ * (561×513) sits on the right on desktop. Mobile: four narrow cards in a
+ * row with the "Start Here" tag, and the CTA full width inside the bar.
  */
 export default function Dosing() {
   const c = FOUNDAYO.dosing;
   return (
-    <section aria-label="Foundayo pill dosing and pricing" className="w-full bg-white py-[30px] md:py-10">
-      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-[60px]">
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
+    <section aria-label="Simple dosing and pricing" className="w-full bg-white py-[30px] md:py-20">
+      <div className={WRAP}>
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[616px_minmax(0,1fr)]">
           <div>
             <Reveal as="div">
-              <h2 className="font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#142e2a] md:text-[48px] md:leading-[52px]">
-                <span className="font-serif font-normal italic">{c.heading}</span> {c.headingAccent}
+              <h2 className={`${H2} text-[#142e2a]`}>
+                <span className={ACCENT}>{c.heading}</span>
+                <br className="md:hidden" /> {c.headingAccent}
               </h2>
-              <p className="mt-4 max-w-[640px] font-ui text-[14px] leading-[20px] text-[#142e2a]/75 md:text-[15px] md:leading-[22px]">{c.body}</p>
+              <p className={`${BODY} mt-[14px] max-w-[600px] text-[#142e2a] md:mt-6`}>{c.body}</p>
             </Reveal>
 
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
-              {c.doses.map((d, i) => (
-                <Reveal as="div" key={d.mg} delay={i * 110} className="fnd-lift relative flex flex-col items-center gap-1 rounded-2xl bg-[#fbf3ef] px-3 pb-5 pt-7 text-center">
+            <div className="mt-[22px] grid grid-cols-4 gap-[7px] md:mt-[41px] md:gap-3">
+              {c.steps.map((d, i) => (
+                <Reveal
+                  as="div"
+                  key={d.step}
+                  delay={i * 110}
+                  className="fnd-lift flex min-h-[115px] flex-col items-center rounded-xl bg-[#fff8f6] px-1 pb-[10px] pt-[10px] text-center text-black md:min-h-[157px] md:px-3 md:pb-[17px] md:pt-[17px]"
+                >
                   {d.start ? (
-                    <span className="absolute -top-2.5 rounded-full bg-[#142e2a] px-3 py-1 font-ui text-[10px] font-semibold text-[#b4ff9f]">
-                      {c.startBadge}
-                    </span>
-                  ) : null}
-                  <span className="font-display text-[22px] font-semibold leading-none text-[#142e2a] md:text-[24px]">{d.mg}</span>
-                  <span className="mt-1 font-ui text-[12px] text-[#142e2a]/70">{d.label}</span>
-                  <span className="font-ui text-[11px] text-[#142e2a]/55">{d.days}</span>
-                  <span className="mt-3 font-ui text-[14px] font-semibold text-[#142e2a]">
-                    {d.price}<span className="font-normal text-[#142e2a]/60">/mo</span>
+                    <>
+                      <span className="mb-1 rounded-full bg-[#142e2a] px-3 py-[3px] font-ui text-[8px] leading-[9.6px] text-white md:hidden">{c.startBadgeMobile}</span>
+                      <span className="mb-2 hidden rounded-full bg-[#142e2a] px-[10px] py-[3px] font-ui text-[12px] leading-[14.4px] text-white md:inline-block">{c.startBadge}</span>
+                    </>
+                  ) : (
+                    <span aria-hidden className="block h-[3px] md:h-0" />
+                  )}
+                  <span className="font-ui text-[14px] font-bold leading-[16.8px] tracking-[-0.3px] md:text-[24px] md:font-medium md:leading-[19.5px]">{d.step}</span>
+                  <span className="mt-1 font-ui text-[10px] leading-[12px] tracking-[-0.3px] md:mt-[10px] md:text-[12px] md:leading-[14.4px]">{d.label}</span>
+                  <span className="mt-[6px] font-display text-[10px] font-medium leading-[12px] tracking-[-0.3px] md:mt-[10px]">{d.days}</span>
+                  <span className="mt-auto pt-2 font-ui text-[14px] font-bold leading-[16.8px] tracking-[-0.3px] md:pt-[10px]">
+                    {d.price}<span className="font-normal">/mo</span>
                   </span>
                 </Reveal>
               ))}
             </div>
 
-            <Reveal as="div" delay={160} className="mt-4">
+            <Reveal as="div" delay={160} className="mt-3">
               <div
-                className="fnd-lift flex flex-col gap-4 rounded-2xl px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between"
-                style={{ background: "linear-gradient(90deg, #143b36 0%, #1d4b43 100%)" }}
+                className="fnd-lift flex flex-col gap-3 rounded-xl px-4 py-4 text-white md:min-h-[98px] md:flex-row md:items-center md:justify-between md:py-6"
+                style={{ background: "linear-gradient(110deg, #13302b 0%, #1d4038 55%, #3f6f66 100%)" }}
               >
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-35 12 12)" stroke="#fff" strokeWidth="1.8" /><path d="M9.5 7.5l5 9" stroke="#fff" strokeWidth="1.8" /></svg>
+                <div className="flex items-start gap-3 md:items-center">
+                  <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-full bg-white">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 12V4h8l10 10-8 8L3 12z" fill="#142e2a" /><circle cx="7.5" cy="8.5" r="1.6" fill="#fff" /></svg>
                   </span>
                   <div>
-                    <p className="font-ui text-[15px] font-semibold">{c.commitTitle}</p>
-                    <p className="font-ui text-[12px] text-white/80">{c.commitBody}</p>
+                    <p className="font-ui text-[16px] font-medium leading-[19.5px] tracking-[-0.3px]">{c.commitTitle}</p>
+                    <p className="mt-1 font-ui text-[12px] leading-[14.4px] tracking-[-0.3px] text-white/90">{c.commitBody}</p>
                   </div>
                 </div>
                 <EligibilityCta
                   product="weight-loss"
                   href={c.commitHref}
                   label={c.commitCta}
-                  className="inline-flex h-[44px] shrink-0 items-center justify-center rounded-lg bg-white px-6 font-ui text-[13px] font-semibold text-[#142e2a] transition-colors hover:bg-[#daffe0]"
+                  className={`${BTN_TEXT} ml-[50px] inline-flex h-8 items-center justify-center rounded-lg border border-[#d3dabe] bg-white !text-[12px] text-[#142e2a] transition-colors hover:bg-[#daffe0] md:ml-0 md:h-[50px] md:w-[192px] md:shrink-0 md:!text-[16.3px]`}
                 />
               </div>
             </Reveal>
           </div>
 
           <Reveal as="div" delay={100} className="hidden lg:block">
-            <div className="relative aspect-[440/400] w-full">
-              <Image src={c.image} alt={c.imageAlt} fill sizes="440px" className="object-contain object-right-top" />
+            <div className="relative ml-auto aspect-[561/513] w-full max-w-[561px]">
+              <Image src={c.image} alt={c.imageAlt} fill sizes="561px" className="object-contain object-right" />
             </div>
           </Reveal>
         </div>

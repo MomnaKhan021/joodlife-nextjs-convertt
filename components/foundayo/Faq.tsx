@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Reveal from "@/components/ui/Reveal";
-import { WLT } from "@/lib/weightLossTabletContent";
+import { FOUNDAYO } from "@/lib/foundayoContent";
 import { ACCENT, H2, WRAP } from "./type";
 
 /**
@@ -13,7 +13,7 @@ import { ACCENT, H2, WRAP } from "./type";
  * answer open, so they start open; each one still folds away on tap.
  */
 export default function Faq() {
-  const c = WLT.faq;
+  const c = FOUNDAYO.faq;
   const [firstWord, ...rest] = c.heading.split(" ");
   const restWords = rest.join(" ");
   const [closed, setClosed] = useState<Set<number>>(() => new Set());

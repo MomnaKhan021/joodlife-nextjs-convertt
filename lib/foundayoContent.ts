@@ -1,173 +1,209 @@
 /**
- * Copy, images and links for the Foundayo landing page at /foundayo.
+ * Copy, images and links for the Foundayo landing page at /foundayo (the
+ * Meta ads page; /weight-loss-tablet redirects here).
  *
- * Rebuilt from the "Foundayo Pill - Next Js" Figma (DpxIILKt2ILXaS3ksRHrop,
- * frame 1:1505 desktop + the mobile frame beside it). Kept in one file, in
- * page order, so the words can be checked and changed in one place. Client-
- * safe (no server imports).
+ * Built from the "Foundayo Pill - Next Js (Copy)" Figma, section
+ * "AFTER – Jood updated copy" (2003:559): desktop frame 2003:1227 and mobile
+ * frame 2003:560. The design's notes: the copy deliberately never names the
+ * medicine (UK rules on advertising prescription-only medicines), the page is
+ * noindex, and the GLP-1 wording, safety text and footer legal line need the
+ * superintendent pharmacist's sign-off.
  *
- * Regulated copy lives here: efficacy figures, MHRA status, dosing, pricing
- * and the safety notice. Change with care.
+ * Images are the same files as /foundayo (the AFTER design reuses every one).
+ * Prices match the live catalogue: tablet 0.8 / 2.5 / 5.5 / 9 mg at
+ * £99 / £109 / £129 / £149, weekly pen from £115.
+ *
+ * Where the mobile frame words a line differently, the `mobile` value is
+ * used below the md breakpoint. Regulated copy — change with care.
  */
 
 export const FOUNDAYO_ASSESS = "/consultation?product=weight-loss";
 
 const IMG = "/assets/foundayo";
+// Card art rendered from the Figma cards themselves (2x), so each matches
+// the design exactly — including card 3's chart line and card 4's tablet.
+const CARD = "/assets/foundayo";
 
-export type FoundayoCard = { title: string; body: string; image: string; alt: string; badge?: { top: string; value: string } };
+export type FoundayoCard = {
+  title: string;
+  body: string;
+  image: string;
+  alt: string;
+  badge?: { top: string; value: string };
+};
 export type FoundayoRow = { label: string; mark: "check" | "minus" };
-export type FoundayoDose = { mg: string; label: string; days: string; price: string; start: boolean };
+export type FoundayoStep = { step: string; label: string; days: string; price: string; start: boolean };
 export type FoundayoFaq = { q: string; a: string };
 
 import type { UspIcon } from "@/lib/wegovyContentTypes";
 
 export const FOUNDAYO = {
-  announcement: { badge: "New Foundayo Pills", text: "treatment in the UK" },
+  meta: {
+    title: "Weight Loss Tablet UK | Pharmacist-Led GLP-1 Care | Jood",
+    description:
+      "A daily weight loss tablet option, assessed by a GPhC-registered pharmacist. WhatsApp support 7 days a week and free next-day delivery. Check eligibility.",
+    path: "/foundayo",
+  },
+
+  announcement: {
+    text: "New: a once daily weight loss tablet, now available in the UK",
+    mobile: "New: daily weight loss tablet, now in the UK",
+  },
 
   hero: {
-    title: "Uk first.",
-    titleAccent: "foundayo pills",
-    subtitle: "A new way to lose weight",
-    body: "Introducing Foundayo® in the UK, with clinician-led support tailored to you. A once-daily tablet. No needles, no fasting, no fridge. Just real results.",
-    reviewsLabel: "4.4 (50+) Reviews",
-    ctaLabel: "Get Foundayo Today",
+    title: "Tried every diet?",
+    titleAccent: "Willpower was never the whole story.",
+    body: "A GPhC-registered pharmacist builds your plan and stays one WhatsApp message away.",
+    reviewsLabel: "(50+) Reviews",
+    ctaLabel: "Check Your Eligibility",
     ctaHref: FOUNDAYO_ASSESS,
+    reassurance: "Free assessment · No payment until approved",
     image: `${IMG}/hero.jpg`,
-    imageAlt: "Woman at home taking a Foundayo tablet with a glass of water",
-    stats: [
-      "12.4% average weight loss in 72 weeks",
-      "MHRA approved for use in UK on 10 August 2026",
-      "Once-daily oral orforglipron",
-    ],
+    imageAlt: "Woman at home taking a daily weight loss tablet",
+    // The desktop frame reads "24/7 days"; the mobile frame and every other
+    // line on the page say 7 days a week, so 7 days is used throughout.
+    bullets: ["Pharmacist on WhatsApp, 7 days", "Tablet or pen, chosen together", "Free next-day delivery"],
   },
 
   usp: [
     { label: "free next-day delivery", icon: "delivery" },
-    { label: "clinically proven medication", icon: "medication" },
-    { label: "Cancel anytime subscription", icon: "cancel" },
-    { label: "Medical support", icon: "support" },
-    { label: "Trusted by 100k UK customers", icon: "customers" },
+    { label: "Pharmacist-assessed", icon: "medication" },
+    { label: "Cancel anytime", icon: "cancel" },
+    { label: "WhatsApp support", icon: "support" },
+    { label: "Rated 4.4 on Trustpilot", icon: "customers" },
   ] as { label: string; icon: UspIcon }[],
 
   whatIs: {
-    heading: "What is",
-    headingAccent: "foundayo pill?",
+    heading: "What is the",
+    headingAccent: "daily weight loss tablet?",
     ctaLabel: "Check Your Eligibility",
     ctaHref: FOUNDAYO_ASSESS,
     cards: [
       {
-        title: "FDA Approved",
-        body: "Foundayo™ is a prescription GLP-1 medication clinically studied for weight management.",
-        image: `${IMG}/card-pills.jpg`,
-        alt: "Foundayo tablets",
+        title: "MHRA licensed",
+        body: "A prescription-only GLP-1 treatment, clinically studied for weight management in adults.",
+        image: `${CARD}/card-1.webp`,
+        alt: "Daily weight loss tablets",
       },
       {
         title: "More Flexibility",
-        body: "A once-daily oral GLP-1 pill with no injection and no strict food or water restrictions.",
-        image: `${IMG}/hand-pill.webp`,
-        alt: "Hand holding a Foundayo tablet",
+        body: "One tablet a day. No injections, no pens and nothing to keep in the fridge.",
+        image: `${CARD}/card-2.webp`,
+        alt: "Hand holding a daily weight loss tablet",
       },
       {
-        title: "Real results",
-        body: "Clinical studies showed meaningful weight loss over time when combined with healthy lifestyle changes.",
-        image: `${IMG}/card-results.webp`,
-        alt: "Woman in activewear",
-        badge: { top: "Year 1", value: "↓ 32 lbs" },
+        title: "Real support",
+        body: "A pharmacist checks your progress and dose, so you're never left guessing on your own.",
+        image: `${CARD}/card-3.webp`,
+        alt: "Woman in activewear smiling",
+        badge: { top: "Every step", value: "↓ Supported" },
       },
       {
-        title: "Weight-loss support",
-        body: "Foundayo is prescribed alongside ongoing clinical support to help you stay on track.",
-        image: `${IMG}/phone-man.webp`,
-        alt: "Man smiling at his phone",
+        title: "Quieter food noise",
+        body: "Works with your natural appetite signals, so you feel full sooner and snack less.",
+        image: `${CARD}/card-4.webp`,
+        alt: "Close-up of a daily weight loss tablet",
       },
     ] as FoundayoCard[],
   },
 
   comparison: {
-    heading: "Foundayo pill vs",
-    headingAccent: "Wegovy injection",
-    pillTitle: "Foundayo Pill",
-    penTitle: "Wegovy pen",
-    pillPrice: { prefix: "Starting from ", amount: "£149/mo", suffix: " billed monthly, membership required*" },
-    penPrice: { prefix: "Starting from ", amount: "£199/mo", suffix: " billed monthly, membership required*" },
-    pillTaken: { label: "Taken", value: "Once daily" },
-    penTaken: { label: "Taken", value: "Once weekly" },
+    heading: "Daily tablet",
+    headingAccent: "or weekly injection?",
+    pillTitle: "Daily tablet",
+    penTitle: "Weekly pen",
+    pillPrice: { prefix: "Starting from ", amount: "£99/mo", suffix: " billed monthly, membership required*" },
+    penPrice: { prefix: "Starting from ", amount: "£115/mo", suffix: " billed monthly, membership required*" },
+    takenLabel: "Taken", // shown on mobile only, as in the Figma
+    pillTaken: "Once daily",
+    penTaken: "Once weekly",
     pillRows: [
-      { label: "Orforglipron active ingredient", mark: "check" },
-      { label: "Clinically proven", mark: "check" },
-      { label: "Injection free", mark: "check" },
-      { label: "No fasting required", mark: "check" },
+      { label: "GLP-1 treatment", mark: "check" },
+      { label: "Clinically studied", mark: "check" },
+      { label: "Needle-free", mark: "check" },
+      { label: "Pharmacist-supervised", mark: "check" },
     ] as FoundayoRow[],
     penRows: [
-      { label: "Semaglutide active ingredient", mark: "check" },
-      { label: "Clinically proven", mark: "check" },
-      { label: "Injection free", mark: "minus" },
-      { label: "No fasting required", mark: "minus" },
+      { label: "GLP-1 treatment", mark: "check" },
+      { label: "Clinically studied", mark: "check" },
+      { label: "Weekly injection", mark: "minus" },
+      // The Figma shows a dash here, but every Jood pen is pharmacist-
+      // supervised too — a dash would say otherwise, so it is a tick.
+      { label: "Pharmacist-supervised", mark: "check" },
     ] as FoundayoRow[],
-    footnote: "Foundayo Pill provides a convenient once-daily oral approach for weight management, offering an alternative to injectable treatment options.",
-    ctaLabel: "Get Started",
+    footnote:
+      "Not sure which is right for you? Your pharmacist helps you choose, based on your health, your routine and how you feel about needles.",
+    ctaLabel: "Help Me Choose",
     ctaHref: FOUNDAYO_ASSESS,
   },
 
   howItWorks: {
     heading: "How does",
-    headingAccent: "foundayo work?",
-    intro: "Foundayo contains orforglipron, a non-peptide GLP-1 receptor agonist. It works by mimicking the natural GLP-1 hormone found in your gut. The hormone's job is to help:",
-    callouts: ["Quiet your\nfood noise", "Slow down\nyour digestion", "Regulate your blood\nsugar⁵", "Regulate your\nappetite⁴"],
-    body: "Foundayo works on the same GLP-1 pathway as the weekly injections, but orforglipron is a small molecule rather than a peptide. That means it is absorbed straight from your gut — no protective coating, no empty stomach, no 30-minute wait. You can take it at any time of day, with or without food or water.",
+    headingAccent: "GLP-1 work?",
+    intro:
+      "GLP-1 is a hormone your gut releases after every meal to tell your brain you've had enough. GLP-1 treatment works on the same signals to help:",
+    callouts: ["Quiet your\nfood noise", "Slow down\nyour\ndigestion", "Feel fuller for longer", "Regulate your\nappetite"],
+    body: "Most diets fail because hunger wins. Quieten the hunger and healthier choices start to feel easy, with a pharmacist one WhatsApp message away whenever you need them.",
     ctaLabel: "Get Started",
     ctaHref: FOUNDAYO_ASSESS,
     secondaryLabel: "Learn More",
     secondaryHref: "#faq",
     image: `${IMG}/how-pill.webp`,
+    background: `${IMG}/how-bg.jpg`,
   },
 
   reviews: {
-    heading: "3000+ happy",
-    headingAccent: "customers",
-    intro: "Thousands of people trust Foundayo Pill as part of their medically supported weight management journey. Patients value the convenience of a once-daily tablet, expert healthcare guidance, and personalised support throughout their treatment.",
+    heading: "Loved for the",
+    headingAccent: "support",
+    intro:
+      "Fast WhatsApp replies, real pharmacists and quick, discreet delivery. That's what our patients mention most on Trustpilot.",
   },
 
   realResults: {
     heading: "Real results",
-    headingAccent: "with Foundayo",
-    statPrefix: "Up to",
-    statValue: 12.4,
-    statCaption: "average body weight loss at 72 weeks*",
-    footnote: "*Based on ATTAIN-1, the manufacturer's 72-week phase 3 study in adults living with obesity, or with overweight and at least one weight-related medical problem. Alongside a reduced-calorie diet and increased physical activity, adults taking Foundayo® at the highest dose lost an average of 12.4% of body weight, compared with 0.9% for people taking placebo (not on medicine). Individual results vary.",
-    anytimeTitle: "Any time of day",
-    anytimeBody: "with or without food, water or a fridge",
+    headingAccent: "need real support",
+    lead: "A pharmacist,",
+    big: "7 Days",
+    tail: "a week, on WhatsApp.",
+    body: "Side effects, a stalled scale or a dose question? Message your pharmacist any day of the week and talk to a real person, not a chatbot.",
+    tabletTitle: "One tablet a day",
+    tabletBody: "no needles, no pens, no fridge",
     bokeh: `${IMG}/results-bokeh.jpg`,
     photo: `${IMG}/results-woman.jpg`,
     photoAlt: "Woman on a coastal path at sunset",
-    overlayTitle: "Health gains beyond numbers",
-    overlayBody: "Foundayo contains orforglipron, Eli Lilly's once-daily GLP-1 tablet. Alongside weight loss it helps stabilise blood sugar and supports your body's insulin response.",
+    overlayTitle: "Beyond the scales",
+    overlayBody:
+      "Treatment works best alongside better habits. Your pharmacist helps with food, movement and what to do when progress slows, so this time it sticks.",
   },
 
   dosing: {
-    heading: "Foundayo pill",
+    heading: "Simple",
     headingAccent: "dosing & pricing",
-    body: "All prices include an initial order discount of £20, plus the £20 saving we provide to patients who sign up to one of our 6-month commit and save plans. Pricing of the higher 14.5mg and 17.2mg doses will be confirmed before those doses become available.",
+    body: "Start low and step up gradually so your body can adjust. Your pharmacist approves every step, and your exact price is confirmed before you pay a penny.",
     image: `${IMG}/hand-pill.webp`,
-    imageAlt: "Hand holding a Foundayo tablet",
+    imageAlt: "Hand holding a daily weight loss tablet",
     startBadge: "Starting Dose",
-    doses: [
-      { mg: "0.8mg", label: "Starting Dose", days: "Days 1–30", price: "£149", start: true },
-      { mg: "2.5mg", label: "Step-Up Dosing", days: "Days 31–60", price: "£149", start: false },
-      { mg: "5.5mg", label: "Step-Up Dosing", days: "Days 61–90", price: "£299", start: false },
-      { mg: "9mg", label: "Step-Up Dosing", days: "Days 91+", price: "£299", start: false },
-    ] as FoundayoDose[],
+    startBadgeMobile: "Start Here",
+    steps: [
+      { step: "Step 1", label: "Starting Dose", days: "Days 1–30", price: "£99", start: true },
+      { step: "Step 2", label: "Step-Up Dosing", days: "Days 31–60", price: "£109", start: false },
+      { step: "Step 3", label: "Step-Up Dosing", days: "Days 61–90", price: "£129", start: false },
+      { step: "Step 4", label: "Step-Up Dosing", days: "Days 91+", price: "£149", start: false },
+    ] as FoundayoStep[],
     commitTitle: "Commit And Save Plan",
     commitBody: "sign up to a 6 month plan and we'll take £20 off every month",
-    commitCta: "Get Started Today",
+    commitCta: "Check If I'm Eligible",
     commitHref: FOUNDAYO_ASSESS,
   },
 
   whyChoose: {
-    heading: "Why choose jood life",
-    headingAccent: "for foundayo",
-    benefits: ["MHRA-approved prescription treatment", "UK-licensed prescribers", "24/7 care team support"],
-    safety: "Foundayo is a prescription-only medicine. Do not take Foundayo if you are pregnant, planning a pregnancy or breastfeeding, if you have had a serious allergic reaction to orforglipron, or if you are already taking another GLP-1 medicine. Speak to your prescriber first if you have a history of pancreatitis, gallbladder or kidney problems, severe stomach-emptying problems, or diabetic retinopathy.",
+    heading: "Why choose Jood",
+    headingAccent: "for weight loss",
+    benefits: ["MHRA-licensed treatment", "GPhC-registered pharmacists", "WhatsApp support, 7 days a week"],
+    safety:
+      "Weight loss treatment is prescription-only and isn't suitable for everyone, including if you're pregnant, planning a pregnancy or breastfeeding, or already taking another GLP-1 medicine. Tell your pharmacist about any history of pancreatitis, gallbladder or kidney problems. A GPhC-registered pharmacist reviews your medical history before anything is supplied.",
+    safetyMobile:
+      "Not suitable for everyone, including during pregnancy, breastfeeding or with some medical conditions. A GPhC-registered pharmacist checks your medical history first.",
     image: `${IMG}/why-man.jpg`,
     imageAlt: "Man walking along a riverside path in the city",
   },
@@ -177,37 +213,49 @@ export const FOUNDAYO = {
     headingAccent: "questions",
     items: [
       {
-        q: "What is the Foundayo® Pill?",
-        a: "Foundayo is a once-daily tablet containing orforglipron, a GLP-1 receptor agonist made by Eli Lilly. It works on the same appetite and blood-sugar pathway as the weekly injections, but as a small-molecule tablet rather than a peptide injection.",
+        q: "What is a GLP-1 weight loss tablet?",
+        a: "A once-daily, prescription-only tablet that works like GLP-1, a hormone your gut releases after eating. It helps you feel full sooner and less hungry, and is used alongside a reduced-calorie diet and more activity.",
       },
       {
-        q: "How effective is Foundayo compared with the injections?",
-        a: "In the manufacturer's 72-week ATTAIN-1 study, adults taking the highest dose of Foundayo alongside diet and activity changes lost an average of 12.4% of their body weight. Results vary between people, and your prescriber will help you choose the treatment that suits you best.",
+        q: "Am I eligible?",
+        a: "Usually adults with a BMI of 30 or more, or 27 or more with a weight-related condition such as high blood pressure, type 2 diabetes or sleep apnoea. Your free assessment confirms whether treatment is right for you.",
+      },
+      {
+        q: "Is a tablet as effective as an injection?",
+        a: "It depends on the treatment. In clinical trials, average weight loss has varied between treatments, and some weekly injections have shown greater average loss than daily tablets. The best option is one that suits your health and that you can stick with, so your pharmacist talks you through both.",
       },
       {
         q: "Do I need to take it on an empty stomach?",
-        a: "No. Unlike oral semaglutide, Foundayo has no food, water or timing restrictions — you can take it at any time of day, with or without food, and it does not need to be kept in the fridge.",
+        a: "It depends on the tablet. Some must be taken first thing on an empty stomach with a small sip of water, then you wait 30 minutes before eating or drinking. Others can be taken at any time of day, with or without food. Your pharmacist will explain exactly how to take yours.",
       },
       {
         q: "What are the side effects?",
-        a: "The most common side effects are digestive — nausea, constipation, diarrhoea and vomiting — and usually ease as your body adjusts to each dose. Your care team is available throughout treatment if anything feels wrong.",
+        a: "The most common are nausea, diarrhoea, vomiting, constipation and stomach discomfort. They're usually mild, happen most when your dose increases, and ease over time. Rarely, treatment can cause pancreatitis or gallbladder problems, so get urgent medical help for severe, lasting stomach pain.",
       },
       {
-        q: "Can I switch from an injection to Foundayo?",
-        a: "Often, yes. Switching is a clinical decision: your prescriber will review how you have responded to your current treatment and agree a safe starting dose of Foundayo with you.",
+        q: "Who shouldn't take it?",
+        a: "It isn't suitable if you're pregnant, trying to get pregnant or breastfeeding, under 18, or already taking another GLP-1 medicine. Past pancreatitis, gallbladder, kidney or severe stomach problems need extra checks, which your pharmacist covers in your assessment.",
       },
       {
-        q: "Is Foundayo available on the NHS?",
-        a: "Jood is a private service, so Foundayo is paid for directly with clear monthly pricing — see the dosing and pricing section above. NHS availability is decided separately by NICE and local NHS bodies.",
+        q: "Can I switch from an injection to a tablet?",
+        a: "Often, yes. Your pharmacist reviews your current dose and how you've been getting on, then advises when to stop your injection and which tablet dose to start on. You should never take two GLP-1 treatments at the same time.",
+      },
+      {
+        q: "What happens if I stop?",
+        a: "Studies show many people regain some of the weight within a year of stopping. That's why treatment works best alongside lasting habit changes, and why your pharmacist plans any change to your treatment with you.",
+      },
+      {
+        q: "Can I get it on the NHS?",
+        a: "NHS access to weight loss treatment is limited to people who meet strict clinical criteria, usually through specialist weight management services, and waiting times can be long. Jood is a private service, so you'll see your monthly price before you pay.",
       },
     ] as FoundayoFaq[],
   },
 
   finalCta: {
-    heading: "Ready to start the",
-    headingAccent: "Foundayo journey?",
-    body: "A 2-minute clinical intake. No obligation. No payment until you're approved.",
-    ctaLabel: "Get Started",
+    heading: "Ready to stop",
+    headingAccent: "starting over?",
+    body: "A quick online assessment. No obligation, and no payment until a pharmacist approves you.",
+    ctaLabel: "Check If I'm Eligible",
     ctaHref: FOUNDAYO_ASSESS,
     image: `${IMG}/cta-woman.webp`,
     imageAlt: "Woman looking up and smiling",
