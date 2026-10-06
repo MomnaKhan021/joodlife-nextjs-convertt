@@ -45,11 +45,6 @@ export const FOUNDAYO = {
     path: "/foundayo",
   },
 
-  announcement: {
-    text: "New: a once daily weight loss tablet, now available in the UK",
-    mobile: "New: daily weight loss tablet, now in the UK",
-  },
-
   hero: {
     title: "Tried every diet?",
     titleAccent: "Willpower was never the whole story.",

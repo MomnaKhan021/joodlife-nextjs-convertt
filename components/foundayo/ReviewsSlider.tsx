@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, A11y } from "swiper/modules";
+import { Pagination, Navigation, A11y } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
 import Reveal from "@/components/ui/Reveal";
 import { REVIEWS, TRUSTPILOT, type Review } from "@/lib/reviews";
+import SliderArrow from "./SliderArrow";
 import { ACCENT, WRAP } from "./type";
 
 /**
@@ -17,6 +18,7 @@ import { ACCENT, WRAP } from "./type";
  * 16.3/19.5 medium, grey "Verified" label; outline-circle pagination dots
  * with a filled pill for the active one. Trustpilot row reads "4.4 (50+)
  * Reviews" as in the design. Same real review data as the home page.
+ * Desktop gets prev/next arrows that only show where there is somewhere to go.
  */
 const PAGINATION_MIN = 4;
 
@@ -91,14 +93,15 @@ export default function ReviewsSlider({
           <p className="max-w-[900px] font-ui text-[16.3px] font-medium leading-[19.5px] tracking-[-0.3px] text-[#142e2a]">{intro}</p>
         </Reveal>
 
-        <Reveal delay={150}>
+        <Reveal delay={150} className="relative">
           <Swiper
-            modules={[Pagination, A11y]}
+            modules={[Pagination, Navigation, A11y]}
             speed={500}
             spaceBetween={20}
             slidesPerView={1.05}
             breakpoints={{ 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 }, 1280: { slidesPerView: 4 } }}
             pagination={showPagination ? { clickable: true } : false}
+            navigation={{ prevEl: "#fnd-reviews-prev", nextEl: "#fnd-reviews-next" }}
             a11y={{ enabled: true }}
             className="fnd-reviews !overflow-hidden !px-0.5 !py-1"
           >
@@ -108,6 +111,9 @@ export default function ReviewsSlider({
               </SwiperSlide>
             ))}
           </Swiper>
+          {/* Centred on the cards, not the whole block (the dots sit below). */}
+          <SliderArrow dir="prev" id="fnd-reviews-prev" className="!top-[151px] -left-[22px]" />
+          <SliderArrow dir="next" id="fnd-reviews-next" className="!top-[151px] -right-[22px]" />
         </Reveal>
       </div>
 

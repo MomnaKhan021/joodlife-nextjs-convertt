@@ -9,16 +9,16 @@ import { ACCENT, H2, WRAP } from "./type";
  * "Frequently asked questions" — Figma 2003:1823 (heading left, 640px list
  * from x=740) and the mobile frame (centred two-line heading, list below).
  * Question 16.3/19.5 medium, answer 15.3/22.9, "+" in a 26px #fff8f6 circle,
- * 16px padding, hairline divider, 16px between items. The design shows every
- * answer open, so they start open; each one still folds away on tap.
+ * 16px padding, hairline divider, 16px between items. Answers start closed;
+ * tap a question to open it (the + turns into a ×).
  */
 export default function Faq() {
   const c = FOUNDAYO.faq;
   const [firstWord, ...rest] = c.heading.split(" ");
   const restWords = rest.join(" ");
-  const [closed, setClosed] = useState<Set<number>>(() => new Set());
+  const [openItems, setOpenItems] = useState<Set<number>>(() => new Set());
   const toggle = (i: number) =>
-    setClosed((prev) => {
+    setOpenItems((prev) => {
       const next = new Set(prev);
       if (next.has(i)) next.delete(i);
       else next.add(i);
@@ -38,7 +38,7 @@ export default function Faq() {
 
           <ul className="flex w-full flex-col gap-4">
             {c.items.map((f, i) => {
-              const open = !closed.has(i);
+              const open = openItems.has(i);
               return (
                 <li key={f.q} className="border-b border-[#142e2a]/20 pb-4 lg:px-4 lg:pt-4">
                   <button

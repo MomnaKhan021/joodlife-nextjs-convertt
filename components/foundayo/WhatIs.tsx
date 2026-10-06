@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { A11y } from "swiper/modules";
+import { A11y, Navigation } from "swiper/modules";
 import "swiper/css";
 import Reveal from "@/components/ui/Reveal";
 import EligibilityCta from "@/components/ui/EligibilityCta";
 import { FOUNDAYO, type FoundayoCard } from "@/lib/foundayoContent";
+import SliderArrow from "./SliderArrow";
 import { ACCENT, BTN_DARK, H2, WRAP } from "./type";
 
 /**
@@ -14,6 +15,7 @@ import { ACCENT, BTN_DARK, H2, WRAP } from "./type";
  * Heading + 192px CTA on one row (CTA moves under the cards on mobile), then
  * four #fff8f6 cards — 426×524 desktop, 334 wide mobile — that peek off the
  * right edge. Title 25/25.6 (20/20.1 mobile), body 16.3/19.5 (16/19.2).
+ * Desktop gets prev/next arrows that only show where there is somewhere to go.
  */
 function Card({ c }: { c: FoundayoCard }) {
   return (
@@ -72,13 +74,14 @@ export default function WhatIs() {
         </Reveal>
       </div>
 
-      <Reveal as="div" delay={120}>
+      <Reveal as="div" delay={120} className="relative">
         <Swiper
-          modules={[A11y]}
+          modules={[Navigation, A11y]}
           speed={500}
           slidesPerView="auto"
           spaceBetween={12}
           breakpoints={{ 768: { spaceBetween: 20 } }}
+          navigation={{ prevEl: "#fnd-whatis-prev", nextEl: "#fnd-whatis-next" }}
           a11y={{ enabled: true }}
           className="!py-1 !pl-4 !pr-0 md:!pl-10 lg:!pl-[60px]"
         >
@@ -91,6 +94,8 @@ export default function WhatIs() {
             </SwiperSlide>
           ))}
         </Swiper>
+        <SliderArrow dir="prev" id="fnd-whatis-prev" className="left-4 lg:left-[38px]" />
+        <SliderArrow dir="next" id="fnd-whatis-next" className="right-4 lg:right-[38px]" />
       </Reveal>
 
       <div className={`${WRAP} md:hidden`}>
