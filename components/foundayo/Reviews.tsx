@@ -1,27 +1,25 @@
 import { getHomeContent } from "@/lib/pageContent";
 import type { Review } from "@/lib/reviews";
-import ReviewsClient from "@/sections/home/ReviewsClient";
 import { FOUNDAYO } from "@/lib/foundayoContent";
+import ReviewsSlider from "./ReviewsSlider";
 
 /**
- * "Loved for the support" — Figma 2003:1465. Uses the shared Trustpilot
- * slider with the site's real, verified reviews rather than the design's
- * sample cards: the design notes flag several of those cards as having no
- * real review behind them, and only genuine reviews may be shown.
+ * "Loved for the support" — Figma 2003:1465. Real, verified Trustpilot
+ * reviews from the CMS (the design's sample cards have no real review behind
+ * them, per its notes) in a slider styled to the Figma: four 315px cards on
+ * #fff8f6 with a 1px #d0cfcd border.
  */
 export default async function Reviews() {
   const { reviews, trustpilotScore, trustpilotUrl } = await getHomeContent();
   const items: Review[] = reviews.map((r) => ({ ...r, rating: 5 }));
   return (
-    <ReviewsClient
+    <ReviewsSlider
       heading={FOUNDAYO.reviews.heading}
-      headingEmphasis={FOUNDAYO.reviews.headingAccent}
+      headingAccent={FOUNDAYO.reviews.headingAccent}
       intro={FOUNDAYO.reviews.intro}
-      reviews={items.length ? items : undefined}
+      reviews={items}
       trustpilotScore={trustpilotScore}
       trustpilotUrl={trustpilotUrl}
-      // Figma sets the intro in medium (the home page uses semibold).
-      text={{ reviewsIntro: { weight: "medium" } }}
     />
   );
 }

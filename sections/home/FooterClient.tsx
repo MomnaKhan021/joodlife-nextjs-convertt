@@ -406,9 +406,11 @@ export default function Footer(props: FooterProps = {}) {
               ) : null}
             </div>
 
-            {/* Have-a-question card — cream bg per Figma */}
-            <div className="flex flex-col gap-3 rounded-[10px] bg-[#f7f9f2] px-5 py-4 md:w-[228px]">
-              <h3 {...textStyleProps(textStyles.contactHeading)} className="font-display text-[20px] font-semibold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:text-[25px]">
+            {/* Have-a-question card — cream bg, 228px wide with 12px padding per
+                Figma, so the 25px heading fits on one line. !font-bold: the
+                global h1–h4 rule in globals.css would otherwise pull it to 500. */}
+            <div className="flex flex-col gap-3 rounded-[10px] bg-[#f7f9f2] p-3 md:w-[228px]">
+              <h3 {...textStyleProps(textStyles.contactHeading)} className="font-display text-[20px] !font-bold leading-[26px] tracking-[-0.01em] text-[#142e2a] md:whitespace-nowrap md:text-[25px] md:leading-[25.6px]">
                 {contactHeading}
               </h3>
               <div className="flex items-start gap-2">
@@ -449,7 +451,7 @@ export default function Footer(props: FooterProps = {}) {
           <div className="border-t border-white/10 py-8 md:py-10 lg:py-[40px]">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">
               <div className="flex flex-col gap-1.5">
-                <h3 {...textStyleProps(textStyles.newsletterHeading)} className="font-display text-[22px] font-semibold leading-[28px] tracking-[-0.01em] text-white md:text-[28px] md:leading-[34px]">
+                <h3 {...textStyleProps(textStyles.newsletterHeading)} className="font-display text-[22px] !font-bold leading-[28px] tracking-[-0.01em] text-white md:text-[28px] md:leading-[34px]">
                   {newsletterHeading}
                 </h3>
                 <p {...textStyleProps(textStyles.newsletterSubtext)} className="font-ui text-[14px] leading-[20px] tracking-[-0.02em] text-white/70 md:text-[16.3px] md:leading-[20px]">

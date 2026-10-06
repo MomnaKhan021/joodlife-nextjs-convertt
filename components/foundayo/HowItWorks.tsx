@@ -20,16 +20,19 @@ type Conn = { x: number; y: number; w: number; h: number; borders: string; dot: 
 type Callout = { x: number; y: number; w: number; conn: Conn };
 
 // Desktop box 1048×516. Connector borders draw the right angle; dot marks the
-// end that touches the tablet.
+// end that touches the tablet. The pill is a 516px circle centred at x=537,
+// so the two left connectors run to where the circle's edge actually is at
+// their height rather than Figma's shorter ones (measured in the browser).
 const DESKTOP = { W: 1048, H: 516, tablet: { x: 264, y: 0, w: 546, h: 516 } };
 const D: Callout[] = [
-  { x: 0, y: 67, w: 156, conn: { x: 0, y: 127, w: 235, h: 30, borders: "border-l border-b", dot: "br" } },
-  { x: 891, y: 74, w: 157, conn: { x: 769, y: 97, w: 114, h: 30, borders: "border-t border-l", dot: "bl" } },
-  { x: 0, y: 417, w: 248, conn: { x: 0, y: 379, w: 234, h: 30, borders: "border-l border-t", dot: "tr" } },
-  { x: 891, y: 417, w: 157, conn: { x: 767, y: 379, w: 134, h: 30, borders: "border-t border-r", dot: "tl" } },
+  { x: 0, y: 67, w: 156, conn: { x: 0, y: 127, w: 306, h: 30, borders: "border-l border-b", dot: "br" } },
+  { x: 891, y: 74, w: 157, conn: { x: 752, y: 97, w: 131, h: 30, borders: "border-t border-l", dot: "bl" } },
+  { x: 0, y: 417, w: 248, conn: { x: 0, y: 379, w: 316, h: 30, borders: "border-l border-t", dot: "tr" } },
+  { x: 891, y: 417, w: 157, conn: { x: 758, y: 379, w: 143, h: 30, borders: "border-t border-r", dot: "tl" } },
 ];
-// Mobile box 390×345 (full frame width).
-const MOBILE = { W: 390, H: 345, tablet: { x: 60, y: 18, w: 270, h: 268 } };
+// Mobile box 390×345 (full frame width); the tablet box is Figma's own
+// 256×242 image frame, so the connectors land on it exactly as designed.
+const MOBILE = { W: 390, H: 345, tablet: { x: 67, y: 31, w: 256, h: 242 } };
 const M: Callout[] = [
   { x: 20, y: 28, w: 89, conn: { x: 20, y: 73, w: 77, h: 30, borders: "border-l border-b", dot: "br" } },
   { x: 280, y: 4, w: 98, conn: { x: 222, y: 22, w: 51, h: 25, borders: "border-t border-l", dot: "bl" } },

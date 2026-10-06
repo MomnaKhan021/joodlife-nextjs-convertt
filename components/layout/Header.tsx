@@ -9,7 +9,7 @@ import HeaderClient from "./HeaderClient";
  * getHeaderContent() falls back to the built-in values, so a missing or
  * empty global renders exactly what shipped before.
  */
-export default async function Header() {
+export default async function Header({ compact = false }: { compact?: boolean } = {}) {
   // `style`, `settings` and `textStyles` are pulled out explicitly: whatever is left over
   // becomes `mega`, so anything not named here would be handed to the mega
   // menu by mistake.
@@ -25,6 +25,7 @@ export default async function Header() {
       logoDesktop={logoDesktop}
       logoMobile={logoMobile}
       labels={labels}
+      compact={compact}
     />
   );
 }

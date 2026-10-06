@@ -99,7 +99,7 @@ export default function Comparison() {
                 takenLabel={c.takenLabel}
                 rows={c.pillRows}
                 dark
-                icon={<Image src="/assets/foundayo/pill-white.png" alt="" width={28} height={22} className="h-[26px] w-auto" />}
+                icon={<Image src="/assets/foundayo/cmp-pill.webp" alt="" width={104} height={104} className="h-[26px] w-auto" />}
               />
             </Reveal>
             <Reveal direction="left" delay={140}>
@@ -110,7 +110,7 @@ export default function Comparison() {
                 takenLabel={c.takenLabel}
                 rows={c.penRows}
                 dark={false}
-                icon={<Image src="/assets/foundayo/pen.png" alt="" width={28} height={28} className="h-[30px] w-auto" />}
+                icon={<Image src="/assets/foundayo/cmp-pen.webp" alt="" width={104} height={104} className="h-[26px] w-auto" />}
               />
             </Reveal>
           </div>

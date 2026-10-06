@@ -88,7 +88,7 @@ export default function FoundayoPage() {
           <span className="hidden md:inline">{FOUNDAYO.announcement.text}</span>
         </p>
       </div>
-      <Header />
+      <Header compact />
       <Hero />
       <UspBar content={{ items: FOUNDAYO.usp }} />
       <WhatIs />

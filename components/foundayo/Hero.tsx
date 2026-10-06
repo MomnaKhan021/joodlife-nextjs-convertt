@@ -2,7 +2,7 @@ import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import EligibilityCta from "@/components/ui/EligibilityCta";
 import { FOUNDAYO } from "@/lib/foundayoContent";
-import { BODY, BTN_LIGHT } from "./type";
+import { BODY, BTN_WHITE } from "./type";
 
 /**
  * Hero — Figma 2003:1228 (desktop, 749px under the header) and 2003:564
@@ -81,7 +81,7 @@ export default function Hero() {
               product="weight-loss"
               href={c.ctaHref}
               label={c.ctaLabel}
-              className={`fnd-lift mt-[14px] w-full md:mt-[30px] md:w-[372px] ${BTN_LIGHT}`}
+              className={`fnd-lift mt-[14px] w-full md:mt-[30px] md:w-[372px] ${BTN_WHITE}`}
             />
           </Reveal>
 

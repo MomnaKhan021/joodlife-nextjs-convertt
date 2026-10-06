@@ -47,6 +47,7 @@ export default function HeaderClient({
   logoDesktop = "/assets/icons/logo-wesmount.svg",
   logoMobile = "/assets/icons/logo-wesmount-mobile.svg",
   labels = HEADER_LABELS_DEFAULT,
+  compact = false,
 }: {
   navLinks?: NavLink[];
   mega?: MegaMenuContent;
@@ -61,7 +62,11 @@ export default function HeaderClient({
   logoMobile?: string;
   /** Phone menu buttons, the login pill and the cart panel. */
   labels?: HeaderLabels;
+  /** 66px desktop bar instead of 80px — for landing pages built to the
+   *  66px Figma header (e.g. /foundayo). Phone bar is unchanged. */
+  compact?: boolean;
 } = {}) {
+  const navH = compact ? "h-[66px]" : "h-20";
   const NAV_LINKS = navLinks?.length ? navLinks : DEFAULT_NAV_LINKS;
   const { layout, sticky } = settings;
   // Mobile drawer lists the same treatments as the desktop mega panel.
@@ -131,7 +136,7 @@ export default function HeaderClient({
             <li key={link.label} onMouseEnter={() => setMegaIndex(i)}>
               <Link
                 href={link.href}
-                {...textStyleProps(textStyles.navLink)} className="inline-flex h-20 items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                {...textStyleProps(textStyles.navLink)} className={`inline-flex ${navH} items-center gap-1 px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70`}
               >
                 {link.label}
                 <svg
@@ -150,7 +155,7 @@ export default function HeaderClient({
             <li key={link.label} onMouseEnter={() => setMegaIndex(null)}>
               <Link
                 href={link.href}
-                {...textStyleProps(textStyles.navLink)} className="inline-flex h-20 items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70"
+                {...textStyleProps(textStyles.navLink)} className={`inline-flex ${navH} items-center px-3 font-ui text-[16px] font-medium text-[#142e2a] transition-colors hover:text-[#142e2a]/70`}
               >
                 {link.label}
               </Link>
@@ -198,8 +203,8 @@ export default function HeaderClient({
       }
       onMouseLeave={() => setMegaIndex(null)}
     >
-      {/* Desktop Header: 80px tall */}
-      <div className="hidden md:flex mx-auto h-20 w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8">
+      {/* Desktop Header: 80px tall (66px when compact) */}
+      <div className={`hidden md:flex mx-auto ${navH} w-full max-w-[1440px] items-center justify-between px-10 lg:px-16 gap-8`}>
         {centred ? (
           <>
             {/* Equal flexible sides keep the logo optically centred whatever

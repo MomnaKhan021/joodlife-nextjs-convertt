@@ -24,5 +24,8 @@ export const BTN_TEXT = "font-ui text-[16.3px] font-medium leading-[19.5px] trac
 /** Dark filled button (50px tall, 8px radius). */
 export const BTN_DARK = `${BTN_TEXT} inline-flex h-[50px] items-center justify-center rounded-lg border border-[#0c2421] bg-[#142e2a] px-[50px] text-white transition-colors hover:bg-[#0c2421]`;
 
+/** White button with no stroke — the hero CTA (Figma has no border there). */
+export const BTN_WHITE = `${BTN_TEXT} inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-[50px] text-[#142e2a] transition-colors hover:bg-[#daffe0]`;
+
 /** White outlined button (50px tall, 8px radius). */
 export const BTN_LIGHT = `${BTN_TEXT} inline-flex h-[50px] items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[50px] text-[#142e2a] transition-colors hover:bg-[#daffe0]`;
