@@ -142,6 +142,15 @@ export const CMS_NAV: CmsNavItem[] = [
   {
     key: "cms-sections",
     group: "site-pages",
+    label: "Weight loss ads lander",
+    href: "/cms/weight-loss-lander",
+    description: "Every section of /weight-loss-lander, the page paid ads link to",
+    status: "ready",
+    match: "/cms/weight-loss-lander",
+  },
+  {
+    key: "cms-sections",
+    group: "site-pages",
     label: "Erectile dysfunction",
     href: "/cms/ed",
     description: "All eight sections of /erectile-dysfunction",
