@@ -26,7 +26,7 @@ export default function LpFinal({ content: c, style }: { content: LanderFinal; s
 
         <div className="relative z-10 flex flex-col gap-[24px] px-4 pt-[40px] lg:w-[419px] lg:shrink-0 lg:gap-[50px] lg:px-0 lg:pt-0">
           <div className="flex flex-col gap-[12px]">
-            <h2 className="font-display text-[28px] font-semibold leading-[32px] tracking-[-1.2px] text-[#142e2a] lg:text-[48px] lg:leading-[52px]">
+            <h2 className="font-display text-[28px] !font-semibold leading-[32px] tracking-[-1.2px] text-[#142e2a] lg:text-[48px] lg:leading-[52px]">
               <span className="lg:capitalize">{c.heading}</span>
               {c.headingAccent ? (
                 <>
