@@ -27,7 +27,8 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
   function choose(i: number) {
     const el = items.current[i];
     anchor.current = el ? { i, top: el.getBoundingClientRect().top } : null;
-    setOpen(i);
+    // Clicking the open step closes it; -1 means every step is closed.
+    setOpen((cur) => (cur === i ? -1 : i));
   }
 
   // Keep the clicked step where it was: scroll by however far it moved.
@@ -49,7 +50,8 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
       const last = els[els.length - 1];
       const end = last ? last.offsetTop + Math.min(last.offsetHeight, 52) : 0;
       const next = els[open + 1];
-      const fill = next ? next.offsetTop - 10 : end;
+      // Nothing open: the rail stays empty.
+      const fill = open < 0 ? 0 : next ? next.offsetTop - 10 : end;
       setRail({ dots: tops, fill, end });
     };
     measure();
