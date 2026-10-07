@@ -35,6 +35,7 @@ const ICONS: Record<string, React.ReactNode> = {
   "/cms/treatments": I("M10.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7zM7 7l7 7"),
   "/cms/announcement": I("M3 11l14-6v14L3 13zM7 12v5a2 2 0 0 0 4 0"),
   "/cms/weight-loss": I("M4 18l5-6 4 3 7-9M15 6h5v5"),
+  "/cms/weight-loss-lander": I("M3 11l14-6v14L3 13zM7 12v5a2 2 0 0 0 4 0M21 9v6"),
   "/cms/period-delay": I("M5 4h14v16H5zM5 9h14M9 2v4M15 2v4"),
   "/cms/products": I("M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"),
   "/cms/ed": I("M12 20.5S4 15.5 4 9.8A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 20 9.8c0 5.7-8 10.7-8 10.7z"),

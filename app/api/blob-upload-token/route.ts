@@ -22,6 +22,7 @@ import { headers as nextHeaders } from "next/headers";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 
 import { getPayloadInstance } from "@/lib/payload";
+import { userCanWriteCms } from "@/src/payload/access/canWriteCms";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -44,12 +45,30 @@ export async function POST(req: NextRequest) {
   // aren't logged in). That path passes ?public=1 and is locked to
   // images/PDF up to 15 MB. Everything else stays admin-gated.
   const isPublic = req.nextUrl.searchParams.get("public") === "1";
+  // ?video=1 — CMS video slides (the /weight-loss-lander editor). Signed-in
+  // staff who can edit page sections; video files only. The default and
+  // ?public=1 modes below are unchanged.
+  const isVideo = req.nextUrl.searchParams.get("video") === "1";
 
   try {
     const result = await handleUpload({
       body,
       request: req,
       onBeforeGenerateToken: async () => {
+        if (isVideo) {
+          const payload = await getPayloadInstance();
+          const { user } = await payload.auth({ headers: await nextHeaders() });
+          if (!user || !userCanWriteCms(user, ["cms-sections"])) {
+            throw new Error("CMS access required");
+          }
+          return {
+            allowedContentTypes: ["video/mp4", "video/webm", "video/quicktime"],
+            maximumSizeInBytes: 200 * 1024 * 1024,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({ source: "cms-video", uploadedBy: (user as { email?: string }).email ?? null }),
+          };
+        }
+
         if (isPublic) {
           return {
             allowedContentTypes: [

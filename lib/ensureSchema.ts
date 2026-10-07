@@ -578,6 +578,22 @@ const STATEMENTS: string[] = [
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_heading_tail\" varchar",
   "ALTER TABLE \"home_page\" ADD COLUMN IF NOT EXISTS \"blog_card_cta\" varchar",
 
+  // The weight-loss ads lander (/weight-loss-lander) — its own global.
+  "CREATE TABLE IF NOT EXISTS \"weight_loss_lander\" (\"id\" serial, \"hero\" jsonb, \"trust\" jsonb, \"stories\" jsonb, \"results\" jsonb, \"expertise\" jsonb, \"steps\" jsonb, \"journey\" jsonb, \"reviews\" jsonb, \"faq\" jsonb, \"final\" jsonb, \"styles\" jsonb, \"updated_at\" timestamptz, \"created_at\" timestamptz, PRIMARY KEY (\"id\"))",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"hero\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"trust\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"stories\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"results\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"expertise\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"steps\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"journey\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"reviews\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"faq\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"final\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"styles\" jsonb",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"updated_at\" timestamptz",
+  "ALTER TABLE \"weight_loss_lander\" ADD COLUMN IF NOT EXISTS \"created_at\" timestamptz",
+
   "INSERT INTO \"discounts\" (\"code\", \"type\", \"value\", \"usage_count\", \"is_active\", \"updated_at\", \"created_at\") SELECT 'WELCOME20', 'percentage'::enum_discounts_type, 20, 0, true, now(), now() WHERE NOT EXISTS (SELECT 1 FROM \"discounts\" WHERE upper(\"code\") = 'WELCOME20')"
 ];
 
@@ -601,7 +617,8 @@ let ensured = false;
 // differs between the two states, so a shared version would let a database
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v48-blog" : "v48";
+// v49: weight_loss_lander table for the /weight-loss-lander ads page.
+const SCHEMA_VERSION = blogCmsEnabled() ? "v49-blog" : "v49";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;

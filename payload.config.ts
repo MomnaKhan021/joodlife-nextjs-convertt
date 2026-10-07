@@ -25,6 +25,7 @@ import { CategoryPages } from "./src/payload/globals/CategoryPages";
 import { EdPage } from "./src/payload/globals/EdPage";
 import { BlogCategories } from "./src/payload/globals/BlogCategories";
 import { WeightLossPage } from "./src/payload/globals/WeightLossPage";
+import { WeightLossLander } from "./src/payload/globals/WeightLossLander";
 import { ProductPages } from "./src/payload/globals/ProductPages";
 import { WeightLogs } from "./src/payload/collections/WeightLogs";
 import { Inventory } from "./src/payload/collections/Inventory";
@@ -355,6 +356,7 @@ export default buildConfig({
     BlogCategories,
     WeightLossPage,
     ProductPages,
+    WeightLossLander,
   ],
   endpoints: [applyDiscountEndpoint],
   secret: resolveSecret(),
