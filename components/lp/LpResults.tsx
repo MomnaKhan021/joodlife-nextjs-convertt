@@ -34,12 +34,12 @@ export default function LpResults({ content: c, style }: { content: LanderResult
   return (
     <section className="bg-[#f7f9f2] py-[40px] lg:py-[80px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col items-center gap-[24px] lg:gap-[40px] ${LP_GUTTER}`}>
-        <h2 className="text-center font-display text-[32px] font-semibold leading-[36px] tracking-[-1.6px] text-[#142e2a] lg:text-[40px] lg:leading-[52px]">
+        <h2 className="text-center font-display text-[32px] font-semibold leading-[36px] tracking-[-1.2px] text-[#142e2a] lg:text-[48px] lg:leading-[52px]">
           {c.heading}
           {c.headingAccent ? (
             <>
               <br className="lg:hidden" />{" "}
-              <em className="font-serif text-[32px] font-normal italic leading-[36px] tracking-[-1.2px] lg:text-[48px] lg:leading-[52px]">
+              <em className="font-serif font-normal italic">
                 {c.headingAccent}
               </em>
             </>

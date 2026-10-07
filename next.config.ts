@@ -150,6 +150,10 @@ const nextConfig: NextConfig = {
       `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com ${gtmConnectOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
       `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com https://www.googletagmanager.com https://tagmanager.google.com ${gtmServerOrigins.join(" ")}`,
       `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com ${gtmImgOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
+      // Videos (the ads lander's story / journey slides) are uploaded to
+      // Vercel Blob. Without media-src they fall back to default-src 'self'
+      // and Chrome refuses them ("Media load rejected by URL safety check").
+      `media-src 'self' blob: https://*.public.blob.vercel-storage.com`,
       `style-src 'self' 'unsafe-inline'`,
       `font-src 'self' data: https://fonts.gstatic.com`,
       `form-action 'self'`,
