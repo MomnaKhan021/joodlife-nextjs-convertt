@@ -23,10 +23,22 @@ export default function VideoField({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const [warning, setWarning] = useState<string | null>(null);
+
   async function onFile(file: File | undefined) {
     if (!file) return;
     setBusy(true);
     setError(null);
+    // iPhone .mov files are usually HEVC, which Chrome, Firefox and most
+    // Android phones can't play; very large files take ages to start.
+    const notes: string[] = [];
+    if (/quicktime/i.test(file.type) || /\.mov$/i.test(file.name)) {
+      notes.push(".mov (iPhone) videos often won't play in Chrome or on Android — export as MP4 (H.264) instead.");
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      notes.push(`This file is ${Math.round(file.size / 1024 / 1024)} MB — under 20 MB starts much faster on phones.`);
+    }
+    setWarning(notes.length ? notes.join(" ") : null);
     setProgress(0);
     try {
       const { upload } = await import("@vercel/blob/client");
@@ -85,8 +97,9 @@ export default function VideoField({
         <video src={value} controls preload="metadata" className="mt-2 max-h-[180px] rounded-lg bg-black" />
       ) : null}
       <p className="mt-1 text-[12px] text-[#8a8a8a]">
-        MP4, WebM or MOV, up to 200 MB. The image above is shown as the cover until someone presses play.
+        Best: MP4 (H.264), under 20 MB, 720p is plenty. The image above is the cover until someone presses play.
       </p>
+      {warning ? <p className="mt-1 text-[12px] text-[#9a5b00]">{warning}</p> : null}
       {error ? <p className="mt-1 text-[12px] text-[#8a2b2b]">{error}</p> : null}
     </div>
   );

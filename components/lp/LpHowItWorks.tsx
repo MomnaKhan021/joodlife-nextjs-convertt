@@ -19,6 +19,26 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
   const list = useRef<HTMLDivElement>(null);
   const [rail, setRail] = useState({ dots: [] as number[], fill: 0, end: 0 });
   const count = c.items.length;
+  // Where the clicked step sat on screen before switching. Closing a tall
+  // step above it (step 1 with its photo) would otherwise pull everything
+  // up and leave the reader looking at the next section.
+  const anchor = useRef<{ i: number; top: number } | null>(null);
+
+  function choose(i: number) {
+    const el = items.current[i];
+    anchor.current = el ? { i, top: el.getBoundingClientRect().top } : null;
+    setOpen(i);
+  }
+
+  // Keep the clicked step where it was: scroll by however far it moved.
+  useLayoutEffect(() => {
+    const a = anchor.current;
+    anchor.current = null;
+    const el = a ? items.current[a.i] : null;
+    if (!a || !el) return;
+    const moved = el.getBoundingClientRect().top - a.top;
+    if (Math.abs(moved) > 1) window.scrollBy({ top: moved, left: 0, behavior: "instant" as ScrollBehavior });
+  }, [open]);
 
   // Dots sit at each card's top edge; the fill runs to the card after the
   // open one (or the end of the last card).
@@ -91,7 +111,7 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
                 >
                   <button
                     type="button"
-                    onClick={() => setOpen(i)}
+                    onClick={() => choose(i)}
                     aria-expanded={isOpen}
                     className="flex w-full cursor-pointer items-center justify-between gap-4 text-left"
                   >
