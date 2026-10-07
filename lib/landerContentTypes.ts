@@ -193,9 +193,9 @@ export const LANDER_DEFAULT: LanderContent = {
     subtitle: "Four simple steps, all online, all led by UK clinicians.",
     items: [
       { title: "Complete your assessment", body: "Tell us about your goals and health.", image: `${A}/step-img-2.png` },
-      { title: "Meet your clinician", body: "A one-to-one video call with a UK-registered clinician to talk through your options.", image: "" },
-      { title: "Start your programme", body: "If it's right for you, your treatment is prescribed and delivered to your door.", image: "" },
-      { title: "Track your progress", body: "Regular check-ins with your clinical team keep your plan on track.", image: "" },
+      { title: "Meet your clinician", body: "A one-to-one video call with a UK-registered clinician to talk through your options.", image: `${A}/step-2-clinician.jpg` },
+      { title: "Start your programme", body: "If it's right for you, your treatment is prescribed and delivered to your door.", image: `${A}/step-3-pen.jpg` },
+      { title: "Track your progress", body: "Regular check-ins with your clinical team keep your plan on track.", image: `${A}/step-4-progress.jpg` },
     ],
   },
   journey: {
