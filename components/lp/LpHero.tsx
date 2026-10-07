@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { LanderHero } from "@/lib/landerContentTypes";
 import { isColour, type SectionStyle } from "@/lib/sectionStyle";
 
-import { LP_ASSETS, LP_GRADIENT, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared";
+import { FONT_POPPINS, LP_ASSETS, LP_GRADIENT, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared";
 
 /**
  * Top bar + logo header + green hero (Figma 20:331, 20:333, 20:339;
@@ -46,16 +46,16 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
               <TrustpilotLink className="flex w-fit items-center gap-[8px] lg:gap-[9px]">
                 <span className="flex items-center gap-[5px]">
                   <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={21} height={20} unoptimized className="h-[16px] w-auto lg:h-[20px]" />
-                  <span className="font-ui text-[14px] font-medium leading-[16px] text-[#f7f9f2] lg:text-[16px]">Trustpilot</span>
+                  <span style={FONT_POPPINS} className="text-[14px] font-medium leading-[16px] text-[#f7f9f2] lg:text-[16px]">Trustpilot</span>
                 </span>
                 <Image src={`${LP_ASSETS}/tp-stars.svg`} alt="Rated 5 stars" width={123} height={23} unoptimized className="h-[16px] w-auto lg:h-[23px]" />
-                <span className="font-ui text-[16px] font-medium leading-[16px] text-[#f7f9f2]">
+                <span style={FONT_POPPINS} className="text-[16px] font-medium leading-[16px] text-[#f7f9f2]">
                   <strong className="font-bold">{c.rating}</strong> out of 5
                 </span>
               </TrustpilotLink>
 
               {/* Headline — Gilroy 56/1.1 (36/38 on phones) */}
-              <h1 className="font-display text-[36px] font-semibold leading-[38px] tracking-[-1.2px] text-white lg:text-[56px] lg:leading-[1.1] lg:tracking-[-2.24px]">
+              <h1 className="font-display text-[36px] !font-semibold leading-[38px] tracking-[-1.2px] text-white lg:text-[56px] lg:leading-[1.1] lg:tracking-[-2.24px]">
                 <span className="lg:capitalize">{c.title}</span>
                 {c.titleAccent ? (
                   <>

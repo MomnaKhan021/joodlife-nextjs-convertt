@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { LanderExpertise } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
-import { LP_GUTTER } from "./shared";
+import { FONT_INSTRUMENT_SERIF, FONT_INTER_TIGHT, LP_GUTTER } from "./shared";
 
 /** "Weight Loss, Backed By Medical Expertise." (Figma 23:2728; mobile 20:994). */
 export default function LpExpertise({ content: c, style }: { content: LanderExpertise; style?: SectionStyle }) {
@@ -11,16 +11,24 @@ export default function LpExpertise({ content: c, style }: { content: LanderExpe
     <section className="bg-white pb-[40px] pt-[40px] lg:pb-[72px] lg:pt-[80px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col gap-[24px] lg:flex-row lg:items-center lg:justify-between lg:gap-10 ${LP_GUTTER}`}>
         <div className="flex flex-col gap-[16px] lg:w-[659px] lg:shrink">
-          <h2 className="max-w-[592px] font-display text-[32px] font-semibold leading-[36px] tracking-[-0.96px] text-[#17282a] lg:text-[48px] lg:leading-[51.84px]">
+          {/* Figma: Inter Tight Medium + Instrument Serif italic, body Inter Tight */}
+          <h2
+            style={FONT_INTER_TIGHT}
+            className="max-w-[592px] text-[32px] !font-medium leading-[36px] tracking-[-0.96px] text-[#17282a] lg:text-[48px] lg:leading-[51.84px]"
+          >
             {c.heading}
             {c.headingAccent ? (
               <>
                 {" "}
-                <em className="font-serif font-normal italic">{c.headingAccent}</em>
+                <em style={FONT_INSTRUMENT_SERIF}>{c.headingAccent}</em>
               </>
             ) : null}
           </h2>
-          {c.body ? <p className="max-w-[560px] font-ui text-[16px] leading-[24px] text-[#17282a]">{c.body}</p> : null}
+          {c.body ? (
+            <p style={FONT_INTER_TIGHT} className="max-w-[560px] text-[16px] leading-[24px] text-[#17282a]">
+              {c.body}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col items-start gap-[24px] rounded-[16px] bg-[#f6f9f2] p-[20px] lg:flex-1 lg:flex-row lg:items-center lg:gap-[28px] lg:px-[32px] lg:py-[28px]">

@@ -17,7 +17,8 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
         <LpHeading
           lead={c.heading}
           accent={c.headingAccent}
-          className="text-center !font-medium !tracking-[-0.96px] !text-[#17282a] lg:!leading-[51.84px]"
+          weight="medium"
+          className="text-center !tracking-[-0.96px] !text-[#17282a] lg:!leading-[51.84px]"
         />
         {c.subtitle ? (
           <p className="max-w-[340px] pt-[12px] text-center font-ui text-[16.3px] leading-[19.5px] tracking-[-0.32px] text-[#142e2a] lg:max-w-none">
@@ -36,7 +37,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
                 className="h-[333.75px] w-full rounded-[12px]"
               >
                 {s.badge ? (
-                  <span className="absolute left-[12px] top-[12px] rounded-[99px] bg-[#132d2a] px-[12px] py-[4px] font-ui text-[13px] font-medium leading-[19.5px] text-white">
+                  <span className="absolute left-[12px] top-[12px] rounded-[99px] bg-[#132d2a] px-[12px] py-[4px] font-ui text-[13px] font-normal leading-[19.5px] text-white">
                     {s.badge}
                   </span>
                 ) : null}
@@ -59,7 +60,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
 
         {/* The phone frame has no button here */}
         <div className="hidden lg:block">
-          <LpCta label={c.ctaLabel} href={c.ctaHref} />
+          <LpCta label={c.ctaLabel} href={c.ctaHref} face="interTight" />
         </div>
       </div>
     </section>

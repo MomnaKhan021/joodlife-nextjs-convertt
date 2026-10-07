@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
+import { Instrument_Serif, Inter_Tight, Poppins } from "next/font/google";
 import localFont from "next/font/local";
 
 import LpHero from "@/components/lp/LpHero";
@@ -16,12 +17,20 @@ import Footer from "@/sections/home/Footer";
 
 import { getLanderContent } from "@/lib/landerContent";
 
-// Saans (Displaay) — the body face in the ads-lander Figma, used on this page
-// only. Headings stay Gilroy and the italic parts Clearface. The site's
-// body-font utility (font-ui) reads --font-outfit, so pointing that variable
-// at Saans inside <main> switches every body text on the page — and nothing
-// outside it. Regular is 380 and Medium 570 in the files; Medium also covers
-// semibold (the FAQ questions, as on the main site's FAQ).
+/*
+ * Fonts exactly as the ads-lander Figma uses them, loaded by this page only:
+ *   Saans (Displaay)  — body text, buttons, cards, steps, reviews, FAQs.
+ *   Gilroy SemiBold   — headings, with ITC Clearface italic accents (site fonts).
+ *   Poppins           — the Trustpilot wordmark and score in the hero/strip.
+ *   Inter Tight +     — the "Weight Loss, Backed By Medical Expertise" block
+ *   Instrument Serif    and the Journey button.
+ * The footer is the site's shared footer and keeps the site's Outfit.
+ *
+ * The site's body utility (font-ui) reads --font-outfit, so pointing that
+ * variable at Saans on the sections' wrapper switches all their body text
+ * and nothing outside it. Saans Regular is 380 and Medium 570 in the files;
+ * Medium also covers semibold (FAQ questions).
+ */
 const saans = localFont({
   variable: "--font-saans",
   display: "swap",
@@ -31,6 +40,15 @@ const saans = localFont({
     { path: "../../fonts/Saans-Medium.woff2", weight: "500 600", style: "normal" },
     { path: "../../fonts/Saans-Bold.woff2", weight: "700", style: "normal" },
   ],
+});
+const poppins = Poppins({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-poppins", display: "swap" });
+const interTight = Inter_Tight({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-inter-tight", display: "swap" });
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
+  variable: "--font-instrument-serif",
+  display: "swap",
 });
 const SAANS_BODY = { "--font-outfit": "var(--font-saans)" } as CSSProperties;
 
@@ -56,17 +74,22 @@ export default async function WeightLossLanderPage() {
   const c = await getLanderContent();
   const s = c.styles;
   return (
-    <main className={`${saans.variable} flex min-h-screen flex-col bg-white font-ui`} style={SAANS_BODY}>
-      <LpHero content={c.hero} style={s.hero} />
-      <LpTrustStrip content={c.trust} style={s.trust} />
-      <LpStories content={c.stories} style={s.stories} />
-      <LpResults content={c.results} style={s.results} />
-      <LpExpertise content={c.expertise} style={s.expertise} />
-      <LpHowItWorks content={c.steps} style={s.steps} />
-      <LpJourney content={c.journey} style={s.journey} />
-      <LpReviews content={c.reviews} style={s.reviews} />
-      <LpFaq content={c.faq} style={s.faq} />
-      <LpFinal content={c.final} style={s.final} />
+    <main className="flex min-h-screen flex-col bg-white">
+      <div
+        className={`${saans.variable} ${poppins.variable} ${interTight.variable} ${instrumentSerif.variable} flex flex-col font-ui`}
+        style={SAANS_BODY}
+      >
+        <LpHero content={c.hero} style={s.hero} />
+        <LpTrustStrip content={c.trust} style={s.trust} />
+        <LpStories content={c.stories} style={s.stories} />
+        <LpResults content={c.results} style={s.results} />
+        <LpExpertise content={c.expertise} style={s.expertise} />
+        <LpHowItWorks content={c.steps} style={s.steps} />
+        <LpJourney content={c.journey} style={s.journey} />
+        <LpReviews content={c.reviews} style={s.reviews} />
+        <LpFaq content={c.faq} style={s.faq} />
+        <LpFinal content={c.final} style={s.final} />
+      </div>
       <Footer />
     </main>
   );
