@@ -28,21 +28,22 @@ const DESKTOP = { W: 1048, H: 516, tablet: { x: 264, y: 0, w: 546, h: 516 } };
 // in and its connector shortened to match — the dots stay on the pill.
 const D: Callout[] = [
   { x: 70, y: 67, w: 156, conn: { x: 70, y: 127, w: 236, h: 30, borders: "border-l border-b", dot: "br" } },
-  { x: 821, y: 74, w: 157, conn: { x: 752, y: 97, w: 61, h: 30, borders: "border-t border-l", dot: "bl" } },
+  { x: 821, y: 74, w: 200, conn: { x: 752, y: 97, w: 61, h: 30, borders: "border-t border-l", dot: "bl" } },
   { x: 70, y: 417, w: 248, conn: { x: 70, y: 379, w: 246, h: 30, borders: "border-l border-t", dot: "tr" } },
   { x: 821, y: 417, w: 157, conn: { x: 758, y: 379, w: 73, h: 30, borders: "border-t border-r", dot: "tl" } },
 ];
 // Mobile box 390×345 (full frame width); the tablet box is Figma's own
 // 256×242 image frame, so the connectors land on it exactly as designed.
 const MOBILE = { W: 390, H: 345, tablet: { x: 67, y: 31, w: 256, h: 242 } };
-// QA: on phones two dots floated off the pill and two sat on its rim. Each
-// dot now sits ~80px from the pill's centre (it's ~117px in radius, centred
-// at 195,152 of this box), along its old direction, lines shortened to match.
+// Phones: each dot sits just inside the pill's rim (~110px from its centre;
+// the pill is ~117px in radius, centred at 195,152 of this box), and every
+// line approaches from outside, so the connectors touch the pill rather than
+// running across it. "Slow down your digestion" gets a wider box (2 lines).
 const M: Callout[] = [
-  { x: 20, y: 28, w: 89, conn: { x: 20, y: 73, w: 103, h: 43, borders: "border-l border-b", dot: "br" } },
-  { x: 280, y: 4, w: 98, conn: { x: 215, y: 22, w: 58, h: 53, borders: "border-t border-l", dot: "bl" } },
-  { x: 20, y: 305, w: 120, conn: { x: 20, y: 220, w: 133, h: 87, borders: "border-l border-t", dot: "tr" } },
-  { x: 280, y: 295, w: 98, conn: { x: 256, y: 203, w: 79, h: 82, borders: "border-t border-r", dot: "tl" } },
+  { x: 20, y: 28, w: 89, conn: { x: 20, y: 73, w: 75, h: 30, borders: "border-l border-b", dot: "br" } },
+  { x: 258, y: 4, w: 120, conn: { x: 215, y: 22, w: 36, h: 23, borders: "border-t border-l", dot: "bl" } },
+  { x: 20, y: 305, w: 120, conn: { x: 20, y: 230, w: 94, h: 70, borders: "border-l border-t", dot: "tr" } },
+  { x: 280, y: 295, w: 98, conn: { x: 287, y: 215, w: 48, h: 75, borders: "border-t border-r", dot: "tl" } },
 ];
 
 const DOT: Record<Edge, string> = {
