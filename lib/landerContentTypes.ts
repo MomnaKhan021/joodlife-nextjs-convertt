@@ -130,8 +130,9 @@ export const LANDER_DEFAULT: LanderContent = {
     title: "Lose weight with a programme",
     titleAccent: "designed around you.",
     bullets: ["UK-registered clinicians", "Personalised plan", "24/7 WhatsApp support"],
-    image: `${A}/hero-4.png`,
-    imageAlt: "Woman in sportswear standing confidently outdoors",
+    // Borrowed from /wegovy-pills until the lander's own photo arrives.
+    image: "/assets/wegovy/hero.png",
+    imageAlt: "Smiling woman taking a daily weight-loss tablet with a glass of water",
     cardName: "Jood clinical team",
     cardChannel: "· WhatsApp",
     cardMessage: "Hi Sarah, I've reviewed your answers. Shall we book your video call?",
@@ -420,6 +421,7 @@ export function mergeLander(stored: unknown): LanderContent {
   const rv = rec(s.reviews);
   const fq = rec(s.faq);
   const fn = rec(s.final);
+  const heroIsOriginal = h.image === `${A}/hero-4.png`;
 
   return {
     hero: {
@@ -429,8 +431,9 @@ export function mergeLander(stored: unknown): LanderContent {
       title: str(h.title, D.hero.title),
       titleAccent: opt(h.titleAccent, D.hero.titleAccent),
       bullets: strings(h.bullets, D.hero.bullets),
-      image: str(h.image, D.hero.image),
-      imageAlt: opt(h.imageAlt, D.hero.imageAlt),
+      // The first save stored the original photo; still that photo = unedited.
+      image: heroIsOriginal ? D.hero.image : str(h.image, D.hero.image),
+      imageAlt: heroIsOriginal ? D.hero.imageAlt : opt(h.imageAlt, D.hero.imageAlt),
       cardName: opt(h.cardName, D.hero.cardName),
       cardChannel: opt(h.cardChannel, D.hero.cardChannel),
       cardMessage: opt(h.cardMessage, D.hero.cardMessage),
