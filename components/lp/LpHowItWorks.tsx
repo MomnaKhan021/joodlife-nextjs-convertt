@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 
+import Reveal from "@/components/ui/Reveal";
 import type { LanderSteps } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
-import { LP_ASSETS, LP_GUTTER, LpCta, LpHeading, LpStepLabel, rawImage } from "./shared";
+import { LP_ASSETS, LP_BODY, LP_GUTTER, LpCta, LpHeading, LpStepLabel, rawImage } from "./shared";
 
 /**
  * "How The Programme Works" — step accordion with a progress rail
@@ -61,21 +62,20 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
   }, [open, count]);
 
   return (
-    <section id="how-it-works" className="overflow-hidden bg-white py-[40px] lg:rounded-t-[40px] lg:py-[80px]" {...styleProps(style)}>
+    <section id="how-it-works" className="overflow-hidden bg-white py-[60px] lg:rounded-t-[40px] lg:py-[80px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col gap-[32px] lg:flex-row lg:items-start lg:gap-[50px] ${LP_GUTTER}`}>
-        <div className="flex flex-col items-center gap-[32px] text-center lg:w-[551px] lg:shrink-0 lg:items-start lg:text-left">
+        <Reveal className="flex flex-col items-center gap-[32px] text-center lg:sticky lg:top-[40px] lg:w-[551px] lg:shrink-0 lg:items-start lg:text-left">
           <div className="flex flex-col gap-[12px]">
             <LpHeading lead={c.heading} accent={c.headingAccent} className="lg:w-[396px]" />
-            {c.subtitle ? (
-              <p className="font-ui text-[14px] leading-[19.5px] tracking-[-0.32px] text-[#142e2a] lg:text-[16.3px]">{c.subtitle}</p>
-            ) : null}
+            {c.subtitle ? <p className={`${LP_BODY} text-[#142e2a]`}>{c.subtitle}</p> : null}
           </div>
           <div className="hidden lg:block">
             <LpCta label={c.ctaLabel} href={c.ctaHref} />
           </div>
-        </div>
+        </Reveal>
 
-        <div className="flex flex-col gap-[24px] lg:flex-1">
+        {/* The step list reveals as one block — its rail is measured from the cards. */}
+        <Reveal delay={150} className="flex flex-col gap-[24px] lg:flex-1">
           <div ref={list} className="relative flex flex-col gap-[16px] pl-[32px] lg:pl-[48px]">
             {/* Rail */}
             <div
@@ -136,7 +136,7 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
                   {isOpen && (s.body || s.image) ? (
                     <div className="flex flex-col gap-[24px] pt-[12px]">
                       {s.body ? (
-                        <p className="font-ui text-[16px] leading-[20px] tracking-[-0.427px] text-[#142e2a]">{s.body}</p>
+                        <p className={`${LP_BODY} text-[#142e2a]/85`}>{s.body}</p>
                       ) : null}
                       {s.image ? (
                         <div className="relative h-[160px] w-full overflow-hidden rounded-[16px] lg:h-[270px]">
@@ -159,7 +159,7 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
           <div className="lg:hidden">
             <LpCta label={c.ctaLabel} href={c.ctaHref} />
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

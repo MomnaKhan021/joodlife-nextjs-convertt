@@ -61,6 +61,8 @@ const nextConfig: NextConfig = {
       // The tablet landing page was briefly published at /weight-loss-tablet;
       // its home is /foundayo, so keep any shared link working.
       { source: "/weight-loss-tablet", destination: "/foundayo", permanent: true },
+      // The weight-loss ads lander moved to its ad URL; keep old links working.
+      { source: "/weight-loss-lander", destination: "/a7g64pt", permanent: true },
     ];
   },
   /**

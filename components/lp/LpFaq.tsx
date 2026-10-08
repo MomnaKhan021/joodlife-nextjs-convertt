@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
+import Reveal from "@/components/ui/Reveal";
 import type { LanderFaqs } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
@@ -16,15 +17,17 @@ export default function LpFaq({ content: c, style }: { content: LanderFaqs; styl
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="bg-white py-[40px] lg:py-[80px]" {...styleProps(style)}>
+    <section id="faq" className="bg-white py-[60px] lg:py-[80px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col gap-[24px] lg:flex-row lg:items-start lg:gap-[40px] ${LP_GUTTER}`}>
-        <LpHeading lead={c.heading} accent={c.headingAccent} className="text-center lg:flex-1 lg:text-left" />
+        <Reveal direction="right" className="lg:flex-1">
+          <LpHeading lead={c.heading} accent={c.headingAccent} className="text-center lg:text-left" />
+        </Reveal>
 
         <ul className="flex flex-col gap-[16px] lg:flex-1">
           {c.items.map((f, i) => {
             const isOpen = open === i;
             return (
-              <li key={`${f.q}-${i}`} className="border-b border-[rgba(20,46,42,0.2)]">
+              <Reveal as="li" key={`${f.q}-${i}`} delay={i * 90} className="border-b border-[rgba(20,46,42,0.2)]">
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
@@ -48,7 +51,7 @@ export default function LpFaq({ content: c, style }: { content: LanderFaqs; styl
                     <p className="whitespace-pre-line px-[16px] pb-[16px] font-ui text-[14px] leading-[22px] text-[#142e2a]/75 md:text-[15.5px] md:leading-[24px]">{f.a}</p>
                   </div>
                 </div>
-              </li>
+              </Reveal>
             );
           })}
         </ul>

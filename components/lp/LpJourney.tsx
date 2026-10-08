@@ -2,11 +2,12 @@
 
 import { useCallback, useRef, useState } from "react";
 
+import Reveal from "@/components/ui/Reveal";
 import { parseTime, type LanderJourney } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 import LpVideo from "./LpVideo";
-import { LP_GUTTER, LpCta, LpHeading, LpStepLabel } from "./shared";
+import { LP_BODY, LP_GUTTER, LpCta, LpHeading, LpStepLabel } from "./shared";
 
 /**
  * "Your Journey" — one video that explains the whole process, beside the
@@ -35,19 +36,12 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
   }
 
   return (
-    <section className="bg-[#f6f9f2] py-[40px] lg:py-[96px]" {...styleProps(style)}>
+    <section className="bg-[#f6f9f2] py-[60px] lg:py-[96px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col items-center ${LP_GUTTER}`}>
-        <LpHeading
-          lead={c.heading}
-          accent={c.headingAccent}
-          weight="medium"
-          className="text-center !tracking-[-0.96px] !text-[#17282a] lg:!leading-[51.84px]"
-        />
-        {c.subtitle ? (
-          <p className="max-w-[340px] pt-[12px] text-center font-ui text-[16.3px] leading-[19.5px] tracking-[-0.32px] text-[#142e2a] lg:max-w-none">
-            {c.subtitle}
-          </p>
-        ) : null}
+        <Reveal className="flex flex-col items-center text-center">
+          <LpHeading lead={c.heading} accent={c.headingAccent} weight="medium" />
+          {c.subtitle ? <p className={`${LP_BODY} max-w-[340px] pt-[12px] text-[#142e2a] lg:max-w-none`}>{c.subtitle}</p> : null}
+        </Reveal>
 
         {/* Full section width (1280 at desktop, like the other sections): video column, steps column */}
         <div
@@ -57,7 +51,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
         >
           {/* The one video — 4:5, so it stays short enough on phones and wide on desktop */}
           {c.video || c.image ? (
-            <div className="w-full rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)]">
+            <Reveal direction="right" delay={100} className="w-full rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)]">
               <LpVideo
                 image={c.image}
                 video={c.video}
@@ -67,7 +61,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
                 videoRef={video}
                 onTime={onTime}
               />
-            </div>
+            </Reveal>
           ) : null}
 
           {/* The steps — a timeline */}
@@ -79,7 +73,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
               const clickable = chapters && starts[i] !== null;
               const Card = clickable ? "button" : "div";
               return (
-                <li key={`${s.title}-${i}`} className="relative flex gap-[16px]">
+                <Reveal as="li" key={`${s.title}-${i}`} delay={150 + i * 120} direction="left" className="relative flex gap-[16px]">
                   {/* Step dot */}
                   <span
                     aria-hidden
@@ -116,13 +110,15 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
                       <span className="pt-[6px] font-ui text-[15px] leading-[20px] tracking-[-0.3px] text-[#142e2a]/85 lg:text-[16px]">{s.body}</span>
                     ) : null}
                   </Card>
-                </li>
+                </Reveal>
               );
             })}
           </ol>
         </div>
 
-        <LpCta label={c.ctaLabel} href={c.ctaHref} face="interTight" />
+        <Reveal delay={150}>
+          <LpCta label={c.ctaLabel} href={c.ctaHref} />
+        </Reveal>
       </div>
     </section>
   );

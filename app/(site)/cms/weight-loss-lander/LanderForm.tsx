@@ -170,7 +170,7 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
         </Link>
         <h1 className="mt-2 text-[24px] font-semibold text-[#1a1a1a]">Weight loss ads lander</h1>
         <p className="mt-1 text-[14px] text-[#616161]">
-          Live at <code className="rounded bg-[#eef1e8] px-1.5 py-0.5">/weight-loss-lander</code> — the page paid ads
+          Live at <code className="rounded bg-[#eef1e8] px-1.5 py-0.5">/a7g64pt</code> — the page paid ads
           send people to. It isn&apos;t in the site menu and is hidden from Google. Sections are in page order.
         </p>
       </header>
@@ -417,7 +417,7 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
         saved={saved}
         error={error}
         label="Save ads lander"
-        viewHref="/weight-loss-lander"
+        viewHref="/a7g64pt"
       />
 
       <p className="mt-3 text-[12px] text-[#8a8a8a]">

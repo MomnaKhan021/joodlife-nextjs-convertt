@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { LanderTrust } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
-import { FONT_POPPINS, LP_ASSETS, LP_GUTTER, TrustpilotLink } from "./shared";
+import { LP_ASSETS, LP_GUTTER, TrustpilotLink } from "./shared";
 
 function Check({ small = false }: { small?: boolean }) {
   return (
@@ -22,8 +22,7 @@ function MobileRow({ c, hidden = false }: { c: LanderTrust; hidden?: boolean }) 
   return (
     <div className="flex shrink-0 items-center gap-[18px] pr-[18px]" aria-hidden={hidden || undefined}>
       <TrustpilotLink className="flex items-center gap-[4px] whitespace-nowrap text-[12px] font-medium leading-[10.8px] text-[#142e2a]">
-        {/* Figma: Poppins Medium 12 for the count and the wordmark */}
-        <span style={FONT_POPPINS} className="flex items-center gap-[4px]">
+        <span className="flex items-center gap-[4px] font-ui">
         {c.reviewsLabel}
         <span className="flex items-center gap-[3px]">
           <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={14} height={13} unoptimized />
@@ -68,7 +67,7 @@ export default function LpTrustStrip({ content: c, style }: { content: LanderTru
         <TrustpilotLink className="flex shrink-0 items-center gap-[9px]">
           <span className="flex items-center gap-[5px]">
             <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={21} height={20} unoptimized />
-            <span style={FONT_POPPINS} className="text-[16px] font-medium leading-[16px] text-[#142e2a]">Trustpilot</span>
+            <span className="font-ui text-[16px] font-medium leading-[16px] text-[#142e2a]">Trustpilot</span>
           </span>
           <Image src={`${LP_ASSETS}/tp-stars.svg`} alt="Rated 5 stars" width={123} height={23} unoptimized />
           <span className="font-ui text-[16px] font-medium leading-[16px] text-[#142e2a]">

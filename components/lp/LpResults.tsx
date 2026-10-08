@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import Reveal from "@/components/ui/Reveal";
 import type { LanderResults } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
@@ -32,9 +33,10 @@ function Photo({ src, label, after, alt }: { src: string; label: string; after?:
  */
 export default function LpResults({ content: c, style }: { content: LanderResults; style?: SectionStyle }) {
   return (
-    <section className="bg-[#f7f9f2] py-[40px] lg:py-[80px]" {...styleProps(style)}>
-      <div className={`mx-auto flex max-w-[1440px] flex-col items-center gap-[24px] lg:gap-[40px] ${LP_GUTTER}`}>
-        <h2 className="text-center font-display text-[32px] !font-semibold leading-[36px] tracking-[-1.2px] text-[#142e2a] lg:text-[48px] lg:leading-[52px]">
+    <section className="bg-[#f7f9f2] py-[60px] lg:py-[80px]" {...styleProps(style)}>
+      <div className={`mx-auto flex max-w-[1440px] flex-col items-center gap-[30px] lg:gap-[40px] ${LP_GUTTER}`}>
+        <Reveal>
+        <h2 className="text-center font-display text-[36px] !font-semibold leading-[43.2px] tracking-[-1.2px] text-[#142e2a] md:text-[48px] md:leading-[52px]">
           {c.heading}
           {c.headingAccent ? (
             <>
@@ -45,8 +47,10 @@ export default function LpResults({ content: c, style }: { content: LanderResult
             </>
           ) : null}
         </h2>
+        </Reveal>
 
         <div className="flex w-full max-w-[1108px] flex-col items-center gap-[24px] lg:gap-[32px]">
+          <Reveal delay={120} className="w-full">
           <LpSlider gap={20} itemClassName="w-full lg:w-[calc(50%-10px)]">
             {c.items.map((r, i) => (
               <article key={`${r.name}-${i}`} className="flex w-full flex-col gap-[16px] rounded-[22px] bg-white p-[12px] lg:gap-[20px] lg:p-[14px]">
@@ -77,8 +81,11 @@ export default function LpResults({ content: c, style }: { content: LanderResult
               </article>
             ))}
           </LpSlider>
+          </Reveal>
 
-          <LpCta label={c.ctaLabel} href={c.ctaHref} />
+          <Reveal delay={200}>
+            <LpCta label={c.ctaLabel} href={c.ctaHref} />
+          </Reveal>
         </div>
       </div>
     </section>
