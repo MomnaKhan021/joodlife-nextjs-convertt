@@ -142,7 +142,7 @@ export const FOUNDAYO = {
     headingAccent: "GLP-1 work?",
     intro:
       "GLP-1 is a hormone your gut releases after every meal to tell your brain you've had enough. GLP-1 treatment works on the same signals to help:",
-    callouts: ["Quiet your\nfood noise", "Slow down\nyour\ndigestion", "Feel fuller for longer", "Regulate your\nappetite"],
+    callouts: ["Quiet your\nfood noise", "Slow down your\ndigestion", "Feel fuller for longer", "Regulate your\nappetite"],
     body: "Most diets fail because hunger wins. Quieten the hunger and healthier choices start to feel easy, with a pharmacist one WhatsApp message away whenever you need them.",
     ctaLabel: "Get Started",
     ctaHref: FOUNDAYO_ASSESS,
