@@ -11,6 +11,12 @@ import { LpCta, rawImage } from "./shared";
  * (Figma 20:787; mobile 20:1353). Desktop: copy left, photo centre,
  * benefit cards right. Phones: copy, cards, button, then the photo.
  */
+/** Fades an element out over its bottom `length` (background-agnostic). */
+function fade(length: string): React.CSSProperties {
+  const g = `linear-gradient(to bottom, #000 calc(100% - ${length}), transparent)`;
+  return { maskImage: g, WebkitMaskImage: g };
+}
+
 export default function LpFinal({ content: c, style }: { content: LanderFinal; style?: SectionStyle }) {
   // White space before the footer so the card's rounded corners show (as on /foundayo).
   return (
@@ -19,11 +25,15 @@ export default function LpFinal({ content: c, style }: { content: LanderFinal; s
         className="relative flex flex-col overflow-hidden rounded-[20px] bg-[#f7f9f2] shadow-[0px_10px_16px_0px_rgba(20,46,42,0.14)] lg:h-[630px] lg:flex-row lg:items-center lg:justify-between lg:px-[60px] lg:py-[80px]"
         {...styleProps(style)}
       >
-        {/* Photo — 679×845 from x=403 at the 1440 width, cropped by the card */}
+        {/* Photo — 679×845 from x=403 at the 1440 width, cropped by the card.
+            The card-sized layer fades the photo out over its last 160px, so
+            the crop at the card's edge melts into the background. */}
         {c.image ? (
-          <Reveal delay={150} className="absolute left-[28%] top-[57px] hidden aspect-[679/845] w-[47.15%] lg:block">
-            <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="680px" className="object-cover" />
-          </Reveal>
+          <div className="pointer-events-none absolute inset-0 hidden lg:block" style={fade("160px")}>
+            <Reveal delay={150} className="absolute left-[28%] top-[57px] aspect-[679/845] w-[47.15%]">
+              <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="680px" className="object-cover" />
+            </Reveal>
+          </div>
         ) : null}
 
         <Reveal direction="right" className="relative z-10 flex flex-col gap-[24px] px-4 pt-[40px] lg:w-[419px] lg:shrink-0 lg:gap-[50px] lg:px-0 lg:pt-0">
@@ -82,7 +92,7 @@ export default function LpFinal({ content: c, style }: { content: LanderFinal; s
           ) : null}
         </div>
         {c.image ? (
-          <div className="relative mt-[16px] aspect-[390/260] w-full lg:hidden">
+          <div className="relative mt-[16px] aspect-[390/260] w-full lg:hidden" style={fade("35%")}>
             <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="100vw" className="object-cover object-top" />
           </div>
         ) : null}
