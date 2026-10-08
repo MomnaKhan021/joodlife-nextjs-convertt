@@ -49,8 +49,13 @@ export default function FinalCta() {
           </div>
 
           {/* Mobile */}
-          <div className="relative h-[560px] overflow-hidden rounded-[24px] bg-[#fff8f6] md:hidden">
-            <Image src={c.image} alt={c.imageAlt} fill sizes="100vw" quality={90} className="object-cover object-top" />
+          <div className="relative h-[600px] overflow-hidden rounded-[24px] bg-[#fff8f6] md:hidden">
+            {/* QA: the panel covered her smile. The photo is set 140px higher
+                (over the plain sky above her) so her face, smile and chin sit
+                above the panel, as in Figma. */}
+            <div className="absolute inset-x-0 -top-[140px] bottom-0">
+              <Image src={c.image} alt={c.imageAlt} fill sizes="(max-width: 767px) 160vw, 1px" quality={90} className="object-cover object-[80%_top]" />
+            </div>
             <div className="absolute inset-x-4 bottom-4 flex flex-col items-start gap-[14px] rounded-2xl bg-white/45 p-4 backdrop-blur-xl">
               <Heart />
               {heading}

@@ -27,19 +27,35 @@ export default function Hero() {
   return (
     <section
       aria-label="Weight loss tablet — tried every diet?"
-      className="relative flex min-h-[520px] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(600px,72vh)]"
+      className="relative flex min-h-[min(600px,74vh)] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(600px,72vh)]"
     >
       {/* Static photo: the old slow zoom (transform: scale) made the browser
           rasterise the image once and stretch it, which read as blur. */}
-      <div className="absolute inset-0">
+      {/* Phones (Figma 2003:564): the photo is its own 433px band, nudged up,
+          so her face and the tablet sit above the headline instead of behind
+          it; the section's dark brown and the wash carry on below. Rendered
+          ~770px wide, hence the larger sizes hint (it was getting a 390px
+          file stretched 2.4x). */}
+      <div className="absolute inset-x-0 -top-[55px] h-[433px] [mask-image:linear-gradient(to_bottom,black_55%,transparent_100%)] md:hidden">
         <Image
           src={c.image}
           alt={c.imageAlt}
           fill
           priority
+          quality={90}
+          sizes="(max-width: 767px) 200vw, 1px"
+          className="object-cover object-[60%_center]"
+        />
+      </div>
+      <div className="absolute inset-0 hidden md:block">
+        <Image
+          src={c.image}
+          alt=""
+          fill
+          priority
           quality={95}
-          sizes="100vw"
-          className="object-cover object-[72%_center] md:object-[center_35%]"
+          sizes="(min-width: 768px) 100vw, 1px"
+          className="object-cover md:object-[center_35%]"
         />
       </div>
       {/* Legibility wash. Mobile: the copy sits at the bottom, so darken from

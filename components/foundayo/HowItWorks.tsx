@@ -35,11 +35,14 @@ const D: Callout[] = [
 // Mobile box 390×345 (full frame width); the tablet box is Figma's own
 // 256×242 image frame, so the connectors land on it exactly as designed.
 const MOBILE = { W: 390, H: 345, tablet: { x: 67, y: 31, w: 256, h: 242 } };
+// QA: on phones two dots floated off the pill and two sat on its rim. Each
+// dot now sits ~80px from the pill's centre (it's ~117px in radius, centred
+// at 195,152 of this box), along its old direction, lines shortened to match.
 const M: Callout[] = [
-  { x: 20, y: 28, w: 89, conn: { x: 20, y: 73, w: 77, h: 30, borders: "border-l border-b", dot: "br" } },
-  { x: 280, y: 4, w: 98, conn: { x: 222, y: 22, w: 51, h: 25, borders: "border-t border-l", dot: "bl" } },
-  { x: 20, y: 305, w: 120, conn: { x: 20, y: 261, w: 107, h: 46, borders: "border-l border-t", dot: "tr" } },
-  { x: 280, y: 295, w: 98, conn: { x: 298, y: 238, w: 37, h: 47, borders: "border-t border-r", dot: "tl" } },
+  { x: 20, y: 28, w: 89, conn: { x: 20, y: 73, w: 103, h: 43, borders: "border-l border-b", dot: "br" } },
+  { x: 280, y: 4, w: 98, conn: { x: 215, y: 22, w: 58, h: 53, borders: "border-t border-l", dot: "bl" } },
+  { x: 20, y: 305, w: 120, conn: { x: 20, y: 220, w: 133, h: 87, borders: "border-l border-t", dot: "tr" } },
+  { x: 280, y: 295, w: 98, conn: { x: 256, y: 203, w: 79, h: 82, borders: "border-t border-r", dot: "tl" } },
 ];
 
 const DOT: Record<Edge, string> = {
