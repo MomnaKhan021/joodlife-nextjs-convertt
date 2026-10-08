@@ -14,6 +14,7 @@ export default function LpSlider({
   itemClassName,
   gap = 16,
   bleed = false,
+  bleedRight = false,
   className = "",
 }: {
   children: React.ReactNode;
@@ -22,6 +23,10 @@ export default function LpSlider({
   gap?: number;
   /** Run to the screen edges on phones (cards peek past the gutter). */
   bleed?: boolean;
+  /** Desktop: start at the content's left edge and run to the screen's right
+   *  edge, so the next card peeks in from the side. The section must clip
+   *  horizontal overflow. */
+  bleedRight?: boolean;
   className?: string;
 }) {
   const slides = Children.toArray(children);
@@ -77,9 +82,10 @@ export default function LpSlider({
       <div
         ref={track}
         className={`no-scrollbar flex snap-x snap-mandatory overflow-x-auto ${
-          bleed
-            ? "-mx-4 w-[calc(100%+2rem)] scroll-px-4 px-4 lg:mx-0 lg:w-full lg:scroll-px-0 lg:px-0"
-            : "w-full"
+          bleed ? "-mx-4 w-[calc(100%+2rem)] scroll-px-4 px-4 lg:mx-0 lg:scroll-px-0 lg:px-0" : "w-full"
+        } ${
+          // (100% + 100vw) / 2 = this width plus the space out to the screen's right edge
+          bleedRight ? "lg:w-[calc((100%+100vw)/2)] lg:self-start" : "lg:w-full"
         }`}
         style={{ gap }}
       >
