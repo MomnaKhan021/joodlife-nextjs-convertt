@@ -70,7 +70,7 @@ export default function Dosing() {
                   product="weight-loss"
                   href={c.commitHref}
                   label={c.commitCta}
-                  className={`${BTN_TEXT} ml-[50px] inline-flex h-8 items-center justify-center rounded-lg border border-[#d3dabe] bg-white !text-[12px] text-[#142e2a] transition-colors hover:bg-[#daffe0] md:ml-0 md:h-[50px] md:w-[192px] md:shrink-0 md:!text-[16.3px]`}
+                  className={`${BTN_TEXT} ml-[50px] btn-cta inline-flex h-8 items-center justify-center rounded-lg border border-[#d3dabe] bg-white !text-[12px] text-[#142e2a] md:ml-0 md:h-[50px] md:w-[192px] md:shrink-0 md:!text-[16.3px]`}
                 />
               </div>
             </Reveal>

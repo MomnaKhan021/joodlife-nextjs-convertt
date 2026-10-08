@@ -41,7 +41,7 @@ export default function RealResults() {
                 <p className="font-ui text-[20px] font-medium leading-[26px] tracking-[-0.5px] text-white md:mt-[11px] md:text-[22px] md:leading-[28.6px]">{c.lead}</p>
               </div>
               <div className="md:pl-[70px]">
-                <p className="mt-1 font-display text-[80px] font-medium leading-[100.8px] tracking-[-3px] text-white md:-mt-2 md:text-[150.9px] md:leading-[190.2px]">{c.big}</p>
+                <p className="mt-1 whitespace-nowrap font-display text-[clamp(56px,19vw,80px)] font-medium leading-[1.26] tracking-[-3px] text-white md:-mt-2 md:text-[clamp(96px,10.5vw,150.9px)]">{c.big}</p>
                 <p className="font-ui text-[18px] font-medium leading-[21.6px] tracking-[-0.5px] text-white md:-mt-[6px] md:text-[25px] md:leading-[25.6px]">{c.tail}</p>
                 <p className="mt-3 font-ui text-[14.3px] leading-[17.2px] tracking-[-0.3px] text-white md:mt-[27px] md:text-[16.3px] md:leading-[19.5px]">{c.body}</p>
               </div>
