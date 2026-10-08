@@ -46,7 +46,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
         {/* Full section width (1280 at desktop, like the other sections): video column, steps column */}
         <div
           className={`grid w-full gap-[24px] py-[24px] lg:items-stretch lg:gap-[48px] lg:py-[48px] ${
-            c.video || c.image ? "lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)]" : ""
+            c.video || c.image ? "lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]" : ""
           }`}
         >
           {/* The one video — 4:5, so it stays short enough on phones and wide on desktop */}
@@ -56,7 +56,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
                 image={c.image}
                 video={c.video}
                 alt={c.alt}
-                sizes="(max-width: 1024px) 100vw, 560px"
+                sizes="(max-width: 1024px) 100vw, 420px"
                 className="aspect-[4/5] w-full rounded-[14px]"
                 videoRef={video}
                 onTime={onTime}
