@@ -49,16 +49,17 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
             c.video || c.image ? "lg:grid-cols-[340px_minmax(0,600px)]" : ""
           }`}
         >
-          {/* The one video — shown whole (9:16), never cropped */}
+          {/* The one video — whole (9:16) from tablets up; full width on phones */}
           {c.video || c.image ? (
-            <Reveal direction="right" delay={100} className="mx-auto w-full max-w-[250px] rounded-[22px] bg-white p-[10px] md:max-w-[320px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] lg:max-w-none">
+            <Reveal direction="right" delay={100} className="mx-auto w-full rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] md:max-w-[320px] lg:max-w-none">
               <LpVideo
                 image={c.image}
                 video={c.video}
                 alt={c.alt}
-                sizes="(max-width: 768px) 250px, (max-width: 1024px) 320px, 340px"
-                // 9:16 like the clip itself, so nothing is cropped.
-                className="aspect-[9/16] w-full rounded-[14px]"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 320px, 340px"
+                // Phones: full width, 450px tall (a centred crop keeps the face
+                // and captions). Tablet/desktop: 9:16 like the clip, uncropped.
+                className="h-[450px] w-full rounded-[14px] md:aspect-[9/16] md:h-auto"
                 videoRef={video}
                 onTime={onTime}
               />
