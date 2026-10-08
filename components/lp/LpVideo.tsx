@@ -23,6 +23,7 @@ export default function LpVideo({
   children,
   videoRef,
   onTime,
+  focus = "object-center",
 }: {
   image: string;
   video?: string;
@@ -35,6 +36,8 @@ export default function LpVideo({
   videoRef?: React.MutableRefObject<HTMLVideoElement | null>;
   /** Playback position, for highlighting the step being explained. */
   onTime?: (seconds: number) => void;
+  /** Where the crop centres (object-position class), e.g. "object-[50%_20%]". */
+  focus?: string;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
@@ -94,7 +97,7 @@ export default function LpVideo({
     return (
       <div className={`relative overflow-hidden bg-[#e7ecd7] ${className}`}>
         {image ? (
-          <Image src={image} alt={alt} fill sizes={sizes} unoptimized={rawImage(image)} className="object-cover" />
+          <Image src={image} alt={alt} fill sizes={sizes} unoptimized={rawImage(image)} className={`object-cover ${focus}`} />
         ) : null}
         {children}
       </div>
@@ -113,12 +116,12 @@ export default function LpVideo({
         playsInline
         preload={image ? "none" : "metadata"}
         aria-label={alt}
-        className="absolute inset-0 size-full object-cover"
+        className={`absolute inset-0 size-full object-cover ${focus}`}
       />
 
       {/* Cover image and overlays until the video has been started */}
       {!started && image ? (
-        <Image src={image} alt="" fill sizes={sizes} unoptimized={rawImage(image)} className="object-cover" />
+        <Image src={image} alt="" fill sizes={sizes} unoptimized={rawImage(image)} className={`object-cover ${focus}`} />
       ) : null}
       {!started ? children : null}
 
