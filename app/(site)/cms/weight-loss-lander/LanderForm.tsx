@@ -178,7 +178,7 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
       <div className="space-y-5">
         {/* 1. Hero */}
         <div className={cmsCard}>
-          <SectionHead n={1} title="Hero" note="Clearing the colour brings back the green gradient." control={control("hero")} />
+          <SectionHead n={1} title="Hero" note="Full-width photo with the copy over it. The colour shows behind the photo while it loads." control={control("hero")} />
           <TextField label="Top bar text" value={hero.topBar} onChange={(topBar) => setHero({ ...hero, topBar })} hint="Empty hides the bar." />
           <TextField label="Trustpilot score" value={hero.rating} onChange={(rating) => setHero({ ...hero, rating })} hint='Shown as "4.4 out of 5". Links to Trustpilot.' />
           <Pair
@@ -195,7 +195,8 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
             onLabel={(ctaLabel) => setHero({ ...hero, ctaLabel })}
             onHref={(ctaHref) => setHero({ ...hero, ctaHref })}
           />
-          <PictureField label="Photo" src={hero.image} onSrc={(image) => setHero({ ...hero, image })} alt={hero.imageAlt} onAlt={(imageAlt) => setHero({ ...hero, imageAlt })} />
+          <PictureField label="Photo (desktop, wide)" src={hero.image} onSrc={(image) => setHero({ ...hero, image })} alt={hero.imageAlt} onAlt={(imageAlt) => setHero({ ...hero, imageAlt })} />
+          <PictureField label="Photo (phones, tall) — optional, the desktop photo is used if empty" src={hero.mobileImage} onSrc={(mobileImage) => setHero({ ...hero, mobileImage })} />
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField label="Message card — sender" value={hero.cardName} onChange={(cardName) => setHero({ ...hero, cardName })} />
             <TextField label="Message card — channel" value={hero.cardChannel} onChange={(cardChannel) => setHero({ ...hero, cardChannel })} />

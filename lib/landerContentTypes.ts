@@ -39,6 +39,8 @@ export type LanderHero = LanderCta & {
   titleAccent: string;
   bullets: string[];
   image: string;
+  /** Portrait crop for phones; empty uses `image`. */
+  mobileImage: string;
   imageAlt: string;
   cardName: string;
   cardChannel: string;
@@ -130,9 +132,9 @@ export const LANDER_DEFAULT: LanderContent = {
     title: "Lose weight with a programme",
     titleAccent: "designed around you.",
     bullets: ["UK-registered clinicians", "Personalised plan", "24/7 WhatsApp support"],
-    // Borrowed from /wegovy-pills until the lander's own photo arrives.
-    image: "/assets/wegovy/hero.png",
-    imageAlt: "Smiling woman taking a daily weight-loss tablet with a glass of water",
+    image: `${A}/hero-cap-desktop.webp`,
+    mobileImage: `${A}/hero-cap-mobile.webp`,
+    imageAlt: "Smiling woman in a green cap relaxing on the sofa at home",
     cardName: "Jood clinical team",
     cardChannel: "· WhatsApp",
     cardMessage: "Hi Sarah, I've reviewed your answers. Shall we book your video call?",
@@ -422,6 +424,7 @@ export function mergeLander(stored: unknown): LanderContent {
   const fq = rec(s.faq);
   const fn = rec(s.final);
   const heroIsOriginal = h.image === `${A}/hero-4.png`;
+  const heroImage = heroIsOriginal ? D.hero.image : str(h.image, D.hero.image);
 
   return {
     hero: {
@@ -432,7 +435,15 @@ export function mergeLander(stored: unknown): LanderContent {
       titleAccent: opt(h.titleAccent, D.hero.titleAccent),
       bullets: strings(h.bullets, D.hero.bullets),
       // The first save stored the original photo; still that photo = unedited.
-      image: heroIsOriginal ? D.hero.image : str(h.image, D.hero.image),
+      image: heroImage,
+      // No phone photo set: the default pairs with the default photo, and a
+      // photo the editor chose is used on phones too.
+      mobileImage:
+        typeof h.mobileImage === "string" && h.mobileImage.trim()
+          ? h.mobileImage
+          : heroImage === D.hero.image
+            ? D.hero.mobileImage
+            : heroImage,
       imageAlt: heroIsOriginal ? D.hero.imageAlt : opt(h.imageAlt, D.hero.imageAlt),
       cardName: opt(h.cardName, D.hero.cardName),
       cardChannel: opt(h.cardChannel, D.hero.cardChannel),
