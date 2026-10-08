@@ -52,7 +52,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
         <div className="flex w-full flex-col items-center gap-[24px] py-[24px] lg:flex-row lg:items-center lg:justify-center lg:gap-[64px] lg:py-[48px]">
           {/* The one video — portrait, like the clip itself */}
           {c.video || c.image ? (
-            <div className="w-full max-w-[300px] shrink-0 rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] lg:w-[360px] lg:max-w-[360px]">
+            <div className="w-full shrink-0 rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] lg:w-[360px]">
               <LpVideo
                 image={c.image}
                 video={c.video}
