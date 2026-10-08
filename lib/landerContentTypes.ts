@@ -166,7 +166,7 @@ export const LANDER_DEFAULT: LanderContent = {
     headingAccent: "real journeys.",
     items: [
       {
-        name: "Amanda, 43",
+        name: "Lauren, 31",
         before: `${A}/ba-amanda-before.png`,
         after: `${A}/ba-amanda-after.png`,
         beforeLabel: "Week 0",
