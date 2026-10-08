@@ -180,10 +180,10 @@ export const LANDER_DEFAULT: LanderContent = {
         before: `${A}/ba-kim-before-b.png`,
         after: `${A}/ba-kim-after-b.png`,
         beforeLabel: "Week 0",
-        afterLabel: "Week 4",
+        afterLabel: "Week 6",
         lost: "−8kg",
-        detail: "18 lbs in 4 weeks",
-        quote: "“In just over four weeks, I've already lost a little more than 18 pounds. I feel much healthier now.”",
+        detail: "18 lbs in 6 weeks",
+        quote: "“In just six weeks, I've already lost a little more than 18 pounds. I feel much healthier now.”",
       },
       {
         name: "Rachel, 34",
