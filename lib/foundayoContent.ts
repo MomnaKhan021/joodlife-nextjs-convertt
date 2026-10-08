@@ -70,7 +70,7 @@ export const FOUNDAYO = {
     { label: "Pharmacist-assessed", icon: "medication" },
     { label: "Cancel anytime", icon: "cancel" },
     { label: "WhatsApp support", icon: "support" },
-    { label: "Rated 4.4 on Trustpilot", icon: "customers" },
+    { label: "Rated 4.4 on Trustpilot", icon: "customers", href: "https://www.trustpilot.com/review/joodlife.com" },
   ] as { label: string; icon: UspIcon }[],
 
   whatIs: {

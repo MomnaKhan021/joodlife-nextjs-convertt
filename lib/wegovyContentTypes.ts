@@ -33,7 +33,8 @@ export const USP_ICONS = [
 ] as const;
 export type UspIcon = (typeof USP_ICONS)[number];
 
-export type UspItem = { label: string; icon: UspIcon };
+/** `href` is optional — set it to make the item a link (e.g. to Trustpilot). */
+export type UspItem = { label: string; icon: UspIcon; href?: string };
 
 export type ExplainerCard = { title: string; body: string; image: string };
 

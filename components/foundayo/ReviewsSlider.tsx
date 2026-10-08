@@ -22,11 +22,19 @@ import { ACCENT, WRAP } from "./type";
  */
 const PAGINATION_MIN = 4;
 
-function Card({ review }: { review: Review }) {
+function Card({ review, url }: { review: Review; url: string }) {
   return (
     <article className="flex h-full w-full flex-col justify-between rounded-lg border border-[#d0cfcd] bg-[#fff8f6] px-3 py-6 md:h-[302px]">
       <div className="flex flex-col gap-4">
-        <Image src="/assets/figma/stars-5.svg" alt="5 out of 5 stars" width={84} height={16} className="h-4 w-[84px] self-start" />
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="5 out of 5 stars — read this review on Trustpilot (opens in a new tab)"
+          className="self-start transition-opacity hover:opacity-80"
+        >
+          <Image src="/assets/figma/stars-5.svg" alt="5 out of 5 stars" width={84} height={16} className="h-4 w-[84px]" />
+        </a>
         <p className="font-ui text-[16.3px] leading-[19.5px] tracking-[-0.3px] text-[#2a2929]">{review.text}</p>
         <div className="h-px w-[122px] bg-[#142e2a]" />
       </div>
@@ -107,7 +115,7 @@ export default function ReviewsSlider({
           >
             {ITEMS.map((r, i) => (
               <SwiperSlide key={i} className="!h-auto">
-                <Card review={r} />
+                <Card review={r} url={url} />
               </SwiperSlide>
             ))}
           </Swiper>

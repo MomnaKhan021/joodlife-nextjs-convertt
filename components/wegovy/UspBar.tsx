@@ -87,10 +87,31 @@ export default function UspBar({
               className="flex shrink-0 items-center gap-3 px-10"
               aria-hidden={i >= items.length}
             >
-              <span className="shrink-0 text-black">{ICONS[it.icon]}</span>
-              <span {...textStyleProps(text?.["uspBar.itemLabel"])} className="whitespace-nowrap font-ui text-[16px] font-medium leading-[22.4px] tracking-[-0.02em] text-black md:text-[18px] md:leading-[25.2px]">
-                {it.label}
-              </span>
+              {(() => {
+                const inner = (
+                  <>
+                    <span className="shrink-0 text-black">{ICONS[it.icon]}</span>
+                    <span {...textStyleProps(text?.["uspBar.itemLabel"])} className="whitespace-nowrap font-ui text-[16px] font-medium leading-[22.4px] tracking-[-0.02em] text-black md:text-[18px] md:leading-[25.2px]">
+                      {it.label}
+                    </span>
+                  </>
+                );
+                // An item with an href (e.g. "Rated 4.4 on Trustpilot") is a link;
+                // the duplicate loop copy stays out of the tab order.
+                return it.href ? (
+                  <a
+                    href={it.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    tabIndex={i >= items.length ? -1 : undefined}
+                    className="flex items-center gap-3 underline-offset-4 hover:underline"
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  inner
+                );
+              })()}
             </li>
           ))}
         </ul>

@@ -80,13 +80,19 @@ export default function Hero() {
           </Reveal>
 
           <Reveal delay={300}>
-            <div className="mt-[10px] flex flex-wrap items-center gap-2 md:mt-5">
+            <a
+              href="https://www.trustpilot.com/review/joodlife.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Read our reviews on Trustpilot (opens in a new tab)"
+              className="mt-[10px] flex w-fit flex-wrap items-center gap-2 transition-opacity hover:opacity-85 md:mt-5"
+            >
               <Image src="/assets/icons/trustpilot-logo-dark.svg" alt="Trustpilot" width={74} height={18} className="h-[18px] w-auto brightness-0 invert" />
               <Image src="/assets/icons/trustpilot-stars.svg" alt="4.4 stars" width={86} height={16} className="h-4 w-auto" />
               <span className="font-ui text-[14.2px] leading-[17px] tracking-[-0.4px] text-white">
                 <strong className="font-bold">4.4</strong> {c.reviewsLabel}
               </span>
-            </div>
+            </a>
           </Reveal>
 
           <Reveal delay={400}>
