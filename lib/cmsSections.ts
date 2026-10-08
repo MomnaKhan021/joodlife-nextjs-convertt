@@ -144,7 +144,7 @@ export const CMS_NAV: CmsNavItem[] = [
     group: "site-pages",
     label: "Weight loss ads lander",
     href: "/cms/weight-loss-lander",
-    description: "Every section of /weight-loss-lander, the page paid ads link to",
+    description: "Every section of /a7g64pt, the page paid ads link to",
     status: "ready",
     match: "/cms/weight-loss-lander",
   },

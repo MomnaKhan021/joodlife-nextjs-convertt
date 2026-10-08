@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import Reveal from "@/components/ui/Reveal";
 import type { LanderReviews } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
@@ -12,9 +13,9 @@ import { LP_ASSETS, LP_GUTTER, LpCta, LpHeading, LpTrustpilotStars, LpVerified, 
  */
 export default function LpReviews({ content: c, style }: { content: LanderReviews; style?: SectionStyle }) {
   return (
-    <section className="bg-white pb-[20px] pt-[40px] lg:pt-[80px]" {...styleProps(style)}>
-      <div className={`mx-auto flex max-w-[1440px] flex-col items-center gap-[24px] lg:gap-[40px] ${LP_GUTTER}`}>
-        <div className="flex flex-col items-center gap-[12px]">
+    <section className="bg-white pb-[20px] pt-[60px] lg:pt-[80px]" {...styleProps(style)}>
+      <div className={`mx-auto flex max-w-[1440px] flex-col items-center gap-[30px] lg:gap-[40px] ${LP_GUTTER}`}>
+        <Reveal className="flex flex-col items-center gap-[12px]">
           <TrustpilotLink className="flex items-center gap-[12px]">
             <span className="flex items-center gap-[8px]">
               <Image src={`${LP_ASSETS}/tp-logo.svg`} alt="Trustpilot" width={82} height={20} unoptimized />
@@ -25,8 +26,9 @@ export default function LpReviews({ content: c, style }: { content: LanderReview
             </span>
           </TrustpilotLink>
           <LpHeading lead={c.heading} accent={c.headingAccent} className="text-center" />
-        </div>
+        </Reveal>
 
+        <Reveal delay={120} className="w-full">
         <LpSlider bleed itemClassName="w-[85%] lg:w-[calc((100%-32px)/3)]">
           {c.items.map((r, i) => (
             <article
@@ -54,8 +56,11 @@ export default function LpReviews({ content: c, style }: { content: LanderReview
             </article>
           ))}
         </LpSlider>
+        </Reveal>
 
-        <LpCta label={c.ctaLabel} href={c.ctaHref} />
+        <Reveal delay={200}>
+          <LpCta label={c.ctaLabel} href={c.ctaHref} />
+        </Reveal>
       </div>
     </section>
   );

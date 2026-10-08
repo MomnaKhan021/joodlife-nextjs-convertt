@@ -4,7 +4,7 @@ import { canWriteCms } from "../access/canWriteCms";
 import { isPublic } from "../access/isLoggedIn";
 
 /**
- * The weight-loss ads landing page at /weight-loss-lander.
+ * The weight-loss ads landing page at /a7g64pt (was /weight-loss-lander).
  *
  * One json field per section, in page order. Anything missing falls back to
  * lib/landerContentTypes.ts, so an empty global renders the page exactly as

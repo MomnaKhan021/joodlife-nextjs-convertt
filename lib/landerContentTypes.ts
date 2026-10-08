@@ -1,5 +1,5 @@
 /**
- * Content for the weight-loss ads landing page at /weight-loss-lander, stored
+ * Content for the weight-loss ads landing page at /a7g64pt, stored
  * on the "weight-loss-lander" global and edited in /cms/weight-loss-lander.
  *
  * LANDER_DEFAULT is the page as built from the "Ads Landing - Joodlife -
