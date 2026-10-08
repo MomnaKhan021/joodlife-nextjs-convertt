@@ -21,7 +21,7 @@ export default function LpStories({ content: c, style }: { content: LanderStorie
         {/* Three 416×550 cards fit on desktop; more become a slider. The row
             fades in as one — a peeking card is too small to trigger its own. */}
         <Reveal delay={120} className="w-full">
-          <LpSlider bleed itemClassName="w-[260px] lg:w-[calc((100%-32px)/3)]">
+          <LpSlider bleed itemClassName="w-[300px] lg:w-[calc((100%-32px)/3)]">
             {c.items.map((s, i) => (
               <LpVideo
                 key={`${s.image}-${s.video}-${i}`}
@@ -29,7 +29,7 @@ export default function LpStories({ content: c, style }: { content: LanderStorie
                 video={s.video}
                 alt={s.alt}
                 sizes="(max-width: 1024px) 300px, 416px"
-                className="h-[380px] w-full rounded-[20px] lg:h-[460px]"
+                className="h-[450px] w-full rounded-[20px] lg:h-[550px]"
               />
             ))}
           </LpSlider>
