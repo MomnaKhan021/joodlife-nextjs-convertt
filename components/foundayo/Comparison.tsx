@@ -99,7 +99,7 @@ export default function Comparison() {
                 takenLabel={c.takenLabel}
                 rows={c.pillRows}
                 dark
-                icon={<Image src="/assets/foundayo/cmp-tablet.webp" alt="Daily weight loss tablet" width={238} height={256} className="h-[44px] w-auto md:h-[60px]" />}
+                icon={<Image src="/assets/foundayo/cmp-tablet.webp" alt="Daily weight loss tablet" width={256} height={255} className="h-[44px] w-auto md:h-[60px]" />}
               />
             </Reveal>
             <Reveal direction="left" delay={140}>
