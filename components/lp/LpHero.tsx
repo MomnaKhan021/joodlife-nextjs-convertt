@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import type { LanderHero } from "@/lib/landerContentTypes";
@@ -24,17 +25,19 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
         </div>
       ) : null}
 
-      {/* Logo header — 95×30 logo, centred */}
+      {/* Logo header — 95×30 logo, centred; links to the home page */}
       <header className="flex items-center justify-center bg-white px-4 py-[16px] lg:px-[60px]">
-        <Image
-          src={`${LP_ASSETS}/logo-header.svg`}
-          alt="Jood"
-          width={95}
-          height={30}
-          priority
-          unoptimized
-          className="h-[24px] w-auto lg:h-[30px]"
-        />
+        <Link href="/" aria-label="Jood home">
+          <Image
+            src={`${LP_ASSETS}/logo-header.svg`}
+            alt="Jood"
+            width={95}
+            height={30}
+            priority
+            unoptimized
+            className="h-[24px] w-auto lg:h-[30px]"
+          />
+        </Link>
       </header>
 
       <section className="relative overflow-hidden pt-[40px] lg:pt-0" style={bg}>
@@ -78,7 +81,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
                     <span className="flex size-[20px] shrink-0 items-center justify-center rounded-full bg-[#d3dabe] lg:size-[22px]">
                       <Image src={`${LP_ASSETS}/hero-tick.svg`} alt="" width={13} height={12} unoptimized />
                     </span>
-                    <span className="font-ui text-[16px] leading-[24px] tracking-[-0.3px] text-[#f7f9f2] lg:text-[18px] lg:leading-[27px]">{t}</span>
+                    <span className="font-ui text-[16px] font-light leading-[24px] tracking-[-0.3px] text-[#f7f9f2] lg:text-[18px] lg:leading-[27px]">{t}</span>
                   </Reveal>
                 ))}
               </ul>
