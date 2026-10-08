@@ -45,20 +45,20 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
 
         {/* Full section width (1280 at desktop, like the other sections): video column, steps column */}
         <div
-          className={`grid w-full gap-[24px] py-[24px] lg:items-center lg:gap-[56px] lg:py-[48px] ${
-            c.video || c.image ? "lg:grid-cols-2" : ""
+          className={`grid w-full gap-[24px] py-[24px] lg:items-center lg:justify-center lg:gap-[64px] lg:py-[48px] ${
+            c.video || c.image ? "lg:grid-cols-[340px_minmax(0,600px)]" : ""
           }`}
         >
-          {/* The one video — 4:5, so it stays short enough on phones and wide on desktop */}
+          {/* The one video — shown whole (9:16), never cropped */}
           {c.video || c.image ? (
-            <Reveal direction="right" delay={100} className="w-full rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)]">
+            <Reveal direction="right" delay={100} className="mx-auto w-full max-w-[360px] rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] lg:max-w-none">
               <LpVideo
                 image={c.image}
                 video={c.video}
                 alt={c.alt}
-                sizes="(max-width: 1024px) 100vw, 620px"
-                className="aspect-[4/5] w-full rounded-[14px] lg:aspect-square"
-                focus="object-[50%_22%]"
+                sizes="(max-width: 1024px) 360px, 340px"
+                // 9:16 like the clip itself, so nothing is cropped.
+                className="aspect-[9/16] w-full rounded-[14px]"
                 videoRef={video}
                 onTime={onTime}
               />

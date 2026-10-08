@@ -44,12 +44,12 @@ export function LpCta({
   if (!label.trim()) return null;
   const colours =
     tone === "light"
-      ? "bg-white text-[#142e2a] hover:bg-[#daffe0]"
-      : "border border-[#0c2421] bg-[#142e2a] text-white hover:bg-[#0c2421]";
+      ? "bg-white text-[#142e2a]"
+      : "border border-[#0c2421] bg-[#142e2a] text-white";
   return (
     <Link
       href={href || LANDER_CTA_HREF}
-      className={`fnd-lift inline-flex h-[50px] w-full items-center justify-center whitespace-nowrap rounded-[8px] px-[24px] font-ui text-[16.3px] font-medium leading-[19.5px] tracking-[-0.3px] transition-colors duration-200 lg:w-[285px] ${colours} ${className}`}
+      className={`btn-cta inline-flex h-[50px] w-full items-center justify-center whitespace-nowrap rounded-[8px] px-[24px] font-ui text-[16.3px] font-medium leading-[19.5px] tracking-[-0.3px] lg:w-[285px] ${colours} ${className}`}
     >
       {label}
     </Link>
