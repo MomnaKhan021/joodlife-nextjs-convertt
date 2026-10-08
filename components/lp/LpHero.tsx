@@ -39,7 +39,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
 
       <section className="relative overflow-hidden pt-[40px] lg:pt-0" style={bg}>
         <div
-          className={`mx-auto flex max-w-[1440px] flex-col gap-[32px] lg:flex-row lg:items-center lg:justify-center lg:gap-[56px] lg:py-[48px] ${LP_GUTTER} max-lg:px-0`}
+          className={`mx-auto flex max-w-[1440px] flex-col gap-[32px] lg:flex-row lg:items-center lg:justify-between lg:gap-[56px] lg:py-[48px] ${LP_GUTTER} max-lg:px-0`}
         >
           {/* Copy column — 564 wide on desktop */}
           <div className="flex w-full flex-col gap-[24px] px-4 lg:w-[564px] lg:shrink-0 lg:gap-[42px] lg:px-0">
