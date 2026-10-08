@@ -49,7 +49,9 @@ export default function LpSlider({
         setPages(1);
         return;
       }
-      const visible = Math.max(1, Math.round((el.clientWidth + gap) / step()));
+      // Only whole cards count as visible: with 2½ in view the last dot must
+      // scroll on until the final card is fully shown.
+      const visible = Math.max(1, Math.floor((el.clientWidth + gap) / step() + 0.01));
       setPages(Math.max(1, slides.length - visible + 1));
     };
     const onScroll = () => {
@@ -57,16 +59,22 @@ export default function LpSlider({
       // At the very end, the last dot — the final slides can't scroll to the left edge.
       setActive(el.scrollLeft >= max - 2 ? Number.MAX_SAFE_INTEGER : Math.round(el.scrollLeft / step()));
     };
+    // The desktop bleed runs to the screen's edge — 100vw minus the scrollbar.
+    const sbw = () =>
+      document.documentElement.style.setProperty("--sbw", `${window.innerWidth - document.documentElement.clientWidth}px`);
+    sbw();
     measure();
     // The row's own size (e.g. a font loading) and the window (rotation,
     // crossing the desktop breakpoint) can both change how many fit.
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     window.addEventListener("resize", measure);
+    window.addEventListener("resize", sbw);
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", sbw);
       el.removeEventListener("scroll", onScroll);
     };
   }, [gap, step, slides.length]);
@@ -84,8 +92,9 @@ export default function LpSlider({
         className={`no-scrollbar flex snap-x snap-mandatory overflow-x-auto ${
           bleed ? "-mx-4 w-[calc(100%+2rem)] scroll-px-4 px-4 lg:mx-0 lg:scroll-px-0 lg:px-0" : "w-full"
         } ${
-          // (100% + 100vw) / 2 = this width plus the space out to the screen's right edge
-          bleedRight ? "lg:w-[calc((100%+100vw)/2)] lg:self-start" : "lg:w-full"
+          // (100% + screen) / 2 = this width plus the space out to the screen's
+          // right edge; --sbw (set below) is the scrollbar's width.
+          bleedRight ? "lg:w-[calc((100%+100vw-var(--sbw,0px))/2)] lg:self-start" : "lg:w-full"
         }`}
         style={{ gap }}
       >
