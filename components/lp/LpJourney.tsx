@@ -1,16 +1,39 @@
-import type { LanderJourney } from "@/lib/landerContentTypes";
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+
+import { parseTime, type LanderJourney } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
-import LpSlider from "./LpSlider";
 import LpVideo from "./LpVideo";
 import { LP_GUTTER, LpCta, LpHeading, LpStepLabel } from "./shared";
 
 /**
- * "Your Journey" video cards (Figma 23:2641; mobile 23:2795). Four fit on
- * desktop; more turn the row into a slider with dots.
+ * "Your Journey" — one video that explains the whole process, beside the
+ * steps as a timeline (stacked on phones: video, then steps).
+ *
+ * A step with a time ("0:45") is a chapter: clicking it jumps the video
+ * there and plays, and the step lights up while its part is playing.
+ * Steps without times are a plain timeline.
  */
 export default function LpJourney({ content: c, style }: { content: LanderJourney; style?: SectionStyle }) {
-  const total = c.items.length;
+  const video = useRef<HTMLVideoElement | null>(null);
+  const [now, setNow] = useState(-1);
+  const onTime = useCallback((t: number) => setNow(t), []);
+
+  const starts = c.items.map((s) => parseTime(s.time));
+  const chapters = !!c.video && starts.some((t) => t !== null);
+  // The step being explained: the last one whose start time has passed.
+  const active = chapters && now >= 0 ? starts.reduce<number>((acc, t, i) => (t !== null && now >= t ? i : acc), -1) : -1;
+
+  function jump(i: number) {
+    const el = video.current;
+    const t = starts[i];
+    if (!el || t === null) return;
+    el.currentTime = t;
+    void el.play().catch(() => {});
+  }
+
   return (
     <section className="bg-[#f6f9f2] py-[40px] lg:py-[96px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col items-center ${LP_GUTTER}`}>
@@ -26,42 +49,74 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
           </p>
         ) : null}
 
-        <LpSlider bleed className="py-[24px] lg:py-[48px]" itemClassName="w-[300px] lg:w-[calc((100%-48px)/4)]">
-          {c.items.map((s, i) => (
-            <article key={`${s.title}-${i}`} className="flex w-full flex-col rounded-[18px] bg-white px-[10px] pb-[24px] pt-[10px]">
+        <div className="flex w-full flex-col items-center gap-[24px] py-[24px] lg:flex-row lg:items-center lg:justify-center lg:gap-[64px] lg:py-[48px]">
+          {/* The one video — portrait, like the clip itself */}
+          {c.video || c.image ? (
+            <div className="w-full max-w-[300px] shrink-0 rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] lg:w-[360px] lg:max-w-[360px]">
               <LpVideo
-                image={s.image}
-                video={s.video}
-                alt={s.alt || s.title}
-                sizes="(max-width: 1024px) 280px, 290px"
-                className="h-[333.75px] w-full rounded-[12px]"
-              >
-                {s.badge ? (
-                  <span className="absolute left-[12px] top-[12px] rounded-[99px] bg-[#132d2a] px-[12px] py-[4px] font-ui text-[13px] font-normal leading-[19.5px] text-white">
-                    {s.badge}
-                  </span>
-                ) : null}
-                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-b from-[rgba(10,25,22,0)] to-[rgba(10,25,22,0.6)] p-[16px] font-ui text-[16px] leading-[17px] tracking-[-0.427px] text-white">
-                  Video {i + 1} of {total}
-                </span>
-              </LpVideo>
-              <div className="flex flex-col px-[10px]">
-                <span className="pt-[22px]">
-                  <LpStepLabel>Step {i + 1}</LpStepLabel>
-                </span>
-                <h3 className="pt-[6px] font-ui text-[22px] font-medium leading-[25.6px] tracking-[-0.5px] text-[#142e2a] xl:text-[24px]">
-                  {s.title}
-                </h3>
-                <p className="max-w-[247px] pt-[8px] font-ui text-[16px] leading-[17px] tracking-[-0.427px] text-[#142e2a]">{s.body}</p>
-              </div>
-            </article>
-          ))}
-        </LpSlider>
+                image={c.image}
+                video={c.video}
+                alt={c.alt}
+                sizes="360px"
+                className="aspect-[9/16] w-full rounded-[14px]"
+                videoRef={video}
+                onTime={onTime}
+              />
+            </div>
+          ) : null}
 
-        {/* The phone frame has no button here */}
-        <div className="hidden lg:block">
-          <LpCta label={c.ctaLabel} href={c.ctaHref} face="interTight" />
+          {/* The steps — a timeline */}
+          <ol className="relative flex w-full max-w-[560px] flex-col gap-[12px]">
+            <span aria-hidden className="absolute bottom-[28px] left-[15px] top-[28px] w-[2px] bg-[rgba(20,46,42,0.15)]" />
+            {c.items.map((s, i) => {
+              const isActive = active === i;
+              const clickable = chapters && starts[i] !== null;
+              const Card = clickable ? "button" : "div";
+              return (
+                <li key={`${s.title}-${i}`} className="relative flex gap-[16px]">
+                  {/* Step dot */}
+                  <span
+                    aria-hidden
+                    className={`relative z-10 mt-[22px] flex size-[32px] shrink-0 items-center justify-center rounded-full border-2 font-ui text-[13px] font-medium transition-colors ${
+                      isActive ? "border-[#142e2a] bg-[#142e2a] text-white" : "border-[#142e2a]/25 bg-white text-[#142e2a]"
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  <Card
+                    {...(clickable ? { type: "button" as const, onClick: () => jump(i), "aria-label": `Play from ${s.time}: ${s.title}` } : {})}
+                    className={`flex flex-1 flex-col rounded-[18px] p-[16px] text-left transition-colors lg:p-[20px] ${
+                      isActive ? "bg-white shadow-[0_6px_20px_-10px_rgba(20,46,42,0.35)] ring-1 ring-[#142e2a]/15" : "bg-white/70"
+                    } ${clickable ? "cursor-pointer hover:bg-white" : ""}`}
+                  >
+                    <span className="flex flex-wrap items-center gap-[10px]">
+                      <LpStepLabel>Step {i + 1}</LpStepLabel>
+                      {s.badge ? (
+                        <span className="rounded-[99px] bg-[#132d2a] px-[10px] py-[2px] font-ui text-[12px] leading-[18px] text-white">
+                          {s.badge}
+                        </span>
+                      ) : null}
+                      {clickable ? (
+                        <span className="ml-auto flex items-center gap-[6px] font-ui text-[13px] text-[#142e2a]/70">
+                          <span className="block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-current" />
+                          {s.time}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="pt-[6px] font-ui text-[20px] font-medium leading-[25.6px] tracking-[-0.5px] text-[#142e2a] lg:text-[22px]">
+                      {s.title}
+                    </span>
+                    {s.body ? (
+                      <span className="pt-[6px] font-ui text-[15px] leading-[20px] tracking-[-0.3px] text-[#142e2a]/85 lg:text-[16px]">{s.body}</span>
+                    ) : null}
+                  </Card>
+                </li>
+              );
+            })}
+          </ol>
         </div>
+
+        <LpCta label={c.ctaLabel} href={c.ctaHref} face="interTight" />
       </div>
     </section>
   );
