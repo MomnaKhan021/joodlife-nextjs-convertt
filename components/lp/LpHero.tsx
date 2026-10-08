@@ -5,18 +5,31 @@ import Reveal from "@/components/ui/Reveal";
 import type { LanderHero } from "@/lib/landerContentTypes";
 import { isColour, type SectionStyle } from "@/lib/sectionStyle";
 
-import { LP_ASSETS, LP_GRADIENT, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared";
+import { LP_ASSETS, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared";
 
 /**
- * Top bar + logo header + green hero (Figma 20:331, 20:333, 20:339;
- * mobile 20:824, 20:840). No site menu on purpose — this page is the
+ * Top bar + logo header + hero. No site menu on purpose — this page is the
  * destination for paid ads, so the only way forward is the CTA.
- * The copy reveals line by line and the WhatsApp card floats, as on /foundayo.
+ *
+ * The hero follows /wegovy-pills: a full-bleed photo under a dark-green
+ * gradient (from the left on desktop, from the bottom on phones) with the
+ * copy in white over it. Desktop keeps the WhatsApp-style card floating at
+ * the bottom right. Sized so the whole hero (with the top bar and logo
+ * header) fits a laptop screen without scrolling.
  */
+function CheckBadge() {
+  return (
+    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[#00b67a]">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+        <path d="M2.5 6.2l2.2 2.2L9.5 3.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
 export default function LpHero({ content: c, style }: { content: LanderHero; style?: SectionStyle }) {
-  // A CMS background replaces the brand gradient; otherwise the gradient.
+  // A CMS colour shows behind the photo while it loads.
   const custom = style?.background;
-  const bg = isColour(custom) ? { background: custom } : { backgroundImage: LP_GRADIENT };
   return (
     <>
       {c.topBar.trim() ? (
@@ -40,93 +53,95 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
         </Link>
       </header>
 
-      <section className="relative overflow-hidden pt-[40px] lg:pt-0" style={bg}>
+      <section
+        className="relative flex min-h-[620px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-103px),700px)] md:items-center"
+        style={isColour(custom) ? { background: custom } : undefined}
+      >
+        <Image
+          src={c.image}
+          alt={c.imageAlt}
+          fill
+          priority
+          unoptimized={rawImage(c.image)}
+          sizes="100vw"
+          className="object-cover object-[70%_top] md:object-right"
+        />
+
+        {/* Phones — dark at the bottom, under the copy */}
         <div
-          className={`mx-auto flex max-w-[1440px] flex-col gap-[32px] lg:flex-row lg:items-center lg:justify-between lg:gap-[56px] lg:py-[48px] ${LP_GUTTER} max-lg:px-0`}
-        >
-          {/* Copy column — 564 wide on desktop */}
-          <div className="flex w-full flex-col gap-[24px] px-4 lg:w-[564px] lg:shrink-0 lg:gap-[42px] lg:px-0">
-            <div className="flex flex-col gap-[10px] lg:gap-[16px]">
-              {/* Trustpilot micro combo */}
-              <Reveal delay={60}>
-                <TrustpilotLink className="flex w-fit items-center gap-[8px] lg:gap-[9px]">
-                  <span className="flex items-center gap-[5px]">
-                    <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={21} height={20} unoptimized className="h-[16px] w-auto lg:h-[20px]" />
-                    <span className="font-ui text-[14px] font-medium leading-[16px] text-[#f7f9f2] lg:text-[16px]">Trustpilot</span>
-                  </span>
-                  <Image src={`${LP_ASSETS}/tp-stars.svg`} alt="Rated 5 stars" width={123} height={23} unoptimized className="h-[16px] w-auto lg:h-[23px]" />
-                  <span className="font-ui text-[15px] font-medium leading-[16px] tracking-[-0.3px] text-[#f7f9f2] lg:text-[16px]">
-                    <strong className="font-bold">{c.rating}</strong> out of 5
-                  </span>
-                </TrustpilotLink>
-              </Reveal>
+          aria-hidden
+          className="absolute inset-0 md:hidden"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(20,46,42,0.1) 0%, rgba(20,46,42,0.55) 45%, rgba(20,46,42,0.95) 100%)",
+          }}
+        />
+        {/* Desktop — dark on the left, under the copy */}
+        <div
+          aria-hidden
+          className="absolute inset-0 hidden md:block"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(20,46,42,0.95) 0%, rgba(20,46,42,0.85) 34%, rgba(20,46,42,0.4) 56%, rgba(20,46,42,0) 78%)",
+          }}
+        />
 
-              {/* Headline — Gilroy 56/1.1 (36/38 on phones) */}
-              <Reveal delay={150}>
-                <h1 className="font-display text-[36px] !font-semibold leading-[39.6px] tracking-[-1.6px] text-white lg:text-[56px] lg:leading-[1.1] lg:tracking-[-2.24px]">
-                  <span className="lg:capitalize">{c.title}</span>
-                  {c.titleAccent ? (
-                    <>
-                      {" "}
-                      <em className="font-serif font-normal italic tracking-[-0.64px]">{c.titleAccent}</em>
-                    </>
-                  ) : null}
-                </h1>
-              </Reveal>
+        <div className={`relative z-10 mx-auto w-full max-w-[1440px] py-12 md:py-16 ${LP_GUTTER}`}>
+          <div className="max-w-[720px]">
+            {/* Trustpilot */}
+            <Reveal delay={60}>
+              <TrustpilotLink className="mb-5 flex w-fit flex-wrap items-center gap-2">
+                <Image src="/assets/icons/trustpilot-logo-dark.svg" alt="Trustpilot" width={74} height={18} className="h-[18px] w-auto brightness-0 invert" />
+                <Image src="/assets/icons/trustpilot-stars.svg" alt={`${c.rating} stars`} width={86} height={16} className="h-4 w-auto" />
+                <span className="font-ui text-[14.2px] text-white/90">
+                  <strong className="font-semibold">{c.rating}</strong> out of 5
+                </span>
+              </TrustpilotLink>
+            </Reveal>
 
-              {/* Ticks — one after another */}
-              <ul className="flex flex-col gap-[8px]">
-                {c.bullets.map((t, i) => (
-                  <Reveal as="li" key={t} delay={280 + i * 110} className="flex items-center gap-[12px]">
-                    <span className="flex size-[20px] shrink-0 items-center justify-center rounded-full bg-[#d3dabe] lg:size-[22px]">
-                      <Image src={`${LP_ASSETS}/hero-tick.svg`} alt="" width={13} height={12} unoptimized />
-                    </span>
-                    <span className="font-ui text-[16px] font-light leading-[24px] tracking-[-0.3px] text-[#f7f9f2] lg:text-[18px] lg:leading-[27px]">{t}</span>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
+            <Reveal delay={150}>
+              <h1 className="font-display text-[26px] font-semibold leading-[1.12] tracking-[-0.02em] text-white sm:text-[32px] md:text-[40px] lg:text-[46px] lg:leading-[1.1]">
+                {c.title}
+                {c.titleAccent ? (
+                  <>
+                    <br />
+                    <span className="font-serif font-normal italic">{c.titleAccent}</span>
+                  </>
+                ) : null}
+              </h1>
+            </Reveal>
 
-            <Reveal delay={300 + c.bullets.length * 110}>
+            <Reveal delay={260} className="mt-7">
               <LpCta tone="light" label={c.ctaLabel} href={c.ctaHref} />
             </Reveal>
-          </div>
 
-          {/* Photo + WhatsApp-style message card */}
-          {/* Photo fills the space beside the copy (up to 680px square), 56px from it —
-              and never taller than the screen allows, so on desktop/laptop screens
-              the whole hero (top bar 41 + logo 62 + 2×48 padding) fits without
-              scrolling: 1366×768 → 563px photo, 1440×900 → 645px. */}
-          <Reveal direction="left" delay={200} className="relative h-[383px] w-full lg:aspect-square lg:h-auto lg:w-[min(640px,calc(100svh-205px),calc(100%-620px))] lg:shrink-0">
-            <Image
-              src={c.image}
-              alt={c.imageAlt}
-              fill
-              priority
-              unoptimized={rawImage(c.image)}
-              sizes="(max-width: 1024px) 100vw, 680px"
-              className="object-cover object-[50%_16%] lg:rounded-[16px] lg:object-center"
-            />
-            {c.cardName || c.cardMessage ? (
-              <Reveal
-                delay={650}
-                className="absolute inset-x-[4px] bottom-[7px] lg:inset-x-auto lg:bottom-[8%] lg:right-[-20px]"
-              >
-                <div className="fnd-float flex flex-col gap-[8px] rounded-[10px] bg-black/30 p-[12px] backdrop-blur-[82px] lg:gap-[16px] lg:rounded-[16px] lg:p-[16px]">
-                  <Image src={`${LP_ASSETS}/logo-white.svg`} alt="Jood" width={73} height={23} unoptimized className="h-[15px] w-[47px] self-start lg:h-[23px] lg:w-[73px]" />
-                  <div className="flex flex-col gap-[2px] text-white lg:gap-[7px]">
-                    <p className="font-ui text-[14px] font-medium lg:text-[17px]">
-                      {c.cardName} <span className="font-light">{c.cardChannel}</span>
-                    </p>
-                    <p className="font-ui text-[12px] font-light leading-[17.6px] lg:w-[276px] lg:text-[16px] lg:leading-[19.6px]">
-                      {c.cardMessage}
-                    </p>
-                  </div>
-                </div>
-              </Reveal>
-            ) : null}
-          </Reveal>
+            <ul className="mt-7 flex flex-col gap-3">
+              {c.bullets.map((t, i) => (
+                <Reveal as="li" key={t} delay={360 + i * 110} className="flex items-center gap-3">
+                  <CheckBadge />
+                  <span className="font-ui text-[14px] font-light leading-[20px] text-white/90 md:text-[15px]">{t}</span>
+                </Reveal>
+              ))}
+            </ul>
+          </div>
         </div>
+
+        {/* WhatsApp-style message card — desktop, bottom right */}
+        {c.cardName || c.cardMessage ? (
+          <div className={`pointer-events-none absolute inset-x-0 bottom-[40px] z-10 mx-auto hidden w-full max-w-[1440px] justify-end lg:flex ${LP_GUTTER}`}>
+            <Reveal delay={650}>
+              <div className="fnd-float flex flex-col gap-[16px] rounded-[16px] bg-black/30 p-[16px] backdrop-blur-[82px]">
+                <Image src={`${LP_ASSETS}/logo-white.svg`} alt="Jood" width={73} height={23} unoptimized className="h-[23px] w-[73px] self-start" />
+                <div className="flex flex-col gap-[7px] text-white">
+                  <p className="font-ui text-[17px] font-medium">
+                    {c.cardName} <span className="font-light">{c.cardChannel}</span>
+                  </p>
+                  <p className="w-[276px] font-ui text-[16px] font-light leading-[19.6px]">{c.cardMessage}</p>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        ) : null}
       </section>
     </>
   );
