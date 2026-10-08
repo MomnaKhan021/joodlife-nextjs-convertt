@@ -39,7 +39,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
 
       <section className="relative overflow-hidden pt-[40px] lg:pt-0" style={bg}>
         <div
-          className={`mx-auto flex max-w-[1440px] flex-col gap-[32px] lg:flex-row lg:items-center lg:gap-[56px] lg:py-[72px] ${LP_GUTTER} max-lg:px-0`}
+          className={`mx-auto flex max-w-[1440px] flex-col gap-[32px] lg:flex-row lg:items-center lg:gap-[56px] lg:py-[48px] ${LP_GUTTER} max-lg:px-0`}
         >
           {/* Copy column — 564 wide on desktop */}
           <div className="flex w-full flex-col gap-[24px] px-4 lg:w-[564px] lg:shrink-0 lg:gap-[42px] lg:px-0">
@@ -90,8 +90,11 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           </div>
 
           {/* Photo + WhatsApp-style message card */}
-          {/* Photo fills the space beside the copy (up to 680px square), 56px from it. */}
-          <Reveal direction="left" delay={200} className="relative h-[383px] w-full lg:aspect-square lg:h-auto lg:max-w-[680px] lg:flex-1">
+          {/* Photo fills the space beside the copy (up to 680px square), 56px from it —
+              and never taller than the screen allows, so on desktop/laptop screens
+              the whole hero (top bar 41 + logo 62 + 2×48 padding) fits without
+              scrolling: 1366×768 → 563px photo, 1440×900 → 645px. */}
+          <Reveal direction="left" delay={200} className="relative h-[383px] w-full lg:aspect-square lg:h-auto lg:max-w-[min(680px,calc(100svh-205px))] lg:flex-1">
             <Image
               src={c.image}
               alt={c.imageAlt}
