@@ -14,7 +14,7 @@ export default function WhyChoose() {
   return (
     <section aria-label="Why choose Jood for weight loss" className="w-full bg-white">
       <div className="relative flex min-h-[669px] w-full items-end overflow-hidden rounded-b-[20px] md:min-h-[665px] md:items-center md:rounded-[30px]">
-        <Image src={c.image} alt={c.imageAlt} fill sizes="100vw" className="object-cover object-[64%_top] md:object-[center_38%]" quality={90} />
+        <Image src={c.image} alt={c.imageAlt} fill sizes="100vw" className="object-cover object-[77%_top] md:object-[center_38%]" quality={90} />
         <div aria-hidden className="absolute inset-0 md:hidden" style={{ background: "linear-gradient(180deg, rgba(20,30,25,0) 0%, rgba(20,30,25,0.25) 30%, rgba(20,30,25,0.75) 62%, rgba(20,30,25,0.9) 100%)" }} />
         <div aria-hidden className="absolute inset-0 hidden md:block" style={{ background: "linear-gradient(90deg, rgba(20,30,25,0.6) 0%, rgba(20,30,25,0.4) 34%, rgba(20,30,25,0.05) 60%, rgba(20,30,25,0) 80%)" }} />
 
