@@ -148,7 +148,7 @@ export const FOUNDAYO = {
     ctaHref: FOUNDAYO_ASSESS,
     secondaryLabel: "Learn More",
     secondaryHref: "#faq",
-    image: `${IMG}/how-pill-hd.webp`, // 1400px AI-upscaled (Real-ESRGAN) from the only 474px source
+    image: `${IMG}/how-pill-v2.webp`, // supplied 2134px render, checkerboard keyed out, same footprint as before
     background: `${IMG}/how-bg.jpg`,
   },
 
