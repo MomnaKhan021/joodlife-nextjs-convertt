@@ -86,7 +86,7 @@ export const FOUNDAYO = {
         alt: "Daily weight loss tablets",
       },
       {
-        title: "More Flexibility",
+        title: "More flexibility",
         body: "One tablet a day. No injections, no pens and nothing to keep in the fridge.",
         image: `${CARD}/card-2.webp`,
         alt: "Hand holding a daily weight loss tablet",
@@ -148,7 +148,7 @@ export const FOUNDAYO = {
     ctaHref: FOUNDAYO_ASSESS,
     secondaryLabel: "Learn More",
     secondaryHref: "#faq",
-    image: `${IMG}/how-pill.webp`,
+    image: `${IMG}/how-pill@2x.webp`, // 2x for sharp desktop/retina
     background: `${IMG}/how-bg.jpg`,
   },
 
@@ -183,7 +183,7 @@ export const FOUNDAYO = {
     image: `${IMG}/hand-pill.webp`,
     imageAlt: "Hand holding a daily weight loss tablet",
     startBadge: "Starting Dose",
-    startBadgeMobile: "Start Here",
+    startBadgeMobile: "Start here",
     steps: [
       { step: "Step 1", label: "Starting Dose", days: "Days 1–30", price: "£99", start: true },
       { step: "Step 2", label: "Step-Up Dosing", days: "Days 31–60", price: "£109", start: false },

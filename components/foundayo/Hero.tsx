@@ -6,7 +6,8 @@ import { BODY, BTN_WHITE } from "./type";
 
 /**
  * Hero — from Figma 2003:1228 / 2003:564, but shorter than the frames
- * (749 / 607px) at the client's request: 640px desktop, 520px mobile.
+ * (749 / 607px): about 72% of the screen on desktop (capped at 600px) so
+ * the next section peeks above the fold, 520px mobile.
  * Full-bleed photo, copy in white on the left over a dark wash that is
  * heaviest on the left and along the bottom so the text always reads:
  * 50/55 headline (32/35.2 mobile), 18.3/23.8 intro (16/20.8 mobile),
@@ -26,7 +27,7 @@ export default function Hero() {
   return (
     <section
       aria-label="Weight loss tablet — tried every diet?"
-      className="relative flex min-h-[520px] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[600px] md:items-center lg:min-h-[640px]"
+      className="relative flex min-h-[520px] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(600px,72vh)]"
     >
       {/* Static photo: the old slow zoom (transform: scale) made the browser
           rasterise the image once and stretch it, which read as blur. */}
@@ -54,13 +55,14 @@ export default function Hero() {
         className="absolute inset-0 hidden md:block"
         style={{
           background:
-            "linear-gradient(90deg, rgba(30,18,14,0.78) 0%, rgba(30,18,14,0.64) 26%, rgba(30,18,14,0.32) 50%, rgba(30,18,14,0) 70%), " +
+            "linear-gradient(90deg, rgba(30,18,14,0.84) 0%, rgba(30,18,14,0.72) 28%, rgba(30,18,14,0.4) 52%, rgba(30,18,14,0) 72%), " +
             "linear-gradient(180deg, rgba(30,18,14,0) 60%, rgba(30,18,14,0.45) 100%)",
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-[22px] pt-10 md:px-10 md:py-[60px] lg:px-[60px]">
-        <div className="max-w-[372px] md:max-w-[540px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-[22px] pt-10 md:px-10 md:py-[40px] lg:px-[60px]">
+        {/* Text shadow so the white copy holds up over the busy photo (QA: WCAG contrast). */}
+        <div className="max-w-[372px] [text-shadow:0_2px_8px_rgba(0,0,0,0.4)] md:max-w-[540px]">
           <Reveal delay={60}>
             <h1 className="text-white">
               <span className="block font-display text-[32px] font-semibold leading-[35.2px] tracking-[-1.6px] md:text-[50px] md:leading-[55px]">
@@ -78,7 +80,7 @@ export default function Hero() {
           </Reveal>
 
           <Reveal delay={300}>
-            <div className="mt-[10px] flex flex-wrap items-center gap-2 md:mt-8">
+            <div className="mt-[10px] flex flex-wrap items-center gap-2 md:mt-5">
               <Image src="/assets/icons/trustpilot-logo-dark.svg" alt="Trustpilot" width={74} height={18} className="h-[18px] w-auto brightness-0 invert" />
               <Image src="/assets/icons/trustpilot-stars.svg" alt="4.4 stars" width={86} height={16} className="h-4 w-auto" />
               <span className="font-ui text-[14.2px] leading-[17px] tracking-[-0.4px] text-white">
@@ -92,15 +94,15 @@ export default function Hero() {
               product="weight-loss"
               href={c.ctaHref}
               label={c.ctaLabel}
-              className={`fnd-lift mt-[14px] w-full md:mt-[30px] md:w-[372px] ${BTN_WHITE}`}
+              className={`fnd-lift mt-[14px] w-full [text-shadow:none] md:mt-5 md:w-[372px] ${BTN_WHITE}`}
             />
           </Reveal>
 
           <Reveal delay={480}>
-            <p className="mt-3 font-ui text-[15.3px] leading-[19.5px] tracking-[-0.3px] text-white/80 md:mt-[22px]">{c.reassurance}</p>
+            <p className="mt-3 font-ui text-[15.3px] leading-[19.5px] tracking-[-0.3px] text-white/95 md:mt-3">{c.reassurance}</p>
           </Reveal>
 
-          <ul className="mt-[13px] flex flex-col gap-[13px] md:mt-[18px] md:gap-5">
+          <ul className="mt-[13px] flex flex-col gap-[13px] md:mt-4 md:gap-3">
             {c.bullets.map((b, i) => (
               <Reveal as="li" key={b} delay={560 + i * 110} className="flex items-center gap-[10px]">
                 <Tick />

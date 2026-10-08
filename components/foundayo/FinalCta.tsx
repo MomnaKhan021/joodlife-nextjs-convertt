@@ -28,7 +28,7 @@ export default function FinalCta() {
     </h2>
   );
   return (
-    <section aria-label="Ready to stop starting over" className="w-full bg-white pb-[30px] md:pb-0">
+    <section aria-label="Ready to stop starting over" className="w-full bg-white pb-[30px] md:pb-[60px]">
       <div className={WRAP}>
         <Reveal as="div">
           {/* Desktop */}

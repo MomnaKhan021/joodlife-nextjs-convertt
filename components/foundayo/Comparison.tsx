@@ -99,7 +99,7 @@ export default function Comparison() {
                 takenLabel={c.takenLabel}
                 rows={c.pillRows}
                 dark
-                icon={<Image src="/assets/foundayo/cmp-pill.webp" alt="" width={104} height={104} className="h-[26px] w-auto" />}
+                icon={<Image src="/assets/foundayo/cmp-tablet.webp" alt="Daily weight loss tablet" width={238} height={256} className="h-[44px] w-auto md:h-[60px]" />}
               />
             </Reveal>
             <Reveal direction="left" delay={140}>
@@ -110,7 +110,7 @@ export default function Comparison() {
                 takenLabel={c.takenLabel}
                 rows={c.penRows}
                 dark={false}
-                icon={<Image src="/assets/foundayo/cmp-pen.webp" alt="" width={104} height={104} className="h-[26px] w-auto" />}
+                icon={<Image src="/assets/foundayo/cmp-jood-pen.webp" alt="Weekly injection pen" width={212} height={256} className="h-[44px] w-auto md:h-[60px]" />}
               />
             </Reveal>
           </div>

@@ -32,16 +32,16 @@ export default function Dosing() {
                   as="div"
                   key={d.step}
                   delay={i * 110}
-                  className="fnd-lift flex min-h-[115px] flex-col items-center rounded-xl bg-[#fff8f6] px-1 pb-[10px] pt-[10px] text-center text-black md:min-h-[157px] md:px-3 md:pb-[17px] md:pt-[17px]"
+                  className="fnd-lift relative flex min-h-[115px] flex-col items-center rounded-xl bg-[#fff8f6] px-1 pb-[10px] pt-[10px] text-center text-black md:min-h-[157px] md:px-3 md:pb-[17px] md:pt-[17px]"
                 >
+                  {/* QA: the old "Starting Dose" pill repeated the label below it and
+                      pushed this card's text down. One "Start here" tag now sits on
+                      the top edge, so all four cards line up. */}
                   {d.start ? (
-                    <>
-                      <span className="mb-1 rounded-full bg-[#142e2a] px-3 py-[3px] font-ui text-[8px] leading-[9.6px] text-white md:hidden">{c.startBadgeMobile}</span>
-                      <span className="mb-2 hidden rounded-full bg-[#142e2a] px-[10px] py-[3px] font-ui text-[12px] leading-[14.4px] text-white md:inline-block">{c.startBadge}</span>
-                    </>
-                  ) : (
-                    <span aria-hidden className="block h-[3px] md:h-0" />
-                  )}
+                    <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-[#142e2a] px-[10px] py-[3px] font-ui text-[9px] leading-[11px] text-white md:px-3 md:text-[12px] md:leading-[14.4px]">
+                      {c.startBadgeMobile}
+                    </span>
+                  ) : null}
                   <span className="font-ui text-[14px] font-bold leading-[16.8px] tracking-[-0.3px] md:text-[24px] md:font-medium md:leading-[19.5px]">{d.step}</span>
                   <span className="mt-1 font-ui text-[10px] leading-[12px] tracking-[-0.3px] md:mt-[10px] md:text-[12px] md:leading-[14.4px]">{d.label}</span>
                   <span className="mt-[6px] font-display text-[10px] font-medium leading-[12px] tracking-[-0.3px] md:mt-[10px]">{d.days}</span>

@@ -24,11 +24,13 @@ type Callout = { x: number; y: number; w: number; conn: Conn };
 // so the two left connectors run to where the circle's edge actually is at
 // their height rather than Figma's shorter ones (measured in the browser).
 const DESKTOP = { W: 1048, H: 516, tablet: { x: 264, y: 0, w: 546, h: 516 } };
+// QA: the labels sat too far from the tablet, so each side is pulled 70px
+// in and its connector shortened to match — the dots stay on the pill.
 const D: Callout[] = [
-  { x: 0, y: 67, w: 156, conn: { x: 0, y: 127, w: 306, h: 30, borders: "border-l border-b", dot: "br" } },
-  { x: 891, y: 74, w: 157, conn: { x: 752, y: 97, w: 131, h: 30, borders: "border-t border-l", dot: "bl" } },
-  { x: 0, y: 417, w: 248, conn: { x: 0, y: 379, w: 316, h: 30, borders: "border-l border-t", dot: "tr" } },
-  { x: 891, y: 417, w: 157, conn: { x: 758, y: 379, w: 143, h: 30, borders: "border-t border-r", dot: "tl" } },
+  { x: 70, y: 67, w: 156, conn: { x: 70, y: 127, w: 236, h: 30, borders: "border-l border-b", dot: "br" } },
+  { x: 821, y: 74, w: 157, conn: { x: 752, y: 97, w: 61, h: 30, borders: "border-t border-l", dot: "bl" } },
+  { x: 70, y: 417, w: 248, conn: { x: 70, y: 379, w: 246, h: 30, borders: "border-l border-t", dot: "tr" } },
+  { x: 821, y: 417, w: 157, conn: { x: 758, y: 379, w: 73, h: 30, borders: "border-t border-r", dot: "tl" } },
 ];
 // Mobile box 390×345 (full frame width); the tablet box is Figma's own
 // 256×242 image frame, so the connectors land on it exactly as designed.
@@ -104,7 +106,7 @@ export default function HowItWorks() {
               style={{ left: pct(DESKTOP.tablet.x, DESKTOP.W), top: 0, width: pct(DESKTOP.tablet.w, DESKTOP.W), height: "100%" }}
             >
               <div className="fnd-float relative h-full w-full">
-                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="546px" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" quality={90} />
+                <Image src={c.image} alt="Daily weight loss tablet" fill sizes="(min-width:1024px) 546px, 70vw" className="object-contain drop-shadow-[0_30px_50px_rgba(90,30,20,0.35)]" quality={95} />
               </div>
             </Reveal>
             <Layer box={DESKTOP} items={D} labels={c.callouts} prefix="d" textClass="font-ui text-[25px] font-medium leading-[25.6px] tracking-[-0.5px]" />
