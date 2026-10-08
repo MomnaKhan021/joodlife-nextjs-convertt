@@ -49,16 +49,21 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
           </p>
         ) : null}
 
-        <div className="flex w-full flex-col items-center gap-[24px] py-[24px] lg:flex-row lg:items-center lg:justify-center lg:gap-[64px] lg:py-[48px]">
-          {/* The one video — portrait, like the clip itself */}
+        {/* Full section width (1280 at desktop, like the other sections): video column, steps column */}
+        <div
+          className={`grid w-full gap-[24px] py-[24px] lg:items-stretch lg:gap-[48px] lg:py-[48px] ${
+            c.video || c.image ? "lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)]" : ""
+          }`}
+        >
+          {/* The one video — 4:5, so it stays short enough on phones and wide on desktop */}
           {c.video || c.image ? (
-            <div className="w-full shrink-0 rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)] lg:w-[360px]">
+            <div className="w-full rounded-[22px] bg-white p-[10px] shadow-[0_10px_30px_-12px_rgba(20,46,42,0.25)]">
               <LpVideo
                 image={c.image}
                 video={c.video}
                 alt={c.alt}
-                sizes="360px"
-                className="aspect-[9/16] w-full rounded-[14px]"
+                sizes="(max-width: 1024px) 100vw, 560px"
+                className="aspect-[4/5] w-full rounded-[14px]"
                 videoRef={video}
                 onTime={onTime}
               />
@@ -66,7 +71,8 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
           ) : null}
 
           {/* The steps — a timeline */}
-          <ol className="relative flex w-full max-w-[560px] flex-col gap-[12px]">
+          {/* Steps centred beside the video on desktop */}
+          <ol className="relative flex w-full flex-col gap-[12px] lg:justify-center lg:gap-[16px]">
             <span aria-hidden className="absolute bottom-[28px] left-[15px] top-[28px] w-[2px] bg-[rgba(20,46,42,0.15)]" />
             {c.items.map((s, i) => {
               const isActive = active === i;
@@ -85,7 +91,7 @@ export default function LpJourney({ content: c, style }: { content: LanderJourne
                   </span>
                   <Card
                     {...(clickable ? { type: "button" as const, onClick: () => jump(i), "aria-label": `Play from ${s.time}: ${s.title}` } : {})}
-                    className={`flex flex-1 flex-col rounded-[18px] p-[16px] text-left transition-colors lg:p-[20px] ${
+                    className={`flex flex-1 flex-col rounded-[18px] p-[16px] text-left transition-colors lg:px-[24px] lg:py-[22px] ${
                       isActive ? "bg-white shadow-[0_6px_20px_-10px_rgba(20,46,42,0.35)] ring-1 ring-[#142e2a]/15" : "bg-white/70"
                     } ${clickable ? "cursor-pointer hover:bg-white" : ""}`}
                   >
