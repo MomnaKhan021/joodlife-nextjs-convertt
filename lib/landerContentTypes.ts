@@ -176,7 +176,7 @@ export const LANDER_DEFAULT: LanderContent = {
         quote: "“In just four months, I've managed to shed a bit over 38 pounds. Jood's 24/7 support helped me a lot through my journey.”",
       },
       {
-        name: "Kimberly, 39",
+        name: "Suzanne, 65",
         before: `${A}/ba-kim-before-b.png`,
         after: `${A}/ba-kim-after-b.png`,
         beforeLabel: "Week 0",
