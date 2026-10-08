@@ -170,9 +170,9 @@ export const LANDER_DEFAULT: LanderContent = {
         before: `${A}/ba-amanda-before.png`,
         after: `${A}/ba-amanda-after.png`,
         beforeLabel: "Week 0",
-        afterLabel: "Week 4",
+        afterLabel: "Week 18",
         lost: "−17kg",
-        detail: "38 lbs in 4 weeks",
+        detail: "38 lbs in 18 weeks",
         quote: "“In just four months, I've managed to shed a bit over 38 pounds. Jood's 24/7 support helped me a lot through my journey.”",
       },
       {
