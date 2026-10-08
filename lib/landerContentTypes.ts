@@ -182,6 +182,36 @@ export const LANDER_DEFAULT: LanderContent = {
         detail: "18 lbs in 4 weeks",
         quote: "“In just over four weeks, I've already lost a little more than 18 pounds. I feel much healthier now.”",
       },
+      {
+        name: "Rachel, 34",
+        before: `${A}/ba-rachel-before.jpg`,
+        after: `${A}/ba-rachel-after.jpg`,
+        beforeLabel: "Week 0",
+        afterLabel: "Week 12",
+        lost: "−9kg",
+        detail: "20 lbs in 12 weeks",
+        quote: "“I'd tried every diet going. Having a clinician check in every month kept me on track, and I've lost 20 pounds in three months.”",
+      },
+      {
+        name: "Danielle, 36",
+        before: `${A}/ba-danielle-before.jpg`,
+        after: `${A}/ba-danielle-after.jpg`,
+        beforeLabel: "Week 0",
+        afterLabel: "Week 16",
+        lost: "−11kg",
+        detail: "24 lbs in 16 weeks",
+        quote: "“The plan fitted around my shifts, and the WhatsApp team answered every question I had. Four months in, I'm 24 pounds lighter.”",
+      },
+      {
+        name: "Arjun, 35",
+        before: `${A}/ba-arjun-before.jpg`,
+        after: `${A}/ba-arjun-after.jpg`,
+        beforeLabel: "Week 0",
+        afterLabel: "Week 16",
+        lost: "−13kg",
+        detail: "29 lbs in 16 weeks",
+        quote: "“I put off asking for help for years. The video consultation was easy, and I'm down 29 pounds with my energy back.”",
+      },
     ],
   },
   expertise: {
@@ -358,6 +388,24 @@ export function parseTime(t: string): number | null {
   return parts.reduce((acc, n) => acc * 60 + n, 0);
 }
 
+/**
+ * The first save of the lander stored the two before/after slides it shipped
+ * with, which would hide slides added to the defaults since. A list that is
+ * still exactly those two (same photos) counts as unedited; any other list —
+ * reordered, trimmed or added to in the CMS — is the editor's and wins.
+ */
+function shippedPairOnly(items: unknown): boolean {
+  if (!Array.isArray(items) || items.length !== 2) return false;
+  const shipped = [
+    [`${A}/ba-amanda-before.png`, `${A}/ba-amanda-after.png`],
+    [`${A}/ba-kim-before-b.png`, `${A}/ba-kim-after-b.png`],
+  ];
+  return items.every((it, i) => {
+    const r = rec(it);
+    return r.before === shipped[i][0] && r.after === shipped[i][1];
+  });
+}
+
 export function mergeLander(stored: unknown): LanderContent {
   const s = rec(stored);
   const D = LANDER_DEFAULT;
@@ -402,7 +450,7 @@ export function mergeLander(stored: unknown): LanderContent {
       ...heading(rs, D.results),
       ...cta(rs, D.results),
       items: list(
-        rs.items,
+        shippedPairOnly(rs.items) ? undefined : rs.items,
         D.results.items,
         (r, d) => ({
           name: opt(r.name, ""),
