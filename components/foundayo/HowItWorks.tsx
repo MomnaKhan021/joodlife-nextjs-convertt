@@ -136,11 +136,11 @@ export default function HowItWorks() {
                 product="weight-loss"
                 href={c.ctaHref}
                 label={c.ctaLabel}
-                className={`fnd-lift !h-[46px] !px-4 md:!h-[50px] md:w-[187px] ${BTN_DARK}`}
+                className={`!h-[46px] !px-4 md:!h-[50px] md:w-[187px] ${BTN_DARK}`}
               />
               <a
                 href={c.secondaryHref}
-                className={`fnd-lift ${BTN_TEXT} inline-flex h-[46px] items-center justify-center rounded-lg border border-white bg-white/[0.06] px-4 text-white backdrop-blur-[33px] transition-colors hover:bg-white/15 md:h-[50px] md:w-[184px]`}
+                className={`${BTN_TEXT} btn-cta inline-flex h-[46px] items-center justify-center rounded-lg border border-white bg-white/[0.06] px-4 text-white backdrop-blur-[33px] md:h-[50px] md:w-[184px]`}
               >
                 {c.secondaryLabel}
               </a>

@@ -21,11 +21,16 @@ export const BODY = "font-ui text-[16.3px] leading-[19.5px] tracking-[-0.3px]";
 /** Button label — 16.3/19.5 medium. */
 export const BTN_TEXT = "font-ui text-[16.3px] font-medium leading-[19.5px] tracking-[-0.3px]";
 
+/*
+ * Buttons use the home page's shared hover (.btn-cta in globals.css: a 2px
+ * lift and a soft shadow) and keep their colour on hover.
+ */
+
 /** Dark filled button (50px tall, 8px radius). */
-export const BTN_DARK = `${BTN_TEXT} inline-flex h-[50px] items-center justify-center rounded-lg border border-[#0c2421] bg-[#142e2a] px-[50px] text-white transition-colors hover:bg-[#0c2421]`;
+export const BTN_DARK = `${BTN_TEXT} btn-cta inline-flex h-[50px] items-center justify-center rounded-lg border border-[#0c2421] bg-[#142e2a] px-[50px] text-white`;
 
 /** White button with no stroke — the hero CTA (Figma has no border there). */
-export const BTN_WHITE = `${BTN_TEXT} inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-[50px] text-[#142e2a] transition-colors hover:bg-[#daffe0]`;
+export const BTN_WHITE = `${BTN_TEXT} btn-cta inline-flex h-[50px] items-center justify-center rounded-lg bg-white px-[50px] text-[#142e2a]`;
 
 /** White outlined button (50px tall, 8px radius). */
-export const BTN_LIGHT = `${BTN_TEXT} inline-flex h-[50px] items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[50px] text-[#142e2a] transition-colors hover:bg-[#daffe0]`;
+export const BTN_LIGHT = `${BTN_TEXT} btn-cta inline-flex h-[50px] items-center justify-center rounded-lg border border-[#0c2421] bg-white px-[50px] text-[#142e2a]`;

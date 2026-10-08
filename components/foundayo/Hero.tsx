@@ -27,7 +27,7 @@ export default function Hero() {
   return (
     <section
       aria-label="Weight loss tablet — tried every diet?"
-      className="relative flex min-h-[min(660px,80vh)] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(600px,72vh)]"
+      className="relative flex min-h-[min(660px,80vh)] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(640px,74vh)] 2xl:min-h-[min(720px,78vh)]"
     >
       {/* Static photo: the old slow zoom (transform: scale) made the browser
           rasterise the image once and stretch it, which read as blur. */}
@@ -116,7 +116,7 @@ export default function Hero() {
               product="weight-loss"
               href={c.ctaHref}
               label={c.ctaLabel}
-              className={`fnd-lift mt-[14px] w-full [text-shadow:none] md:mt-5 md:w-[372px] ${BTN_WHITE}`}
+              className={`mt-[14px] w-full [text-shadow:none] md:mt-5 md:w-[372px] ${BTN_WHITE}`}
             />
           </Reveal>
 
