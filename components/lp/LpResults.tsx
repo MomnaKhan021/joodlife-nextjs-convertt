@@ -1,11 +1,24 @@
 import Image from "next/image";
 
 import Reveal from "@/components/ui/Reveal";
+import CountUpPercent from "@/components/wegovy/CountUpPercent";
 import type { LanderResults } from "@/lib/landerContentTypes";
 import { styleProps, type SectionStyle } from "@/lib/sectionStyle";
 
 import LpSlider from "./LpSlider";
 import { LP_GUTTER, LpCta, LpVerified, rawImage } from "./shared";
+
+/**
+ * "−17kg" → counts 0 → 17 when it scrolls into view, keeping the sign and
+ * unit around it. Text without a number (CMS) is shown as it is.
+ */
+function Lost({ text }: { text: string }) {
+  const m = text.match(/^(\D*?)(\d+(?:\.\d+)?)(.*)$/);
+  if (!m) return <>{text}</>;
+  const [, prefix, num, suffix] = m;
+  const decimals = num.includes(".") ? num.split(".")[1].length : 0;
+  return <CountUpPercent value={Number(num)} decimals={decimals} prefix={prefix} suffix={suffix} />;
+}
 
 function Photo({ src, label, after, alt }: { src: string; label: string; after?: boolean; alt: string }) {
   return (
@@ -64,7 +77,7 @@ export default function LpResults({ content: c, style }: { content: LanderResult
                     // Stat box — 160×132 on desktop, a single row on phones
                     <div className="flex items-center gap-[12px] rounded-[12px] bg-[#f7f9f2] px-[16px] py-[8px] lg:h-[132px] lg:w-[160px] lg:shrink-0 lg:flex-col lg:justify-center lg:gap-[8px] lg:py-[22px]">
                       <p className="whitespace-nowrap font-serif text-[36px] leading-[44px] tracking-[-2px] text-[#13332b] lg:text-[54px] lg:leading-[60.8px] lg:tracking-[-3.28px]">
-                        {r.lost}
+                        <Lost text={r.lost} />
                       </p>
                       <p className="font-ui text-[13.5px] leading-[18.2px] text-[#142e2a]/80 lg:text-center">{r.detail}</p>
                     </div>
