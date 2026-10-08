@@ -310,24 +310,42 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
 
         {/* 7. Journey */}
         <div className={cmsCard}>
-          <SectionHead n={7} title="Your journey (video slider)" note="Four fit on desktop. Add more and the row becomes a slider with dots." control={control("journey")} />
+          <SectionHead
+            n={7}
+            title="Your journey (one video + steps)"
+            note="One video explains the whole process; the steps sit beside it. Give a step a time (e.g. 0:45) and clicking it jumps the video there."
+            control={control("journey")}
+          />
           <Pair label="Heading" first={journey.heading} second={journey.headingAccent} onFirst={(heading) => setJourney({ ...journey, heading })} onSecond={(headingAccent) => setJourney({ ...journey, headingAccent })} />
           <TextField label="Line under the heading" value={journey.subtitle} onChange={(subtitle) => setJourney({ ...journey, subtitle })} />
+          <PictureField
+            label="Video cover image"
+            src={journey.image}
+            onSrc={(image) => setJourney({ ...journey, image })}
+            alt={journey.alt}
+            onAlt={(alt) => setJourney({ ...journey, alt })}
+          />
+          <VideoField label="The journey video" value={journey.video} onChange={(video) => setJourney({ ...journey, video })} />
           <Repeater
-            title="Card"
+            title="Step"
             items={journey.items}
             onChange={(items) => setJourney({ ...journey, items })}
-            blank={() => ({ badge: "", title: "", body: "", image: "", video: "", alt: "" })}
-            addLabel="+ Add card"
+            blank={() => ({ badge: "", title: "", body: "", time: "" })}
+            addLabel="+ Add step"
             render={(s, set) => (
               <>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <TextField label="Badge" value={s.badge} onChange={(badge) => set({ badge })} placeholder="Day 1" />
                   <TextField label="Title" value={s.title} onChange={(title) => set({ title })} />
+                  <TextField
+                    label="Starts at (optional)"
+                    value={s.time}
+                    onChange={(time) => set({ time })}
+                    placeholder="0:45"
+                    hint="Where this step begins in the video."
+                  />
                 </div>
                 <AreaField label="Text" value={s.body} onChange={(body) => set({ body })} rows={2} />
-                <PictureField label="Image / video cover" src={s.image} onSrc={(image) => set({ image })} alt={s.alt} onAlt={(alt) => set({ alt })} />
-                <VideoField value={s.video} onChange={(video) => set({ video })} />
               </>
             )}
           />

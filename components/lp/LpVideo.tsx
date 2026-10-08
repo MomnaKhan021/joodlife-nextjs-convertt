@@ -21,6 +21,8 @@ export default function LpVideo({
   sizes,
   className = "",
   children,
+  videoRef,
+  onTime,
 }: {
   image: string;
   video?: string;
@@ -29,8 +31,15 @@ export default function LpVideo({
   className?: string;
   /** Overlays (badges, captions) drawn over the cover. */
   children?: React.ReactNode;
+  /** Lets a parent seek/play this video (the Journey steps' chapters). */
+  videoRef?: React.MutableRefObject<HTMLVideoElement | null>;
+  /** Playback position, for highlighting the step being explained. */
+  onTime?: (seconds: number) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (videoRef) videoRef.current = ref.current;
+  });
   const [state, setState] = useState<"idle" | "loading" | "playing" | "paused" | "error">("idle");
 
   useEffect(() => {
@@ -47,6 +56,8 @@ export default function LpVideo({
     const onPause = () => setState((s) => (s === "error" ? s : "paused"));
     const onEnded = () => setState("paused");
     const onError = () => setState("error");
+    const onTimeUpdate = () => onTime?.(el.currentTime);
+    el.addEventListener("timeupdate", onTimeUpdate);
     el.addEventListener("play", onPlay);
     el.addEventListener("waiting", onWaiting);
     el.addEventListener("playing", onPlaying);
@@ -54,6 +65,7 @@ export default function LpVideo({
     el.addEventListener("ended", onEnded);
     el.addEventListener("error", onError);
     return () => {
+      el.removeEventListener("timeupdate", onTimeUpdate);
       el.removeEventListener("play", onPlay);
       el.removeEventListener("waiting", onWaiting);
       el.removeEventListener("playing", onPlaying);
@@ -61,7 +73,7 @@ export default function LpVideo({
       el.removeEventListener("ended", onEnded);
       el.removeEventListener("error", onError);
     };
-  }, [video]);
+  }, [video, onTime]);
 
   function toggle() {
     const el = ref.current;

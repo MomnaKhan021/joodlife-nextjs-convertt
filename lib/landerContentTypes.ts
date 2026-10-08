@@ -81,8 +81,15 @@ export type LanderExpertise = LanderHeading & {
 export type LanderStep = { title: string; body: string; image: string };
 export type LanderSteps = LanderHeading & LanderCta & { subtitle: string; items: LanderStep[] };
 
-export type LanderJourneyItem = LanderMedia & { badge: string; title: string; body: string };
-export type LanderJourney = LanderHeading & LanderCta & { subtitle: string; items: LanderJourneyItem[] };
+/**
+ * "Your Journey": one video that walks through every step, beside the steps.
+ * A step's optional `time` ("0:45") jumps the video there when it's clicked
+ * and lights the step up while that part plays.
+ */
+export type LanderJourneyItem = { badge: string; title: string; body: string; time: string };
+export type LanderJourney = LanderHeading &
+  LanderCta &
+  LanderMedia & { subtitle: string; items: LanderJourneyItem[] };
 
 export type LanderReview = { tag: string; title: string; quote: string; name: string };
 export type LanderReviews = LanderHeading & LanderCta & { rating: string; items: LanderReview[] };
@@ -203,12 +210,15 @@ export const LANDER_DEFAULT: LanderContent = {
     heading: "Your",
     headingAccent: "Journey",
     subtitle: "What the Jood process is like, from day one to month twelve and beyond.",
+    image: `${A}/journey-cover.jpg`,
+    video: "",
+    alt: "A Jood clinician explains the programme, step by step",
     items: [
       { badge: "Day 1", title: "Your online assessment", body: "A full look at your health history and goals, reviewed by a licensed clinician." },
       { badge: "Next", title: "Prescribed and delivered", body: "If it's right for you, your treatment is prescribed and delivered to your door." },
       { badge: "Months 1-6", title: "The real work, supported", body: "Steady progress with clinical support checking in along the way, not radio silence." },
       { badge: "Months 6-12", title: "Keeping it off", body: "Less about losing weight, more about keeping it off, with guidance there 24/7." },
-    ].map((s) => ({ ...s, image: `${A}/journey-poster.jpg`, video: "", alt: s.title })),
+    ].map((s) => ({ ...s, time: "" })),
   },
   reviews: {
     ...CTA,
@@ -314,6 +324,40 @@ const feature = (r: Rec, d: LanderFeature): LanderFeature => ({
 });
 const hasText = (f: { title: string }) => !!f.title.trim();
 
+/**
+ * The journey used to have a video per card. Content saved that way carries
+ * its video on the steps instead of the section, so the first step's video
+ * becomes the section's until the editor sets one.
+ */
+function journeyOf(jn: Rec, d: LanderJourney): LanderJourney {
+  const rawItems = Array.isArray(jn.items) ? jn.items.map(rec) : [];
+  const legacy = rawItems.find((r) => typeof r.video === "string" && r.video.trim()) ?? {};
+  return {
+    ...heading(jn, d),
+    ...cta(jn, d),
+    subtitle: opt(jn.subtitle, d.subtitle),
+    video: opt(jn.video, typeof legacy.video === "string" ? legacy.video : d.video),
+    // The old per-card covers were low-res crops, so they aren't carried over.
+    image: opt(jn.image, d.image),
+    alt: opt(jn.alt, d.alt),
+    items: list(
+      jn.items,
+      d.items,
+      (r) => ({ badge: opt(r.badge, ""), title: opt(r.title, ""), body: opt(r.body, ""), time: opt(r.time, "") }),
+      hasText,
+    ),
+  };
+}
+
+/** "1:05" / "65" / "0:01:05" → seconds; anything else → null. */
+export function parseTime(t: string): number | null {
+  const m = t.trim().match(/^(?:(\d+):)?(\d+)(?::(\d+))?$/);
+  if (!m) return null;
+  const parts = t.trim().split(":").map(Number);
+  if (parts.some((n) => Number.isNaN(n))) return null;
+  return parts.reduce((acc, n) => acc * 60 + n, 0);
+}
+
 export function mergeLander(stored: unknown): LanderContent {
   const s = rec(stored);
   const D = LANDER_DEFAULT;
@@ -392,17 +436,7 @@ export function mergeLander(stored: unknown): LanderContent {
         hasText,
       ),
     },
-    journey: {
-      ...heading(jn, D.journey),
-      ...cta(jn, D.journey),
-      subtitle: opt(jn.subtitle, D.journey.subtitle),
-      items: list(
-        jn.items,
-        D.journey.items,
-        (r) => ({ ...media(r), badge: opt(r.badge, ""), title: opt(r.title, ""), body: opt(r.body, "") }),
-        hasText,
-      ),
-    },
+    journey: journeyOf(jn, D.journey),
     reviews: {
       ...heading(rv, D.reviews),
       ...cta(rv, D.reviews),
