@@ -41,12 +41,12 @@ function Photo({ src, label, after, alt }: { src: string; label: string; after?:
 
 /**
  * "Real patients, real journeys." before/after cards (Figma 20:527;
- * mobile 20:1058). Two cards fit on desktop and one on phones; the dots only
- * show when there are more cards than fit.
+ * mobile 20:1058). The next card always peeks in — from the screen's right
+ * edge on desktop — so it reads as a slider; dots show when cards overflow.
  */
 export default function LpResults({ content: c, style }: { content: LanderResults; style?: SectionStyle }) {
   return (
-    <section className="bg-[#f7f9f2] py-[60px] lg:py-[80px]" {...styleProps(style)}>
+    <section className="overflow-x-clip bg-[#f7f9f2] py-[60px] lg:py-[80px]" {...styleProps(style)}>
       <div className={`mx-auto flex max-w-[1440px] flex-col items-center gap-[30px] lg:gap-[40px] ${LP_GUTTER}`}>
         <Reveal>
         <h2 className="text-center font-display text-[36px] !font-semibold leading-[43.2px] tracking-[-1.2px] text-[#142e2a] md:text-[48px] md:leading-[52px]">
@@ -64,7 +64,14 @@ export default function LpResults({ content: c, style }: { content: LanderResult
 
         <div className="flex w-full max-w-[1108px] flex-col items-center gap-[24px] lg:gap-[32px]">
           <Reveal delay={120} className="w-full">
-          <LpSlider gap={20} itemClassName="w-full lg:w-[calc(50%-10px)]">
+          {/* Phones: one card with the next peeking in. Desktop: the row runs to
+              the screen's right edge — 1½ cards on small laptops, 2½ from 1280px. */}
+          <LpSlider
+            gap={20}
+            bleed
+            bleedRight
+            itemClassName="w-[85%] lg:w-[min(544px,calc((100%-20px)/1.5))] xl:w-[min(560px,calc((100%-40px)/2.5))]"
+          >
             {c.items.map((r, i) => (
               <article key={`${r.name}-${i}`} className="flex w-full flex-col gap-[16px] rounded-[22px] bg-white p-[12px] lg:gap-[20px] lg:p-[14px]">
                 <div className="flex gap-[6px]">
