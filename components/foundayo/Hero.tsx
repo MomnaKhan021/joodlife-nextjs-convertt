@@ -27,7 +27,7 @@ export default function Hero() {
   return (
     <section
       aria-label="Weight loss tablet — tried every diet?"
-      className="relative flex min-h-[min(600px,74vh)] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(600px,72vh)]"
+      className="relative flex min-h-[min(660px,80vh)] w-full items-end overflow-hidden bg-[#3b2a24] md:min-h-[min(560px,72vh)] md:items-center lg:min-h-[min(600px,72vh)]"
     >
       {/* Static photo: the old slow zoom (transform: scale) made the browser
           rasterise the image once and stretch it, which read as blur. */}
