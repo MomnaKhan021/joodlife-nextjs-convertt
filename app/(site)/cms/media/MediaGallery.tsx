@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
+import { uploadCmsImage } from "../uploadImage";
+
 /**
  * The media library: everything uploaded or added by URL, in one grid.
  *
@@ -94,22 +96,7 @@ export default function MediaGallery({ initial }: { initial: MediaDoc[] }) {
     const added: MediaDoc[] = [];
     try {
       for (const file of Array.from(files)) {
-        const fd = new FormData();
-        fd.append("file", file);
-        const up = await fetch("/api/blob-upload", {
-          method: "POST",
-          credentials: "include",
-          body: fd,
-        });
-        const upJson = await up.json().catch(() => ({}));
-        if (!up.ok || !upJson?.url) {
-          setError(
-            up.status === 503
-              ? "File uploads need Vercel Blob (BLOB_READ_WRITE_TOKEN), which isn't set in this environment. Add an image by URL instead."
-              : upJson?.error || `Upload failed (HTTP ${up.status})`,
-          );
-          break;
-        }
+        const upJson = await uploadCmsImage(file);
         const doc = await createMedia({
           alt: file.name,
           url: upJson.url,
@@ -119,15 +106,16 @@ export default function MediaGallery({ initial }: { initial: MediaDoc[] }) {
         });
         if (doc?.id) added.push(doc);
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      // Images that went up before a failing one still join the library.
       if (added.length) {
         setItems((prev) => [...added, ...prev]);
         setNotice(
           `${added.length} image${added.length > 1 ? "s" : ""} added to the library.`,
         );
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
-    } finally {
       setBusy(false);
     }
   }
