@@ -23,9 +23,9 @@ export default function LpSlider({
   gap?: number;
   /** Run to the screen edges on phones (cards peek past the gutter). */
   bleed?: boolean;
-  /** Desktop: start at the content's left edge and run to the screen's right
-   *  edge, so the next card peeks in from the side. The section must clip
-   *  horizontal overflow. */
+  /** Desktop: span the whole screen, with the first card in line with the
+   *  content and the next one peeking in from the right; cards slide off
+   *  both screen edges. The section must clip horizontal overflow. */
   bleedRight?: boolean;
   className?: string;
 }) {
@@ -44,6 +44,11 @@ export default function LpSlider({
     const el = track.current;
     if (!el) return;
     const measure = () => {
+      // Full-bleed rows start their first card at the content edge via
+      // padding; snapping must use the same inset (it can't be written in CSS:
+      // scroll-padding percentages resolve against the row, not its parent).
+      const padL = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+      el.style.scrollPaddingLeft = `${padL}px`;
       const overflow = el.scrollWidth - el.clientWidth > 2;
       if (!overflow) {
         setPages(1);
@@ -51,7 +56,7 @@ export default function LpSlider({
       }
       // Only whole cards count as visible: with 2½ in view the last dot must
       // scroll on until the final card is fully shown.
-      const visible = Math.max(1, Math.floor((el.clientWidth + gap) / step() + 0.01));
+      const visible = Math.max(1, Math.floor((el.clientWidth - padL + gap) / step() + 0.01));
       setPages(Math.max(1, slides.length - visible + 1));
     };
     const onScroll = () => {
@@ -62,19 +67,22 @@ export default function LpSlider({
     // The desktop bleed runs to the screen's edge — 100vw minus the scrollbar.
     const sbw = () =>
       document.documentElement.style.setProperty("--sbw", `${window.innerWidth - document.documentElement.clientWidth}px`);
+    // After a resize, wait a frame so the new padding (from --sbw) has applied.
+    const onResize = () => {
+      sbw();
+      requestAnimationFrame(measure);
+    };
     sbw();
     measure();
     // The row's own size (e.g. a font loading) and the window (rotation,
     // crossing the desktop breakpoint) can both change how many fit.
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    window.addEventListener("resize", measure);
-    window.addEventListener("resize", sbw);
+    window.addEventListener("resize", onResize);
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("resize", sbw);
+      window.removeEventListener("resize", onResize);
       el.removeEventListener("scroll", onScroll);
     };
   }, [gap, step, slides.length]);
@@ -90,11 +98,17 @@ export default function LpSlider({
       <div
         ref={track}
         className={`no-scrollbar flex snap-x snap-mandatory overflow-x-auto ${
-          bleed ? "-mx-4 w-[calc(100%+2rem)] scroll-px-4 px-4 lg:mx-0 lg:scroll-px-0 lg:px-0" : "w-full"
+          bleed ? "-mx-4 w-[calc(100%+2rem)] px-4 lg:mx-0" : "w-full"
         } ${
-          // (100% + screen) / 2 = this width plus the space out to the screen's
-          // right edge; --sbw (set below) is the scrollbar's width.
-          bleedRight ? "lg:w-[calc((100%+100vw-var(--sbw,0px))/2)] lg:self-start" : "lg:w-full"
+          // Desktop: the row spans the whole screen (100vw minus the scrollbar,
+          // --sbw) so cards slide off both edges, and its left padding — the
+          // gap between the screen and the content, (screen - 100%) / 2 —
+          // starts the first card in line with the heading.
+          bleedRight
+            ? "lg:w-[calc(100vw-var(--sbw,0px))] lg:max-w-none lg:pl-[calc((100vw-var(--sbw,0px)-100%)/2)] lg:pr-0"
+            : bleed
+              ? "lg:w-full lg:px-0"
+              : "lg:w-full"
         }`}
         style={{ gap }}
       >
