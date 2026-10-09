@@ -62,7 +62,8 @@ export default function LpResults({ content: c, style }: { content: LanderResult
         </h2>
         </Reveal>
 
-        <div className="flex w-full max-w-[1108px] flex-col items-center gap-[24px] lg:gap-[32px]">
+        {/* Full content width, so the first card lines up with the other sections. */}
+        <div className="flex w-full flex-col items-center gap-[24px] lg:gap-[32px]">
           <Reveal delay={120} className="w-full">
           {/* Phones: one card with the next peeking in. Desktop: the row runs to
               the screen's right edge — 1½ cards on small laptops, 2½ from 1280px. */}
