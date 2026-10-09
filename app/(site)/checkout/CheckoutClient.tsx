@@ -414,7 +414,13 @@ function CheckoutForm() {
   const [addrCheck, setAddrCheck] = useState<{
     status: "idle" | "checking" | "verified" | "invalid";
     message?: string;
+    /** "street" — real postcode, street not on the map (can be confirmed). */
+    reason?: string;
   }>({ status: "idle" });
+  // New-build roads aren't on OpenStreetMap yet, so a street we can't find
+  // may still be real: the customer can confirm it. Resets when they edit it.
+  const [addrConfirmed, setAddrConfirmed] = useState(false);
+  const streetOverride = addrCheck.status === "invalid" && addrCheck.reason === "street";
 
   useEffect(() => {
     const street = shipStreet.trim();
@@ -424,6 +430,7 @@ function CheckoutForm() {
       return;
     }
     let cancelled = false;
+    setAddrConfirmed(false);
     setAddrCheck({ status: "checking" });
     const t = setTimeout(async () => {
       try {
@@ -432,10 +439,10 @@ function CheckoutForm() {
             `&city=${encodeURIComponent(shipCity)}` +
             `&postcode=${encodeURIComponent(pc)}`,
         );
-        const j = (await res.json()) as { verdict?: string; message?: string };
+        const j = (await res.json()) as { verdict?: string; message?: string; reason?: string };
         if (cancelled) return;
         if (j?.verdict === "not_found") {
-          setAddrCheck({ status: "invalid", message: j.message });
+          setAddrCheck({ status: "invalid", message: j.message, reason: j.reason });
         } else if (j?.verdict === "verified") {
           setAddrCheck({ status: "verified" });
         } else {
@@ -461,8 +468,9 @@ function CheckoutForm() {
     emailValid &&
     addressValid &&
     cityValid &&
-    // a verified-as-nonexistent address blocks payment
-    addrCheck.status !== "invalid" &&
+    // a verified-as-nonexistent address blocks payment — unless it's only the
+    // street that isn't on the map and the customer has confirmed it
+    (addrCheck.status !== "invalid" || (streetOverride && addrConfirmed)) &&
     postcodeOk &&
     deliveryOk &&
     phoneValid &&
@@ -633,6 +641,7 @@ function CheckoutForm() {
             notes: orderNotes,
           },
           discountCode: appliedDiscount?.code,
+          addressConfirmed: streetOverride && addrConfirmed,
         }),
       });
       const orderJson = await orderRes.json();
@@ -895,6 +904,7 @@ function CheckoutForm() {
             notes: orderNotes,
           },
           discountCode: appliedDiscount?.code,
+          addressConfirmed: streetOverride && addrConfirmed,
         }),
       });
       const orderJson = await orderRes.json();
@@ -1126,10 +1136,12 @@ function CheckoutForm() {
                     ✓ Address verified
                   </p>
                 ) : addrCheck.status === "invalid" ? (
-                  <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
-                    {addrCheck.message ??
-                      "We couldn’t find that address. Please pick it from the suggestions."}
-                  </p>
+                  <AddressMissNote
+                    message={addrCheck.message}
+                    canConfirm={streetOverride}
+                    confirmed={addrConfirmed}
+                    onConfirm={setAddrConfirmed}
+                  />
                 ) : null
               ) : null}
             </Field>
@@ -1245,10 +1257,12 @@ function CheckoutForm() {
                         ✓ Address verified
                       </p>
                     ) : addrCheck.status === "invalid" ? (
-                      <p className="mt-1.5 font-ui text-[13px] text-[#c0392b]">
-                        {addrCheck.message ??
-                          "We couldn’t find that address. Please pick it from the suggestions."}
-                      </p>
+                      <AddressMissNote
+                        message={addrCheck.message}
+                        canConfirm={streetOverride}
+                        confirmed={addrConfirmed}
+                        onConfirm={setAddrConfirmed}
+                      />
                     ) : null
                   ) : null}
                 </Field>
@@ -1875,5 +1889,55 @@ function GooglePayBadge() {
         Pay
       </span>
     </span>
+  );
+}
+
+/**
+ * Shown when the address check can't find the address. If only the street is
+ * missing (the postcode is real), the customer can confirm it — new-build
+ * roads aren't on the map yet — and carry on to payment.
+ */
+function AddressMissNote({
+  message,
+  canConfirm,
+  confirmed,
+  onConfirm,
+}: {
+  message?: string;
+  canConfirm: boolean;
+  confirmed: boolean;
+  onConfirm: (v: boolean) => void;
+}) {
+  return (
+    <div className="mt-1.5">
+      <p className={`font-ui text-[13px] ${confirmed ? "text-[#142e2a]/60" : "text-[#c0392b]"}`}>
+        {message ?? "We couldn’t find that address. Please pick it from the suggestions."}
+      </p>
+      {canConfirm ? (
+        // A button, not a <label>: this sits inside the field's own <label>,
+        // and clicking a button there doesn't send focus to the address box.
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={confirmed}
+          onClick={() => onConfirm(!confirmed)}
+          className="mt-2 flex cursor-pointer items-start gap-2 text-left font-ui text-[13px] text-[#142e2a]"
+        >
+          <span
+            aria-hidden
+            className={`mt-[1px] grid h-4 w-4 shrink-0 place-items-center rounded-[4px] border ${
+              confirmed ? "border-[#142e2a] bg-[#142e2a] text-white" : "border-[#142e2a]/40 bg-white"
+            }`}
+          >
+            {confirmed ? (
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : null}
+          </span>
+          <span>Yes, this address is correct — my street is new or not on the map yet.</span>
+        </button>
+      ) : null}
+    </div>
   );
 }

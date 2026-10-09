@@ -96,6 +96,9 @@ const CheckoutSchema = z.object({
   }),
   // Optional discount code — validated + applied server-side below.
   discountCode: z.string().max(40).optional(),
+  // The customer ticked "this address is correct" after the street couldn't
+  // be found on the map (new-build roads aren't in OpenStreetMap yet).
+  addressConfirmed: z.boolean().optional(),
 });
 
 type ValidatedItem = z.infer<typeof CartItemSchema>;
@@ -404,7 +407,17 @@ export async function POST(req: NextRequest) {
 
     if (street && postcode) {
       const check = await verifyUkAddress({ street, city, postcode });
-      if (check.verdict === "not_found") {
+      // A real postcode whose street isn't on the map yet (a new-build road,
+      // e.g. "10 Iris Rise, CW8 2ER") goes through once the customer has
+      // confirmed it. A postcode that doesn't exist is always blocked.
+      const confirmedStreet =
+        check.verdict === "not_found" &&
+        check.reason === "street" &&
+        parsed.data.addressConfirmed === true;
+      if (confirmedStreet) {
+        console.warn("[checkout] street not on map, customer confirmed:", street, postcode);
+      }
+      if (check.verdict === "not_found" && !confirmedStreet) {
         return NextResponse.json(
           {
             ok: false,
