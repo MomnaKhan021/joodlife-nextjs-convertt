@@ -176,6 +176,34 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
       </header>
 
       <div className="space-y-5">
+        {/* Offer popup — stored with the hero */}
+        <div className={cmsCard}>
+          <div>
+            <h2 className="text-[16px] font-semibold text-[#1a1a1a]">Offer popup</h2>
+            <p className="mt-1 text-[13px] text-[#616161]">
+              Opens 3 seconds after someone lands, once per visit. The code must exist in the dashboard&apos;s
+              Discounts list, or it won&apos;t work at checkout.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-[13px] text-[#1a1a1a]">
+            <input type="checkbox" checked={hero.popup.enabled} onChange={(e) => setHero({ ...hero, popup: { ...hero.popup, enabled: e.target.checked } })} />
+            Show the offer popup
+          </label>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <TextField label="Headline — start" value={hero.popup.title} onChange={(title) => setHero({ ...hero, popup: { ...hero.popup, title } })} />
+            <TextField label="Headline — highlighted (italic)" value={hero.popup.titleAccent} onChange={(titleAccent) => setHero({ ...hero, popup: { ...hero.popup, titleAccent } })} />
+            <TextField label="Headline — end" value={hero.popup.titleEnd} onChange={(titleEnd) => setHero({ ...hero, popup: { ...hero.popup, titleEnd } })} />
+          </div>
+          <TextField label="Discount code" value={hero.popup.code} onChange={(code) => setHero({ ...hero, popup: { ...hero.popup, code } })} hint="Shown with a Copy button. The main button copies it too." />
+          <CtaFields
+            label={hero.popup.ctaLabel}
+            href={hero.popup.ctaHref}
+            onLabel={(ctaLabel) => setHero({ ...hero, popup: { ...hero.popup, ctaLabel } })}
+            onHref={(ctaHref) => setHero({ ...hero, popup: { ...hero.popup, ctaHref } })}
+          />
+          <TextField label="Small note under the button" value={hero.popup.note} onChange={(note) => setHero({ ...hero, popup: { ...hero.popup, note } })} hint="Empty hides it." />
+        </div>
+
         {/* 1. Hero */}
         <div className={cmsCard}>
           <SectionHead n={1} title="Hero" note="Full-width photo with the copy over it. The colour shows behind the photo while it loads." control={control("hero")} />
