@@ -36,6 +36,48 @@ async function copyText(text: string) {
 }
 
 /**
+ * Stop the page behind the popup scrolling until it closes. overflow:hidden
+ * alone doesn't hold on iPhone Safari, so the body is pinned in place (fixed,
+ * shifted up by the scroll position) and put back exactly where it was. The
+ * scrollbar's width is padded back so the page doesn't jump sideways.
+ */
+function lockPageScroll() {
+  const html = document.documentElement;
+  const body = document.body;
+  const y = window.scrollY;
+  const scrollbar = window.innerWidth - html.clientWidth;
+  const prev = {
+    htmlOverflow: html.style.overflow,
+    overflow: body.style.overflow,
+    position: body.style.position,
+    top: body.style.top,
+    left: body.style.left,
+    right: body.style.right,
+    width: body.style.width,
+    paddingRight: body.style.paddingRight,
+  };
+  html.style.overflow = "hidden";
+  body.style.overflow = "hidden";
+  body.style.position = "fixed";
+  body.style.top = `-${y}px`;
+  body.style.left = "0";
+  body.style.right = "0";
+  body.style.width = "100%";
+  if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
+  return () => {
+    html.style.overflow = prev.htmlOverflow;
+    body.style.overflow = prev.overflow;
+    body.style.position = prev.position;
+    body.style.top = prev.top;
+    body.style.left = prev.left;
+    body.style.right = prev.right;
+    body.style.width = prev.width;
+    body.style.paddingRight = prev.paddingRight;
+    window.scrollTo({ top: y, behavior: "instant" });
+  };
+}
+
+/**
  * The first-order discount popup on the ads lander: opens three seconds after
  * landing, once per session, with the code to copy and the consultation
  * button. Copy and code come from the CMS (Weight loss ads lander → Offer
@@ -69,8 +111,7 @@ export default function LpOfferPopup({ content: c }: { content: LanderPopup }) {
   useEffect(() => {
     if (!open) return;
     const raf = requestAnimationFrame(() => setShown(true));
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockPageScroll();
     closeBtn.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -78,7 +119,7 @@ export default function LpOfferPopup({ content: c }: { content: LanderPopup }) {
     window.addEventListener("keydown", onKey);
     return () => {
       cancelAnimationFrame(raf);
-      document.body.style.overflow = prevOverflow;
+      unlock();
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -95,11 +136,11 @@ export default function LpOfferPopup({ content: c }: { content: LanderPopup }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-end justify-center p-4 transition-opacity duration-300 sm:items-center ${
+      className={`fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto overscroll-contain p-4 transition-opacity duration-300 sm:items-center ${
         shown ? "opacity-100" : "opacity-0"
       }`}
     >
-      <div aria-hidden className="absolute inset-0 bg-[rgba(12,30,27,0.6)] backdrop-blur-[3px]" onClick={close} />
+      <div aria-hidden className="fixed inset-0 bg-[rgba(12,30,27,0.45)] backdrop-blur-[10px]" onClick={close} />
 
       <div
         role="dialog"
