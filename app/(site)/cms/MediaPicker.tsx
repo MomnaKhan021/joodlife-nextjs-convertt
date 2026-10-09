@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useCallback, useState } from "react";
 
+import { uploadCmsImage } from "./uploadImage";
+
 /**
  * Hero-image chooser: pick from the Media library, upload a file, or paste
  * an existing image URL.
@@ -105,23 +107,8 @@ export default function MediaPicker({
     setBusy(true);
     setError(null);
     try {
-      // Step 1 — put the bytes somewhere public.
-      const fd = new FormData();
-      fd.append("file", file);
-      const up = await fetch("/api/blob-upload", {
-        method: "POST",
-        credentials: "include",
-        body: fd,
-      });
-      const upJson = await up.json().catch(() => ({}));
-      if (!up.ok || !upJson?.url) {
-        setError(
-          up.status === 503
-            ? "File uploads need Vercel Blob (BLOB_READ_WRITE_TOKEN), which isn't set in this environment. Paste an image URL below instead."
-            : upJson?.error || `Upload failed (HTTP ${up.status})`,
-        );
-        return;
-      }
+      // Step 1 — put the bytes somewhere public (browser → Blob directly).
+      const upJson = await uploadCmsImage(file);
       // Step 2 — record it in the Media library.
       const doc = await createMedia({
         alt: file.name,

@@ -23,6 +23,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 
 import { getPayloadInstance } from "@/lib/payload";
 import { userCanWriteCms } from "@/src/payload/access/canWriteCms";
+import { CMS_IMAGE_MAX_BYTES } from "@/lib/cmsImageUpload";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -49,6 +50,9 @@ export async function POST(req: NextRequest) {
   // staff who can edit page sections; video files only. The default and
   // ?public=1 modes below are unchanged.
   const isVideo = req.nextUrl.searchParams.get("video") === "1";
+  // ?image=1 — CMS image uploads (media picker and Media library). Same rule
+  // as creating a Media row (canWriteCms("content")); images only.
+  const isImage = req.nextUrl.searchParams.get("image") === "1";
 
   try {
     const result = await handleUpload({
@@ -66,6 +70,28 @@ export async function POST(req: NextRequest) {
             maximumSizeInBytes: 200 * 1024 * 1024,
             addRandomSuffix: true,
             tokenPayload: JSON.stringify({ source: "cms-video", uploadedBy: (user as { email?: string }).email ?? null }),
+          };
+        }
+
+        if (isImage) {
+          const payload = await getPayloadInstance();
+          const { user } = await payload.auth({ headers: await nextHeaders() });
+          if (!user || !userCanWriteCms(user, ["content"])) {
+            throw new Error("CMS access required");
+          }
+          return {
+            allowedContentTypes: [
+              "image/png",
+              "image/jpeg",
+              "image/jpg",
+              "image/webp",
+              "image/gif",
+              "image/avif",
+              "image/svg+xml",
+            ],
+            maximumSizeInBytes: CMS_IMAGE_MAX_BYTES,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({ source: "cms-image", uploadedBy: (user as { email?: string }).email ?? null }),
           };
         }
 
