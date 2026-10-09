@@ -41,6 +41,8 @@ export type LanderHero = LanderCta & {
   image: string;
   /** Portrait crop for phones; empty uses `image`. */
   mobileImage: string;
+  /** Darken the photo behind the copy. Off: the photos carry their own shading. */
+  overlay: boolean;
   imageAlt: string;
   cardName: string;
   cardChannel: string;
@@ -134,6 +136,7 @@ export const LANDER_DEFAULT: LanderContent = {
     bullets: ["UK-registered clinicians", "Personalised plan", "24/7 WhatsApp support"],
     image: `${A}/hero-cap-desktop.webp`,
     mobileImage: `${A}/hero-cap-mobile.webp`,
+    overlay: false,
     imageAlt: "Smiling woman in a green cap relaxing on the sofa at home",
     cardName: "Jood clinical team",
     cardChannel: "· WhatsApp",
@@ -444,6 +447,7 @@ export function mergeLander(stored: unknown): LanderContent {
           : heroImage === D.hero.image
             ? D.hero.mobileImage
             : heroImage,
+      overlay: h.overlay === true,
       imageAlt: heroIsOriginal ? D.hero.imageAlt : opt(h.imageAlt, D.hero.imageAlt),
       cardName: opt(h.cardName, D.hero.cardName),
       cardChannel: opt(h.cardChannel, D.hero.cardChannel),

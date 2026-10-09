@@ -82,7 +82,23 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           className="hidden object-cover object-[60%_30%] md:block"
         />
 
-        {/* No CSS shade: the hero photos carry their own darkening behind the copy. */}
+        {/* Optional shade under the copy (CMS: "Darken the photo behind the text")
+            — from the bottom on phones, the left on desktop. Off by default:
+            the hero photos carry their own darkening. */}
+        {c.overlay ? (
+          <>
+            <div
+              aria-hidden
+              className="absolute inset-0 md:hidden"
+              style={{ background: "linear-gradient(180deg, rgba(20,46,42,0) 30%, rgba(20,46,42,0.55) 55%, rgba(20,46,42,0.9) 100%)" }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 hidden md:block"
+              style={{ background: "linear-gradient(90deg, rgba(12,30,27,0.6) 0%, rgba(12,30,27,0.35) 35%, rgba(12,30,27,0) 62%)" }}
+            />
+          </>
+        ) : null}
 
         <div className={`relative z-10 mx-auto w-full max-w-[1440px] pb-[16px] pt-[40px] md:py-[48px] ${LP_GUTTER}`}>
           <div className="flex w-full flex-col gap-[24px] md:w-[564px] lg:gap-[42px]">

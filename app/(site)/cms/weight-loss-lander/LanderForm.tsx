@@ -197,6 +197,15 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
           />
           <PictureField label="Photo (desktop, wide)" src={hero.image} onSrc={(image) => setHero({ ...hero, image })} alt={hero.imageAlt} onAlt={(imageAlt) => setHero({ ...hero, imageAlt })} />
           <PictureField label="Photo (phones, tall) — optional, the desktop photo is used if empty" src={hero.mobileImage} onSrc={(mobileImage) => setHero({ ...hero, mobileImage })} />
+          <label className="flex items-start gap-2 text-[13px] text-[#1a1a1a]">
+            <input type="checkbox" className="mt-[3px]" checked={hero.overlay} onChange={(e) => setHero({ ...hero, overlay: e.target.checked })} />
+            <span>
+              Darken the photo behind the text (overlay)
+              <span className="block text-[12px] text-[#8a8a8a]">
+                Leave unticked if the photo already has its own shading. Ticked: a dark green shade from the left on desktop and from the bottom on phones.
+              </span>
+            </span>
+          </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField label="Message card — sender" value={hero.cardName} onChange={(cardName) => setHero({ ...hero, cardName })} />
             <TextField label="Message card — channel" value={hero.cardChannel} onChange={(cardChannel) => setHero({ ...hero, cardChannel })} />
