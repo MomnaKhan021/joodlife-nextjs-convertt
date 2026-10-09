@@ -136,7 +136,7 @@ export default function LpOfferPopup({ content: c }: { content: LanderPopup }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto overscroll-contain p-4 transition-opacity duration-300 sm:items-center ${
+      className={`fixed inset-0 z-[100] flex justify-center overflow-y-auto overscroll-contain p-4 transition-opacity duration-300 ${
         shown ? "opacity-100" : "opacity-0"
       }`}
     >
@@ -146,7 +146,9 @@ export default function LpOfferPopup({ content: c }: { content: LanderPopup }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative w-full max-w-[440px] rounded-[22px] bg-white px-[20px] pb-[22px] pt-[26px] text-center shadow-[0_24px_60px_rgba(12,30,27,0.35)] transition-transform duration-300 sm:px-[32px] sm:pb-[28px] sm:pt-[30px] ${
+        // my-auto centres it on every screen; unlike flex centring, a card taller
+        // than a short (landscape) screen still scrolls from its top.
+        className={`relative my-auto w-full max-w-[440px] rounded-[22px] bg-white px-[20px] pb-[22px] pt-[26px] text-center shadow-[0_24px_60px_rgba(12,30,27,0.35)] transition-transform duration-300 sm:px-[32px] sm:pb-[28px] sm:pt-[30px] ${
           shown ? "translate-y-0" : "translate-y-4"
         }`}
       >
