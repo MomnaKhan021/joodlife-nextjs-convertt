@@ -14,6 +14,9 @@ import "server-only";
  * Verdicts:
  *   "verified"  — postcode is real AND the street was found there.
  *   "not_found" — the lookup answered definitively and found nothing → block.
+ *                 A missing STREET (reason "street") can be overridden by the
+ *                 customer confirming it at checkout: new-build roads aren't
+ *                 in OpenStreetMap yet. A bad postcode can't.
  *   "unknown"   — a lookup was unavailable (timeout/rate-limit/outage). We
  *                 FAIL OPEN here: an upstream outage must never stop a real
  *                 customer from ordering.
@@ -159,6 +162,6 @@ export async function verifyUkAddress(input: {
     reason: "street",
     town: pc.town,
     message:
-      "We couldn’t find that street at this postcode. Please start typing your address and pick it from the suggestions.",
+      "We couldn’t find that street at this postcode on our map. Please check it, or pick your address from the suggestions.",
   };
 }
