@@ -10,6 +10,7 @@ import LpJourney from "@/components/lp/LpJourney";
 import LpReviews from "@/components/lp/LpReviews";
 import LpFaq from "@/components/lp/LpFaq";
 import LpFinal from "@/components/lp/LpFinal";
+import LpOfferPopup from "@/components/lp/LpOfferPopup";
 import Footer from "@/sections/home/Footer";
 
 import { getLanderContent } from "@/lib/landerContent";
@@ -50,6 +51,7 @@ export default async function WeightLossLanderPage() {
       <LpFaq content={c.faq} style={s.faq} />
       <LpFinal content={c.final} style={s.final} />
       <Footer />
+      <LpOfferPopup content={c.hero.popup} />
     </main>
   );
 }

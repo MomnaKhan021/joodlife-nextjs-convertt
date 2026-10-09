@@ -43,10 +43,25 @@ export type LanderHero = LanderCta & {
   mobileImage: string;
   /** Darken the photo behind the copy. Off: the photos carry their own shading. */
   overlay: boolean;
+  /** The first-order discount popup (kept with the hero so it needs no new column). */
+  popup: LanderPopup;
   imageAlt: string;
   cardName: string;
   cardChannel: string;
   cardMessage: string;
+};
+
+/** Opens 3 seconds after landing, once per session. */
+export type LanderPopup = {
+  enabled: boolean;
+  title: string;
+  titleAccent: string;
+  titleEnd: string;
+  /** A code from the dashboard's Discounts list. */
+  code: string;
+  ctaLabel: string;
+  ctaHref: string;
+  note: string;
 };
 
 export type LanderTrust = { reviewsLabel: string; rating: string; badges: string[] };
@@ -137,6 +152,16 @@ export const LANDER_DEFAULT: LanderContent = {
     image: `${A}/hero-cap-desktop.webp`,
     mobileImage: `${A}/hero-cap-mobile.webp`,
     overlay: false,
+    popup: {
+      enabled: true,
+      title: "Get",
+      titleAccent: "£20 off",
+      titleEnd: "your first weight loss treatment. Any dose.",
+      code: "FIRST20",
+      ctaLabel: "Start your assessment",
+      ctaHref: LANDER_CTA_HREF,
+      note: "Takes about 3 minutes",
+    },
     imageAlt: "Smiling woman in a green cap relaxing on the sofa at home",
     cardName: "Jood clinical team",
     cardChannel: "· WhatsApp",
@@ -342,6 +367,17 @@ const cta = (r: Rec, d: LanderCta): LanderCta => ({
   ctaLabel: opt(r.ctaLabel, d.ctaLabel),
   ctaHref: str(r.ctaHref, d.ctaHref),
 });
+const popupOf = (r: Rec, d: LanderPopup): LanderPopup => ({
+  enabled: typeof r.enabled === "boolean" ? r.enabled : d.enabled,
+  title: opt(r.title, d.title),
+  titleAccent: opt(r.titleAccent, d.titleAccent),
+  titleEnd: opt(r.titleEnd, d.titleEnd),
+  // Codes are matched upper-case at checkout.
+  code: str(r.code, d.code).trim().toUpperCase(),
+  ctaLabel: opt(r.ctaLabel, d.ctaLabel),
+  ctaHref: str(r.ctaHref, d.ctaHref),
+  note: opt(r.note, d.note),
+});
 const heading = (r: Rec, d: LanderHeading): LanderHeading => ({
   heading: str(r.heading, d.heading),
   headingAccent: opt(r.headingAccent, d.headingAccent),
@@ -448,6 +484,7 @@ export function mergeLander(stored: unknown): LanderContent {
             ? D.hero.mobileImage
             : heroImage,
       overlay: h.overlay === true,
+      popup: popupOf(rec(h.popup), D.hero.popup),
       imageAlt: heroIsOriginal ? D.hero.imageAlt : opt(h.imageAlt, D.hero.imageAlt),
       cardName: opt(h.cardName, D.hero.cardName),
       cardChannel: opt(h.cardChannel, D.hero.cardChannel),
