@@ -60,6 +60,8 @@ export default async function AdminToolsLayout({
   }
 
   return (
+    // Masked in Microsoft Clarity recordings: staff screens hold patient data.
+    <div data-clarity-mask="True" className="contents">
     <Suspense
       fallback={
         <div className="grid min-h-screen place-items-center bg-[#f7f9f2] text-[14px] text-[#616161]">
@@ -71,5 +73,6 @@ export default async function AdminToolsLayout({
         {children}
       </AdminShell>
     </Suspense>
+    </div>
   );
 }

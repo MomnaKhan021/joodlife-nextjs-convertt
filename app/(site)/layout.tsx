@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import MetaPixel from "@/components/analytics/MetaPixel";
 import GtmDataLayer from "@/components/analytics/GtmDataLayer";
 import UtmCapture from "@/components/analytics/UtmCapture";
+import Clarity from "@/components/analytics/Clarity";
 import { CartProvider } from "@/components/cart/CartContext";
 import SitePreloader from "@/components/SitePreloader";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
@@ -120,6 +121,7 @@ export default function SiteLayout({
         <GtmDataLayer />
         <MetaPixel />
         <UtmCapture />
+        <Clarity />
         <SitePreloader />
         <CartProvider>{children}</CartProvider>
         <WhatsAppButton />

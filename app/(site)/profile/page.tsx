@@ -126,7 +126,8 @@ export default async function ProfilePage() {
       </header>
 
       {/* ──────────────  Main  ────────────── */}
-      <main className="mx-auto w-full max-w-[1100px] flex-1 px-6 py-10 md:px-10 md:py-12">
+      {/* Masked in Microsoft Clarity recordings: the account page shows patient data. */}
+      <main data-clarity-mask="True" className="mx-auto w-full max-w-[1100px] flex-1 px-6 py-10 md:px-10 md:py-12">
         {/* Account summary card */}
         <section className="flex flex-col gap-4 rounded-2xl border border-[#142e2a]/10 bg-white p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
           <div className="flex items-center gap-4">

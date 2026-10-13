@@ -132,6 +132,11 @@ const nextConfig: NextConfig = {
     // has no other way to send events there, and this was the reason the
     // marketing team saw "blocked by CSP" for add-to-cart / checkout data.
     const gtmServerOrigins = ["https://sst.momenta.rocks"];
+    // Microsoft Clarity: the tag loads from www.clarity.ms, pulls its script
+    // from scripts.clarity.ms and uploads recordings to *.clarity.ms; it also
+    // syncs with c.bing.com. Without these the tag is blocked by this CSP.
+    const clarityOrigins = ["https://*.clarity.ms"];
+    const clarityBeaconOrigins = ["https://*.clarity.ms", "https://c.bing.com"];
     const gtmImgOrigins = [
       "https://www.googletagmanager.com",
       "https://www.google-analytics.com",
@@ -145,13 +150,13 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")} ${gtmScriptOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")} ${gtmScriptOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityOrigins.join(" ")}`,
       // blob.vercel-storage.com (no subdomain) is the client-direct UPLOAD
       // API host — without it the consultation evidence upload is blocked by
       // the browser ("Failed to fetch"); *.public… only covers file READS.
-      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com ${gtmConnectOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
+      `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com ${gtmConnectOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityBeaconOrigins.join(" ")}`,
       `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com https://www.googletagmanager.com https://tagmanager.google.com ${gtmServerOrigins.join(" ")}`,
-      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com ${gtmImgOrigins.join(" ")} ${gtmServerOrigins.join(" ")}`,
+      `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com ${gtmImgOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityBeaconOrigins.join(" ")}`,
       // Videos (the ads lander's story / journey slides) are uploaded to
       // Vercel Blob. Without media-src they fall back to default-src 'self'
       // and Chrome refuses them ("Media load rejected by URL safety check").
