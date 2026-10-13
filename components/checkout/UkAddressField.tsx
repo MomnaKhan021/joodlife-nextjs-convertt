@@ -20,8 +20,9 @@ export default function UkAddressField({
 }: {
   value: string;
   setValue: (v: string) => void;
-  /** Called with the resolved city + postcode when a suggestion is chosen. */
-  onPick: (parts: { city: string; postcode: string }) => void;
+  /** Called with the town + postcode when a suggestion is chosen. `exact` is
+   *  false for a road-level match, whose postcode can't be trusted. */
+  onPick: (parts: { city: string; postcode: string; exact: boolean }) => void;
   inputClassName?: string;
   maxLength?: number;
 }) {
@@ -31,6 +32,7 @@ export default function UkAddressField({
   const wrapRef = useRef<HTMLDivElement>(null);
   const reqRef = useRef(0);
   const justPicked = useRef(false);
+  const [checkNumber, setCheckNumber] = useState(false);
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -78,11 +80,16 @@ export default function UkAddressField({
 
   function choose(s: AddressSuggestion) {
     justPicked.current = true;
-    // Show the FULL selected address (not just the house+road line), so the
-    // field reflects exactly what was picked. City/postcode still fill their
-    // own fields via onPick.
-    setValue(s.label || s.line1);
-    onPick({ city: s.city, postcode: s.postcode });
+    // Fill only the street line. The full suggestion ("Mount Pleasant,
+    // Brackenhill, … WF7 7HS, United Kingdom") used to go in here, wiping the
+    // house number and putting a road-level postcode on the parcel label.
+    // OpenStreetMap rarely has UK house numbers, so keep the one they typed.
+    const typedNumber = value.trim().match(/^(\d+[a-zA-Z]?)(?:[\s,]|$)/)?.[1];
+    const road = s.line1 || s.label.split(",")[0].trim();
+    const line = /^\d/.test(road) || !typedNumber ? road : `${typedNumber} ${road}`;
+    setValue(line);
+    setCheckNumber(!s.exact && !/^\d/.test(line));
+    onPick({ city: s.city, postcode: s.postcode, exact: s.exact });
     setOpen(false);
     setSuggestions([]);
   }
@@ -91,7 +98,10 @@ export default function UkAddressField({
     <div ref={wrapRef} className="relative">
       <input
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setCheckNumber(false);
+        }}
         onFocus={() => {
           if (suggestions.length > 0) setOpen(true);
         }}
@@ -104,6 +114,12 @@ export default function UkAddressField({
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-[#142e2a]/50">
           …
         </span>
+      ) : null}
+
+      {checkNumber ? (
+        <p className="mt-1.5 font-ui text-[13px] text-[#9a5b00]">
+          Add your house number or name at the start, and check your postcode below.
+        </p>
       ) : null}
 
       {open && suggestions.length > 0 ? (

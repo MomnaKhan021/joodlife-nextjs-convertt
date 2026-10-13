@@ -38,6 +38,9 @@ export type AddressSuggestion = {
   line1: string; // house number + road
   city: string;
   postcode: string;
+  /** True when the result is a specific house. A road-level result's
+   *  postcode is just one of the road's postcodes, often not the patient's. */
+  exact: boolean;
 };
 
 export async function GET(req: NextRequest) {
@@ -81,6 +84,7 @@ export async function GET(req: NextRequest) {
           line1: line1 || road,
           city,
           postcode: a.postcode ?? "",
+          exact: !!a.house_number,
         };
       })
       // Keep only suggestions that have at least a street or city to fill.

@@ -1110,12 +1110,14 @@ function CheckoutForm() {
               <UkAddressField
                 value={address}
                 setValue={setAddress}
-                onPick={({ city: c, postcode: pc }) => {
-                  if (c) setCity(c);
-                  if (pc) {
-                    setPostcode(pc);
-                    setPostcodeValid(true); // OSM only returns real UK addresses
-                  }
+                onPick={({ city: c, postcode: pc, exact }) => {
+                  // Fill only what's empty: a pick must never overwrite the
+                  // postcode or town they typed. A road-level match's postcode is
+                  // one of several on that road (WF7 7HS for a WF7 7HU house), so
+                  // it's only used for an exact house match, and the postcode
+                  // field still checks it.
+                  if (c && !city.trim()) setCity(c);
+                  if (pc && exact && !postcode.trim()) setPostcode(pc);
                 }}
                 maxLength={ADDRESS_LINE_MAX}
                 inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
@@ -1237,12 +1239,14 @@ function CheckoutForm() {
                   <UkAddressField
                     value={dAddress}
                     setValue={setDAddress}
-                    onPick={({ city: c, postcode: pc }) => {
-                      if (c) setDCity(c);
-                      if (pc) {
-                        setDPostcode(pc);
-                        setDPostcodeValid(true);
-                      }
+                    onPick={({ city: c, postcode: pc, exact }) => {
+                      // Fill only what's empty: a pick must never overwrite the
+                      // postcode or town they typed. A road-level match's postcode is
+                      // one of several on that road (WF7 7HS for a WF7 7HU house), so
+                      // it's only used for an exact house match, and the postcode
+                      // field still checks it.
+                      if (c && !dCity.trim()) setDCity(c);
+                      if (pc && exact && !dPostcode.trim()) setDPostcode(pc);
                     }}
                     maxLength={ADDRESS_LINE_MAX}
                 inputClassName="h-[52px] w-full rounded-[8px] border border-[#e7e8e3] bg-white px-4 font-ui text-[16px] text-[#142e2a] outline-none transition-shadow placeholder:text-[#142e2a]/40 focus:border-[#142e2a] focus:ring-2 focus:ring-[#142e2a]/20"
