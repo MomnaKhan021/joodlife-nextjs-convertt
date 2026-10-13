@@ -72,6 +72,12 @@ type Service = {
   tick: string;
   /** Where the cut-out sits in its panel. */
   imageClass: string;
+  /** The detail panel under the card. */
+  included: string[];
+  forWho: string;
+  faqs: { q: string; a: string }[];
+  /** Accent for the detail panel's headings and ticks (readable on white). */
+  accent: string;
 };
 
 const SERVICES: Service[] = [
@@ -93,6 +99,27 @@ const SERVICES: Service[] = [
     bg: "linear-gradient(180deg, #2d544c 0%, #142e2a 100%)",
     tick: "#b4ff9f",
     imageClass: "object-cover object-[78%_0%]",
+    accent: "#2d544c",
+    included: [
+      "A personalised treatment plan from UK clinicians",
+      "A free monthly check-in to review your progress",
+      "24/7 access to the clinical team on WhatsApp",
+      "Nutrition and movement guidance alongside your treatment",
+      "Free, discreet next-day delivery",
+      "Pause or cancel any time from your account",
+    ],
+    forWho:
+      "Adults who want medical support to lose weight. The assessment asks about your height, weight, health and medical history, and a clinician confirms whether treatment is suitable for you.",
+    faqs: [
+      {
+        q: "What happens after I'm approved?",
+        a: "Our pharmacy prepares your treatment and sends it next day, with clear instructions and a plan from your clinician.",
+      },
+      {
+        q: "Can I pause or cancel?",
+        a: "Yes. You can pause or cancel at any time from your account dashboard.",
+      },
+    ],
   },
   {
     id: "erectile-dysfunction",
@@ -112,6 +139,26 @@ const SERVICES: Service[] = [
     bg: "linear-gradient(180deg, #1f88b9 0%, #136a92 100%)",
     tick: "#ffffff",
     imageClass: "object-cover object-[75%_0%]",
+    accent: "#136a92",
+    included: [
+      "A private online assessment, with no appointment needed",
+      "A review by a UK clinician",
+      "Treatment only if it's suitable for you",
+      "Next-day delivery by DPD in plain, unbranded packaging",
+      "Follow-up support, with your treatment adjusted if needed",
+    ],
+    forWho:
+      "Erectile dysfunction is common and can affect men of any age. It can have physical or emotional causes, such as stress, anxiety, low blood flow or other health conditions.",
+    faqs: [
+      {
+        q: "Is it confidential?",
+        a: "Yes. Your assessment is private, and your order arrives in plain packaging with nothing on the outside to say what's inside.",
+      },
+      {
+        q: "Do I need to see a doctor in person?",
+        a: "No. The assessment is online, and a UK clinician reviews your answers before anything is prescribed.",
+      },
+    ],
   },
   {
     id: "period-delay",
@@ -131,6 +178,26 @@ const SERVICES: Service[] = [
     bg: "linear-gradient(180deg, #d92b67 0%, #b8144a 100%)",
     tick: "#ffffff",
     imageClass: "object-contain object-bottom",
+    accent: "#b8144a",
+    included: [
+      "A quick online assessment",
+      "A review by a UK clinician",
+      "Personal guidance on when to start",
+      "Free, discreet next-day delivery",
+      "24-hour WhatsApp support",
+    ],
+    forWho:
+      "Women who want to delay a period for a holiday, a wedding or another event. The clinician checks your health and medical history first to make sure it's suitable.",
+    faqs: [
+      {
+        q: "When should I order?",
+        a: "A few days before your period is due. Treatment usually starts about three days beforehand, and delivery is next day.",
+      },
+      {
+        q: "Is it safe for me?",
+        a: "A UK clinician reviews your assessment before anything is sent, and only approves treatment that's suitable for you.",
+      },
+    ],
   },
 ];
 
@@ -151,11 +218,8 @@ function Tick({ colour }: { colour: string }) {
 
 function ServiceCard({ s, flip }: { s: Service; flip: boolean }) {
   return (
-    <article
-      id={s.id}
-      className="grid scroll-mt-[96px] overflow-hidden rounded-[22px] text-white md:grid-cols-2"
-      style={{ background: s.bg }}
-    >
+    <article id={s.id} className="scroll-mt-[96px] overflow-hidden rounded-[22px] border border-[#e4e9df]">
+    <div className="grid text-white md:grid-cols-2" style={{ background: s.bg }}>
       <div className={`flex flex-col justify-center gap-[18px] p-[24px] md:p-[44px] ${flip ? "md:order-2" : ""}`}>
         <span className="w-fit rounded-full bg-white/15 px-[14px] py-[4px] font-ui text-[13px] font-medium">{s.eyebrow}</span>
         <h3 className="font-display text-[32px] !font-semibold leading-[36px] tracking-[-1px] md:text-[40px] md:leading-[44px]">
@@ -188,7 +252,44 @@ function ServiceCard({ s, flip }: { s: Service; flip: boolean }) {
       <div className={`relative h-[300px] md:h-auto md:min-h-[440px] ${flip ? "md:order-1" : ""}`}>
         <Image src={s.image} alt={s.imageAlt} fill sizes="(min-width: 768px) 50vw, 100vw" className={s.imageClass} />
       </div>
+    </div>
+    <ServiceDetails s={s} />
     </article>
+  );
+}
+
+/** Under each card: what's included, who it's for, and two common questions. */
+function ServiceDetails({ s }: { s: Service }) {
+  const label = "font-ui text-[13px] font-semibold uppercase tracking-[0.06em]";
+  return (
+    <div className="grid gap-[28px] bg-white p-[24px] md:grid-cols-3 md:gap-[36px] md:p-[44px]">
+      <div className="flex flex-col gap-[12px]">
+        <h4 className={label} style={{ color: s.accent }}>What&apos;s included</h4>
+        <ul className="flex flex-col gap-[9px]">
+          {s.included.map((b) => (
+            <li key={b} className="flex items-start gap-[10px] font-ui text-[15px] leading-[21px] text-[#142e2a]">
+              <Tick colour={s.accent} />
+              {b}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="flex flex-col gap-[12px]">
+        <h4 className={label} style={{ color: s.accent }}>Who it&apos;s for</h4>
+        <p className={`${LP_BODY} text-[#3d5a54]`}>{s.forWho}</p>
+      </div>
+      <div className="flex flex-col gap-[12px]">
+        <h4 className={label} style={{ color: s.accent }}>Good to know</h4>
+        <dl className="flex flex-col gap-[14px]">
+          {s.faqs.map((f) => (
+            <div key={f.q} className="flex flex-col gap-[4px]">
+              <dt className="font-ui text-[15.5px] font-semibold leading-[21px] text-[#142e2a]">{f.q}</dt>
+              <dd className={`${LP_BODY} m-0 text-[#3d5a54]`}>{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
   );
 }
 
