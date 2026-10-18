@@ -16,6 +16,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getPayloadInstance } from "@/lib/payload";
 import { authorizeAdminOrCron } from "@/lib/hubspot-auth";
 import { sendAbandonedCartEmail } from "@/lib/account-email";
+import { isOptedOutOfBasketReminders } from "@/lib/emailOptOuts";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -69,7 +70,12 @@ async function handle(req: NextRequest) {
 
   let sent = 0;
   let failed = 0;
+  let optedOut = 0;
   for (const cart of due) {
+    if (isOptedOutOfBasketReminders(cart.email)) {
+      optedOut += 1;
+      continue;
+    }
     try {
       await sendAbandonedCartEmail(payload, {
         email: cart.email,
@@ -114,6 +120,10 @@ async function handle(req: NextRequest) {
   );
 
   for (const c of cDue) {
+    if (isOptedOutOfBasketReminders(c.email)) {
+      optedOut += 1;
+      continue;
+    }
     try {
       await sendAbandonedCartEmail(payload, {
         email: c.email,
@@ -145,8 +155,9 @@ async function handle(req: NextRequest) {
     due: due.length + cDue.length,
     sent,
     failed,
+    optedOut,
   });
-  return NextResponse.json({ ok: true, carts: due.length, consultations: cDue.length, sent, failed });
+  return NextResponse.json({ ok: true, carts: due.length, consultations: cDue.length, sent, failed, optedOut });
 }
 
 export const GET = handle;

@@ -10,6 +10,7 @@
  * HubSpot sync: a mail failure must never break account creation itself.
  */
 import type { Payload } from "payload";
+import { isOptedOutOfBasketReminders } from "@/lib/emailOptOuts";
 
 /** HubSpot meeting scheduler the "Book consultation" CTA links to. */
 const BOOKING_URL = "https://meetings-eu1.hubspot.com/jood-life";
@@ -1184,6 +1185,11 @@ export async function sendAbandonedCartEmail(
     whatsapp?: string | null;
   },
 ): Promise<void> {
+  // Never send to someone who asked to stop (see lib/emailOptOuts.ts). Throws
+  // so the admin "send reminder" button shows why instead of a false success.
+  if (isOptedOutOfBasketReminders(opts.email)) {
+    throw new Error("This customer asked not to receive basket reminder emails.");
+  }
   const url = siteUrl();
   const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
   const checkoutUrl = `${url}/checkout`;
