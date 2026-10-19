@@ -79,23 +79,29 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           priority
           unoptimized={rawImage(c.image)}
           sizes="100vw"
-          className="hidden object-cover object-[60%_30%] md:block"
+          className="hidden object-cover object-[78%_30%] md:block"
         />
 
-        {/* Optional shade under the copy (CMS: "Darken the photo behind the text")
-            — from the bottom on phones, the left on desktop. Off by default:
-            the hero photos carry their own darkening. */}
+        {/* Brand-green shade under the copy (CMS: "Darken the photo behind the
+            text"; always on with the default photos). Phones: the copy sits
+            at the bottom, so the green rises from the bottom and leaves the
+            face clear at the top. Desktop: the green runs in from the left
+            behind the copy and fades out before the subject on the right. */}
         {c.overlay ? (
           <>
             <div
               aria-hidden
               className="absolute inset-0 md:hidden"
-              style={{ background: "linear-gradient(180deg, rgba(20,46,42,0) 30%, rgba(20,46,42,0.55) 55%, rgba(20,46,42,0.9) 100%)" }}
+              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0) 22%, rgba(14,38,33,0.45) 38%, rgba(14,38,33,0.86) 56%, rgba(14,38,33,0.95) 100%)" }}
             />
             <div
               aria-hidden
               className="absolute inset-0 hidden md:block"
-              style={{ background: "linear-gradient(90deg, rgba(12,30,27,0.6) 0%, rgba(12,30,27,0.35) 35%, rgba(12,30,27,0) 62%)" }}
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(14,38,33,0.92) 0%, rgba(14,38,33,0.82) 30%, rgba(14,38,33,0.5) 48%, rgba(14,38,33,0.12) 62%, rgba(14,38,33,0) 72%), " +
+                  "linear-gradient(0deg, rgba(14,38,33,0.35) 0%, rgba(14,38,33,0) 30%)",
+              }}
             />
           </>
         ) : null}

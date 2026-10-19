@@ -149,9 +149,10 @@ export const LANDER_DEFAULT: LanderContent = {
     title: "Lose weight with a programme",
     titleAccent: "designed around you.",
     bullets: ["UK-registered clinicians", "Personalised plan", "24/7 WhatsApp support"],
-    image: `${A}/hero-cap-desktop.webp`,
-    mobileImage: `${A}/hero-cap-mobile.webp`,
-    overlay: false,
+    image: `${A}/hero-walk-desktop.webp`,
+    mobileImage: `${A}/hero-walk-mobile.webp`,
+    // The green shade behind the copy is part of the design for these photos.
+    overlay: true,
     popup: {
       enabled: true,
       title: "Get",
@@ -162,7 +163,7 @@ export const LANDER_DEFAULT: LanderContent = {
       ctaHref: LANDER_CTA_HREF,
       note: "Takes about 3 minutes",
     },
-    imageAlt: "Smiling woman in a green cap relaxing on the sofa at home",
+    imageAlt: "Smiling woman in a camel coat walking through an autumn park",
     cardName: "Jood clinical team",
     cardChannel: "· WhatsApp",
     cardMessage: "Hi Sarah, I've reviewed your answers. Shall we book your video call?",
@@ -462,8 +463,23 @@ export function mergeLander(stored: unknown): LanderContent {
   const rv = rec(s.reviews);
   const fq = rec(s.faq);
   const fn = rec(s.final);
-  const heroIsOriginal = h.image === `${A}/hero-4.png`;
+  // Hero photos that have since been replaced by the current defaults (the
+  // client sent new desktop + phone photos on 19 Oct 2026). A stored value
+  // equal to one of these is read as "not chosen since", so the new defaults
+  // show; anything else uploaded in the CMS is honoured as-is.
+  const SUPERSEDED_HERO = new Set([
+    `${A}/hero-4.png`,
+    "https://wjtak5cuzfsuzw0l.public.blob.vercel-storage.com/media/1zfw5j84/ChatGPT-Image-Oct-9-2026-03_16_31-PM.png",
+  ]);
+  const SUPERSEDED_HERO_MOBILE = new Set([
+    "https://wjtak5cuzfsuzw0l.public.blob.vercel-storage.com/media/8uupupqi/Landing-Page-Heroshot-1-.jpg",
+  ]);
+  const heroIsOriginal = typeof h.image === "string" && SUPERSEDED_HERO.has(h.image);
   const heroImage = heroIsOriginal ? D.hero.image : str(h.image, D.hero.image);
+  const storedMobile =
+    typeof h.mobileImage === "string" && h.mobileImage.trim() && !SUPERSEDED_HERO_MOBILE.has(h.mobileImage)
+      ? h.mobileImage
+      : "";
 
   return {
     hero: {
@@ -478,12 +494,14 @@ export function mergeLander(stored: unknown): LanderContent {
       // No phone photo set: the default pairs with the default photo, and a
       // photo the editor chose is used on phones too.
       mobileImage:
-        typeof h.mobileImage === "string" && h.mobileImage.trim()
-          ? h.mobileImage
+        storedMobile
+          ? storedMobile
           : heroImage === D.hero.image
             ? D.hero.mobileImage
             : heroImage,
-      overlay: h.overlay === true,
+      // Always on with the default photos (the copy sits on them); for a photo
+      // chosen in the CMS, the editor's "Darken the photo" setting decides.
+      overlay: heroImage === D.hero.image || h.overlay === true,
       popup: popupOf(rec(h.popup), D.hero.popup),
       imageAlt: heroIsOriginal ? D.hero.imageAlt : opt(h.imageAlt, D.hero.imageAlt),
       cardName: opt(h.cardName, D.hero.cardName),
