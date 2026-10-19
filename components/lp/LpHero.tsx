@@ -17,9 +17,9 @@ import { LP_ASSETS, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared"
  * (with the bars above) fits a laptop screen. Phones: copy at the bottom
  * over the photo's dark fade, the card full width under the button.
  */
-function MessageCard({ c, className = "" }: { c: LanderHero; className?: string }) {
+function MessageCard({ c, className = "", float = true }: { c: LanderHero; className?: string; float?: boolean }) {
   return (
-    <div className={`fnd-float flex flex-col gap-[8px] rounded-[10px] border border-white/10 bg-[linear-gradient(160deg,rgba(14,38,33,0.94)_0%,rgba(14,38,33,0.84)_100%)] p-[12px] shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)] lg:gap-[16px] lg:rounded-[16px] lg:p-[16px] ${className}`}>
+    <div className={`${float ? "fnd-float " : ""}flex flex-col gap-[8px] rounded-[10px] border border-white/10 bg-[linear-gradient(160deg,rgba(14,38,33,0.94)_0%,rgba(14,38,33,0.84)_100%)] p-[12px] shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)] lg:gap-[16px] lg:rounded-[16px] lg:p-[16px] ${className}`}>
       <Image src={`${LP_ASSETS}/logo-white.svg`} alt="Jood" width={73} height={23} unoptimized className="h-[15px] w-[47px] self-start lg:h-[23px] lg:w-[73px]" />
       <div className="flex flex-col gap-[2px] text-white lg:gap-[7px]">
         <p className="font-ui text-[14px] font-medium lg:text-[17px]">
@@ -163,14 +163,18 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
               </ul>
             </div>
 
-            <div className="flex flex-col gap-[12px]">
+            {/* 20px between the button and the card on phones/tablets (12px is
+                enough on desktop, where the card isn't under the button). */}
+            <div className="flex flex-col gap-[20px] lg:gap-[12px]">
               <Reveal delay={300 + c.bullets.length * 110}>
                 <LpCta tone="light" label={c.ctaLabel} href={c.ctaHref} />
               </Reveal>
               {/* Phones and tablets: the card sits under the button */}
               {hasCard ? (
                 <Reveal delay={420 + c.bullets.length * 110} className="lg:hidden">
-                  <MessageCard c={c} />
+                  {/* No bobbing here: it sits right under the button, and the
+                      float animation lifted it into the button. */}
+                  <MessageCard c={c} float={false} />
                 </Reveal>
               ) : null}
             </div>
