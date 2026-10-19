@@ -45,7 +45,7 @@ export default function LpStories({ content: c, style }: { content: LanderStorie
                 className="fnd-lift flex flex-col gap-[16px] rounded-[16px] bg-[#f7f9f2] p-[16px] lg:gap-[20px] lg:p-[24px]"
               >
                 {f.icon ? (
-                  <Image src={f.icon} alt="" width={24} height={24} unoptimized={rawImage(f.icon)} className="size-[24px] self-start object-contain" />
+                  <Image src={f.icon} alt="" width={24} height={24} unoptimized={rawImage(f.icon)} className="size-[24px] self-start object-contain" quality={90} />
                 ) : null}
                 <div className="flex flex-col gap-[8px] text-[#142e2a]">
                   <h3 className="font-ui text-[17px] !font-medium leading-[20px] tracking-[-0.3px] lg:text-[18px]">{f.title}</h3>

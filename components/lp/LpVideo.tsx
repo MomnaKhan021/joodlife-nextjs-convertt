@@ -97,7 +97,7 @@ export default function LpVideo({
     return (
       <div className={`relative overflow-hidden bg-[#e7ecd7] ${className}`}>
         {image ? (
-          <Image src={image} alt={alt} fill sizes={sizes} unoptimized={rawImage(image)} className={`object-cover ${focus}`} />
+          <Image src={image} alt={alt} fill sizes={sizes} unoptimized={rawImage(image)} className={`object-cover ${focus}`} quality={90} />
         ) : null}
         {children}
       </div>
@@ -121,7 +121,7 @@ export default function LpVideo({
 
       {/* Cover image and overlays until the video has been started */}
       {!started && image ? (
-        <Image src={image} alt="" fill sizes={sizes} unoptimized={rawImage(image)} className={`object-cover ${focus}`} />
+        <Image src={image} alt="" fill sizes={sizes} unoptimized={rawImage(image)} className={`object-cover ${focus}`} quality={90} />
       ) : null}
       {!started ? children : null}
 

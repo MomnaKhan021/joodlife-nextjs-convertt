@@ -31,7 +31,7 @@ export default function LpFinal({ content: c, style }: { content: LanderFinal; s
         {c.image ? (
           <div className="pointer-events-none absolute inset-0 hidden lg:block" style={fade("160px")}>
             <Reveal delay={150} className="absolute left-[28%] top-[57px] aspect-[679/845] w-[47.15%]">
-              <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="680px" className="object-cover" />
+              <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="680px" className="object-cover" quality={90} />
             </Reveal>
           </div>
         ) : null}
@@ -77,8 +77,7 @@ export default function LpFinal({ content: c, style }: { content: LanderFinal; s
                   width={20}
                   height={20}
                   unoptimized={rawImage(b.icon)}
-                  className="absolute right-[12px] top-[12px] size-[20px] object-contain lg:right-[17.6px]"
-                />
+                  className="absolute right-[12px] top-[12px] size-[20px] object-contain lg:right-[17.6px]" quality={90} />
               ) : null}
             </Reveal>
           ))}
@@ -93,7 +92,7 @@ export default function LpFinal({ content: c, style }: { content: LanderFinal; s
         </div>
         {c.image ? (
           <div className="relative mt-[16px] aspect-[390/260] w-full lg:hidden" style={fade("35%")}>
-            <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="100vw" className="object-cover object-top" />
+            <Image src={c.image} alt={c.imageAlt} fill unoptimized={rawImage(c.image)} sizes="100vw" className="object-cover object-top" quality={90} />
           </div>
         ) : null}
       </div>

@@ -24,7 +24,7 @@ function Photo({ src, label, after, alt }: { src: string; label: string; after?:
   return (
     <div className="relative aspect-[252/315] flex-1 overflow-hidden rounded-[12px] bg-[#e7ecd7]">
       {src ? (
-        <Image src={src} alt={alt} fill unoptimized={rawImage(src)} sizes="(max-width: 1024px) 45vw, 252px" className="object-cover" />
+        <Image src={src} alt={alt} fill unoptimized={rawImage(src)} sizes="(max-width: 1024px) 45vw, 252px" className="object-cover" quality={90} />
       ) : null}
       {label ? (
         <span

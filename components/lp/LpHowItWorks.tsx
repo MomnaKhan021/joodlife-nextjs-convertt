@@ -146,8 +146,7 @@ export default function LpHowItWorks({ content: c, style }: { content: LanderSte
                             fill
                             unoptimized={rawImage(s.image)}
                             sizes="(max-width: 1024px) 90vw, 620px"
-                            className="object-cover object-[50%_8%]"
-                          />
+                            className="object-cover object-[50%_8%]" quality={90} />
                         </div>
                       ) : null}
                     </div>

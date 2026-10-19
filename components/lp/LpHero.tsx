@@ -19,7 +19,7 @@ import { LP_ASSETS, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared"
  */
 function MessageCard({ c, className = "" }: { c: LanderHero; className?: string }) {
   return (
-    <div className={`fnd-float flex flex-col gap-[8px] rounded-[10px] bg-black/30 p-[12px] backdrop-blur-[82px] lg:gap-[16px] lg:rounded-[16px] lg:p-[16px] ${className}`}>
+    <div className={`fnd-float flex flex-col gap-[8px] rounded-[10px] border border-white/10 bg-[linear-gradient(160deg,rgba(14,38,33,0.94)_0%,rgba(14,38,33,0.84)_100%)] p-[12px] shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)] lg:gap-[16px] lg:rounded-[16px] lg:p-[16px] ${className}`}>
       <Image src={`${LP_ASSETS}/logo-white.svg`} alt="Jood" width={73} height={23} unoptimized className="h-[15px] w-[47px] self-start lg:h-[23px] lg:w-[73px]" />
       <div className="flex flex-col gap-[2px] text-white lg:gap-[7px]">
         <p className="font-ui text-[14px] font-medium lg:text-[17px]">
@@ -70,6 +70,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           priority
           unoptimized={rawImage(c.mobileImage || c.image)}
           sizes="100vw"
+          quality={95}
           className="object-cover object-top md:hidden"
         />
         <Image
@@ -79,6 +80,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           priority
           unoptimized={rawImage(c.image)}
           sizes="100vw"
+          quality={95}
           className="hidden object-cover object-[78%_30%] md:block"
         />
 
@@ -94,12 +96,24 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
               className="absolute inset-0 md:hidden"
               style={{ background: "linear-gradient(180deg, rgba(14,38,33,0) 22%, rgba(14,38,33,0.45) 38%, rgba(14,38,33,0.86) 56%, rgba(14,38,33,0.95) 100%)" }}
             />
+            {/* Tablets: the copy runs ~75% of the width here, so the green
+                reaches further across before fading. */}
             <div
               aria-hidden
-              className="absolute inset-0 hidden md:block"
+              className="absolute inset-0 hidden md:block lg:hidden"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(14,38,33,0.92) 0%, rgba(14,38,33,0.85) 45%, rgba(14,38,33,0.55) 68%, rgba(14,38,33,0.15) 85%, rgba(14,38,33,0) 95%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 hidden lg:block"
               style={{
                 background:
                   "linear-gradient(90deg, rgba(14,38,33,0.92) 0%, rgba(14,38,33,0.82) 30%, rgba(14,38,33,0.5) 48%, rgba(14,38,33,0.12) 62%, rgba(14,38,33,0) 72%), " +
+                  // darker bottom-right corner under the WhatsApp card
+                  "radial-gradient(ellipse 42% 48% at 88% 100%, rgba(14,38,33,0.72) 0%, rgba(14,38,33,0.35) 45%, rgba(14,38,33,0) 75%), " +
                   "linear-gradient(0deg, rgba(14,38,33,0.35) 0%, rgba(14,38,33,0) 30%)",
               }}
             />
