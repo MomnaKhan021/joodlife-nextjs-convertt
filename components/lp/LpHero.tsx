@@ -62,7 +62,11 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
         className="relative flex min-h-[740px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-103px),700px)] md:items-center"
         style={isColour(custom) ? { background: custom } : undefined}
       >
-        {/* Phones: the tall crop. Tablet and up: the wide photo. */}
+        {/* Phones: the tall crop. Tablet and up: the wide photo.
+            The default hillside photo has a lot of sky above her, so on phones
+            it is zoomed 30% — anchored to trim the sky off the top and keep
+            her slightly right of centre (client request, 20 Oct). A photo
+            chosen in the CMS is shown unzoomed. */}
         <Image
           src={c.mobileImage || c.image}
           alt={c.imageAlt}
@@ -71,7 +75,9 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           unoptimized={rawImage(c.mobileImage || c.image)}
           sizes="100vw"
           quality={95}
-          className="object-cover object-top md:hidden"
+          className={`object-cover object-top md:hidden ${
+            (c.mobileImage || c.image).endsWith("/hero-hike-mobile.webp") ? "scale-[1.3] origin-[70%_60%]" : ""
+          }`}
         />
         <Image
           src={c.image}
