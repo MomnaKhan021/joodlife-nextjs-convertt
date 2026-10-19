@@ -81,7 +81,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
           unoptimized={rawImage(c.image)}
           sizes="100vw"
           quality={95}
-          className="hidden object-cover object-[78%_30%] md:block"
+          className="hidden object-cover object-[78%_12%] md:block"
         />
 
         {/* Brand-green shade under the copy (CMS: "Darken the photo behind the

@@ -149,8 +149,8 @@ export const LANDER_DEFAULT: LanderContent = {
     title: "Lose weight with a programme",
     titleAccent: "designed around you.",
     bullets: ["UK-registered clinicians", "Personalised plan", "24/7 WhatsApp support"],
-    image: `${A}/hero-walk-desktop.webp`,
-    mobileImage: `${A}/hero-walk-mobile.webp`,
+    image: `${A}/hero-hike-desktop.webp`,
+    mobileImage: `${A}/hero-hike-mobile.webp`,
     // The green shade behind the copy is part of the design for these photos.
     overlay: true,
     popup: {
@@ -163,7 +163,7 @@ export const LANDER_DEFAULT: LanderContent = {
       ctaHref: LANDER_CTA_HREF,
       note: "Takes about 3 minutes",
     },
-    imageAlt: "Smiling woman in a camel coat walking through an autumn park",
+    imageAlt: "Smiling woman in a mint rain jacket walking along a green hillside path",
     cardName: "Jood clinical team",
     cardChannel: "· WhatsApp",
     cardMessage: "Hi Sarah, I've reviewed your answers. Shall we book your video call?",
@@ -464,14 +464,17 @@ export function mergeLander(stored: unknown): LanderContent {
   const fq = rec(s.faq);
   const fn = rec(s.final);
   // Hero photos that have since been replaced by the current defaults (the
-  // client sent new desktop + phone photos on 19 Oct 2026). A stored value
+  // client sent new desktop + phone photos on 19 Oct 2026, and again on
+  // 20 Oct). A stored value
   // equal to one of these is read as "not chosen since", so the new defaults
   // show; anything else uploaded in the CMS is honoured as-is.
   const SUPERSEDED_HERO = new Set([
     `${A}/hero-4.png`,
+    `${A}/hero-walk-desktop.webp`,
     "https://wjtak5cuzfsuzw0l.public.blob.vercel-storage.com/media/1zfw5j84/ChatGPT-Image-Oct-9-2026-03_16_31-PM.png",
   ]);
   const SUPERSEDED_HERO_MOBILE = new Set([
+    `${A}/hero-walk-mobile.webp`,
     "https://wjtak5cuzfsuzw0l.public.blob.vercel-storage.com/media/8uupupqi/Landing-Page-Heroshot-1-.jpg",
   ]);
   const heroIsOriginal = typeof h.image === "string" && SUPERSEDED_HERO.has(h.image);
