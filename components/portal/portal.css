@@ -297,3 +297,9 @@
 
 /* The portal has its own WhatsApp entry points; hide the site's floating button so it can't cover the tab bar. */
 body:has(.jp) a[aria-label="Chat with us on WhatsApp"]{display:none}
+
+/* FAQ rows wrap each question button in a div (for the open answer), so give
+   that button the same row layout as a direct .list > .li item. */
+.jp .list > div > .li{display:flex; align-items:center; gap:12px; padding:14px 0; width:100%; text-align:left; min-width:0; font-weight:500}
+.jp .list > div > .li .grow{flex:1; min-width:0}
+.jp .list > div > .li .ic{color:var(--muted); flex:0 0 auto}
