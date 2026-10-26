@@ -703,7 +703,7 @@ function autoReminders(svc){
 function on(ev, fn){ root.addEventListener(ev, fn); disposers.push(()=>root.removeEventListener(ev, fn)); }
 const ACT = {
   closeSheet(){ closeSheet(); },
-  async signOut(){ closeSheet(); try{ await fetch('/api/users/logout', { method:'POST', credentials:'include' }); }catch(e){} location.href = initial.links.login; },
+  async signOut(){ closeSheet(); try{ await fetch('/api/portal/logout', { method:'POST', credentials:'include' }); }catch(e){} location.href = initial.links.login; },
   /* nav */
   go(a){ S.screen = a; S.draft = {}; if(a==='messages'){ S.msgSvc = null; markRead(S.svc); } closeSheet(); render(); scrollTop(); },
   svc(a){ S.svc = a; save(); render(); },
@@ -867,7 +867,7 @@ async function addWeight(dt, v){
 function addrText(a){ return [a.line, a.town, a.postcode].map(x=>String(x||'').trim()).filter(Boolean).join(', '); }
 async function saveDetails(over){
   const u = Object.assign({ name:S.user.name, email:S.user.email, phone:S.user.phone }, over.user||{});
-  await api('POST','/api/profile/update',{ name:u.name, email:u.email, phone:u.phone||'', address: addrText(over.address || S.address) });
+  await api('POST','/api/portal/profile',{ name:u.name, email:u.email, phone:u.phone||'', address: addrText(over.address || S.address) });
 }
 function markRead(svc){
   const l = (S.messages[svc]||[]).filter(m=>!m.me && !m.read); if(!l.length) return;
