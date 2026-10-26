@@ -380,6 +380,7 @@ function viewHome(){
     ${svcSwitch()}
     <section class="banner"><div class="txt"><h2>${ns.t}</h2><p class="muted">${esc(ns.b)}</p></div>${ns.l?btn('primary',ns.l,ns.act,ns.arg):''}</section>`;
   if(st.mode==='new') h += startCard(svc);
+  if(svc==='wl' && st.mode!=='active' && wlTracks()) h += wlProgressOnly();
   if(st.mode==='active'){
     if(svc==='wl') h += homeWl(); else if(svc==='ed') h += homeEd(); else h += homePd();
   }
@@ -394,6 +395,21 @@ function viewHome(){
   </div>${trustStrip()}</div>`;
   return h;
 }
+function progressCard(){
+  const ws = wsSorted();
+  const start = ws.length ? ws[0].w : 0, cur = ws.length ? ws[ws.length-1].w : 0, lost = Math.max(0,start-cur);
+  const pct = ws.length ? Math.max(0,Math.min(100,(start-cur)/Math.max(.1,start-S.goal)*100)) : 0;
+  return `<section class="card"><div class="card-h"><div><h3>Your progress</h3><p class="sub">${ws.length?'Since '+fmtD(ws[0].d):'Add your first weigh-in'}</p></div><div class="seg">${['kg','st'].map(u=>`<button class="${S.unit===u?'on':''}" data-act="unit" data-arg="${u}">${u}</button>`).join('')}</div></div>
+      <div class="big">${!ws.length?'–':lost>0?'−'+fmtDiff(lost,S.unit):fmtW(cur,S.unit)}</div><p class="small muted" style="margin:4px 0 8px">${lost>0?'lost so far · now '+fmtW(cur,S.unit):''}</p>
+      ${chartSvg(ws.map(p=>({ v:S.unit==='st'?p.w*2.20462/14:p.w, l:fmtD(p.d) })), null, 'h')}
+      <div class="row between small" style="margin:12px 0 6px"><span>${Math.round(pct)}% to goal</span><span class="muted">Goal ${fmtW(S.goal,S.unit)}</span></div><div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <div class="row" style="margin-top:14px"><input class="input" style="flex:1;min-width:120px" type="number" inputmode="decimal" step="0.1" placeholder="Today's weight, kg" data-bind="quickW" value="${esc(S.draft.quickW||'')}" aria-label="Today's weight in kg">${btn('primary','Save','quickWeigh','','plus')}</div>
+      ${S.draft.quickErr?`<p class="err" style="margin-top:6px">${esc(S.draft.quickErr)}</p>`:''}</section>`;
+}
+// Weight tracking is open to anyone with weigh-ins or a weight loss consultation, not only
+// while treatment is active, so past patients and those awaiting review can keep logging.
+function wlTracks(){ return S.weights.length>0 || svcState('wl').mode!=='new'; }
+function wlProgressOnly(){ return `<div class="grid g2">${progressCard()}<section class="card"><h3 style="margin-bottom:6px">Weigh in once a week</h3><p class="small muted" style="margin-bottom:12px">Same scales, same time of day, before breakfast. Your prescriber sees every entry.</p>${btn('ghost','All weigh-ins and your goal','goTab','wl:progress','chart')}</section></div>`; }
 function homeWl(){
   const w = wlInfo(), ws = wsSorted();
   const start = ws.length ? ws[0].w : 0, cur = ws.length ? ws[ws.length-1].w : 0, lost = Math.max(0,start-cur);
@@ -405,12 +421,7 @@ function homeWl(){
                  ['move', 'Move for 30 minutes', !!ck.move, 'dayCheck', 'move']];
   const done = items.filter(x=>x[2]).length;
   return `<div class="grid g2">
-    <section class="card"><div class="card-h"><div><h3>Your progress</h3><p class="sub">${ws.length?'Since '+fmtD(ws[0].d):'Add your first weigh-in'}</p></div><div class="seg">${['kg','st'].map(u=>`<button class="${S.unit===u?'on':''}" data-act="unit" data-arg="${u}">${u}</button>`).join('')}</div></div>
-      <div class="big">${!ws.length?'–':lost>0?'−'+fmtDiff(lost,S.unit):fmtW(cur,S.unit)}</div><p class="small muted" style="margin:4px 0 8px">${lost>0?'lost so far · now '+fmtW(cur,S.unit):''}</p>
-      ${chartSvg(ws.map(p=>({ v:S.unit==='st'?p.w*2.20462/14:p.w, l:fmtD(p.d) })), null, 'h')}
-      <div class="row between small" style="margin:12px 0 6px"><span>${Math.round(pct)}% to goal</span><span class="muted">Goal ${fmtW(S.goal,S.unit)}</span></div><div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
-      <div class="row" style="margin-top:14px"><input class="input" style="flex:1;min-width:120px" type="number" inputmode="decimal" step="0.1" placeholder="Today's weight, kg" data-bind="quickW" value="${esc(S.draft.quickW||'')}" aria-label="Today's weight in kg">${btn('primary','Save','quickWeigh','','plus')}</div>
-      ${S.draft.quickErr?`<p class="err" style="margin-top:6px">${esc(S.draft.quickErr)}</p>`:''}</section>
+    ${progressCard()}
     <div class="stack">
       <section class="card"><div class="card-h"><h3>Today</h3>${pill(done===4?'p-ok':'p-grey', done+' of 4 done')}</div><div class="list">${items.map(x=>`<button class="li" data-act="${x[3]}" data-arg="${x[4]}" ${!x[3]?'disabled':''}><span class="check ${x[2]?'on':''}">${ic('tick',16,3)}</span><span class="grow t">${x[1]}</span>${x[0]==='dose'&&!w.weekly||x[0]==='dose'&&w.due?pill('p-acc',w.nextSite.split(',')[0]):''}</button>`).join('')}</div></section>
       <section class="card"><div class="card-h"><div><h3>${esc(w.prod.name)} ${esc(w.curStrength)}</h3><p class="sub">${esc(w.prod.form)} · week ${w.week}</p></div>${pill(w.left>1?'p-ok':'p-warn', w.left+' '+(w.weekly?'dose':'tablet')+(w.left===1?'':'s')+' left')}</div>
@@ -454,6 +465,7 @@ function homePd(){
 function viewTreatment(){
   const svc = S.svc, st = svcState(svc);
   let h = `<div class="stack"><div class="page-h"><div><h1>Treatment</h1><p class="muted">${svc==='wl'?'Doses, progress and check-ins':svc==='ed'?'Your tablets and how they are working':'Plan your dates and track your tablets'}</p></div></div>${svcSwitch()}`;
+  if(svc==='wl' && st.mode!=='active' && wlTracks()){ const top = st.mode==='new' ? startCard(svc) : `<section class="card"><div class="card-h"><div><h3>${st.mode==='declined'?'Not approved':'Your treatment unlocks once your prescriber approves'}</h3><p class="sub">${esc(statusCopy(st.latest))}</p></div>${btn('ghost sm','Order status','go','orders')}</div></section>`; return h + top + tWlProgress() + `</div>`; }
   if(st.mode==='new') return h + startCard(svc) + `</div>`;
   if(st.mode!=='active') return h + `<section class="card"><div class="empty"><span class="ico-box">${ic('clock',24)}</span><h3>${st.mode==='declined'?'Not approved':'Unlocks once your prescriber approves'}</h3><p class="small muted" style="margin:6px 0 14px">${esc(statusCopy(st.latest))}</p>${btn('ghost','View order status','go','orders')}</div></section>` + orderCard(st.latest,true) + `</div>`;
   const tabs = { wl:[['doses','Doses'],['progress','Progress'],['checkin','Check-in'],['plan','Plan']], ed:[['log','Usage log'],['rx','Prescription']], pd:[['course','Plan dates'],['tracker','Tablet tracker']] }[svc];

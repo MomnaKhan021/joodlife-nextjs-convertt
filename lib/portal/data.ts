@@ -355,7 +355,14 @@ export async function loadPortal(user: AuthedUser): Promise<PortalInitial> {
     const d = toIso(dob);
     return d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: TZ }) : String(dob || "");
   })();
-  const latest = [...portalOrders].sort((x, y) => (x.createdAt < y.createdAt ? 1 : -1))[0];
+  // Open on the service the patient is actually being treated for: weight loss
+  // first (it has the most to track), then any approved service, then the latest.
+  const approved = (o: PortalOrder) => ["todispatch", "dispatched", "delivered"].includes(o.status);
+  const latest =
+    portalOrders.find((o) => o.svc === "wl" && approved(o)) ??
+    [...portalOrders].sort((x, y) => (x.createdAt < y.createdAt ? 1 : -1)).find(approved) ??
+    [...portalOrders].sort((x, y) => (x.createdAt < y.createdAt ? 1 : -1))[0] ??
+    (weights.length ? ({ svc: "wl" } as PortalOrder) : undefined);
 
   const staffLinks: PortalInitial["staffLinks"] = [];
   if (canAccessAdminTools(user.role, user.permissions)) staffLinks.push({ label: "Orders & admin", href: firstAllowedHref(user.role, user.permissions) });
