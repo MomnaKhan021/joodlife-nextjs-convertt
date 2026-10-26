@@ -49,7 +49,7 @@ export type PortalInitial = {
   activity: Array<{ at: string; svc: Svc | null; icon: string; text: string }>;
   prefs: Record<string, unknown> | null;
   catalogue: Catalogue;
-  links: { start: Record<Svc, string>; reorder: Record<Svc, string> };
+  links: { login: string; start: Record<Svc, string>; reorder: Record<Svc, string> };
   staffLinks: Array<{ label: string; href: string }>;
   idVerified: boolean;
 };
@@ -390,6 +390,8 @@ export async function loadPortal(user: AuthedUser): Promise<PortalInitial> {
     prefs: prefsRaw ? asObject(prefsRaw) : null,
     catalogue: cat,
     links: {
+      // The new portal runs at /new_profile while it is tested; switch to /login at launch.
+      login: "/new_profile/login",
       start: {
         wl: "/consultation?product=weight-loss",
         ed: "/consultation?product=erectile-dysfunction",

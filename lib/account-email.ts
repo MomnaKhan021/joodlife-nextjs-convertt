@@ -246,7 +246,8 @@ export async function sendPortalMessageNoticeEmail(
   opts: { email: string; name?: string | null },
 ): Promise<void> {
   const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
-  const url = `${siteUrl()}/profile`;
+  // The new portal is at /new_profile while it is being tested.
+  const url = `${siteUrl()}/new_profile`;
   const html = emailShell(
     `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">You have a new message</h1>
      <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">

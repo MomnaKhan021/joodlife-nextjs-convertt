@@ -94,7 +94,7 @@ function save(){
 async function api(method, url, body){
   const res = await fetch(url, { method, headers:{ 'Content-Type':'application/json' }, credentials:'include', body: body===undefined ? undefined : JSON.stringify(body) });
   const data = await res.json().catch(()=>({}));
-  if(res.status===401 && data.signedOut){ location.href = '/login?next=/profile'; throw new Error('Please log in again'); }
+  if(res.status===401 && data.signedOut){ location.href = initial.links.login + '?next=' + encodeURIComponent(location.pathname); throw new Error('Please log in again'); }
   if(!res.ok) throw Object.assign(new Error(data.error || 'Something went wrong'), { data });
   return data;
 }
@@ -703,7 +703,7 @@ function autoReminders(svc){
 function on(ev, fn){ root.addEventListener(ev, fn); disposers.push(()=>root.removeEventListener(ev, fn)); }
 const ACT = {
   closeSheet(){ closeSheet(); },
-  async signOut(){ closeSheet(); try{ await fetch('/api/users/logout', { method:'POST', credentials:'include' }); }catch(e){} location.href = '/login'; },
+  async signOut(){ closeSheet(); try{ await fetch('/api/users/logout', { method:'POST', credentials:'include' }); }catch(e){} location.href = initial.links.login; },
   /* nav */
   go(a){ S.screen = a; S.draft = {}; if(a==='messages'){ S.msgSvc = null; markRead(S.svc); } closeSheet(); render(); scrollTop(); },
   svc(a){ S.svc = a; save(); render(); },

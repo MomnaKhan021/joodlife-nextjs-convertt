@@ -39,6 +39,7 @@ function sinceNavigationStart(): number {
 /** Utility/app routes that must NOT show the marketing splash. */
 const SKIP_PREFIXES = [
   "/profile",
+  "/new_profile",
   "/admin-tools",
   "/login",
   "/signup",
