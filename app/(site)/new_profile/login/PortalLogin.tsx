@@ -39,6 +39,7 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [note, setNote] = useState("");
   const boxes = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -50,7 +51,7 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email, password, code }),
+        body: JSON.stringify({ email, password, code, remember }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "We couldn't log you in. Please try again.");
@@ -138,7 +139,8 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
             </ul>
           </div>
           <div className="trust" style={{ color: "rgba(255,255,255,.7)" }}>
-            <span>GPhC registered pharmacy 9012990</span>
+            <span><span className="stars">★★★★★</span> 4.4/5 on Trustpilot</span>
+            <span>GPhC 9012990</span>
           </div>
         </div>
 
@@ -162,6 +164,9 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
                   <input className="input" id="lgP" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 {error ? <p className="err" role="alert">{error}</p> : null}
+                <label className="row small" style={{ gap: 8 }}>
+                  <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Keep me logged in on this device
+                </label>
                 <button className="btn brand block" type="submit" disabled={busy}>
                   {busy ? "Checking…" : "Log in"}
                 </button>

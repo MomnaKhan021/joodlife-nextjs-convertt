@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
   const email = String(b.email ?? "").trim().toLowerCase();
   const password = String(b.password ?? "");
   const code = String(b.code ?? "").replace(/\D/g, "");
+  // "Keep me logged in": off = the cookie ends when the browser closes.
+  const remember = b.remember !== false;
   if (!/^\S+@\S+\.\S+$/.test(email)) return fail("Enter the email address you used with Jood");
   if (password.length < 6) return fail("Your password is at least 6 characters");
 
@@ -95,7 +97,7 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    expires: result.exp ? new Date(result.exp * 1000) : undefined,
+    expires: remember && result.exp ? new Date(result.exp * 1000) : undefined,
   });
   return res;
 }
