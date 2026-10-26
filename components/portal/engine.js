@@ -44,8 +44,8 @@ const FAQS = [
 ];
 const ARTICLES = {
   wl:['Building a plate that keeps you full','Movement that complements your treatment','Eating out without derailing your progress','Managing nausea in the first weeks'],
-  ed:['Sildenafil or tadalafil: which suits you?','Getting the best from your tablets','Talking to your partner about ED'],
-  pd:['When to start norethisterone','What to expect after your last tablet','Travelling with period delay tablets'],
+  ed:['Choosing the right ED treatment','Getting the best from your tablets','Talking to your partner about ED'],
+  pd:['When to start your period delay tablets','What to expect after your last tablet','Travelling with period delay tablets'],
 };
 
 /* ================= Helpers ================= */
@@ -339,9 +339,9 @@ function svcSwitch(){
 }
 function startCard(svc){
   const s = SVC[svc];
-  const blurb = { wl:'Mounjaro, Wegovy, Wegovy pills or Foundayo, with a UK prescriber, monthly video check-ins and free next-day delivery.',
-                  ed:'Sildenafil or tadalafil, prescribed online by a UK clinician and sent in plain packaging.',
-                  pd:'Norethisterone to delay your period for holidays, events or exams. We work out exactly when to start.' }[svc];
+  const blurb = { wl:'Clinician-led weight loss treatment, with a UK prescriber, weekly check-ins and free next-day delivery.',
+                  ed:'Treatment for erectile dysfunction, prescribed online by a UK clinician and sent in plain packaging.',
+                  pd:'Prescription tablets to delay your period for holidays, events or exams. We work out exactly when to start.' }[svc];
   return `<section class="card tint"><div class="row" style="align-items:flex-start;gap:14px"><span class="ico-box">${ic(svc==='wl'?'scale':svc==='ed'?'heart':'cal')}</span><div style="flex:1;min-width:220px"><h3>Start ${s.name.toLowerCase()} treatment</h3><p class="small muted" style="margin:4px 0 12px">${blurb}</p>
     <div class="row">${btn('primary','Start free consultation','startFlow',svc)}<span class="small muted">About 3 minutes · from ${s.from}</span></div></div></div></section>`;
 }
