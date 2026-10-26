@@ -46,6 +46,18 @@ export async function GET(req: NextRequest) {
   if (!who) return deny();
   const db = await getDb();
   await ensurePortalTables(db);
+  // Sidebar badge: patients waiting on the clinical team (an unread message or
+  // a check-in nobody has replied to).
+  if (req.nextUrl.searchParams.get("count")) {
+    const rows = await db.query(`
+      SELECT count(DISTINCT user_id)::int AS n FROM (
+        SELECT user_id FROM portal_messages WHERE from_staff = false AND read_by_staff_at IS NULL
+        UNION ALL SELECT user_id FROM portal_checkins WHERE reply IS NULL
+      ) x
+    `);
+    return NextResponse.json({ ok: true, count: Number(rows[0]?.n ?? 0) });
+  }
+
   const userId = Number(req.nextUrl.searchParams.get("userId"));
 
   if (!Number.isFinite(userId) || !userId) {

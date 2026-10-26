@@ -264,6 +264,45 @@ export async function sendPortalMessageNoticeEmail(
   });
 }
 
+/**
+ * Tells the clinical team a patient is waiting in the portal inbox. Sent to
+ * PORTAL_NOTIFY_EMAIL, else ORDER_NOTIFY_EMAIL / SEED_ADMIN_EMAIL /
+ * hello@joodlife.com (the same fallbacks as the order notification). Only the
+ * patient's name and the kind of alert — what they wrote stays in admin-tools.
+ */
+export async function sendPortalStaffAlertEmail(
+  payload: Payload,
+  opts: { kind: "message" | "checkin" | "severe"; patientName: string; service: string },
+): Promise<void> {
+  const to = (
+    process.env.PORTAL_NOTIFY_EMAIL ||
+    process.env.ORDER_NOTIFY_EMAIL ||
+    process.env.SEED_ADMIN_EMAIL ||
+    "hello@joodlife.com"
+  ).trim();
+  if (!to) return;
+  const inbox = `${siteUrl()}/admin-tools/patient-messages`;
+  const who = escapeHtml(opts.patientName || "A patient");
+  const subject =
+    opts.kind === "severe"
+      ? `URGENT: severe symptoms reported by ${opts.patientName || "a patient"}`
+      : opts.kind === "checkin"
+        ? `New weekly check-in from ${opts.patientName || "a patient"}`
+        : `New patient message (${opts.service}) from ${opts.patientName || "a patient"}`;
+  const lead =
+    opts.kind === "severe"
+      ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#b42318;font-weight:700">${who} reported severe symptoms in their weekly check-in. The portal has told them to stop treatment and call 111. Please contact them today.</p>`
+      : opts.kind === "checkin"
+        ? `<p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">${who} sent their weekly check-in with a question for the prescriber.</p>`
+        : `<p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">${who} sent a message about ${escapeHtml(opts.service.toLowerCase())}. Patients are told we reply within one working day.</p>`;
+  const html = emailShell(
+    `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">${escapeHtml(subject)}</h1>${lead}
+     <p style="margin:0"><a href="${inbox}" style="display:inline-block;background:#142e2a;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">Open Patient messages</a></p>`,
+    { preheader: subject },
+  );
+  await payload.sendEmail({ to, subject, html, text: `${subject}. Open Patient messages: ${inbox}` });
+}
+
 /** The second step of a patient's portal login (app/api/portal/login). */
 export async function sendPortalLoginCodeEmail(
   payload: Payload,

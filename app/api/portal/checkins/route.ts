@@ -10,6 +10,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { portalRequest, fail, readJson } from "@/lib/portal/api";
 import { jsonLit, lit } from "@/lib/portal/db";
 import { ukStamp } from "@/lib/portal/data";
+import { alertClinicalTeam } from "@/lib/portal/alerts";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
       RETURNING id, created_at
     `);
     message = { id: Number(m[0].id), me: true, from: "You", at: ukStamp(m[0].created_at), text: `Weekly check-in: ${note}`, read: true };
+  }
+  // Severe symptoms always alert the team; otherwise only when there is a note to answer.
+  if (severe || note) {
+    await alertClinicalTeam(ctx.db, { kind: severe ? "severe" : "checkin", userId: ctx.uid, patientName: ctx.user.name ?? email, svc: "wl" });
   }
   return NextResponse.json({
     ok: true,

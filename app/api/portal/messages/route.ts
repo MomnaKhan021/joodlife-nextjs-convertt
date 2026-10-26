@@ -8,6 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { portalRequest, fail, readJson, svcOf } from "@/lib/portal/api";
 import { lit } from "@/lib/portal/db";
 import { ukStamp } from "@/lib/portal/data";
+import { alertClinicalTeam } from "@/lib/portal/alerts";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
     VALUES (${lit(ctx.uid)}, ${lit(ctx.user.email.toLowerCase())}, ${lit(svc)}, false, ${lit(ctx.user.name ?? ctx.user.email)}, ${lit(text)})
     RETURNING id, created_at
   `);
+  await alertClinicalTeam(ctx.db, { kind: "message", userId: ctx.uid, patientName: ctx.user.name ?? ctx.user.email, svc, messageId: Number(rows[0].id) });
   return NextResponse.json({
     ok: true,
     message: { id: Number(rows[0].id), me: true, from: "You", at: ukStamp(rows[0].created_at), text, read: true },

@@ -2,7 +2,7 @@ import "server-only";
 
 import { NextResponse, type NextRequest } from "next/server";
 
-import { getCurrentUser, type AuthedUser } from "@/lib/auth";
+import type { AuthedUser } from "@/lib/auth";
 import { getPayloadInstance } from "@/lib/payload";
 import { ensurePortalTables, getDb, type Db } from "./db";
 
@@ -17,16 +17,28 @@ export async function portalRequest(
   // patient to /login). Anything else, such as the database timing out, is
   // reported as a temporary error so nobody gets bounced to the login page.
   if (!req.cookies.get("payload-token")?.value) return signedOut();
-  let user: AuthedUser | null;
+  let user: AuthedUser;
   try {
     const payload = await getPayloadInstance();
-    const res = await payload.auth({ headers: req.headers });
+    // Payload ignores the session cookie when the Origin header isn't on its
+    // CSRF list (e.g. www. vs bare domain, or a dev server on another port).
+    // These routes already require the same origin above, so authenticate on
+    // the cookie alone rather than depend on that list.
+    const headers = new Headers(req.headers);
+    headers.delete("origin");
+    const res = await payload.auth({ headers });
     if (!res.user) return signedOut();
-    user = await getCurrentUser();
+    const u = res.user as unknown as { id: number | string; email: string; name?: string; role?: string; permissions?: unknown };
+    user = {
+      id: String(u.id),
+      email: String(u.email),
+      name: u.name ?? undefined,
+      role: u.role ?? "customer",
+      permissions: Array.isArray(u.permissions) ? (u.permissions as string[]) : [],
+    };
   } catch {
     return NextResponse.json({ ok: false, error: "We couldn't reach our servers. Please try again." }, { status: 503 });
   }
-  if (!user) return NextResponse.json({ ok: false, error: "We couldn't reach our servers. Please try again." }, { status: 503 });
   const uid = Number(user.id);
   if (!Number.isFinite(uid)) return NextResponse.json({ ok: false, error: "Account not found" }, { status: 400 });
   const db = await getDb();

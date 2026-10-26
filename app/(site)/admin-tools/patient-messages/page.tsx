@@ -8,6 +8,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { refreshAdminBadges } from "../AdminShell";
+
 type Thread = {
   userId: number;
   name: string;
@@ -73,6 +75,7 @@ export default function PatientMessagesPage() {
       const last = (j.messages ?? []).filter((m: Message) => !m.fromStaff).slice(-1)[0];
       if (last) setSvc(last.svc);
       setThreads((ts) => ts.map((t) => (t.userId === userId ? { ...t, unread: 0 } : t)));
+      refreshAdminBadges();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     }
@@ -97,6 +100,7 @@ export default function PatientMessagesPage() {
       if (!j.ok) throw new Error(j.error ?? "Couldn't send");
       if (sel) await open(sel);
       void loadThreads();
+      refreshAdminBadges();
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");

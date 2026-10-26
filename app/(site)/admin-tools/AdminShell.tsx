@@ -65,6 +65,7 @@ const NAV: NavItem[] = [
     label: "Patient messages",
     href: "/admin-tools/patient-messages",
     match: (p) => p.startsWith("/admin-tools/patient-messages"),
+    badgeType: "patient-messages",
     section: "clinical",
     icon: I("M4 5h16v11H9l-5 4V5z"),
   },
@@ -259,6 +260,12 @@ function NavBadge({ type }: { type: string }) {
           .then((r) => r.json())
           .then((j) => { if (j?.ok) apply(j.dispatched); })
           .catch(() => {});
+      } else if (type === "patient-messages") {
+        // Patients waiting on a reply in the portal inbox.
+        fetch(`/api/admin-tools/patient-messages?count=1`, { credentials: "include", cache: "no-store" })
+          .then((r) => r.json())
+          .then((j) => { if (j?.ok) apply(j.count); })
+          .catch(() => {});
       } else if (type === "orders") {
         // Orders badge = ACTIVE orders only (not yet dispatched, not cancelled)
         // — the "job queue" awaiting action. Dispatched orders move to the
@@ -299,7 +306,7 @@ function NavBadge({ type }: { type: string }) {
   }, [type]);
   if (count === null || count === 0) return null;
   // Work queues (needs action) → red; reference counts → neutral grey.
-  const attention = type === "clinical" || type === "dispensing";
+  const attention = type === "clinical" || type === "dispensing" || type === "patient-messages";
   return (
     <span className={`ml-auto rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
       attention ? "bg-[#dc2626] text-white" : "bg-[#e3e3e3] text-[#616161]"
