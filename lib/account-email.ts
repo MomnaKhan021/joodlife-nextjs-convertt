@@ -238,6 +238,58 @@ export async function sendTwoFactorCodeEmail(
 }
 
 /**
+ * "You have a new message" when the clinical team replies in the portal.
+ * Deliberately says nothing about the treatment or what was written.
+ */
+export async function sendPortalMessageNoticeEmail(
+  payload: Payload,
+  opts: { email: string; name?: string | null },
+): Promise<void> {
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const url = `${siteUrl()}/profile`;
+  const html = emailShell(
+    `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">You have a new message</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       Hi ${escapeHtml(firstName)}, our clinical team has replied to you. Log in to your Jood portal to read it.
+     </p>
+     <p style="margin:0 0 16px"><a href="${url}" style="display:inline-block;background:#142e2a;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">Open my portal</a></p>`,
+    { preheader: "You have a new message in your Jood portal" },
+  );
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "You have a new message from Jood",
+    html,
+    text: `Hi ${firstName}, our clinical team has replied to you. Log in to your Jood portal to read it: ${url}`,
+  });
+}
+
+/** The second step of a patient's portal login (app/api/portal/login). */
+export async function sendPortalLoginCodeEmail(
+  payload: Payload,
+  opts: { email: string; code: string; name?: string | null },
+): Promise<void> {
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const html = emailShell(
+    `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">Your Jood login code</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       Hi ${escapeHtml(firstName)}, enter this code to finish logging in to your Jood portal. It expires in 10 minutes.
+     </p>
+     <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px;color:#142e2a">${escapeHtml(opts.code)}</p>
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+       If you didn't try to log in, someone may have your password. Please change it as soon as you can.
+     </p>`,
+    { preheader: "Your Jood login code" },
+  );
+  const text = `Your Jood login code is ${opts.code}. It expires in 10 minutes. If you didn't try to log in, please change your password.`;
+  await payload.sendEmail({
+    to: opts.email,
+    subject: `${opts.code} is your Jood login code`,
+    html,
+    text,
+  });
+}
+
+/**
  * HTML for the "reset your password" email. Wired into the Users auth config
  * (`auth.forgotPassword.generateEmailHTML`) so the link points at the
  * STOREFRONT reset page (`/reset-password?token=…`) instead of Payload's

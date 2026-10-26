@@ -118,6 +118,8 @@ export function sectionForPath(
   // to bounce staff off these two pages on every full refresh even though a
   // click had let them in. Keep this list in step with the sidebar's hrefs.
   if (p.startsWith("/admin-tools/rejected")) return "clinical";
+  // Patient portal messages and weekly check-ins are answered by the clinical team.
+  if (p.startsWith("/admin-tools/patient-messages")) return "clinical";
   if (p.startsWith("/admin-tools/marketing-queue")) return "clinical";
   if (p.startsWith("/admin-tools/dispensing-queue")) return "dispensing";
   if (p.startsWith("/admin-tools/dispatching")) return "dispatching";
