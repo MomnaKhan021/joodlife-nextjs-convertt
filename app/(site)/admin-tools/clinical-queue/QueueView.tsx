@@ -348,7 +348,7 @@ const SECTION_KEYS = new Set<string>([
   "date_of_birth_consultation", "consultation_mobile_number_v2",
   "firstName", "lastName", "weight_scale_photo",
   // gp
-  "gp_practice_name", "gp_practice_full_address",
+  "gp_practice_name", "gp_practice_full_address", "gp_consent",
   // consultation
   "video_consultation_preference", "consultation_consent_confirmed",
   "reorder_consent_confirmed",
@@ -424,7 +424,13 @@ function PatientDetails({ c }: { c: Consultation }) {
   ];
 
   const gpItems: Item[] = [
-    { label: "GP practice", value: a.gp_practice_name },
+    {
+      label: "GP practice",
+      value:
+        a.gp_consent === "no"
+          ? "Patient doesn't want their GP informed"
+          : a.gp_practice_name || "Not given",
+    },
     { label: "GP address", value: a.gp_practice_full_address },
   ];
 

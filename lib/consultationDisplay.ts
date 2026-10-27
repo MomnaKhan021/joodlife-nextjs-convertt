@@ -43,6 +43,7 @@ export const CONSULTATION_LABELS: Record<string, string> = {
   // GP
   gp_practice_name: "GP practice",
   gp_practice_full_address: "GP address",
+  gp_consent: "Inform GP",
   // Consultation
   video_consultation_preference: "Video booking",
   consultation_consent_confirmed: "Consent confirmed",

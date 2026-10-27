@@ -1468,6 +1468,7 @@ function GpSlide({ slide, answers, setAnswer }: SlideProps) {
   const [open, setOpen] = useState(false);
   const [manual, setManual] = useState(false);
   const selected = Boolean(answers["gp_practice_name"]);
+  const declined = answers["gp_consent"] === "no";
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounced search against the GP proxy (min 2 chars). Clears any prior
@@ -1524,7 +1525,7 @@ function GpSlide({ slide, answers, setAnswer }: SlideProps) {
     <SlideShell>
       <SlideHeader title={slide.title} subtitle={slide.subtitle} />
       <div className="flex flex-col gap-4">
-        {!manual ? (
+        {declined ? null : !manual ? (
           <>
             {selected && query === answers["gp_practice_name"] ? (
               <div className="rounded-lg bg-[#eef3e6] p-4 ring-1 ring-[#142e2a]/15">
@@ -1632,10 +1633,29 @@ function GpSlide({ slide, answers, setAnswer }: SlideProps) {
             </button>
           </>
         )}
+        <label className="flex items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-[#142e2a]/15">
+          <input
+            type="checkbox"
+            checked={declined}
+            onChange={(e) => {
+              if (e.target.checked) {
+                clearSelection();
+                setManual(false);
+                setAnswer("gp_consent", "no");
+              } else {
+                setAnswer("gp_consent", "");
+              }
+            }}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[#142e2a]"
+          />
+          <span className="font-ui text-[13px] text-[#142e2a]">
+            I don&apos;t want my GP to be informed about this treatment
+          </span>
+        </label>
         <p className="font-ui text-[12px] text-[#142e2a]/55">
-          Your GP details are required so we can share an outcome letter for
-          safe, coordinated care — select your practice above or enter it
-          manually.
+          {declined
+            ? "That's fine. Your prescriber will take this into account when reviewing your consultation."
+            : "Optional. If you share your GP details we can send them an outcome letter for safe, coordinated care."}
         </p>
       </div>
     </SlideShell>
@@ -1849,10 +1869,9 @@ function slideCanContinue(slide: SlideDef, answers: Answers): boolean {
     return Boolean(answers[slide.field!]) || isUploadSkipped(answers, slide.field!);
   }
   if (slide.type === "gp") {
-    // Compulsory: the patient must either pick a practice or enter one manually.
-    const name = (answers["gp_practice_name"] as string | undefined)?.trim();
-    const manual = (answers["gp_practice_full_address"] as string | undefined)?.trim();
-    return Boolean(name || manual);
+    // Optional: a patient may give their GP or choose not to have them told
+    // (e.g. a doctor whose own GP is a colleague). The prescriber sees which.
+    return true;
   }
   if (slide.type === "doseSelector") {
     return Boolean(answers[slide.field!]);
