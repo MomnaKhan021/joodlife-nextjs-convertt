@@ -171,7 +171,8 @@ export function allowedDataBrowserTypes(
 
 /** The landing page a user should be sent to (first section they can see). */
 export function firstAllowedHref(role: string, permissions: string[] | undefined): string {
-  if (role === "admin") return "/admin-tools";
+  // The admin Home overview is hidden; admins start on Analytics.
+  if (role === "admin") return "/admin-tools/analytics";
   const perms = permissions ?? [];
   const first = SECTIONS.find((s) => perms.includes(s.key));
   return first ? first.href : "/admin-tools/no-access";

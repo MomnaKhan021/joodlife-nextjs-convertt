@@ -25,12 +25,7 @@ const I = (d: string) => (
 );
 
 const NAV: NavItem[] = [
-  {
-    label: "Home",
-    href: "/admin-tools",
-    match: (p) => p === "/admin-tools",
-    icon: I("M4 11l8-7 8 7M6 9.5V20h12V9.5"),
-  },
+  // Home is hidden for now; /admin-tools sends admins to Analytics.
   {
     label: "Analytics",
     href: "/admin-tools/analytics",
