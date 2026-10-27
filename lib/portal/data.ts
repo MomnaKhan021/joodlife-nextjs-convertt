@@ -4,6 +4,7 @@ import type { AuthedUser } from "@/lib/auth";
 import { canAccessAdminTools, canAccessSection, firstAllowedHref } from "@/lib/adminSections";
 import { canAccessCms } from "@/lib/cmsSections";
 import { parseItems, type OrderItem } from "@/lib/accountData";
+import { getIsReturningPatient } from "@/lib/returningPatient";
 import { asObject, ensurePortalTables, getDb, lit, pick, toIso, type Db } from "./db";
 import { buildCatalogue, doseKey, ensureProduct, serviceOf, type Catalogue, type Svc } from "./catalogue";
 
@@ -52,6 +53,9 @@ export type PortalInitial = {
   links: { login: string; start: Record<Svc, string>; reorder: Record<Svc, string> };
   staffLinks: Array<{ label: string; href: string }>;
   idVerified: boolean;
+  /** Has a real order (not cancelled / refunded / failed): the site-wide
+   *  rule that turns "Get started" into "Reorder". */
+  returning: boolean;
 };
 
 const TZ = "Europe/London";
@@ -405,6 +409,8 @@ export async function loadPortal(user: AuthedUser): Promise<PortalInitial> {
     },
     staffLinks,
     idVerified: false,
+    // Same rule as the rest of the site, so the portal says "Reorder" exactly when the home page does.
+    returning: await getIsReturningPatient(),
   };
 }
 

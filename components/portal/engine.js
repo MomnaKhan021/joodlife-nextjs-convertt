@@ -667,6 +667,21 @@ function faqItems(list){ return list.map((f,i)=>`<div style="border-bottom:1px s
 /* ================= Shell ================= */
 const NAV = [['home','Home','home'],['treatment','Treatment','pill'],['orders','Orders','box'],['reminders','Reminders','bell'],['messages','Messages','chat'],['record','Health record','list'],['help','Help','help'],['account','Account','user']];
 const TABS = [['home','Home','home'],['treatment','Treatment','pill'],['orders','Orders','box'],['reminders','Reminders','bell'],['account','Account','user']];
+/* The one action we want in front of every patient: Reorder for anyone with a
+   real order (the site-wide rule), otherwise Get started with a consultation
+   for the service they're looking at. Shown in the sticky header and at the
+   foot of every screen. */
+function mainCta(){
+  return initial.returning
+    ? { label:'Reorder', href:'/reorder', icon:'box' }
+    : { label:'Get started', href:(initial.links.start||{})[S.svc] || '/consultation', icon:'plus' };
+}
+function ctaBand(c){
+  const r = !!initial.returning;
+  return `<section class="cta-band"><div class="txt"><h2>${r ? 'Running low? <em class="serif">Reorder in minutes</em>' : 'Ready to start? <em class="serif">It takes 3 minutes</em>'}</h2>
+    <p>${r ? 'Your prescriber reviews every reorder, usually the same day. Free next-day delivery in plain packaging.' : 'Free online consultation, reviewed by a UK prescriber. You only pay if you are approved.'}</p></div>
+    <a class="btn lime" href="${esc(c.href)}">${ic(c.icon,18)}${c.label}</a></section>`;
+}
 function render(){
   root.dataset.svc = S.svc;
   const views = { home:viewHome, treatment:viewTreatment, orders:viewOrders, reminders:viewReminders, messages:viewMessages, record:viewRecord, account:viewAccount, help:viewHelp };
@@ -674,14 +689,15 @@ function render(){
   const unreadMsgs = SVC_KEYS.reduce((a,k)=>a+(S.messages[k]||[]).filter(m=>!m.me && !m.read).length, 0);
   const badge = k => k==='orders'&&live ? `<span class="count">${live}</span>` : k==='messages'&&unreadMsgs ? `<span class="count">${unreadMsgs}</span>` : '';
   const scr = S.screen;
+  const cta = mainCta();
   $('app').innerHTML = `<div class="shell">
     <aside class="rail">${LOGO}<nav class="rail-nav" aria-label="Main">${NAV.map(n=>`<button class="${scr===n[0]?'on':''}" data-act="go" data-arg="${n[0]}">${ic(n[2])}<span>${n[1]}</span>${badge(n[0])}</button>`).join('')}</nav><div class="grow"></div>
       <a class="rail-wa" href="${WA}" target="_blank" rel="noopener">${ic('wa',26)}<div><b>WhatsApp the team</b><span>24/7 · replies in ~15 min</span></div></a></aside>
-    <div class="col"><header class="topbar"><div class="topbar-in">${LOGO}<span class="grow"></span><div class="top-actions">
+    <div class="col"><header class="topbar"><div class="topbar-in">${LOGO}<span class="grow"></span><a class="btn primary sm top-cta" href="${esc(cta.href)}">${ic(cta.icon,16)}${cta.label}</a><div class="top-actions">
       <button class="icon-btn" aria-label="Messages" data-act="go" data-arg="messages">${ic('chat')}${unreadMsgs?`<span class="count">${unreadMsgs}</span>`:''}</button>
       <button class="icon-btn" aria-label="Notifications" data-act="openNotifs">${ic('bell')}${unread?`<span class="count">${unread}</span>`:''}</button>
       <button class="icon-btn" aria-label="Help" data-act="go" data-arg="help">${ic('help')}</button></div></div></header>
-      <main class="main" id="main">${(views[S.screen]||viewHome)()}</main></div></div>`;
+      <main class="main" id="main">${(views[S.screen]||viewHome)()}${ctaBand(cta)}</main></div></div>`;
   $('tabbar').innerHTML = TABS.map(n=>`<button class="${scr===n[0]?'on':''}" data-act="go" data-arg="${n[0]}"><span class="tb-ic" style="position:relative">${ic(n[2])}${badge(n[0])}</span><span>${n[1]}</span></button>`).join('');
 }
 function scrollTop(){ window.scrollTo(0,0); }

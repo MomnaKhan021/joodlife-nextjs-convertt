@@ -303,3 +303,24 @@ body:has(.jp) a[aria-label="Chat with us on WhatsApp"]{display:none}
 .jp .list > div > .li{display:flex; align-items:center; gap:12px; padding:14px 0; width:100%; text-align:left; min-width:0; font-weight:500}
 .jp .list > div > .li .grow{flex:1; min-width:0}
 .jp .list > div > .li .ic{color:var(--muted); flex:0 0 auto}
+
+/* The main action (Get started / Reorder): a button in the sticky header and a
+   band at the foot of every screen. */
+.jp .top-cta{margin-right:6px; padding:0 14px; white-space:nowrap}
+.jp .top-cta .ic{width:16px; height:16px}
+.jp .cta-band{margin-top:28px; border-radius:var(--r-lg); padding:22px; display:flex; flex-direction:column; gap:16px; background:var(--brand); color:#fff}
+.jp .cta-band h2{font-size:22px; line-height:1.25; color:#fff}
+.jp .cta-band h2 .serif{color:var(--lime)}
+.jp .cta-band p{color:rgba(255,255,255,.78); font-size:15px; margin-top:6px; max-width:560px}
+.jp .cta-band .btn{align-self:stretch; white-space:nowrap}
+@container app (min-width:640px){
+  .jp .cta-band{flex-direction:row; align-items:center; justify-content:space-between; gap:24px; padding:26px 28px}
+  .jp .cta-band .btn{align-self:center; flex:0 0 auto}
+}
+@container app (min-width:960px){
+  .jp .top-cta{margin-right:10px; min-height:40px; padding:0 18px; font-size:15px}
+}
+@container app (max-width:380px){
+  .jp .top-cta{padding:0 10px; font-size:13px}
+  .jp .top-cta .ic{display:none}
+}
