@@ -88,6 +88,17 @@ export async function ensurePortalTables(db: Db): Promise<void> {
     )`,
     `CREATE INDEX IF NOT EXISTS portal_messages_user_idx ON "portal_messages" ("user_id", "created_at")`,
     `CREATE INDEX IF NOT EXISTS portal_messages_unread_idx ON "portal_messages" ("read_by_staff_at") WHERE "from_staff" = false`,
+    // "Email me a login link": single-use, 15-minute links (only a hash is stored).
+    `CREATE TABLE IF NOT EXISTS "portal_login_links" (
+      "id" serial PRIMARY KEY,
+      "user_id" integer NOT NULL,
+      "token_hash" varchar NOT NULL,
+      "next" varchar,
+      "expires_at" timestamptz NOT NULL,
+      "used_at" timestamptz,
+      "created_at" timestamptz DEFAULT now() NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS portal_login_links_user_idx ON "portal_login_links" ("user_id", "created_at" DESC)`,
     // Failed-attempt counter for the emailed login code (codes reuse the
     // existing users.email_otp_hash / email_otp_expires columns).
     `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_otp_attempts" integer DEFAULT 0`,

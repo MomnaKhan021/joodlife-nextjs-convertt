@@ -17,6 +17,7 @@ const ICON: Record<string, string> = {
   bell: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0",
   chat: "M4 5h16v11H9l-5 4z",
   lock: "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4",
+  mail: "M3 5h18v14H3zM3 7l9 6 9-6",
 };
 
 function Ic({ n, size = 20 }: { n: keyof typeof ICON; size?: number }) {
@@ -31,8 +32,8 @@ function Logo() {
   return <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: LOGO }} />;
 }
 
-export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
-  const [step, setStep] = useState<"pw" | "code">("pw");
+export default function PortalLogin({ redirectTo, link }: { redirectTo: string; link?: string }) {
+  const [step, setStep] = useState<"pw" | "code" | "link">(link ? "link" : "pw");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sentTo, setSentTo] = useState("");
@@ -72,6 +73,40 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
         setTimeout(() => boxes.current[0]?.focus(), 50);
       }
     } finally {
+      setBusy(false);
+    }
+  }
+
+  /** "Email me a login link": same reply whether or not the account exists. */
+  async function emailLink() {
+    const em = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(em)) return setError("Enter your email address first, then tap “Email me a login link”");
+    setBusy(true);
+    setError("");
+    setNote("");
+    try {
+      const res = await fetch("/api/portal/magic", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email: em }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "We couldn't send a link. Please try again.");
+      setNote(data.message || "Check your email for a login link.");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Opened from the emailed link: one tap to finish (links are single use). */
+  async function finishLink() {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/portal/magic/verify", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token: link }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "We couldn't log you in. Please try again.");
+      window.location.assign(data.next || redirectTo);
+    } catch (err) {
+      setError((err as Error).message);
       setBusy(false);
     }
   }
@@ -170,12 +205,34 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
                 <button className="btn brand block" type="submit" disabled={busy}>
                   {busy ? "Checking…" : "Log in"}
                 </button>
+                <button className="btn ghost block" type="button" onClick={emailLink} disabled={busy}>
+                  <Ic n="mail" size={18} />Email me a login link
+                </button>
+                {note ? <p className="ok" role="status">{note}</p> : null}
                 <div className="row between">
                   <Link className="btn link" href="/forgot">Forgot password?</Link>
                   <Link className="btn link" href="/consultation">New to Jood? Start here</Link>
                 </div>
               </div>
             </form>
+          ) : step === "link" ? (
+            <div>
+              <h1 style={{ marginBottom: 6 }}>
+                Finish <em className="serif">logging in</em>
+              </h1>
+              <p className="muted" style={{ marginBottom: 20 }}>
+                You opened a login link from your email. Tap below to go to your portal.
+              </p>
+              {error ? <p className="err" role="alert" style={{ marginBottom: 12 }}>{error}</p> : null}
+              <button className="btn brand block" type="button" onClick={finishLink} disabled={busy}>
+                {busy ? "Logging you in…" : "Finish logging in"}
+              </button>
+              <div className="row between" style={{ marginTop: 14 }}>
+                <button className="btn link" type="button" onClick={() => { setStep("pw"); setError(""); window.history.replaceState(null, "", "/new_profile/login"); }}>
+                  Log in with your password instead
+                </button>
+              </div>
+            </div>
           ) : (
             <div>
               <h1 style={{ marginBottom: 6 }}>Check your email</h1>

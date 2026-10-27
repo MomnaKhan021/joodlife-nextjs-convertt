@@ -303,6 +303,31 @@ export async function sendPortalStaffAlertEmail(
   await payload.sendEmail({ to, subject, html, text: `${subject}. Open Patient messages: ${inbox}` });
 }
 
+/** "Email me a login link" from the portal login (app/api/portal/magic). */
+export async function sendPortalLoginLinkEmail(
+  payload: Payload,
+  opts: { email: string; url: string; name?: string | null },
+): Promise<void> {
+  const firstName = String(opts.name ?? "").trim().split(/\s+/)[0] || "there";
+  const html = emailShell(
+    `<h1 style="font-size:20px;margin:0 0 12px;color:#142e2a">Your Jood login link</h1>
+     <p style="font-size:15px;line-height:22px;margin:0 0 16px;color:#142e2a">
+       Hi ${escapeHtml(firstName)}, tap the button to log in to your Jood portal. The link works once and expires in 15 minutes.
+     </p>
+     <p style="margin:0 0 16px"><a href="${opts.url}" style="display:inline-block;background:#142e2a;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px">Log in to Jood</a></p>
+     <p style="font-size:13px;line-height:20px;color:#142e2a;opacity:.7;margin:0">
+       If you didn't ask for this, you can ignore this email. Nobody can log in without this link.
+     </p>`,
+    { preheader: "Your Jood login link" },
+  );
+  await payload.sendEmail({
+    to: opts.email,
+    subject: "Your Jood login link",
+    html,
+    text: `Log in to your Jood portal: ${opts.url} (works once, expires in 15 minutes). If you didn't ask for this, ignore this email.`,
+  });
+}
+
 /** The second step of a patient's portal login (app/api/portal/login). */
 export async function sendPortalLoginCodeEmail(
   payload: Payload,
