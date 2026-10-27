@@ -567,6 +567,196 @@ function describeCall(iso: string): CallTiming | null {
   return { when, dayDiff, timeLabel, dateLabel, relLabel };
 }
 
+/* ------------------------------------------------------------------ */
+/* Gemini meeting notes                                                 */
+/* ------------------------------------------------------------------ */
+
+type GoogleStatus = { configured: boolean; connected: boolean; email: string | null; isAdmin: boolean };
+let googleStatusPromise: Promise<GoogleStatus | null> | null = null;
+/** One status lookup per page, shared by every card. */
+function getGoogleStatus(): Promise<GoogleStatus | null> {
+  googleStatusPromise ??= fetch("/api/admin-tools/google/status", { credentials: "include", cache: "no-store" })
+    .then((r) => r.json())
+    .then((j) => (j?.ok ? (j as GoogleStatus) : null))
+    .catch(() => null);
+  return googleStatusPromise;
+}
+
+/** Admin-only line under the Clinical Check title: is the clinic's Google
+ *  account connected for Gemini notes, plus the result of a connect attempt. */
+function GoogleNotesStatus() {
+  const [g, setG] = useState<GoogleStatus | null>(null);
+  const [flash] = useState(() =>
+    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("google"),
+  );
+  useEffect(() => {
+    let cancelled = false;
+    void getGoogleStatus().then((s) => {
+      if (!cancelled) setG(s);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!g?.isAdmin) return null;
+  const msg: Record<string, string> = {
+    connected: "Google connected. Gemini notes will now load on orders after each call.",
+    cancelled: "Google connection was cancelled.",
+    expired: "That Google sign-in expired. Please try again.",
+    failed: "Google connection failed. Check the Google Cloud setup and try again.",
+  };
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2 text-[12px] text-[#374151]">
+      <span className="font-semibold">Gemini meeting notes:</span>
+      {!g.configured ? (
+        <span className="text-[#6b7280]">not set up yet (needs Google keys in Vercel)</span>
+      ) : g.connected ? (
+        <>
+          <span className="text-[#1f5a2e]">connected{g.email ? ` as ${g.email}` : ""}</span>
+          <button
+            onClick={async () => {
+              if (!window.confirm("Disconnect Google? Notes already on orders stay; new notes stop loading.")) return;
+              await fetch("/api/admin-tools/google/status", { method: "DELETE", credentials: "include" });
+              googleStatusPromise = null;
+              setG(await getGoogleStatus());
+            }}
+            className="font-semibold text-[#6b7280] hover:underline"
+          >
+            Disconnect
+          </button>
+        </>
+      ) : (
+        <button onClick={() => window.location.assign("/api/admin-tools/google/connect")} className="font-semibold text-[#1450b0] hover:underline">
+          Connect Google (hello@joodlife.com)
+        </button>
+      )}
+      {flash && msg[flash] ? <span className={flash === "connected" ? "text-[#1f5a2e]" : "text-[#b42318]"}>{msg[flash]}</span> : null}
+    </div>
+  );
+}
+
+type Notes = { text: string; docUrl: string; title: string; fetchedAt: string };
+
+/** "Meeting notes (Gemini)" on a consultation card. Shows saved notes, or —
+ *  once the call's start time is 5+ minutes past — asks Google for them once,
+ *  with a Refresh button because Gemini can take up to ~30 minutes. */
+function MeetingNotes({ c, meetingTime, joinUrl }: { c: Consultation; meetingTime: string | null; joinUrl: string | null }) {
+  const initial: Notes | null =
+    typeof c.answers?._meeting_notes === "string" && c.answers._meeting_notes.trim()
+      ? {
+          text: c.answers._meeting_notes as string,
+          docUrl: String(c.answers._meeting_notes_doc ?? ""),
+          title: String(c.answers._meeting_notes_title ?? "Notes by Gemini"),
+          fetchedAt: String(c.answers._meeting_notes_at ?? ""),
+        }
+      : null;
+  const [notes, setNotes] = useState<Notes | null>(initial);
+  const [status, setStatus] = useState<string>(initial ? "ready" : "idle");
+  const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [google, setGoogle] = useState<GoogleStatus | null>(null);
+  // Read the clock once when the card mounts.
+  const [callStarted] = useState(() => (meetingTime ? Date.now() - +new Date(meetingTime) > 5 * 60 * 1000 : false));
+
+  const load = useCallback(
+    async (refresh: boolean) => {
+      setBusy(true);
+      try {
+        const r = await fetch("/api/admin-tools/meeting-notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ consultationId: c.id, refresh, start: meetingTime, meetUrl: joinUrl }),
+        });
+        const j = await r.json();
+        if (j?.notes) setNotes(j.notes);
+        setStatus(j?.status ?? "error");
+      } catch {
+        setStatus("error");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [c.id, meetingTime, joinUrl],
+  );
+
+  useEffect(() => {
+    if (!meetingTime && !initial) return;
+    let cancelled = false;
+    void getGoogleStatus().then((g) => {
+      if (cancelled) return;
+      setGoogle(g);
+      if (!initial && callStarted && g?.connected) void load(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Look up once per card when it mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!notes && (!meetingTime || !callStarted)) return null;
+
+  const lines = notes?.text.split("\n") ?? [];
+  const long = lines.length > 12 || (notes?.text.length ?? 0) > 1200;
+  const shown = notes && !expanded && long ? lines.slice(0, 12).join("\n").slice(0, 1200) + "…" : notes?.text;
+  const when = notes?.fetchedAt ? new Date(notes.fetchedAt) : null;
+
+  return (
+    <div className="mt-3 rounded-[10px] border border-[#cfe3d6] bg-[#f3faf5] p-3">
+      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12px] font-semibold text-[#1f5a2e]">Meeting notes (Gemini)</span>
+        <span className="flex items-center gap-3 text-[11px]">
+          {notes?.docUrl ? (
+            <a href={notes.docUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1450b0] hover:underline">
+              Open in Google Docs
+            </a>
+          ) : null}
+          {google?.connected ? (
+            <button onClick={() => void load(true)} disabled={busy} className="font-semibold text-[#1450b0] hover:underline disabled:opacity-50">
+              {busy ? "Checking…" : notes ? "Refresh" : "Check now"}
+            </button>
+          ) : null}
+        </span>
+      </div>
+      {notes ? (
+        <>
+          <pre className="whitespace-pre-wrap break-words font-ui text-[13px] leading-[19px] text-[#142e2a]">{shown}</pre>
+          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-[#6b7280]">
+            {long ? (
+              <button onClick={() => setExpanded((v) => !v)} className="font-semibold text-[#1450b0] hover:underline">
+                {expanded ? "Show less" : "Show all notes"}
+              </button>
+            ) : <span />}
+            {when && !Number.isNaN(+when) ? <span>Saved {when.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span> : null}
+          </div>
+        </>
+      ) : google && !google.configured ? (
+        <p className="text-[12px] text-[#6b7280]">Gemini notes will appear here automatically once Google is set up for the clinic account.</p>
+      ) : google && !google.connected ? (
+        <p className="text-[12px] text-[#6b7280]">
+          Connect the clinic&rsquo;s Google account to load Gemini notes automatically.{" "}
+          {google.isAdmin ? (
+            <button onClick={() => window.location.assign("/api/admin-tools/google/connect")} className="font-semibold text-[#1450b0] hover:underline">Connect Google</button>
+          ) : (
+            "Ask an admin to connect it."
+          )}
+        </p>
+      ) : busy || status === "idle" ? (
+        <p className="text-[12px] text-[#6b7280]">Looking for this call&rsquo;s Gemini notes…</p>
+      ) : status === "not-ready" ? (
+        <p className="text-[12px] text-[#6b7280]">
+          No Gemini notes yet. They usually arrive 5–30 minutes after the call ends. Make sure &ldquo;Take notes with Gemini&rdquo; is on during the call.
+        </p>
+      ) : status === "not-connected" ? (
+        <p className="text-[12px] text-[#b42318]">Google access has expired. An admin needs to connect Google again.</p>
+      ) : (
+        <p className="text-[12px] text-[#b42318]">Couldn&rsquo;t reach Google just now. Try &ldquo;Check now&rdquo; in a minute.</p>
+      )}
+    </div>
+  );
+}
+
 /** A pill summarising a patient's booked video-consultation time. Green +
  *  pulsing for calls happening today, amber for calls in the next couple of
  *  days (with a "within 48–72 hours" note), muted for later/past, and an
@@ -974,6 +1164,10 @@ export function ConsultationCard({
             </span>
           </div>
         </div>
+
+        {/* Gemini meeting notes from the video call, pulled from Google once
+            the call has happened (see lib/googleMeetNotes.ts). */}
+        <MeetingNotes c={c} meetingTime={meeting ?? null} joinUrl={joinUrl ?? null} />
 
         {/* Clinical note — video-call / meeting notes and any remarks, recorded
             before approving supply. Autosaves onto the consultation. Hidden
@@ -1622,6 +1816,7 @@ export default function QueueView({
             </span>
           )}
         </div>
+        {mode !== "marketing" ? <GoogleNotesStatus /> : null}
 
         {/* Tabs */}
         <div className="mb-4 flex flex-wrap gap-2 border-b border-[#e5e7eb]">
