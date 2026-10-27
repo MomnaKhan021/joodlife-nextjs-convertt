@@ -225,6 +225,8 @@ function docHtml(title, body){
 
 /* ================= Icons (all 24px grid, rendered at fixed sizes) ================= */
 const P = {
+  eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  eyeOff:'M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.6 3.5M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.9 9.9 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2',
   home:'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
   pill:'M10.5 20.5a5 5 0 0 1-7-7l7-7a5 5 0 0 1 7 7zM8.5 8.5l7 7',
   box:'M21 8l-9-4-9 4 9 4 9-4zM3 8v8l9 4 9-4V8M12 12v8',
@@ -717,7 +719,14 @@ function autoReminders(svc){
 }
 /* ================= Actions ================= */
 function on(ev, fn){ root.addEventListener(ev, fn); disposers.push(()=>root.removeEventListener(ev, fn)); }
+/* A password box with an eye button that shows or hides what was typed. */
+function pwField(label, bind, auto){
+  return `<div class="field"><label for="${bind}">${label}</label><div class="pw"><input class="input" id="${bind}" type="password" data-bind="${bind}" autocomplete="${auto}"><button type="button" class="pw-eye" data-act="togglePw" aria-label="Show password" aria-pressed="false">${ic('eye',18)}</button></div></div>`;
+}
 const ACT = {
+  togglePw(_, b){ const inp = b.parentElement.querySelector('input'); const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password'; b.innerHTML = ic(show ? 'eyeOff' : 'eye', 18);
+    b.setAttribute('aria-label', show ? 'Hide password' : 'Show password'); b.setAttribute('aria-pressed', String(show)); inp.focus(); },
   closeSheet(){ closeSheet(); },
   async signOut(){ closeSheet(); try{ await fetch('/api/portal/logout', { method:'POST', credentials:'include' }); }catch(e){} location.href = initial.links.login; },
   /* nav */
@@ -859,7 +868,7 @@ const ACT = {
   editGp(){ openSheet('Your GP practice', `<div class="stack"><div class="field"><label>Practice name</label><input class="input" data-bind="gpN" value="${esc(S.gp)}"></div>${btn('primary block','Save','saveGp')}</div>`); },
   saveGp(){ const v = (S.draft.gpN||'').trim(); if(v){ S.gp = v; save(); } closeSheet(); render(); say('GP practice saved'); },
   twoFA(){ S.twoFA = !S.twoFA; save(); render(); say(S.twoFA?'Two-step verification on':'Two-step verification off'); },
-  changePw(){ openSheet('Change password', `<div class="stack"><div class="field"><label>Current password</label><input class="input" type="password" data-bind="pw0" autocomplete="current-password"></div><div class="field"><label>New password</label><input class="input" type="password" data-bind="pw1" autocomplete="new-password"></div><p class="hint">At least 8 characters with a number.</p><p class="err" id="pwErr"></p>${btn('primary block','Update password','savePw')}</div>`); },
+  changePw(){ openSheet('Change password', `<div class="stack">${pwField('Current password','pw0','current-password')}${pwField('New password','pw1','new-password')}<p class="hint">At least 8 characters with a number.</p><p class="err" id="pwErr"></p>${btn('primary block','Update password','savePw')}</div>`); },
   async savePw(){ const d = S.draft, e = document.getElementById('pwErr'); if(!d.pw0) return e.textContent='Enter your current password'; if(!d.pw1 || d.pw1.length<8 || !/\d/.test(d.pw1)) return e.textContent='Use at least 8 characters including a number';
     try{ await api('POST','/api/portal/password',{ current:d.pw0, next:d.pw1 }); closeSheet(); S.draft = {}; log(null,'lock','Password changed'); save(); say('Password updated'); }catch(err){ e.textContent = err.message; } },
   exportAll(){ const { draft, ui, fired, ...data } = S; download('jood-my-data.json', JSON.stringify(data,null,2), 'application/json'); say('Downloaded jood-my-data.json'); },

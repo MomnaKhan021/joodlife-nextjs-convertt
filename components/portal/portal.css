@@ -324,3 +324,10 @@ body:has(.jp) a[aria-label="Chat with us on WhatsApp"]{display:none}
   .jp .top-cta{padding:0 10px; font-size:13px}
   .jp .top-cta .ic{display:none}
 }
+
+/* Password boxes: an eye button inside the box shows or hides the password. */
+.jp .pw{position:relative}
+.jp .pw .input{padding-right:52px}
+.jp .pw-eye{position:absolute; right:4px; top:50%; transform:translateY(-50%); width:44px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:var(--muted); background:none; border:0; cursor:pointer}
+.jp .pw-eye:hover{color:var(--ink)}
+.jp .pw-eye:focus-visible{outline:2px solid var(--ink); outline-offset:-2px}

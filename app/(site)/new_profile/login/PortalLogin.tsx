@@ -6,6 +6,9 @@ import { useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEve
 import { LOGO } from "@/components/portal/logo";
 import "@/components/portal/portal.css";
 
+const EYE = "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z";
+const EYE_OFF = "M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.6 3.5M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.9 9.9 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2";
+
 /**
  * Login, in the portal's v4 design: email and password, then (for patients
  * with two-step verification on) a 6-digit code we email them. Both steps go
@@ -35,6 +38,7 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
   const [step, setStep] = useState<"pw" | "code">("pw");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [sentTo, setSentTo] = useState("");
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -161,7 +165,14 @@ export default function PortalLogin({ redirectTo }: { redirectTo: string }) {
                 </div>
                 <div className="field">
                   <label htmlFor="lgP">Password</label>
-                  <input className="input" id="lgP" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <div className="pw">
+                    <input className="input" id="lgP" type={showPw ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <button type="button" className="pw-eye" onClick={() => setShowPw((v) => !v)} aria-label={showPw ? "Hide password" : "Show password"} aria-pressed={showPw}>
+                      <svg className="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d={showPw ? EYE_OFF : EYE} />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 {error ? <p className="err" role="alert">{error}</p> : null}
                 <label className="row small" style={{ gap: 8 }}>
