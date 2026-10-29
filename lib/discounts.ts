@@ -149,9 +149,11 @@ async function findDiscount(
 }
 
 /**
- * Has this email placed a real order before? Paid, or card saved and awaiting
- * the charge (after the prescriber's approval), and not cancelled or refunded.
- * Abandoned unpaid checkouts don't count, so they keep the first-order offer.
+ * Has this email ordered before? Any order in their history counts, dispatched
+ * or not and however old, unless it was cancelled, refunded or its payment
+ * failed: the same rule that switches the site's buttons to "Reorder".
+ * The one exception is an unpaid order from the last 2 hours: that's this
+ * checkout itself, so a customer retrying a declined card keeps the offer.
  */
 async function hasOrderedBefore(
   payload: Awaited<ReturnType<typeof getPayloadInstance>>,
@@ -164,10 +166,13 @@ async function hasOrderedBefore(
     sql.raw(`
       SELECT 1 FROM "orders"
        WHERE LOWER(TRIM(COALESCE(customer_email, ''))) = ${esc(email.trim().toLowerCase())}
-         AND LOWER(COALESCE(status::text, '')) <> 'cancelled'
+         AND LOWER(COALESCE(status::text, '')) NOT IN ('cancelled', 'refunded')
          AND LOWER(COALESCE(payment_status::text, '')) NOT IN ('refunded', 'failed')
-         AND (LOWER(COALESCE(payment_status::text, '')) IN ('paid', 'awaiting')
-              OR LOWER(COALESCE(status::text, '')) IN ('paid', 'shipped', 'delivered'))
+         AND NOT (
+           LOWER(COALESCE(payment_status::text, '')) IN ('', 'unpaid')
+           AND LOWER(COALESCE(status::text, '')) IN ('', 'pending')
+           AND created_at > now() - interval '2 hours'
+         )
        LIMIT 1
     `),
   );
