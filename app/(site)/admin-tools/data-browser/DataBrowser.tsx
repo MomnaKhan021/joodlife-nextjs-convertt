@@ -542,9 +542,16 @@ const TABS: TabSpec[] = [
         render: (r) =>
           r.allowed_email ? (
             <span className="db-cell-meta">{String(r.allowed_email)}</span>
+          ) : r.first_order_only ? (
+            "New customers"
           ) : (
             "Anyone"
           ),
+      },
+      {
+        key: "auto_apply",
+        label: "At checkout",
+        render: (r) => (r.auto_apply ? "Auto-applied" : "Code"),
       },
       {
         key: "expiry_date",

@@ -29,6 +29,10 @@ export type AppliedDiscount = {
   code?: string;
   type?: "percentage" | "fixed";
   value?: number;
+  /** Applied by the checkout on its own (no code typed). */
+  autoApply?: boolean;
+  /** Only for a customer's first order. */
+  firstOrderOnly?: boolean;
 };
 
 type DiscountRow = {
@@ -41,6 +45,8 @@ type DiscountRow = {
   usageCount?: number | null;
   oncePerCustomer?: boolean | null;
   allowedEmail?: string | null;
+  firstOrderOnly?: boolean | null;
+  autoApply?: boolean | null;
 };
 
 const CODE_RE = /^[A-Z0-9][A-Z0-9_-]{0,39}$/;
@@ -82,6 +88,10 @@ function ensureColumns(drizzle: DrizzleLike, raw: (s: string) => unknown): Promi
         raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS once_per_customer boolean DEFAULT false`),
       );
       await drizzle.execute(raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS allowed_email varchar`));
+      await drizzle.execute(
+        raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS first_order_only boolean DEFAULT false`),
+      );
+      await drizzle.execute(raw(`ALTER TABLE "discounts" ADD COLUMN IF NOT EXISTS auto_apply boolean DEFAULT false`));
       await drizzle.execute(raw(`ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS discount_code varchar`));
     })().catch(() => {
       columnsReady = null; // retry on the next check
@@ -108,7 +118,9 @@ async function findDiscount(
     sql.raw(`
       SELECT code, type::text AS type, value, expiry_date, usage_limit, usage_count, is_active,
              (to_jsonb(d) ->> 'once_per_customer') AS once_per_customer,
-             (to_jsonb(d) ->> 'allowed_email') AS allowed_email
+             (to_jsonb(d) ->> 'allowed_email') AS allowed_email,
+             (to_jsonb(d) ->> 'first_order_only') AS first_order_only,
+             (to_jsonb(d) ->> 'auto_apply') AS auto_apply
         FROM "discounts" d
        WHERE upper(TRIM(code)) = ${esc(code)}
        LIMIT 1
@@ -131,7 +143,35 @@ async function findDiscount(
     usageCount: num(r.usage_count) ?? 0,
     oncePerCustomer: r.once_per_customer === "true" || r.once_per_customer === true,
     allowedEmail: r.allowed_email ? String(r.allowed_email) : null,
+    firstOrderOnly: r.first_order_only === "true" || r.first_order_only === true,
+    autoApply: r.auto_apply === "true" || r.auto_apply === true,
   };
+}
+
+/**
+ * Has this email placed a real order before? Paid, or card saved and awaiting
+ * the charge (after the prescriber's approval), and not cancelled or refunded.
+ * Abandoned unpaid checkouts don't count, so they keep the first-order offer.
+ */
+async function hasOrderedBefore(
+  payload: Awaited<ReturnType<typeof getPayloadInstance>>,
+  email: string,
+): Promise<boolean> {
+  const drizzle = drizzleOf(payload);
+  if (!drizzle) return false;
+  const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
+  const res = await drizzle.execute(
+    sql.raw(`
+      SELECT 1 FROM "orders"
+       WHERE LOWER(TRIM(COALESCE(customer_email, ''))) = ${esc(email.trim().toLowerCase())}
+         AND LOWER(COALESCE(status::text, '')) <> 'cancelled'
+         AND LOWER(COALESCE(payment_status::text, '')) NOT IN ('refunded', 'failed')
+         AND (LOWER(COALESCE(payment_status::text, '')) IN ('paid', 'awaiting')
+              OR LOWER(COALESCE(status::text, '')) IN ('paid', 'shipped', 'delivered'))
+       LIMIT 1
+    `),
+  );
+  return rowsOf(res).length > 0;
 }
 
 /** Paid redemptions, active holds by other shoppers, and this customer's own paid uses. */
@@ -215,6 +255,17 @@ export async function applyDiscountCode(
       }
     }
 
+    // New-customer offer: refused once the email has a real order. Without an
+    // email yet it shows provisionally; the checkout re-checks as soon as the
+    // email is typed, and /api/checkout always checks it before charging.
+    if (doc.firstOrderOnly && email && (await hasOrderedBefore(payload, email))) {
+      return {
+        valid: false,
+        amount: 0,
+        reason: "This code is for your first order only — welcome back!",
+      };
+    }
+
     const limit = typeof doc.usageLimit === "number" && doc.usageLimit > 0 ? doc.usageLimit : null;
     const perCustomer = doc.oncePerCustomer === true;
     const usage =
@@ -248,6 +299,8 @@ export async function applyDiscountCode(
       code: doc.code ?? code,
       type: doc.type,
       value: doc.value,
+      autoApply: doc.autoApply === true,
+      firstOrderOnly: doc.firstOrderOnly === true,
     };
   } catch {
     return {
@@ -255,5 +308,41 @@ export async function applyDiscountCode(
       amount: 0,
       reason: "Couldn’t check that code right now. Please try again.",
     };
+  }
+}
+
+/**
+ * The discount the checkout should apply on its own: every active code marked
+ * "apply automatically" is checked with the same rules as a typed code, and the
+ * one worth most for this basket wins. Null when none applies.
+ */
+export async function findAutoDiscount(
+  subtotal: number,
+  opts: { email?: string | null } = {},
+): Promise<AppliedDiscount | null> {
+  if (!Number.isFinite(subtotal) || subtotal <= 0) return null;
+  try {
+    const payload = await getPayloadInstance();
+    const drizzle = drizzleOf(payload);
+    if (!drizzle) return null;
+    const { sql } = (await import("drizzle-orm")) as { sql: { raw: (s: string) => unknown } };
+    await ensureColumns(drizzle, sql.raw);
+    const res = await drizzle.execute(
+      sql.raw(`
+        SELECT code FROM "discounts" d
+         WHERE is_active IS TRUE
+           AND (to_jsonb(d) ->> 'auto_apply') = 'true'
+           AND (expiry_date IS NULL OR expiry_date > now())
+         LIMIT 20
+      `),
+    );
+    let best: AppliedDiscount | null = null;
+    for (const row of rowsOf<{ code?: unknown }>(res)) {
+      const r = await applyDiscountCode(String(row.code ?? ""), subtotal, opts);
+      if (r.valid && r.amount > 0 && (!best || r.amount > best.amount)) best = r;
+    }
+    return best;
+  } catch {
+    return null;
   }
 }

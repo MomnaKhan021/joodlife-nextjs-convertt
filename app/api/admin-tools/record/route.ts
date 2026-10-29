@@ -374,6 +374,8 @@ const SPECS: Record<string, Spec> = {
       usage_limit: "number",
       once_per_customer: "boolean",
       allowed_email: "text",
+      first_order_only: "boolean",
+      auto_apply: "boolean",
       is_active: "boolean",
     },
   },

@@ -216,7 +216,12 @@ function CheckoutForm() {
     amount: number;
     /** Email the code was validated against (once-per-customer codes). */
     forEmail?: string;
+    /** Applied by the checkout itself (Admin → Discounts "apply automatically"). */
+    auto?: boolean;
+    firstOrderOnly?: boolean;
   } | null>(null);
+  // The customer removed the automatic discount: don't put it back.
+  const [autoDismissed, setAutoDismissed] = useState(false);
 
   const [busy, setBusy] = useState(false);
   // Only surface the "what's still needed" checklist AFTER the customer
@@ -357,10 +362,49 @@ function CheckoutForm() {
   }
 
   function removeDiscount() {
+    if (appliedDiscount?.auto) setAutoDismissed(true);
     setAppliedDiscount(null);
     setDiscountCode("");
     setDiscountMsg(null);
   }
+
+  // Automatic discount (e.g. a new-customer offer): applied without a code
+  // while the customer hasn't typed one, and re-checked when the basket or the
+  // email changes (so a returning customer's email takes it off again).
+  const manualDiscount = Boolean(discountCode.trim()) || (appliedDiscount !== null && !appliedDiscount.auto);
+  useEffect(() => {
+    if (manualDiscount || autoDismissed || subtotal <= 0) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/discount/auto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ subtotal, email: emailForDiscount || undefined }),
+        });
+        const json = await res.json();
+        if (cancelled) return;
+        if (res.ok && json.valid && json.amount > 0) {
+          setAppliedDiscount({
+            code: json.code,
+            amount: json.amount,
+            forEmail: emailForDiscount,
+            auto: true,
+            firstOrderOnly: json.firstOrderOnly === true,
+          });
+        } else {
+          setAppliedDiscount((d) => (d?.auto ? null : d));
+        }
+      } catch {
+        /* no automatic discount this time */
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [manualDiscount, autoDismissed, subtotal, emailForDiscount]);
 
   // Auto-apply: validate the code shortly after the user stops typing, so the
   // discount lands without needing to press "Apply". Re-checks if the subtotal
@@ -1569,23 +1613,32 @@ function CheckoutForm() {
             <SummaryRow label="Subtotal" value={formatPrice(subtotal)} />
 
             {appliedDiscount && discount > 0 ? (
-              <div className="flex items-center justify-between gap-2 font-ui text-[16px]">
-                <span className="flex flex-wrap items-center gap-2 font-semibold text-[#142e2a]">
-                  Discount
-                  <span className="rounded-full bg-[#142e2a]/10 px-2 py-0.5 text-[12px] font-semibold uppercase tracking-[0.02em] text-[#142e2a]">
-                    {appliedDiscount.code}
+              <div className="font-ui text-[16px]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-2 font-semibold text-[#142e2a]">
+                    Discount
+                    <span className="rounded-full bg-[#142e2a]/10 px-2 py-0.5 text-[12px] font-semibold uppercase tracking-[0.02em] text-[#142e2a]">
+                      {appliedDiscount.code}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={removeDiscount}
+                      className="text-[12px] font-medium text-[#142e2a]/55 underline underline-offset-2 hover:text-[#142e2a]"
+                    >
+                      Remove
+                    </button>
                   </span>
-                  <button
-                    type="button"
-                    onClick={removeDiscount}
-                    className="text-[12px] font-medium text-[#142e2a]/55 underline underline-offset-2 hover:text-[#142e2a]"
-                  >
-                    Remove
-                  </button>
-                </span>
-                <span className="shrink-0 font-semibold text-[#142e2a]">
-                  -{formatPrice(discount)}
-                </span>
+                  <span className="shrink-0 font-semibold text-[#142e2a]">
+                    -{formatPrice(discount)}
+                  </span>
+                </div>
+                {appliedDiscount.auto ? (
+                  <p className="mt-1 text-[12px] text-[#142e2a]/65">
+                    {appliedDiscount.firstOrderOnly
+                      ? "New customer offer, applied automatically"
+                      : "Applied automatically"}
+                  </p>
+                ) : null}
               </div>
             ) : null}
 

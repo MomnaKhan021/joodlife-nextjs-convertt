@@ -310,6 +310,8 @@ export default function EditClient({
                 const limitOn = lim !== "";
                 const perCustomer = (values["once_per_customer"] ?? "") === "true";
                 const allowedEmail = values["allowed_email"] ?? "";
+                const firstOrder = (values["first_order_only"] ?? "") === "true";
+                const autoApply = (values["auto_apply"] ?? "") === "true";
                 const row: React.CSSProperties = {
                   display: "flex",
                   alignItems: "center",
@@ -353,6 +355,29 @@ export default function EditClient({
                         />
                         Limit to one use per customer
                       </label>
+                      <label style={row}>
+                        <input
+                          type="checkbox"
+                          checked={firstOrder}
+                          onChange={(e) => setField("first_order_only", e.target.checked ? "true" : "false")}
+                        />
+                        New customers only (their first order)
+                      </label>
+                      <div style={{ display: "grid", gap: 4 }}>
+                        <label style={row}>
+                          <input
+                            type="checkbox"
+                            checked={autoApply}
+                            onChange={(e) => setField("auto_apply", e.target.checked ? "true" : "false")}
+                          />
+                          Apply automatically at checkout
+                        </label>
+                        <span style={{ fontSize: 12, color: "#5f6b66", marginLeft: 26, textTransform: "none", letterSpacing: 0 }}>
+                          {autoApply
+                            ? "Customers who qualify get it without typing the code. Untick so they have to enter the code themselves."
+                            : "Customers have to type the code. Tick to apply it for them when they qualify."}
+                        </span>
+                      </div>
                       <div style={{ display: "grid", gap: 6, paddingTop: 4 }}>
                         <span style={{ ...row, cursor: "default" }}>
                           Only for one customer&rsquo;s email (optional)
@@ -373,7 +398,10 @@ export default function EditClient({
                   </div>
                 );
               }
-              if (type === "discounts" && (col === "once_per_customer" || col === "allowed_email")) {
+              if (
+                type === "discounts" &&
+                ["once_per_customer", "allowed_email", "first_order_only", "auto_apply"].includes(col)
+              ) {
                 return null; // rendered inside the group above
               }
               const v = values[col] ?? "";

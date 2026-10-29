@@ -91,6 +91,22 @@ export const Discounts: CollectionConfig = {
       },
     },
     {
+      name: "firstOrderOnly",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "New customers only: refused once the email has a paid order.",
+      },
+    },
+    {
+      name: "autoApply",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Apply at checkout without the customer typing the code, whenever they qualify.",
+      },
+    },
+    {
       name: "usageCount",
       type: "number",
       defaultValue: 0,

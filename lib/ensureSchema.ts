@@ -86,6 +86,8 @@ const STATEMENTS: string[] = [
   // once-per-customer limits count real, paid redemptions).
   "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"once_per_customer\" boolean DEFAULT false",
   "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"allowed_email\" varchar",
+  "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"first_order_only\" boolean DEFAULT false",
+  "ALTER TABLE \"discounts\" ADD COLUMN IF NOT EXISTS \"auto_apply\" boolean DEFAULT false",
   "ALTER TABLE \"orders\" ADD COLUMN IF NOT EXISTS \"discount_code\" varchar",
   "CREATE TABLE IF NOT EXISTS \"media\" (\n  \"id\" serial,\n  \"alt\" varchar NOT NULL,\n  \"caption\" varchar,\n  \"url\" varchar NOT NULL,\n  \"filename\" varchar,\n  \"mime_type\" varchar,\n  \"filesize\" numeric,\n  \"width\" numeric,\n  \"height\" numeric,\n  \"updated_at\" timestamptz DEFAULT now() NOT NULL,\n  \"created_at\" timestamptz DEFAULT now() NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
   "ALTER TABLE \"media\" ADD COLUMN IF NOT EXISTS \"alt\" varchar",
@@ -618,7 +620,8 @@ let ensured = false;
 // that was repaired with the blog CMS off take the fast path afterwards and
 // never apply the one statement turning it on adds.
 // v49: weight_loss_lander table for the /weight-loss-lander ads page.
-const SCHEMA_VERSION = blogCmsEnabled() ? "v49-blog" : "v49";
+// v50: discounts.first_order_only + discounts.auto_apply.
+const SCHEMA_VERSION = blogCmsEnabled() ? "v50-blog" : "v50";
 
 export async function ensureFullSchema(payload: Payload): Promise<void> {
   if (ensured) return;
