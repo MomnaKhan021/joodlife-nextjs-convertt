@@ -95,7 +95,7 @@ export const Discounts: CollectionConfig = {
       type: "checkbox",
       defaultValue: false,
       admin: {
-        description: "New customers only: refused once the email has any order that wasn't cancelled or refunded.",
+        description: "New customers only: refused once the email has any order (cancelled and refunded ones included).",
       },
     },
     {
