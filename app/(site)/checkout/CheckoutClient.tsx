@@ -220,8 +220,9 @@ function CheckoutForm() {
     auto?: boolean;
     firstOrderOnly?: boolean;
   } | null>(null);
-  // The customer removed the automatic discount: don't put it back.
-  const [autoDismissed, setAutoDismissed] = useState(false);
+  // The customer removed the automatic discount: don't put it back for that
+  // email (holds the email it was removed for; a different email re-checks).
+  const [autoDismissedFor, setAutoDismissedFor] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
   // Only surface the "what's still needed" checklist AFTER the customer
@@ -362,7 +363,7 @@ function CheckoutForm() {
   }
 
   function removeDiscount() {
-    if (appliedDiscount?.auto) setAutoDismissed(true);
+    if (appliedDiscount?.auto) setAutoDismissedFor(emailForDiscount);
     setAppliedDiscount(null);
     setDiscountCode("");
     setDiscountMsg(null);
@@ -372,6 +373,7 @@ function CheckoutForm() {
   // while the customer hasn't typed one, and re-checked when the basket or the
   // email changes (so a returning customer's email takes it off again).
   const manualDiscount = Boolean(discountCode.trim()) || (appliedDiscount !== null && !appliedDiscount.auto);
+  const autoDismissed = autoDismissedFor !== null && autoDismissedFor === emailForDiscount;
   useEffect(() => {
     if (manualDiscount || autoDismissed || subtotal <= 0) return;
     let cancelled = false;
