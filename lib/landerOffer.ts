@@ -46,9 +46,9 @@ export const getLanderOffer = cache(
       }
     }
     // Local development has no shop database: show the intended figures
-    // (2.5 mg at £160, FIRST50 = 50% off) so the design can be previewed.
+    // (2.5 mg at £160, FIRST50OFF = 50% off) so the design can be previewed.
     if (process.env.NODE_ENV === "development") {
-      return { was: 160, now: 80, saving: 80, code: code.trim().toUpperCase() || "FIRST50", autoApply: true, label: "50%" };
+      return { was: 160, now: 80, saving: 80, code: code.trim().toUpperCase() || "FIRST50OFF", autoApply: true, label: "50%" };
     }
     return null;
   },

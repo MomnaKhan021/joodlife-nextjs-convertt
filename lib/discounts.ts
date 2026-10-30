@@ -53,27 +53,29 @@ const CODE_RE = /^[A-Z0-9][A-Z0-9_-]{0,39}$/;
 
 /**
  * Offers defined in code, so they work without a CMS entry. A Discounts row
- * with the same code takes precedence — e.g. create FIRST50 in the CMS and
+ * with the same code takes precedence — e.g. create FIRST50OFF in the CMS and
  * untick "Active" to switch this offer off, or change its value there.
  *
- * FIRST50 (the ads lander's offer, 31 Oct 2026): 50% off a new customer's
+ * FIRST50OFF (the ads lander's offer, 31 Oct 2026): 50% off a new customer's
  * first order, typed at checkout. Deliberately not auto-applied — that would
- * halve every first order on the site, not just the ad's visitors.
+ * halve every first order on the site, not just the ad's visitors. FIRST50
+ * is the same offer under the name it was first advertised with.
  */
+const FIRST_ORDER_HALF_OFF: DiscountRow = {
+  type: "percentage",
+  value: 50,
+  isActive: true,
+  expiryDate: null,
+  usageLimit: null,
+  usageCount: 0,
+  oncePerCustomer: false,
+  allowedEmail: null,
+  firstOrderOnly: true,
+  autoApply: false,
+};
 const BUILT_IN_DISCOUNTS: Record<string, DiscountRow> = {
-  FIRST50: {
-    code: "FIRST50",
-    type: "percentage",
-    value: 50,
-    isActive: true,
-    expiryDate: null,
-    usageLimit: null,
-    usageCount: 0,
-    oncePerCustomer: false,
-    allowedEmail: null,
-    firstOrderOnly: true,
-    autoApply: false,
-  },
+  FIRST50OFF: { ...FIRST_ORDER_HALF_OFF, code: "FIRST50OFF" },
+  FIRST50: { ...FIRST_ORDER_HALF_OFF, code: "FIRST50" },
 };
 
 const FRIENDLY: Record<string, string> = {

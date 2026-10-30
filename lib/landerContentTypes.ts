@@ -150,7 +150,7 @@ const CTA = { ctaLabel: "Start My Weight-Loss Journey", ctaHref: LANDER_CTA_HREF
 export const LANDER_DEFAULT: LanderContent = {
   hero: {
     ...CTA,
-    topBar: "Get 50% off your first order. Use code FIRST50",
+    topBar: "Get 50% off your first order. Use code FIRST50OFF",
     rating: "4.4",
     title: "Lose weight with a programme",
     titleAccent: "designed around you.",
@@ -175,7 +175,7 @@ export const LANDER_DEFAULT: LanderContent = {
     cardMessage: "Hi Sarah, I've reviewed your answers. Shall we book your video call?",
     priceLabel: "Starting from",
     offerCtaLabel: "Claim Offer",
-    offerCode: "FIRST50",
+    offerCode: "FIRST50OFF",
   },
   trust: {
     reviewsLabel: "1,085 Reviews",
