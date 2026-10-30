@@ -14,7 +14,11 @@ export type LanderOffer = {
   code: string;
   /** The checkout applies the code by itself (no typing needed). */
   autoApply: boolean;
+  /** How the saving reads: "50%" for a percentage code, "£80" for a fixed one. */
+  label: string;
 };
+
+const gbp = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 /**
  * The ads lander's "Starting from £was £now" line. Read live from the shop —
@@ -37,14 +41,26 @@ export const getLanderOffer = cache(
           saving: d.amount,
           code: d.code ?? code.trim().toUpperCase(),
           autoApply: d.autoApply === true,
+          label: d.type === "percentage" && d.value ? `${d.value}%` : gbp(d.amount),
         };
       }
     }
-    // Local development has no shop database: show the live figures (2.5 mg
-    // at £160, FIRST20 = £20 off) so the design can be previewed.
+    // Local development has no shop database: show the intended figures
+    // (2.5 mg at £160, FIRST50 = 50% off) so the design can be previewed.
     if (process.env.NODE_ENV === "development") {
-      return { was: 160, now: 140, saving: 20, code: code.trim().toUpperCase() || "FIRST20", autoApply: true };
+      return { was: 160, now: 80, saving: 80, code: code.trim().toUpperCase() || "FIRST50", autoApply: true, label: "50%" };
     }
     return null;
   },
 );
+
+/**
+ * The CMS offer-bar text, unless it tells people to use a code the checkout
+ * would reject (e.g. a switched-off FIRST20) — then the plain fallback.
+ */
+export async function offerBarOrFallback(text: string, fallback: string): Promise<string> {
+  const m = /\bcode\s+([A-Z0-9]{3,})\b/i.exec(text);
+  if (!m) return text;
+  const d = await applyDiscountCode(m[1], 100);
+  return d.valid ? text : fallback;
+}

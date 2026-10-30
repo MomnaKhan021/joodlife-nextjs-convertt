@@ -39,7 +39,7 @@ const gbp = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
  * in lime and the code ("code FIRST20") shown as a voucher-style tag.
  */
 function OfferBarText({ text }: { text: string }) {
-  const parts = text.split(/(£\d+(?:\.\d{2})?\s*off|\bcode\s+[A-Z0-9]{3,}\b)/i);
+  const parts = text.split(/((?:£\d+(?:\.\d{2})?|\d+%)\s*off|\bcode\s+[A-Z0-9]{3,}\b)/i);
   return (
     <>
       {parts.map((p, i) => {
@@ -49,14 +49,14 @@ function OfferBarText({ text }: { text: string }) {
           return (
             <span key={i} className="whitespace-nowrap">
               {code[1]}{" "}
-              <span className="ml-[2px] inline-block rounded-[6px] border border-dashed border-[#b4ff9f] px-[8px] py-[1px] font-bold tracking-[0.6px] text-[#b4ff9f] lg:px-[10px]">
+              <span className="ml-[2px] inline-block rounded-[7px] border-[1.5px] border-dashed border-[#142e2a] bg-white/45 px-[9px] py-[1px] font-extrabold tracking-[0.8px] text-[#142e2a] lg:px-[12px]">
                 {code[2]}
               </span>
             </span>
           );
         }
         return (
-          <strong key={i} className="whitespace-nowrap font-bold text-[#b4ff9f]">
+          <strong key={i} className="whitespace-nowrap font-extrabold">
             {p}
           </strong>
         );
@@ -82,7 +82,7 @@ export default function LpHero({
     <>
       {c.topBar.trim() ? (
         // The first-order offer, made the loudest thing above the fold.
-        <div className="bg-[#0c2421] px-4 py-[12px] text-center font-ui text-[16px] font-semibold leading-[24px] tracking-[-0.2px] text-white lg:py-[15px] lg:text-[19px] lg:leading-[28px]">
+        <div className="bg-[#b4ff9f] px-4 py-[14px] text-center font-ui text-[17px] font-semibold leading-[26px] tracking-[-0.2px] text-[#142e2a] lg:py-[18px] lg:text-[23px] lg:leading-[32px]">
           <OfferBarText text={c.topBar} />
         </div>
       ) : null}
@@ -103,7 +103,7 @@ export default function LpHero({
       </header>
 
       <section
-        className="relative flex min-h-[860px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-120px),700px)] md:items-center"
+        className="relative flex min-h-[860px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-130px),700px)] md:items-center"
         style={isColour(custom) ? { background: custom } : undefined}
       >
         {/* Phones: the tall crop. Tablet and up: the wide photo.
@@ -232,7 +232,7 @@ export default function LpHero({
                       </strong>
                     </p>
                     <p className="font-ui text-[13px] font-light leading-[18px] text-[#f7f9f2]/85 lg:text-[15px] lg:leading-[21px]">
-                      {gbp(offer.saving)} off your first order with code <strong className="font-semibold text-[#f7f9f2]">{offer.code}</strong>
+                      {offer.label} off your first order with code <strong className="font-semibold text-[#f7f9f2]">{offer.code}</strong>
                       {offer.autoApply ? " · applied automatically at checkout" : ""}
                     </p>
                   </div>

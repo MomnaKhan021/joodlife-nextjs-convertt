@@ -13,7 +13,7 @@ import LpFinal from "@/components/lp/LpFinal";
 import Footer from "@/sections/home/Footer";
 
 import { getLanderContent } from "@/lib/landerContent";
-import { getLanderOffer } from "@/lib/landerOffer";
+import { getLanderOffer, offerBarOrFallback } from "@/lib/landerOffer";
 
 export const metadata: Metadata = {
   title: "The Jood Weight Loss Programme — designed around you | JoodLife",
@@ -37,12 +37,17 @@ export const dynamic = "force-dynamic";
  */
 export default async function WeightLossLanderPage() {
   const c = await getLanderContent();
-  // The first-order offer in the hero uses the pop-up's code (FIRST20).
-  const offer = await getLanderOffer(c.hero.popup.code);
+  // The first-order offer (FIRST50), checked live. With a valid code the
+  // offer bar is written from it, so the bar, price line and checkout always
+  // agree; without one, the bar never advertises a code that won't work.
+  const offer = await getLanderOffer(c.hero.offerCode);
+  const topBar = offer
+    ? `Get ${offer.label} off your first order. Use code ${offer.code}`
+    : await offerBarOrFallback(c.hero.topBar, "The Jood Weight Loss Programme");
   const s = c.styles;
   return (
     <main className="flex min-h-screen flex-col bg-white">
-      <LpHero content={c.hero} style={s.hero} offer={offer} />
+      <LpHero content={{ ...c.hero, topBar }} style={s.hero} offer={offer} />
       <LpTrustStrip content={c.trust} style={s.trust} />
       <LpStories content={c.stories} style={s.stories} />
       <LpResults content={c.results} style={s.results} />

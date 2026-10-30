@@ -53,6 +53,8 @@ export type LanderHero = LanderCta & {
   priceLabel: string;
   /** The big offer button above the main call to action. */
   offerCtaLabel: string;
+  /** Discount code the hero offer and offer bar are built from (checked live). */
+  offerCode: string;
 };
 
 /** Opens 3 seconds after landing, once per session. */
@@ -148,7 +150,7 @@ const CTA = { ctaLabel: "Start My Weight-Loss Journey", ctaHref: LANDER_CTA_HREF
 export const LANDER_DEFAULT: LanderContent = {
   hero: {
     ...CTA,
-    topBar: "Get £20 off your first order. Use code FIRST20",
+    topBar: "Get 50% off your first order. Use code FIRST50",
     rating: "4.4",
     title: "Lose weight with a programme",
     titleAccent: "designed around you.",
@@ -173,6 +175,7 @@ export const LANDER_DEFAULT: LanderContent = {
     cardMessage: "Hi Sarah, I've reviewed your answers. Shall we book your video call?",
     priceLabel: "Starting from",
     offerCtaLabel: "Claim Offer",
+    offerCode: "FIRST50",
   },
   trust: {
     reviewsLabel: "1,085 Reviews",
@@ -518,6 +521,7 @@ export function mergeLander(stored: unknown): LanderContent {
       cardMessage: opt(h.cardMessage, D.hero.cardMessage),
       priceLabel: str(h.priceLabel, D.hero.priceLabel),
       offerCtaLabel: str(h.offerCtaLabel, D.hero.offerCtaLabel),
+      offerCode: str(h.offerCode, D.hero.offerCode),
     },
     trust: {
       reviewsLabel: opt(t.reviewsLabel, D.trust.reviewsLabel),
