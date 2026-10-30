@@ -7,7 +7,6 @@ import GtmDataLayer from "@/components/analytics/GtmDataLayer";
 import UtmCapture from "@/components/analytics/UtmCapture";
 import Clarity from "@/components/analytics/Clarity";
 import { CartProvider } from "@/components/cart/CartContext";
-import SitePreloader from "@/components/SitePreloader";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 
 import "../globals.css";
@@ -122,7 +121,6 @@ export default function SiteLayout({
         <MetaPixel />
         <UtmCapture />
         <Clarity />
-        <SitePreloader />
         <CartProvider>{children}</CartProvider>
         <WhatsAppButton />
       </body>
