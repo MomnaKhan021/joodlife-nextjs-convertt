@@ -39,7 +39,7 @@ import { dlBeginCheckout, toDlItem, toDlUserData } from "@/lib/dataLayer";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 import UkAddressField from "@/components/checkout/UkAddressField";
-import { LP_ASSETS, LpTrustpilotStars, TrustpilotLink } from "@/components/lp/shared";
+import { TrustpilotLink } from "@/components/lp/shared";
 
 const stripePromise = getStripeClient();
 
@@ -1580,13 +1580,15 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
             <h2 className="font-ui text-[25px] font-semibold leading-[26px] tracking-[-0.49px] text-[#142e2a]">
               Order Summary
             </h2>
-            <TrustpilotLink className="flex items-center gap-[6px]">
+            {/* Inline SVG (not image files) so the stars paint with the text —
+                no empty gap while images load, no layout jump. */}
+            <TrustpilotLink className="flex shrink-0 items-center gap-[6px] whitespace-nowrap">
               <span className="flex items-center gap-[3px]">
-                <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={14} height={13} unoptimized />
-                <span className="font-ui text-[13px] font-medium text-[#142e2a]">Trustpilot</span>
+                <TrustpilotStarGlyph />
+                <span className="font-ui text-[13px] font-medium leading-none text-[#142e2a]">Trustpilot</span>
               </span>
-              <LpTrustpilotStars tile={14} />
-              <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
+              <TrustpilotStarTiles />
+              <span className="font-ui text-[13px] font-semibold leading-none text-[#142e2a]">
                 {TRUSTPILOT_RATING}
                 <span className="font-normal text-[#142e2a]/70">/5</span>
               </span>
@@ -1864,6 +1866,33 @@ function SummaryRow({
 }
 
 /* ---------------- Glyphs ---------------- */
+/** Trustpilot's green star mark (same shape as /assets/lp-weight-loss/tp-star.svg). */
+function TrustpilotStarGlyph() {
+  return (
+    <svg width="14" height="13" viewBox="0 0 21.1321 20" aria-hidden className="shrink-0">
+      <path
+        d="M10.566 15.2516L15.1572 14.088L17.0755 20L10.566 15.2516ZM21.1321 7.61006H13.0503L10.566 0L8.08176 7.61006H0L6.54088 12.327L4.0566 19.9371L10.5975 15.2201L14.6226 12.327L21.1321 7.61006Z"
+        fill="#219653"
+      />
+    </svg>
+  );
+}
+/** Five green Trustpilot star tiles (same as /assets/lp-weight-loss/tp-g*.svg). */
+function TrustpilotStarTiles() {
+  return (
+    <span className="flex shrink-0 items-center gap-[2.5px]" role="img" aria-label="5 stars">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <svg key={i} width="14" height="14" viewBox="0 0 15.8773 16.1148" aria-hidden>
+          <path d="M0 16.1148H15.8773V0H0V16.1148Z" fill="#00B67A" />
+          <path
+            d="M13.5375 6.85582L4.53202 13.4955L5.84609 9.39196L2.40625 6.85582H6.65806L7.97186 2.75195L9.28565 6.85582H13.5375ZM7.97218 10.9597L10.4316 10.4346L11.4115 13.4955L7.97218 10.9597Z"
+            fill="#fff"
+          />
+        </svg>
+      ))}
+    </span>
+  );
+}
 function CardGlyph() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
