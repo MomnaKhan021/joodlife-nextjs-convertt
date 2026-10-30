@@ -78,6 +78,9 @@ export default function LpHero({
   // A CMS colour shows behind the photo while it loads.
   const custom = style?.background;
   const hasCard = !!(c.cardName || c.cardMessage);
+  // Phones show their own photo only; with none set they get the plain
+  // brand green (under the same shade), sized to the copy.
+  const phonePhoto = c.mobileImage.trim();
   return (
     <>
       {c.topBar.trim() ? (
@@ -103,27 +106,24 @@ export default function LpHero({
       </header>
 
       <section
-        className="relative flex min-h-[max(520px,calc(100svh-110px))] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-130px),700px)] md:items-center"
+        className={`relative flex ${phonePhoto ? "min-h-[max(520px,calc(100svh-110px))]" : ""} w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-130px),700px)] md:items-center`}
         style={isColour(custom) ? { background: custom } : undefined}
       >
-        {/* Phones: the tall crop. Tablet and up: the wide photo.
-            The default hillside photo has a lot of sky above her, so on phones
-            it is zoomed 1.55× and anchored to keep her on the right, face up top,
-            beside the copy — which, with the offer, fills the first screen
-            on phones (client requests, 20 & 31 Oct). A photo
-            chosen in the CMS is shown unzoomed. */}
-        <Image
-          src={c.mobileImage || c.image}
-          alt={c.imageAlt}
-          fill
-          priority
-          unoptimized={rawImage(c.mobileImage || c.image)}
-          sizes="100vw"
-          quality={95}
-          className={`object-cover object-top md:hidden ${
-            (c.mobileImage || c.image).endsWith("/hero-hike-mobile.webp") ? "scale-[1.55] origin-[20%_40%]" : ""
-          }`}
-        />
+        {/* Phones: the tall photo, when there is one — for now (client, 31 Oct)
+            phones show the plain dark green until a new phone photo is
+            chosen. Tablet and up: the wide photo. */}
+        {phonePhoto ? (
+          <Image
+            src={phonePhoto}
+            alt={c.imageAlt}
+            fill
+            priority
+            unoptimized={rawImage(phonePhoto)}
+            sizes="100vw"
+            quality={95}
+            className="object-cover object-top md:hidden"
+          />
+        ) : null}
         <Image
           src={c.image}
           alt={c.imageAlt}
