@@ -39,8 +39,12 @@ import { dlBeginCheckout, toDlItem, toDlUserData } from "@/lib/dataLayer";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 import UkAddressField from "@/components/checkout/UkAddressField";
+import { LP_ASSETS, LpTrustpilotStars, TrustpilotLink } from "@/components/lp/shared";
 
 const stripePromise = getStripeClient();
+
+/** Same rating the checkout footer shows. */
+const TRUSTPILOT_RATING = "4.4";
 
 const formatPrice = (n: number) =>
   n.toLocaleString("en-GB", {
@@ -156,10 +160,10 @@ const STRIPE_ELEMENT_OPTIONS = {
 /* ================================================================== */
 /*  Provider wrapper                                                   */
 /* ================================================================== */
-export default function CheckoutClient() {
+export default function CheckoutClient({ results }: { results?: React.ReactNode }) {
   return (
     <Elements stripe={stripePromise}>
-      <CheckoutForm />
+      <CheckoutForm results={results} />
     </Elements>
   );
 }
@@ -167,7 +171,7 @@ export default function CheckoutClient() {
 /* ================================================================== */
 /*  Checkout form + summary                                            */
 /* ================================================================== */
-function CheckoutForm() {
+function CheckoutForm({ results }: { results?: React.ReactNode }) {
   const router = useRouter();
   const stripe = useStripe();
   const elements = useElements();
@@ -321,6 +325,8 @@ function CheckoutForm() {
     ? Math.min(appliedDiscount.amount, subtotal)
     : 0;
   const total = Math.round(Math.max(0, subtotal - discount) * 100) / 100;
+  // The automatic new-customer offer reads as "First order discount".
+  const firstOrderAuto = Boolean(appliedDiscount?.auto && appliedDiscount.firstOrderOnly);
 
   // Once-per-customer codes are checked against the email typed above, so the
   // customer finds out before paying rather than at the last step.
@@ -1100,11 +1106,15 @@ function CheckoutForm() {
   /* ---------------- Main ---------------- */
   return (
     <section className="mx-auto w-full max-w-[1327px] flex-1 px-5 py-10 md:px-8 lg:py-12">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_460px] lg:gap-[24px]">
+      {/* Desktop: the form spans both rows on the left; the summary and the
+          results slider stack on the right (the 1fr row takes the slack so
+          the slider sits right under the summary). */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_460px] lg:grid-rows-[auto_1fr] lg:gap-[24px]">
         {/* ════════ LEFT: form card ════════ */}
-        {/* On mobile the order summary sits on top (order-1) and the form
-            below (order-2); on desktop the form returns to the left column. */}
-        <div className="order-2 rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10 lg:order-1">
+        {/* On mobile the order summary sits on top (order-1), the form
+            below (order-2) and the results slider last (order-3); on desktop
+            the form returns to the left column. */}
+        <div className="order-2 rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
           {/* 1. Shipping Details */}
           <h2 className="font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
             <span className="mr-2 text-[#142e2a]">1.</span>Shipping Details
@@ -1565,19 +1575,32 @@ function CheckoutForm() {
         </div>
 
         {/* ════════ RIGHT: order summary (top on mobile) ════════ */}
-        <aside className="order-1 lg:order-2 lg:pt-2">
-          <h2 className="font-ui text-[25px] font-semibold leading-[26px] tracking-[-0.49px] text-[#142e2a]">
-            Order Summary
-          </h2>
+        <aside className="order-1 lg:col-start-2 lg:row-start-1 lg:pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <h2 className="font-ui text-[25px] font-semibold leading-[26px] tracking-[-0.49px] text-[#142e2a]">
+              Order Summary
+            </h2>
+            <TrustpilotLink className="flex items-center gap-[6px]">
+              <span className="flex items-center gap-[3px]">
+                <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={14} height={13} unoptimized />
+                <span className="font-ui text-[13px] font-medium text-[#142e2a]">Trustpilot</span>
+              </span>
+              <LpTrustpilotStars tile={14} />
+              <span className="font-ui text-[13px] font-semibold text-[#142e2a]">
+                {TRUSTPILOT_RATING}
+                <span className="font-normal text-[#142e2a]/70">/5</span>
+              </span>
+            </TrustpilotLink>
+          </div>
 
           {/* Product card(s) */}
-          <div className="mt-5 flex flex-col gap-3 rounded-[16px] bg-[#f7f9f2] p-4">
+          <div className="mt-5 flex flex-col gap-3 rounded-[16px] border border-[#142e2a]/10 bg-white p-4">
             {items.map((item) => (
               <div
                 key={`${item.productId}-${item.dose ?? "default"}`}
                 className="flex items-center gap-4"
               >
-                <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[12px] bg-white">
+                <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[12px] bg-[#f7f9f2]">
                   {item.imageUrl ? (
                     <Image
                       src={item.imageUrl}
@@ -1618,10 +1641,16 @@ function CheckoutForm() {
               <div className="font-ui text-[16px]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2 font-semibold text-[#142e2a]">
-                    Discount
-                    <span className="rounded-full bg-[#142e2a]/10 px-2 py-0.5 text-[12px] font-semibold uppercase tracking-[0.02em] text-[#142e2a]">
-                      {appliedDiscount.code}
-                    </span>
+                    {firstOrderAuto ? (
+                      "First order discount"
+                    ) : (
+                      <>
+                        Discount
+                        <span className="rounded-full bg-[#142e2a]/10 px-2 py-0.5 text-[12px] font-semibold uppercase tracking-[0.02em] text-[#142e2a]">
+                          {appliedDiscount.code}
+                        </span>
+                      </>
+                    )}
                     <button
                       type="button"
                       onClick={removeDiscount}
@@ -1636,7 +1665,7 @@ function CheckoutForm() {
                 </div>
                 {appliedDiscount.auto ? (
                   <p className="mt-1 text-[12px] text-[#142e2a]/65">
-                    {appliedDiscount.firstOrderOnly
+                    {firstOrderAuto
                       ? "New customer offer, applied automatically"
                       : "Applied automatically"}
                   </p>
@@ -1707,6 +1736,12 @@ function CheckoutForm() {
           </div>
 
         </aside>
+
+        {/* ════════ Real-patient results (under the summary on desktop,
+            after the form on mobile so it never pushes the form down) ════════ */}
+        {results ? (
+          <div className="order-3 min-w-0 lg:col-start-2 lg:row-start-2 lg:self-start">{results}</div>
+        ) : null}
       </div>
     </section>
   );

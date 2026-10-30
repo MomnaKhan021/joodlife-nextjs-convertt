@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import CheckoutClient from "./CheckoutClient";
 import CheckoutCartButton from "@/components/checkout/CheckoutCartButton";
+import CheckoutResults from "@/components/checkout/CheckoutResults";
+import { getLanderContent } from "@/lib/landerContent";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +17,10 @@ export const metadata = {
  * a minimal centred-logo header, the checkout body, and a Trustpilot
  * footer — no site nav / announcement bar / mega-footer to distract.
  */
-export default function CheckoutPage() {
+export default async function CheckoutPage() {
+  // The before/after cards come from the ads lander's CMS content, so the
+  // checkout shows the same real-patient results as /a7g64pt.
+  const lander = await getLanderContent();
   return (
     <main className="flex min-h-screen flex-col bg-[#fbfbf6] font-ui text-[#142e2a]">
       {/* ── Header: centred JOOD wordmark ── */}
@@ -35,7 +40,7 @@ export default function CheckoutPage() {
       </header>
 
       {/* ── Body ── */}
-      <CheckoutClient />
+      <CheckoutClient results={<CheckoutResults content={lander.results} />} />
 
       {/* ── Footer: Trustpilot rating ──
           Centred, wraps cleanly on narrow screens (logo+stars on one line,
