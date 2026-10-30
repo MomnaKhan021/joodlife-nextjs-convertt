@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import Reveal from "@/components/ui/Reveal";
 import type { LanderHero } from "@/lib/landerContentTypes";
+import type { LanderOffer } from "@/lib/landerOffer";
 import { isColour, type SectionStyle } from "@/lib/sectionStyle";
 
 import { LP_ASSETS, LP_GUTTER, LpCta, TrustpilotLink, rawImage } from "./shared";
@@ -31,15 +32,58 @@ function MessageCard({ c, className = "", float = true }: { c: LanderHero; class
   );
 }
 
-export default function LpHero({ content: c, style }: { content: LanderHero; style?: SectionStyle }) {
+const gbp = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
+
+/**
+ * The offer bar's text from the CMS, with the saving ("£20 off") picked out
+ * in lime and the code ("code FIRST20") shown as a voucher-style tag.
+ */
+function OfferBarText({ text }: { text: string }) {
+  const parts = text.split(/(£\d+(?:\.\d{2})?\s*off|\bcode\s+[A-Z0-9]{3,}\b)/i);
+  return (
+    <>
+      {parts.map((p, i) => {
+        if (i % 2 === 0) return p;
+        const code = /^(code)\s+(\S+)$/i.exec(p);
+        if (code) {
+          return (
+            <span key={i} className="whitespace-nowrap">
+              {code[1]}{" "}
+              <span className="ml-[2px] inline-block rounded-[6px] border border-dashed border-[#b4ff9f] px-[8px] py-[1px] font-bold tracking-[0.6px] text-[#b4ff9f] lg:px-[10px]">
+                {code[2]}
+              </span>
+            </span>
+          );
+        }
+        return (
+          <strong key={i} className="whitespace-nowrap font-bold text-[#b4ff9f]">
+            {p}
+          </strong>
+        );
+      })}
+    </>
+  );
+}
+
+export default function LpHero({
+  content: c,
+  style,
+  offer = null,
+}: {
+  content: LanderHero;
+  style?: SectionStyle;
+  /** Live first-order price; no offer line or Claim Offer button without it. */
+  offer?: LanderOffer | null;
+}) {
   // A CMS colour shows behind the photo while it loads.
   const custom = style?.background;
   const hasCard = !!(c.cardName || c.cardMessage);
   return (
     <>
       {c.topBar.trim() ? (
-        <div className="bg-[#142e2a] px-4 py-[12px] text-center font-ui text-[14px] font-medium leading-[16.9px] tracking-[-0.3px] text-white">
-          {c.topBar}
+        // The first-order offer, made the loudest thing above the fold.
+        <div className="bg-[#0c2421] px-4 py-[12px] text-center font-ui text-[16px] font-semibold leading-[24px] tracking-[-0.2px] text-white lg:py-[15px] lg:text-[19px] lg:leading-[28px]">
+          <OfferBarText text={c.topBar} />
         </div>
       ) : null}
 
@@ -59,7 +103,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
       </header>
 
       <section
-        className="relative flex min-h-[740px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-103px),700px)] md:items-center"
+        className="relative flex min-h-[860px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-120px),700px)] md:items-center"
         style={isColour(custom) ? { background: custom } : undefined}
       >
         {/* Phones: the tall crop. Tablet and up: the wide photo.
@@ -100,7 +144,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
             <div
               aria-hidden
               className="absolute inset-0 md:hidden"
-              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0) 22%, rgba(14,38,33,0.45) 38%, rgba(14,38,33,0.86) 56%, rgba(14,38,33,0.95) 100%)" }}
+              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0) 20%, rgba(14,38,33,0.55) 34%, rgba(14,38,33,0.88) 50%, rgba(14,38,33,0.95) 100%)" }}
             />
             {/* Tablets: the copy runs ~75% of the width here, so the green
                 reaches further across before fading. */}
@@ -131,7 +175,7 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
             <div className="flex flex-col gap-[10px] lg:gap-[16px]">
               {/* Trustpilot micro combo */}
               <Reveal delay={60}>
-                <TrustpilotLink className="flex w-fit items-center gap-[8px] lg:gap-[9px]">
+                <TrustpilotLink className="flex w-fit items-center gap-[8px] [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] lg:gap-[9px] lg:[text-shadow:none]">
                   <span className="flex items-center gap-[5px]">
                     <Image src={`${LP_ASSETS}/tp-star.svg`} alt="" width={21} height={20} unoptimized className="h-[16px] w-auto lg:h-[20px]" />
                     <span className="font-ui text-[14px] font-medium leading-[16px] text-[#f7f9f2] lg:text-[16px]">Trustpilot</span>
@@ -172,9 +216,52 @@ export default function LpHero({ content: c, style }: { content: LanderHero; sty
             {/* 20px between the button and the card on phones/tablets (12px is
                 enough on desktop, where the card isn't under the button). */}
             <div className="flex flex-col gap-[20px] lg:gap-[12px]">
-              <Reveal delay={300 + c.bullets.length * 110}>
-                <LpCta tone="light" label={c.ctaLabel} href={c.ctaHref} />
-              </Reveal>
+              {offer ? (
+                <Reveal delay={300 + c.bullets.length * 110} className="flex flex-col gap-[16px] lg:gap-[20px]">
+                  {/* First-order price: list price crossed out, offer price in lime */}
+                  <div className="flex flex-col gap-[4px]">
+                    <p className="flex flex-wrap items-baseline gap-x-[10px] font-ui text-[#f7f9f2]">
+                      <span className="text-[17px] font-light tracking-[-0.3px] lg:text-[20px]">{c.priceLabel}</span>
+                      <s className="text-[21px] font-normal text-[#f7f9f2]/60 decoration-[1.5px] lg:text-[25px]">
+                        <span className="sr-only">was </span>
+                        {gbp(offer.was)}
+                      </s>
+                      <strong className="text-[34px] font-bold leading-none tracking-[-0.8px] text-[#b4ff9f] lg:text-[44px]">
+                        <span className="sr-only">now </span>
+                        {gbp(offer.now)}
+                      </strong>
+                    </p>
+                    <p className="font-ui text-[13px] font-light leading-[18px] text-[#f7f9f2]/85 lg:text-[15px] lg:leading-[21px]">
+                      {gbp(offer.saving)} off your first order with code <strong className="font-semibold text-[#f7f9f2]">{offer.code}</strong>
+                      {offer.autoApply ? " · applied automatically at checkout" : ""}
+                    </p>
+                  </div>
+                  {/* Big Claim Offer button, the main journey link under it */}
+                  <div className="flex w-full flex-col items-center gap-[12px] lg:w-[380px]">
+                    <Link
+                      href={c.ctaHref}
+                      className="btn-cta inline-flex h-[60px] w-full items-center justify-center gap-[10px] rounded-[10px] bg-[#b4ff9f] px-[28px] font-ui text-[20px] font-semibold tracking-[-0.3px] text-[#142e2a] shadow-[0_14px_32px_-14px_rgba(180,255,159,0.6)] lg:h-[66px] lg:text-[22px]"
+                    >
+                      {c.offerCtaLabel}
+                      <svg aria-hidden width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+                        <path d="M4 10h12m0 0-5-5m5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
+                    {c.ctaLabel.trim() ? (
+                      <Link
+                        href={c.ctaHref}
+                        className="font-ui text-[16px] font-medium tracking-[-0.2px] text-[#f7f9f2] underline decoration-[#b4ff9f] decoration-[1.5px] underline-offset-[6px] hover:text-white lg:text-[17px]"
+                      >
+                        {c.ctaLabel}
+                      </Link>
+                    ) : null}
+                  </div>
+                </Reveal>
+              ) : (
+                <Reveal delay={300 + c.bullets.length * 110}>
+                  <LpCta tone="light" label={c.ctaLabel} href={c.ctaHref} />
+                </Reveal>
+              )}
               {/* Phones and tablets: the card sits under the button */}
               {hasCard ? (
                 <Reveal delay={420 + c.bullets.length * 110} className="lg:hidden">
