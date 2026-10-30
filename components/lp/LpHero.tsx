@@ -82,13 +82,13 @@ export default function LpHero({
     <>
       {c.topBar.trim() ? (
         // The first-order offer, made the loudest thing above the fold.
-        <div className="bg-[#142e2a] px-4 py-[14px] text-center font-ui text-[17px] font-semibold leading-[26px] tracking-[-0.2px] text-white lg:py-[18px] lg:text-[23px] lg:leading-[32px]">
+        <div className="bg-[#142e2a] px-4 py-[10px] text-center font-ui text-[16px] font-semibold leading-[23px] tracking-[-0.2px] text-white lg:py-[18px] lg:text-[23px] lg:leading-[32px]">
           <OfferBarText text={c.topBar} />
         </div>
       ) : null}
 
       {/* Logo header — 95×30 logo, centred; links to the home page */}
-      <header className="flex items-center justify-center bg-white px-4 py-[16px] lg:px-[60px]">
+      <header className="flex items-center justify-center bg-white px-4 py-[12px] lg:px-[60px] lg:py-[16px]">
         <Link href="/" aria-label="Jood home">
           <Image
             src={`${LP_ASSETS}/logo-header.svg`}
@@ -103,13 +103,14 @@ export default function LpHero({
       </header>
 
       <section
-        className="relative flex min-h-[860px] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-130px),700px)] md:items-center"
+        className="relative flex min-h-[max(520px,calc(100svh-110px))] w-full items-end overflow-hidden bg-[#142e2a] md:min-h-[clamp(560px,calc(100svh-130px),700px)] md:items-center"
         style={isColour(custom) ? { background: custom } : undefined}
       >
         {/* Phones: the tall crop. Tablet and up: the wide photo.
             The default hillside photo has a lot of sky above her, so on phones
-            it is zoomed 1.55× — anchored so her head sits just under the logo and
-            she fills the hero, slightly right of centre (client request, 20 Oct). A photo
+            it is zoomed 1.55× and anchored to keep her on the right, face up top,
+            beside the copy — which, with the offer, fills the first screen
+            on phones (client requests, 20 & 31 Oct). A photo
             chosen in the CMS is shown unzoomed. */}
         <Image
           src={c.mobileImage || c.image}
@@ -120,7 +121,7 @@ export default function LpHero({
           sizes="100vw"
           quality={95}
           className={`object-cover object-top md:hidden ${
-            (c.mobileImage || c.image).endsWith("/hero-hike-mobile.webp") ? "scale-[1.55] origin-[70%_48%]" : ""
+            (c.mobileImage || c.image).endsWith("/hero-hike-mobile.webp") ? "scale-[1.55] origin-[20%_40%]" : ""
           }`}
         />
         <Image
@@ -144,7 +145,7 @@ export default function LpHero({
             <div
               aria-hidden
               className="absolute inset-0 md:hidden"
-              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0) 20%, rgba(14,38,33,0.55) 34%, rgba(14,38,33,0.88) 50%, rgba(14,38,33,0.95) 100%)" }}
+              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0.5) 0%, rgba(14,38,33,0.62) 30%, rgba(14,38,33,0.86) 55%, rgba(14,38,33,0.95) 100%)" }}
             />
             {/* Tablets: the copy runs ~75% of the width here, so the green
                 reaches further across before fading. */}
@@ -170,9 +171,9 @@ export default function LpHero({
           </>
         ) : null}
 
-        <div className={`relative z-10 mx-auto w-full max-w-[1440px] pb-[16px] pt-[40px] md:py-[48px] ${LP_GUTTER}`}>
-          <div className="flex w-full flex-col gap-[24px] md:w-[564px] lg:gap-[42px]">
-            <div className="flex flex-col gap-[10px] lg:gap-[16px]">
+        <div className={`relative z-10 mx-auto w-full max-w-[1440px] pb-[18px] pt-[20px] md:py-[48px] ${LP_GUTTER}`}>
+          <div className="flex w-full flex-col gap-[16px] md:w-[564px] md:gap-[24px] lg:gap-[42px]">
+            <div className="flex flex-col gap-[8px] md:gap-[10px] lg:gap-[16px]">
               {/* Trustpilot micro combo */}
               <Reveal delay={60}>
                 <TrustpilotLink className="flex w-fit items-center gap-[8px] [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] lg:gap-[9px] lg:[text-shadow:none]">
@@ -189,7 +190,7 @@ export default function LpHero({
 
               {/* Headline — Gilroy 56/1.1 (36/39.6 on phones), accent inline */}
               <Reveal delay={150}>
-                <h1 className="font-display text-[36px] !font-semibold leading-[39.6px] tracking-[-1.6px] text-white lg:text-[56px] lg:leading-[1.1] lg:tracking-[-2.24px]">
+                <h1 className="font-display [text-shadow:0_2px_14px_rgba(0,0,0,0.35)] md:[text-shadow:none] text-[32px] !font-semibold leading-[35px] tracking-[-1.4px] text-white md:text-[36px] md:leading-[39.6px] md:tracking-[-1.6px] lg:text-[56px] lg:leading-[1.1] lg:tracking-[-2.24px]">
                   <span className="lg:capitalize">{c.title}</span>
                   {c.titleAccent ? (
                     <>
@@ -201,13 +202,13 @@ export default function LpHero({
               </Reveal>
 
               {/* Ticks — one after another */}
-              <ul className="flex flex-col gap-[8px]">
+              <ul className="flex flex-col gap-[4px] md:gap-[8px]">
                 {c.bullets.map((t, i) => (
                   <Reveal as="li" key={t} delay={280 + i * 110} className="flex items-center gap-[12px]">
                     <span className="flex size-[20px] shrink-0 items-center justify-center rounded-full bg-[#d3dabe] lg:size-[22px]">
                       <Image src={`${LP_ASSETS}/hero-tick.svg`} alt="" width={13} height={12} unoptimized />
                     </span>
-                    <span className="font-ui text-[16px] font-light leading-[24px] tracking-[-0.3px] text-[#f7f9f2] lg:text-[18px] lg:leading-[27px]">{t}</span>
+                    <span className="font-ui text-[16px] font-light leading-[22px] tracking-[-0.3px] text-[#f7f9f2] md:leading-[24px] lg:text-[18px] lg:leading-[27px]">{t}</span>
                   </Reveal>
                 ))}
               </ul>
@@ -217,7 +218,7 @@ export default function LpHero({
                 enough on desktop, where the card isn't under the button). */}
             <div className="flex flex-col gap-[20px] lg:gap-[12px]">
               {offer ? (
-                <Reveal delay={300 + c.bullets.length * 110} className="flex flex-col gap-[16px] lg:gap-[20px]">
+                <Reveal delay={300 + c.bullets.length * 110} className="flex flex-col gap-[12px] md:gap-[16px] lg:gap-[20px]">
                   {/* First-order price: list price crossed out, offer price in lime */}
                   <div className="flex flex-col gap-[4px]">
                     <p className="flex flex-wrap items-baseline gap-x-[10px] font-ui text-[#f7f9f2]">
@@ -231,16 +232,16 @@ export default function LpHero({
                         {gbp(offer.now)}
                       </strong>
                     </p>
-                    <p className="font-ui text-[13px] font-light leading-[18px] text-[#f7f9f2]/85 lg:text-[15px] lg:leading-[21px]">
+                    <p className="font-ui text-[12px] font-light leading-[16px] text-[#f7f9f2]/85 md:text-[13px] md:leading-[18px] lg:text-[15px] lg:leading-[21px]">
                       {offer.label} off your first order with code <strong className="font-semibold text-[#f7f9f2]">{offer.code}</strong>
                       {offer.autoApply ? " · applied automatically at checkout" : " · enter it at checkout"}
                     </p>
                   </div>
                   {/* Big Claim Offer button, the main journey link under it */}
-                  <div className="flex w-full flex-col items-center gap-[12px] lg:w-[380px]">
+                  <div className="flex w-full flex-col items-center gap-[10px] md:gap-[12px] lg:w-[380px]">
                     <Link
                       href={c.ctaHref}
-                      className="btn-cta inline-flex h-[60px] w-full items-center justify-center gap-[10px] rounded-[10px] bg-[#b4ff9f] px-[28px] font-ui text-[20px] font-semibold tracking-[-0.3px] text-[#142e2a] shadow-[0_14px_32px_-14px_rgba(180,255,159,0.6)] lg:h-[66px] lg:text-[22px]"
+                      className="btn-cta inline-flex h-[54px] w-full items-center justify-center gap-[10px] rounded-[10px] bg-[#b4ff9f] px-[28px] font-ui text-[19px] font-semibold tracking-[-0.3px] text-[#142e2a] shadow-[0_14px_32px_-14px_rgba(180,255,159,0.6)] md:h-[60px] md:text-[20px] lg:h-[66px] lg:text-[22px]"
                     >
                       {c.offerCtaLabel}
                       <svg aria-hidden width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
