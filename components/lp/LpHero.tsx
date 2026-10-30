@@ -145,7 +145,7 @@ export default function LpHero({
             <div
               aria-hidden
               className="absolute inset-0 md:hidden"
-              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0.45) 0%, rgba(14,38,33,0.55) 30%, rgba(14,38,33,0.7) 55%, rgba(14,38,33,0.8) 100%)" }}
+              style={{ background: "linear-gradient(180deg, rgba(14,38,33,0.62) 0%, rgba(14,38,33,0.7) 30%, rgba(14,38,33,0.8) 55%, rgba(14,38,33,0.88) 100%)" }}
             />
             {/* Tablets: the copy runs ~75% of the width here, so the green
                 reaches further across before fading. */}
