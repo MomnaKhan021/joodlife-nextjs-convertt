@@ -304,21 +304,49 @@ body:has(.jp) a[aria-label="Chat with us on WhatsApp"]{display:none}
 .jp .list > div > .li .grow{flex:1; min-width:0}
 .jp .list > div > .li .ic{color:var(--muted); flex:0 0 auto}
 
-/* The main action (Get started / Reorder): a button in the sticky header and a
-   band at the foot of every screen. */
+/* The main action (Get started / Reorder): a button in the sticky header, on
+   the home banner, and a bar stuck to the bottom of every screen (above the
+   phone tab bar), so it's always one tap away. */
 .jp .top-cta{margin-right:6px; padding:0 14px; white-space:nowrap}
 .jp .top-cta .ic{width:16px; height:16px}
-.jp .cta-band{margin-top:28px; border-radius:var(--r-lg); padding:22px; display:flex; flex-direction:column; gap:16px; background:var(--brand); color:#fff}
-.jp .cta-band h2{font-size:22px; line-height:1.25; color:#fff}
-.jp .cta-band h2 .serif{color:var(--lime)}
-.jp .cta-band p{color:rgba(255,255,255,.78); font-size:15px; margin-top:6px; max-width:560px}
-.jp .cta-band .btn{align-self:stretch; white-space:nowrap}
+
+/* Home banner: its next step + the main action. Stacked full-width on
+   phones, side by side from 640px. */
+.jp .banner-acts{display:flex; flex-direction:column; gap:10px}
+.jp .banner-acts .btn{width:100%}
+.jp .banner-cta .ic{width:18px; height:18px}
+.jp[data-svc="wl"] .banner .btn.ghost,.jp [data-svc="wl"] .banner .btn.ghost{background:transparent; color:#fff; border-color:rgba(255,255,255,.45)}
+.jp[data-svc="wl"] .banner .btn.ghost:hover,.jp [data-svc="wl"] .banner .btn.ghost:hover{background:rgba(255,255,255,.08)}
 @container app (min-width:640px){
-  .jp .cta-band{flex-direction:row; align-items:center; justify-content:space-between; gap:24px; padding:26px 28px}
-  .jp .cta-band .btn{align-self:center; flex:0 0 auto}
+  .jp .banner-acts{flex-direction:row; flex:0 0 auto}
+  .jp .banner-acts .btn{width:auto}
 }
+
+/* Bottom bar: compact (one line + button) so it doesn't eat the screen;
+   sticky, so it rides just above the tab bar on phones and the window's
+   bottom edge on desktop, then settles at the foot of the page. */
+.jp .cta-band{position:sticky; bottom:calc(62px + var(--sa-b) + 10px); z-index:30; margin-top:28px; border-radius:var(--r-lg); padding:12px 12px 12px 18px; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:12px; background:var(--brand); color:#fff; box-shadow:0 10px 30px rgba(12,31,28,.28)}
+.jp .cta-band .txt{min-width:0}
+.jp .cta-band h2{font-size:16px; line-height:1.25; color:#fff}
+.jp .cta-band h2 .serif{color:var(--lime)}
+.jp .cta-band p{display:none; color:rgba(255,255,255,.78); font-size:14px; margin-top:4px}
+.jp .cta-band .btn{flex:0 0 auto; white-space:nowrap; min-height:44px; padding:0 16px}
+.jp .cta-band .btn .ic{width:18px; height:18px}
+@container app (min-width:640px){
+  .jp .cta-band{gap:24px; padding:16px 16px 16px 26px}
+  .jp .cta-band h2{font-size:20px}
+  .jp .cta-band p{display:block}
+  .jp .cta-band .btn{min-height:var(--tap); padding:0 22px}
+}
+@container app (max-width:380px){
+  .jp .cta-band h2 .serif{display:block}
+}
+/* The toast sits above the bar instead of covering it. */
+.jp .toast{bottom:calc(150px + var(--sa-b))}
 @container app (min-width:960px){
   .jp .top-cta{margin-right:10px; min-height:40px; padding:0 18px; font-size:15px}
+  .jp .cta-band{bottom:16px}
+  .jp .toast{bottom:120px}
 }
 @container app (max-width:380px){
   .jp .top-cta{padding:0 10px; font-size:13px}

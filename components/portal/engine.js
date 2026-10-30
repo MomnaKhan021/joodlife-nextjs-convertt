@@ -376,11 +376,21 @@ function nextStep(svc){
   }
   return n("You're all set", "Nothing due right now. We'll remind you when something is.", '', '', '');
 }
+/* The banner's own next step, plus the main action (Get started / Reorder)
+   so it's on the banner in every service tab. Skipped when the next step
+   already is that action (Reorder, or Start consultation for a new patient). */
+function bannerActions(ns){
+  const cta = mainCta();
+  const same = ns.act==='reorder' && initial.returning || ns.act==='startFlow' && !initial.returning;
+  const main = same ? '' : `<a class="btn ${ns.l?'ghost':'primary'} banner-cta" href="${esc(cta.href)}">${ic(cta.icon,18)}${cta.label}</a>`;
+  const step = ns.l ? btn('primary',ns.l,ns.act,ns.arg) : '';
+  return step || main ? `<div class="banner-acts">${step}${main}</div>` : '';
+}
 function viewHome(){
   const svc = S.svc, st = svcState(svc), ns = nextStep(svc);
   let h = `<div class="stack"><div class="page-h"><div><h1>${greet()}, <em class="serif">${esc(S.user.first)}</em></h1><p class="muted">${svc==='wl'&&st.mode==='active'?'Week '+wlInfo().week+' of your weight loss programme':'Everything for your treatment, in one place'}</p></div></div>
     ${svcSwitch()}
-    <section class="banner"><div class="txt"><h2>${ns.t}</h2><p class="muted">${esc(ns.b)}</p></div>${ns.l?btn('primary',ns.l,ns.act,ns.arg):''}</section>`;
+    <section class="banner"><div class="txt"><h2>${ns.t}</h2><p class="muted">${esc(ns.b)}</p></div>${bannerActions(ns)}</section>`;
   if(st.mode==='new') h += startCard(svc);
   if(svc==='wl' && st.mode!=='active' && wlTracks()) h += wlProgressOnly();
   if(st.mode==='active'){
@@ -671,8 +681,8 @@ const NAV = [['home','Home','home'],['treatment','Treatment','pill'],['orders','
 const TABS = [['home','Home','home'],['treatment','Treatment','pill'],['orders','Orders','box'],['reminders','Reminders','bell'],['account','Account','user']];
 /* The one action we want in front of every patient: Reorder for anyone with a
    real order (the site-wide rule), otherwise Get started with a consultation
-   for the service they're looking at. Shown in the sticky header and at the
-   foot of every screen. */
+   for the service they're looking at. Shown in the sticky header, on the home
+   banner and in the bar stuck to the bottom of every screen. */
 function mainCta(){
   return initial.returning
     ? { label:'Reorder', href:'/reorder', icon:'box' }
@@ -680,7 +690,7 @@ function mainCta(){
 }
 function ctaBand(c){
   const r = !!initial.returning;
-  return `<section class="cta-band"><div class="txt"><h2>${r ? 'Running low? <em class="serif">Reorder in minutes</em>' : 'Ready to start? <em class="serif">It takes 3 minutes</em>'}</h2>
+  return `<section class="cta-band" aria-label="${r ? 'Reorder' : 'Get started'}"><div class="txt"><h2>${r ? 'Running low? <em class="serif">Reorder in minutes</em>' : 'Ready to start? <em class="serif">It takes 3 minutes</em>'}</h2>
     <p>${r ? 'Your prescriber reviews every reorder, usually the same day. Free next-day delivery in plain packaging.' : 'Free online consultation, reviewed by a UK prescriber. You only pay if you are approved.'}</p></div>
     <a class="btn lime" href="${esc(c.href)}">${ic(c.icon,18)}${c.label}</a></section>`;
 }
