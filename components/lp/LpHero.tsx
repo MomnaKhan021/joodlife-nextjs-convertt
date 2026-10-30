@@ -233,7 +233,7 @@ export default function LpHero({
                     </p>
                     <p className="font-ui text-[13px] font-light leading-[18px] text-[#f7f9f2]/85 lg:text-[15px] lg:leading-[21px]">
                       {offer.label} off your first order with code <strong className="font-semibold text-[#f7f9f2]">{offer.code}</strong>
-                      {offer.autoApply ? " · applied automatically at checkout" : ""}
+                      {offer.autoApply ? " · applied automatically at checkout" : " · enter it at checkout"}
                     </p>
                   </div>
                   {/* Big Claim Offer button, the main journey link under it */}

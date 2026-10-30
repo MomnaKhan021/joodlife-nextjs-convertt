@@ -51,6 +51,31 @@ type DiscountRow = {
 
 const CODE_RE = /^[A-Z0-9][A-Z0-9_-]{0,39}$/;
 
+/**
+ * Offers defined in code, so they work without a CMS entry. A Discounts row
+ * with the same code takes precedence — e.g. create FIRST50 in the CMS and
+ * untick "Active" to switch this offer off, or change its value there.
+ *
+ * FIRST50 (the ads lander's offer, 31 Oct 2026): 50% off a new customer's
+ * first order, typed at checkout. Deliberately not auto-applied — that would
+ * halve every first order on the site, not just the ad's visitors.
+ */
+const BUILT_IN_DISCOUNTS: Record<string, DiscountRow> = {
+  FIRST50: {
+    code: "FIRST50",
+    type: "percentage",
+    value: 50,
+    isActive: true,
+    expiryDate: null,
+    usageLimit: null,
+    usageCount: 0,
+    oncePerCustomer: false,
+    allowedEmail: null,
+    firstOrderOnly: true,
+    autoApply: false,
+  },
+};
+
 const FRIENDLY: Record<string, string> = {
   "Discount not found": "This code isn’t valid.",
   "Discount inactive": "This code is no longer active.",
@@ -234,7 +259,7 @@ export async function applyDiscountCode(
 
   try {
     const payload = await getPayloadInstance();
-    const doc = await findDiscount(payload, code);
+    const doc = (await findDiscount(payload, code)) ?? BUILT_IN_DISCOUNTS[code] ?? null;
     if (!doc) {
       return { valid: false, amount: 0, reason: FRIENDLY["Discount not found"] };
     }
@@ -339,9 +364,13 @@ export async function findAutoDiscount(
          LIMIT 20
       `),
     );
+    // Built-in auto codes join the candidates; a CMS row with the same code
+    // still decides (applyDiscountCode reads the CMS row first).
+    const codes = new Set(rowsOf<{ code?: unknown }>(res).map((row) => String(row.code ?? "").trim().toUpperCase()));
+    for (const [c, d] of Object.entries(BUILT_IN_DISCOUNTS)) if (d.autoApply) codes.add(c);
     let best: AppliedDiscount | null = null;
-    for (const row of rowsOf<{ code?: unknown }>(res)) {
-      const r = await applyDiscountCode(String(row.code ?? ""), subtotal, opts);
+    for (const code of codes) {
+      const r = await applyDiscountCode(code, subtotal, opts);
       if (r.valid && r.amount > 0 && (!best || r.amount > best.amount)) best = r;
     }
     return best;
