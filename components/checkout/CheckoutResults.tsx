@@ -8,7 +8,7 @@ function Photo({ src, label, after, alt }: { src: string; label: string; after?:
   return (
     <div className="relative aspect-[252/315] flex-1 overflow-hidden rounded-[10px] bg-[#e7ecd7]">
       {src ? (
-        <Image src={src} alt={alt} fill unoptimized={rawImage(src)} sizes="(max-width: 1024px) 45vw, 200px" className="object-cover" quality={90} />
+        <Image src={src} alt={alt} fill unoptimized={rawImage(src)} sizes="(max-width: 640px) 45vw, 200px" className="object-cover" quality={90} />
       ) : null}
       {label ? (
         <span
@@ -47,7 +47,10 @@ export default function CheckoutResults({ content: c }: { content: LanderResults
         ) : null}
       </h2>
 
-      <LpSlider gap={12} itemClassName="w-[88%]">
+      {/* Phones: one card with the next peeking in. Tablets (full-width
+          column): fixed-width cards so the photos don't grow huge. Desktop
+          (460px summary column): one card with the next peeking in. */}
+      <LpSlider gap={12} itemClassName="w-[88%] sm:w-[340px] lg:w-[88%]">
         {items.map((r, i) => (
           <article key={`${r.name}-${i}`} className="flex w-full flex-col gap-[12px] rounded-[18px] bg-[#f7f9f2] p-[10px]">
             <div className="flex gap-[6px]">

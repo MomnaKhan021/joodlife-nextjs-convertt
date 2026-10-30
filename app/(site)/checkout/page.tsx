@@ -24,19 +24,25 @@ export default async function CheckoutPage() {
   return (
     <main className="flex min-h-screen flex-col bg-[#fbfbf6] font-ui text-[#142e2a]">
       {/* ── Header: centred JOOD wordmark ── */}
-      <header className="relative flex h-[84px] shrink-0 items-center justify-center border-b border-[#142e2a]/10 bg-white">
-        <Link href="/" aria-label="JoodLife home">
-          <Image
-            src="/assets/icons/logo-wesmount.svg"
-            alt="JOOD"
-            width={95}
-            height={30}
-            priority
-          />
-        </Link>
-        {/* Top-right cart icon — opens the drawer so items can be reviewed
-            or removed without leaving checkout. */}
-        <CheckoutCartButton />
+      {/* Shorter on phones; the inner row matches the body's width and
+          gutters so the cart icon lines up with the content's right edge on
+          wide screens instead of sitting against the window edge. */}
+      <header className="shrink-0 border-b border-[#142e2a]/10 bg-white">
+        <div className="relative mx-auto flex h-16 w-full max-w-[1327px] items-center justify-center px-5 md:h-[84px] md:px-8">
+          <Link href="/" aria-label="JoodLife home" className="rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#142e2a]">
+            <Image
+              src="/assets/icons/logo-wesmount.svg"
+              alt="JOOD"
+              width={95}
+              height={30}
+              priority
+              className="h-[26px] w-auto md:h-[30px]"
+            />
+          </Link>
+          {/* Top-right cart icon — opens the drawer so items can be reviewed
+              or removed without leaving checkout. */}
+          <CheckoutCartButton />
+        </div>
       </header>
 
       {/* ── Body ── */}
@@ -60,6 +66,7 @@ export default async function CheckoutPage() {
             alt="Trustpilot — rated 4.4 out of 5"
             width={175}
             height={20}
+            loading="eager"
             className="h-5 w-auto shrink-0"
           />
           <span className="font-ui text-[14px] font-semibold text-[#142e2a] md:text-[16px]">

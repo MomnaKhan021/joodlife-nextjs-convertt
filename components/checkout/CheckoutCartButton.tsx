@@ -17,7 +17,7 @@ export default function CheckoutCartButton() {
         type="button"
         onClick={openDrawer}
         aria-label={`Open cart (${itemCount} item${itemCount === 1 ? "" : "s"})`}
-        className="absolute right-4 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-[#142e2a] transition-colors hover:bg-[#f7f9f2] md:right-8"
+        className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-[#142e2a] transition-colors hover:bg-[#f7f9f2] focus-visible:outline-2 focus-visible:outline-[#142e2a] md:right-6"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M6 7h12l1 13H5L6 7z" />
