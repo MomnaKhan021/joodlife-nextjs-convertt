@@ -39,7 +39,7 @@ export type LanderHero = LanderCta & {
   titleAccent: string;
   bullets: string[];
   image: string;
-  /** Portrait photo for phones. Empty: plain brand green with the default photos, else `image`. */
+  /** Portrait crop for phones; empty uses `image`. */
   mobileImage: string;
   /** Darken the photo behind the copy. Off: the photos carry their own shading. */
   overlay: boolean;
@@ -156,8 +156,7 @@ export const LANDER_DEFAULT: LanderContent = {
     titleAccent: "designed around you.",
     bullets: ["UK-registered clinicians", "Personalised plan", "24/7 WhatsApp support"],
     image: `${A}/hero-hike-desktop.webp`,
-    // No phone photo for now: phones show the plain brand green (client, 31 Oct).
-    mobileImage: "",
+    mobileImage: `${A}/hero-hike-mobile.webp`,
     // The green shade behind the copy is part of the design for these photos.
     overlay: true,
     popup: {

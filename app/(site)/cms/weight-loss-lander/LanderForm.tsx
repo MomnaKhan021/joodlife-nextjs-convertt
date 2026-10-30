@@ -224,7 +224,7 @@ export default function LanderForm({ initial }: { initial: LanderContent }) {
             onHref={(ctaHref) => setHero({ ...hero, ctaHref })}
           />
           <PictureField label="Photo (desktop, wide)" src={hero.image} onSrc={(image) => setHero({ ...hero, image })} alt={hero.imageAlt} onAlt={(imageAlt) => setHero({ ...hero, imageAlt })} />
-          <PictureField label="Photo (phones, tall) — optional; if empty, phones show the dark green (or your desktop photo, if you've chosen one)" src={hero.mobileImage} onSrc={(mobileImage) => setHero({ ...hero, mobileImage })} />
+          <PictureField label="Photo (phones, tall) — optional, the desktop photo is used if empty" src={hero.mobileImage} onSrc={(mobileImage) => setHero({ ...hero, mobileImage })} />
           <label className="flex items-start gap-2 text-[13px] text-[#1a1a1a]">
             <input type="checkbox" className="mt-[3px]" checked={hero.overlay} onChange={(e) => setHero({ ...hero, overlay: e.target.checked })} />
             <span>
