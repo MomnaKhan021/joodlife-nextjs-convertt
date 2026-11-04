@@ -81,6 +81,14 @@ const NAV: NavItem[] = [
     icon: I("M16 3h5v5M21 3l-9 9M3 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"),
   },
   {
+    // Admin-only (no section key), like the order DPD label — a DPD label
+    // for a parcel that isn't tied to an order.
+    label: "Create DPD label",
+    href: "/admin-tools/dpd-labels",
+    match: (p) => p.startsWith("/admin-tools/dpd-labels"),
+    icon: I("M3 7l9-4 9 4v10l-9 4-9-4V7zM3 7l9 4 9-4M12 11v10M16 5.5l-9 4"),
+  },
+  {
     label: "Rejected",
     href: "/admin-tools/rejected",
     match: (p) => p.startsWith("/admin-tools/rejected"),
