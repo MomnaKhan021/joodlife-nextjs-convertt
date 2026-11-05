@@ -17,6 +17,7 @@ import type {
   StripeCardNumberElement,
   PaymentRequest,
   PaymentRequestPaymentMethodEvent,
+  PaymentRequestShippingAddressEvent,
 } from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
@@ -555,22 +556,31 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
     }
   }
 
-  function finalizeAndRedirect(orderNumber: string, amount: number) {
+  function finalizeAndRedirect(
+    orderNumber: string,
+    amount: number,
+    /** Express checkout: the details came from the wallet, not the form. */
+    who?: { email: string; phone: string; firstName: string; lastName: string; city: string; postcode: string },
+  ) {
     // Hand the customer details to the thank-you page for the `purchase`
     // event's user_data (Meta Advanced Matching / Google Enhanced
     // Conversions). Passed via sessionStorage rather than widening the public
     // order-summary API, which is keyed only by order number — phone and
     // address must not be readable by guessing an order number.
     try {
-      const ud = toDlUserData({
-        email,
-        phone,
-        firstName,
-        lastName,
-        city: deliverElsewhere ? dCity : city,
-        postcode: deliverElsewhere ? dPostcode : postcode,
-        country,
-      });
+      const ud = toDlUserData(
+        who
+          ? { ...who, country: "GB" }
+          : {
+              email,
+              phone,
+              firstName,
+              lastName,
+              city: deliverElsewhere ? dCity : city,
+              postcode: deliverElsewhere ? dPostcode : postcode,
+              country,
+            },
+      );
       window.sessionStorage.setItem(
         `jood:purchase-user:${orderNumber}`,
         JSON.stringify(ud),
@@ -849,9 +859,10 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
   }
 
   /* ---------------- Apple Pay / Google Pay (Payment Request) ---------- */
-  // Delivery/contact details are still required (same as the card path);
-  // the wallet only supplies the payment method. Card data and wallet
-  // tokens are handled entirely by Stripe.
+  // Express checkout at the top of the page. If the delivery/contact form is
+  // already filled in, those details are used (as before); otherwise the
+  // wallet supplies name, email, phone and the UK delivery address. Card data
+  // and wallet tokens are handled entirely by Stripe.
   const formReady = Boolean(
     items.length > 0 &&
       firstName.trim() &&
@@ -873,17 +884,33 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
         ev.complete("fail");
         return;
       }
-      if (!formReady) {
-        ev.complete("fail");
-        setError(
-          "Please complete your contact and delivery details above, then use Apple Pay / Google Pay.",
-        );
-        return;
+      // Details from the wallet sheet, used when the form isn't filled in.
+      const sa = ev.shippingAddress;
+      const wName = (ev.payerName || sa?.recipient || "").trim();
+      const wEmail = (ev.payerEmail || "").trim();
+      const wPhone = (ev.payerPhone || sa?.phone || "").trim();
+      const wLines = (sa?.addressLine ?? []).map((l) => l.trim()).filter(Boolean);
+      const wCity = (sa?.city || "").trim();
+      const wPostcode = (sa?.postalCode || "").trim().toUpperCase();
+      const useWallet = !formReady;
+      if (useWallet) {
+        if (!wName || !isValidEmail(wEmail) || !wPhone || !wLines.length || !wCity || !wPostcode) {
+          ev.complete("fail");
+          setError(
+            "Apple Pay / Google Pay didn’t share your full name, email, phone and UK delivery address. Please fill in your details below and try again.",
+          );
+          return;
+        }
+        if (sa?.country && sa.country.toUpperCase() !== "GB") {
+          ev.complete("fail");
+          setError("We can only deliver to UK addresses.");
+          return;
+        }
       }
       setBusy(true);
       setError(null);
 
-      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const fullName = useWallet ? wName : `${firstName.trim()} ${lastName.trim()}`.trim();
       const billingAddress = [
         address.trim(),
         apartment.trim(),
@@ -898,10 +925,14 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
       ]
         .filter(Boolean)
         .join("\n");
-      const composedAddress = deliverElsewhere ? deliveryAddress : billingAddress;
-      const orderNotes = deliverElsewhere
-        ? `Billing/contact address:\n${billingAddress}`
-        : "";
+      const walletAddress = [...wLines, `${wCity} ${wPostcode}`.trim()].join("\n");
+      const composedAddress = useWallet
+        ? walletAddress
+        : deliverElsewhere
+          ? deliveryAddress
+          : billingAddress;
+      const orderNotes =
+        !useWallet && deliverElsewhere ? `Billing/contact address:\n${billingAddress}` : "";
 
       const cleanItems = items
         .filter(
@@ -950,13 +981,13 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
           items: cleanItems,
           customer: {
             name: fullName,
-            email: email.trim(),
-            phone: phone.trim(),
+            email: useWallet ? wEmail : email.trim(),
+            phone: useWallet ? wPhone : phone.trim(),
             address: composedAddress,
             notes: orderNotes,
           },
           discountCode: appliedDiscount?.code,
-          addressConfirmed: streetOverride && addrConfirmed,
+          addressConfirmed: useWallet ? false : streetOverride && addrConfirmed,
         }),
       });
       const orderJson = await orderRes.json();
@@ -966,12 +997,36 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
         setBusy(false);
         return;
       }
+      // The wallet sheet showed today's total. If the server's total differs
+      // (e.g. the first-order discount doesn't apply to the wallet's email),
+      // never charge a different amount than was shown: stop, show the right
+      // total and let them pay again.
+      const serverTotal = Number(orderJson.totalAmount);
+      if (Number.isFinite(serverTotal) && Math.round(serverTotal * 100) !== Math.round(total * 100)) {
+        ev.complete("fail");
+        if (useWallet && !email.trim()) setEmail(wEmail);
+        setError(
+          `Your total for ${useWallet ? wEmail : email.trim()} is £${serverTotal.toFixed(2)} (the first-order offer only applies to new customers). Please check the total and pay again.`,
+        );
+        setBusy(false);
+        return;
+      }
 
       if (orderJson.free || orderJson.totalAmount <= 0) {
         ev.complete("success");
         finalizeAndRedirect(
           orderJson.orderNumber,
           Number(orderJson.totalAmount) || total,
+          useWallet
+          ? {
+              email: wEmail,
+              phone: wPhone,
+              firstName: wName.split(/\s+/)[0] ?? "",
+              lastName: wName.split(/\s+/).slice(1).join(" "),
+              city: wCity,
+              postcode: wPostcode,
+            }
+          : undefined,
         );
         return;
       }
@@ -1025,6 +1080,16 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
       finalizeAndRedirect(
         orderJson.orderNumber,
         Number(orderJson.totalAmount) || total,
+        useWallet
+          ? {
+              email: wEmail,
+              phone: wPhone,
+              firstName: wName.split(/\s+/)[0] ?? "",
+              lastName: wName.split(/\s+/).slice(1).join(" "),
+              city: wCity,
+              postcode: wPostcode,
+            }
+          : undefined,
       );
     } catch (err) {
       try {
@@ -1049,8 +1114,13 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
       country: "GB",
       currency: "gbp",
       total: { label: "JoodLife order", amount: Math.round(total * 100) },
-      requestPayerName: false,
-      requestPayerEmail: false,
+      // Express checkout: the sheet collects contact + delivery details, so a
+      // customer can pay before filling in the form.
+      requestPayerName: true,
+      requestPayerEmail: true,
+      requestPayerPhone: true,
+      requestShipping: true,
+      shippingOptions: [{ id: "free-uk", label: "Free UK delivery", detail: "Tracked DPD", amount: 0 }],
     });
     let active = true;
     pr.canMakePayment().then((result) => {
@@ -1059,10 +1129,17 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
     });
     const handler = (ev: PaymentRequestPaymentMethodEvent) =>
       walletPayRef.current(ev);
+    // UK delivery only.
+    const onAddress = (ev: PaymentRequestShippingAddressEvent) =>
+      ev.updateWith({
+        status: (ev.shippingAddress.country || "GB").toUpperCase() === "GB" ? "success" : "invalid_shipping_address",
+      });
     pr.on("paymentmethod", handler);
+    pr.on("shippingaddresschange", onAddress);
     return () => {
       active = false;
       pr.off("paymentmethod", handler);
+      pr.off("shippingaddresschange", onAddress);
     };
   }, [stripe, total]);
 
@@ -1115,6 +1192,32 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
             below (order-2) and the results slider last (order-3); on desktop
             the form returns to the left column. */}
         <div className="order-2 rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
+          {/* Express checkout — Apple Pay / Google Pay, first thing on the
+              page (shown only when the device/browser has a wallet set up).
+              The wallet supplies the delivery details, so no form needed. */}
+          {paymentRequest ? (
+            <div className="mb-8">
+              <p className="mb-3 text-center font-ui text-[14px] font-medium text-[#142e2a]/70">Express checkout</p>
+              <PaymentRequestButtonElement
+                options={{
+                  paymentRequest,
+                  style: {
+                    paymentRequestButton: {
+                      type: "buy",
+                      theme: "dark",
+                      height: "52px",
+                    },
+                  },
+                }}
+              />
+              <div className="mt-6 flex items-center gap-3">
+                <span className="h-px flex-1 bg-[#e7e8e3]" />
+                <span className="font-ui text-[12px] text-[#142e2a]/55">Or pay with card below</span>
+                <span className="h-px flex-1 bg-[#e7e8e3]" />
+              </div>
+            </div>
+          ) : null}
+
           {/* 1. Shipping Details */}
           <h2 className="font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
             <span className="mr-2 text-[#142e2a]">1.</span>Shipping Details
@@ -1364,34 +1467,8 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
             <span className="mr-2 text-[#142e2a]">2.</span>Payment
           </h2>
 
-          {/* Express checkout — Apple Pay / Google Pay (shown only when the
-              device/browser supports a wallet). Falls back to card below. */}
-          {paymentRequest ? (
-            <div className="mt-5">
-              <PaymentRequestButtonElement
-                options={{
-                  paymentRequest,
-                  style: {
-                    paymentRequestButton: {
-                      type: "default",
-                      theme: "dark",
-                      height: "52px",
-                    },
-                  },
-                }}
-              />
-              <div className="my-5 flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#e7e8e3]" />
-                <span className="font-ui text-[12px] text-[#142e2a]/55">
-                  Or pay with card
-                </span>
-                <span className="h-px flex-1 bg-[#e7e8e3]" />
-              </div>
-            </div>
-          ) : null}
-
           {/* Card is the only on-page method (Apple Pay / Google Pay are the
-              express button above); no extra provider tabs. */}
+              express button at the top); no extra provider tabs. */}
           <div className="mt-5 flex w-fit items-center gap-2 rounded-[8px] border border-[#142e2a] bg-white px-4 py-2.5 font-ui text-[14px] font-semibold text-[#142e2a]">
             <CardGlyph />
             <span>Card</span>
