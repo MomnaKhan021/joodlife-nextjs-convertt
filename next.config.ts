@@ -150,12 +150,12 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
-      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")} ${gtmScriptOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityOrigins.join(" ")}`,
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.js.stripe.com https://m.stripe.network https://widget.trustpilot.com ${metaPixelOrigins.join(" ")} ${gtmScriptOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityOrigins.join(" ")}`,
       // blob.vercel-storage.com (no subdomain) is the client-direct UPLOAD
       // API host — without it the consultation evidence upload is blocked by
       // the browser ("Failed to fetch"); *.public… only covers file READS.
       `connect-src 'self' ${stripeOrigins.join(" ")} ${trustpilotOrigins.join(" ")} ${metaPixelOrigins.join(" ")} https://www.facebook.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com ${gtmConnectOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityBeaconOrigins.join(" ")}`,
-      `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.trustpilot.com https://www.googletagmanager.com https://tagmanager.google.com ${gtmServerOrigins.join(" ")}`,
+      `frame-src 'self' https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://*.trustpilot.com https://www.googletagmanager.com https://tagmanager.google.com ${gtmServerOrigins.join(" ")}`,
       `img-src 'self' data: blob: https://cdn.shopify.com https://joodlife.com https://*.public.blob.vercel-storage.com https://*.picsum.photos https://figma-alpha-api.s3.us-west-2.amazonaws.com https://s3-alpha-sig.figma.com https://*.stripe.com https://*.trustpilot.com https://www.facebook.com ${gtmImgOrigins.join(" ")} ${gtmServerOrigins.join(" ")} ${clarityBeaconOrigins.join(" ")}`,
       // Videos (the ads lander's story / journey slides) are uploaded to
       // Vercel Blob. Without media-src they fall back to default-src 'self'
@@ -175,7 +175,7 @@ const nextConfig: NextConfig = {
       {
         key: "Permissions-Policy",
         value:
-          "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(self \"https://js.stripe.com\"), usb=()",
+          "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(self \"https://js.stripe.com\" \"https://*.js.stripe.com\"), usb=()",
       },
       // HSTS only in production where the site is served over HTTPS
       ...(process.env.NODE_ENV === "production"

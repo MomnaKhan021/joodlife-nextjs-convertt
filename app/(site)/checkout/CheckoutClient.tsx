@@ -9,15 +9,10 @@ import {
   CardExpiryElement,
   CardNumberElement,
   Elements,
-  PaymentRequestButtonElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import type {
-  StripeCardNumberElement,
-  PaymentRequest,
-  PaymentRequestPaymentMethodEvent,
-} from "@stripe/stripe-js";
+import type { StripeCardNumberElement } from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
 import {
@@ -39,6 +34,10 @@ import { dlBeginCheckout, toDlItem, toDlUserData } from "@/lib/dataLayer";
 import { getStripeClient } from "@/lib/stripeClient";
 import UkPostcodeField from "@/components/checkout/UkPostcodeField";
 import UkAddressField from "@/components/checkout/UkAddressField";
+import ExpressCheckout, {
+  type WalletDetails,
+  type WalletOrder,
+} from "@/components/checkout/ExpressCheckout";
 import { TrustpilotLink } from "@/components/lp/shared";
 
 const stripePromise = getStripeClient();
@@ -244,6 +243,7 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
   // screen flashing after we clear the cart (the "glitch" before thank-you).
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
   const idempotencyKeyRef = useRef<string | null>(null);
 
   // GA4 begin_checkout — fire once when the checkout loads with items.
@@ -555,14 +555,18 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
     }
   }
 
-  function finalizeAndRedirect(orderNumber: string, amount: number) {
+  function finalizeAndRedirect(
+    orderNumber: string,
+    amount: number,
+    walletContact?: Parameters<typeof toDlUserData>[0],
+  ) {
     // Hand the customer details to the thank-you page for the `purchase`
     // event's user_data (Meta Advanced Matching / Google Enhanced
     // Conversions). Passed via sessionStorage rather than widening the public
     // order-summary API, which is keyed only by order number — phone and
     // address must not be readable by guessing an order number.
     try {
-      const ud = toDlUserData({
+      const ud = toDlUserData(walletContact ?? {
         email,
         phone,
         firstName,
@@ -848,60 +852,55 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
     }
   }
 
-  /* ---------------- Apple Pay / Google Pay (Payment Request) ---------- */
-  // Delivery/contact details are still required (same as the card path);
-  // the wallet only supplies the payment method. Card data and wallet
-  // tokens are handled entirely by Stripe.
-  const formReady = Boolean(
-    items.length > 0 &&
-      firstName.trim() &&
-      lastName.trim() &&
-      emailValid &&
-      address.trim() &&
-      city.trim() &&
-      postcode.trim() &&
-      phone.trim(),
-  );
+  /* ---------------- Apple Pay / Google Pay (Express Checkout) ---------- */
+  // The wallet supplies the name, email, phone and delivery address, so the
+  // buttons work before the form is filled in. Those details pass the same
+  // rules as the form. If they don't, nothing is charged and the form is filled
+  // with them, so the customer can correct them and pay by card.
+  function fillFormFromWallet(d: WalletDetails) {
+    const [first = "", ...rest] = d.name.split(/\s+/);
+    setFirstName(first);
+    setLastName(rest.join(" "));
+    setEmail(d.email);
+    setPhone(d.phone);
+    setAddress(d.line1);
+    setApartment(d.line2);
+    setCity(d.city);
+    setPostcode(d.postcode);
+    setDeliverElsewhere(false);
+  }
 
-  // Keep the latest handler in a ref so the Stripe listener never goes stale.
-  const walletPayRef = useRef<(ev: PaymentRequestPaymentMethodEvent) => void>(
-    () => {},
-  );
-  walletPayRef.current = async (ev: PaymentRequestPaymentMethodEvent) => {
+  async function prepareWalletOrder(d: WalletDetails): Promise<WalletOrder | null> {
+    const fail = (message: string) => {
+      fillFormFromWallet(d);
+      setWalletError(message);
+      setBusy(false);
+      return null;
+    };
+    setBusy(true);
+    setWalletError(null);
+    setError(null);
+
     try {
-      if (!stripe) {
-        ev.complete("fail");
-        return;
+      const [first = "", ...rest] = d.name.split(/\s+/);
+      const last = rest.join(" ");
+      if (!isValidNamePart(first) || !isValidNamePart(last)) {
+        return fail("Please check your first and last name below, then pay by card.");
       }
-      if (!formReady) {
-        ev.complete("fail");
-        setError(
-          "Please complete your contact and delivery details above, then use Apple Pay / Google Pay.",
-        );
-        return;
+      if (!isValidEmail(d.email)) {
+        return fail("Please check your email address below, then pay by card.");
       }
-      setBusy(true);
-      setError(null);
-
-      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-      const billingAddress = [
-        address.trim(),
-        apartment.trim(),
-        `${city.trim()} ${postcode.trim()}`.trim(),
-      ]
-        .filter(Boolean)
-        .join("\n");
-      const deliveryAddress = [
-        dAddress.trim(),
-        dApartment.trim(),
-        `${dCity.trim()} ${dPostcode.trim()}`.trim(),
-      ]
-        .filter(Boolean)
-        .join("\n");
-      const composedAddress = deliverElsewhere ? deliveryAddress : billingAddress;
-      const orderNotes = deliverElsewhere
-        ? `Billing/contact address:\n${billingAddress}`
-        : "";
+      const ukPhone = normaliseUkPhone(d.phone);
+      if (!ukPhone) {
+        return fail("We need a UK phone number for delivery. Please enter one below, then pay by card.");
+      }
+      if (
+        !isDeliverableStreet(d.line1) ||
+        !isValidTown(d.city) ||
+        !UK_POSTCODE_RE.test(d.postcode)
+      ) {
+        return fail("We need a full UK delivery address. Please check it below, then pay by card.");
+      }
 
       const cleanItems = items
         .filter(
@@ -925,55 +924,47 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
           quantity: Math.min(99, Math.max(1, Math.round(i.quantity))),
           imageUrl: i.imageUrl ?? null,
         }));
-
       if (cleanItems.length === 0) {
-        ev.complete("fail");
-        setError("Your cart has an invalid item. Please re-add the product.");
-        setBusy(false);
-        return;
+        return fail("Your cart has an invalid item. Please re-add the product.");
       }
-
-      const idemKey = `wco_${
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : Date.now() + "_" + Math.random().toString(36).slice(2)
-      }`;
 
       const orderRes = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": idemKey,
+          "Idempotency-Key": `wco_${
+            typeof crypto !== "undefined" && "randomUUID" in crypto
+              ? crypto.randomUUID()
+              : Date.now() + "_" + Math.random().toString(36).slice(2)
+          }`,
         },
         credentials: "include",
         body: JSON.stringify({
           items: cleanItems,
           customer: {
-            name: fullName,
-            email: email.trim(),
-            phone: phone.trim(),
-            address: composedAddress,
-            notes: orderNotes,
+            name: `${first} ${last}`,
+            email: d.email,
+            phone: ukPhone,
+            address: [d.line1, d.line2, `${d.city} ${d.postcode}`]
+              .filter(Boolean)
+              .join("\n"),
+            notes: "",
           },
           discountCode: appliedDiscount?.code,
-          addressConfirmed: streetOverride && addrConfirmed,
         }),
       });
       const orderJson = await orderRes.json();
       if (!orderRes.ok || !orderJson.ok) {
-        ev.complete("fail");
-        setError(describeCheckoutError(orderJson, orderRes.status));
-        setBusy(false);
-        return;
+        // e.g. a returning customer's email ends the new-customer offer: filling
+        // in the email re-checks the discount, so the total corrects itself.
+        return fail(describeCheckoutError(orderJson, orderRes.status));
       }
 
-      if (orderJson.free || orderJson.totalAmount <= 0) {
-        ev.complete("success");
-        finalizeAndRedirect(
-          orderJson.orderNumber,
-          Number(orderJson.totalAmount) || total,
-        );
-        return;
+      // The wallet has already shown this total to the customer, so never
+      // charge a different one.
+      const amount = Number(orderJson.totalAmount);
+      if (Math.abs(amount - total) > 0.005) {
+        return fail("The total for this order has changed, so you haven’t been charged. Please refresh the page and try again.");
       }
 
       const piRes = await fetch("/api/stripe/payment-intent", {
@@ -984,87 +975,31 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
       });
       const piJson = await piRes.json();
       if (!piRes.ok || !piJson.ok || !piJson.clientSecret) {
-        ev.complete("fail");
-        setError(
-          typeof piJson?.error === "string" && !looksTechnical(piJson.error)
-            ? piJson.error
-            : "We couldn’t start the payment. Please try again.",
-        );
-        setBusy(false);
-        return;
+        return fail("We couldn’t start the payment. Please try again.");
       }
-
-      // Confirm with the wallet's payment method. handleActions:false lets us
-      // close the wallet sheet first, then run any 3DS step ourselves.
-      const { error: confirmError, paymentIntent } =
-        await stripe.confirmCardPayment(
-          piJson.clientSecret,
-          { payment_method: ev.paymentMethod.id },
-          { handleActions: false },
-        );
-      if (confirmError) {
-        ev.complete("fail");
-        setError(confirmError.message ?? "Your payment could not be completed.");
-        setBusy(false);
-        return;
-      }
-      ev.complete("success");
-
-      if (paymentIntent && paymentIntent.status === "requires_action") {
-        const { error: actionError } = await stripe.confirmCardPayment(
-          piJson.clientSecret,
-        );
-        if (actionError) {
-          setError(actionError.message ?? "Authentication failed.");
-          setBusy(false);
-          return;
-        }
-      }
-
-      await markPaidNow(orderJson.orderNumber);
-      finalizeAndRedirect(
-        orderJson.orderNumber,
-        Number(orderJson.totalAmount) || total,
-      );
+      return {
+        orderNumber: orderJson.orderNumber,
+        clientSecret: piJson.clientSecret,
+        amount,
+      };
     } catch (err) {
-      try {
-        ev.complete("fail");
-      } catch {
-        /* event may already be completed */
-      }
-      setError(friendlyError(err));
-      setBusy(false);
+      return fail(friendlyError(err));
     }
-  };
+  }
 
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
-    null,
-  );
-  useEffect(() => {
-    if (!stripe || total <= 0) {
-      setPaymentRequest(null);
-      return;
-    }
-    const pr = stripe.paymentRequest({
+  async function finishWalletOrder(order: WalletOrder, d: WalletDetails) {
+    const [first = "", ...rest] = d.name.split(/\s+/);
+    await markPaidNow(order.orderNumber);
+    finalizeAndRedirect(order.orderNumber, order.amount, {
+      email: d.email,
+      phone: d.phone,
+      firstName: first,
+      lastName: rest.join(" "),
+      city: d.city,
+      postcode: d.postcode,
       country: "GB",
-      currency: "gbp",
-      total: { label: "JoodLife order", amount: Math.round(total * 100) },
-      requestPayerName: false,
-      requestPayerEmail: false,
     });
-    let active = true;
-    pr.canMakePayment().then((result) => {
-      if (!active) return;
-      setPaymentRequest(result ? pr : null);
-    });
-    const handler = (ev: PaymentRequestPaymentMethodEvent) =>
-      walletPayRef.current(ev);
-    pr.on("paymentmethod", handler);
-    return () => {
-      active = false;
-      pr.off("paymentmethod", handler);
-    };
-  }, [stripe, total]);
+  }
 
   /* ---------------- Redirecting to confirmation ---------------- */
   // Shown after a successful payment while we navigate to the thank-you
@@ -1115,6 +1050,22 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
             below (order-2) and the results slider last (order-3); on desktop
             the form returns to the left column. */}
         <div className="order-2 rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
+          {/* Apple Pay / Google Pay. Not offered on a £0 order, where a card is
+              verified instead of charged. */}
+          {total > 0 ? (
+            <ExpressCheckout
+              stripe={stripePromise}
+              total={total}
+              error={walletError}
+              prepareOrder={prepareWalletOrder}
+              onPaid={finishWalletOrder}
+              onError={(message) => {
+                setWalletError(message);
+                setBusy(false);
+              }}
+            />
+          ) : null}
+
           {/* 1. Shipping Details */}
           <h2 className="font-ui text-[20px] font-semibold leading-[24px] tracking-[-0.2px] text-[#142e2a]">
             <span className="mr-2 text-[#142e2a]">1.</span>Shipping Details
@@ -1364,34 +1315,8 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
             <span className="mr-2 text-[#142e2a]">2.</span>Payment
           </h2>
 
-          {/* Express checkout — Apple Pay / Google Pay (shown only when the
-              device/browser supports a wallet). Falls back to card below. */}
-          {paymentRequest ? (
-            <div className="mt-5">
-              <PaymentRequestButtonElement
-                options={{
-                  paymentRequest,
-                  style: {
-                    paymentRequestButton: {
-                      type: "default",
-                      theme: "dark",
-                      height: "52px",
-                    },
-                  },
-                }}
-              />
-              <div className="my-5 flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#e7e8e3]" />
-                <span className="font-ui text-[12px] text-[#142e2a]/55">
-                  Or pay with card
-                </span>
-                <span className="h-px flex-1 bg-[#e7e8e3]" />
-              </div>
-            </div>
-          ) : null}
-
-          {/* Card is the only on-page method (Apple Pay / Google Pay are the
-              express button above); no extra provider tabs. */}
+          {/* Card is the only method in this step (Apple Pay / Google Pay are
+              the express buttons at the top); no extra provider tabs. */}
           <div className="mt-5 flex w-fit items-center gap-2 rounded-[8px] border border-[#142e2a] bg-white px-4 py-2.5 font-ui text-[14px] font-semibold text-[#142e2a]">
             <CardGlyph />
             <span>Card</span>
