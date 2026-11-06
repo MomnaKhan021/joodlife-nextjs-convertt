@@ -9,15 +9,13 @@ import {
   CardExpiryElement,
   CardNumberElement,
   Elements,
-  PaymentRequestButtonElement,
+  ExpressCheckoutElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
 import type {
   StripeCardNumberElement,
-  PaymentRequest,
-  PaymentRequestPaymentMethodEvent,
-  PaymentRequestShippingAddressEvent,
+  StripeExpressCheckoutElementConfirmEvent,
 } from "@stripe/stripe-js";
 
 import { useCart } from "@/components/cart/CartContext";
@@ -166,6 +164,142 @@ export default function CheckoutClient({ results }: { results?: React.ReactNode 
     <Elements stripe={stripePromise}>
       <CheckoutForm results={results} />
     </Elements>
+  );
+}
+
+/* ================================================================== */
+/*  Express checkout (Apple Pay / Google Pay)                          */
+/* ================================================================== */
+type WalletDetails = {
+  name: string;
+  email: string;
+  phone: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  postcode: string;
+  country: string;
+};
+type WalletOrder =
+  | { ok: false }
+  | {
+      ok: true;
+      free: boolean;
+      orderNumber: string;
+      amount: number;
+      clientSecret?: string;
+      who?: { email: string; phone: string; firstName: string; lastName: string; city: string; postcode: string };
+    };
+
+/**
+ * Separate Apple Pay and Google Pay buttons in a row (Stripe Express
+ * Checkout Element), rendered inside its own <Elements> in payment mode so
+ * the amount shown in the wallet sheet is today's total. Hidden entirely
+ * when neither wallet is available on the device.
+ */
+function WalletExpressCheckout({
+  busy,
+  onStart,
+  onPaid,
+  onError,
+}: {
+  busy: boolean;
+  onStart: (w: WalletDetails) => Promise<WalletOrder>;
+  onPaid: (o: Extract<WalletOrder, { ok: true }>) => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [available, setAvailable] = useState(false);
+
+  async function confirm(ev: StripeExpressCheckoutElementConfirmEvent) {
+    if (!stripe || !elements || busy) {
+      ev.paymentFailed({ reason: "fail" });
+      return;
+    }
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      ev.paymentFailed({ reason: "fail" });
+      onError(submitError.message ?? "Your payment could not be completed.");
+      return;
+    }
+    const b = ev.billingDetails;
+    const s = ev.shippingAddress;
+    const addr = s?.address ?? b?.address;
+    const order = await onStart({
+      name: s?.name || b?.name || "",
+      email: b?.email ?? "",
+      phone: b?.phone ?? "",
+      line1: addr?.line1 ?? "",
+      line2: addr?.line2 ?? null,
+      city: addr?.city ?? "",
+      postcode: addr?.postal_code ?? "",
+      country: addr?.country ?? "",
+    });
+    if (!order.ok) {
+      ev.paymentFailed({ reason: "fail" });
+      return;
+    }
+    if (!order.free) {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        clientSecret: order.clientSecret!,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout/success?order=${encodeURIComponent(order.orderNumber)}`,
+        },
+        redirect: "if_required",
+      });
+      if (error) {
+        ev.paymentFailed({ reason: "fail" });
+        onError(error.message ?? "Your payment could not be completed.");
+        return;
+      }
+    }
+    await onPaid(order);
+  }
+
+  return (
+    <div className={available ? "mb-8" : "hidden"}>
+      <p className="mb-3 text-center font-ui text-[14px] font-medium text-[#142e2a]/70">Express checkout</p>
+      <ExpressCheckoutElement
+        options={{
+          buttonHeight: 52,
+          buttonTheme: { applePay: "black", googlePay: "black" },
+          buttonType: { applePay: "plain", googlePay: "plain" },
+          layout: { maxColumns: 2, maxRows: 1, overflow: "never" },
+          paymentMethodOrder: ["apple_pay", "google_pay"],
+          paymentMethods: {
+            applePay: "always",
+            googlePay: "always",
+            link: "never",
+            paypal: "never",
+            amazonPay: "never",
+            klarna: "never",
+          },
+        }}
+        onReady={({ availablePaymentMethods }) =>
+          setAvailable(!!availablePaymentMethods && Object.values(availablePaymentMethods).some(Boolean))
+        }
+        onClick={({ resolve }) =>
+          resolve({
+            emailRequired: true,
+            phoneNumberRequired: true,
+            shippingAddressRequired: true,
+            allowedShippingCountries: ["GB"],
+            shippingRates: [{ id: "free-uk", displayName: "Free UK delivery (tracked DPD)", amount: 0 }],
+          })
+        }
+        onShippingAddressChange={({ address, resolve, reject }) =>
+          (address.country || "GB").toUpperCase() === "GB" ? resolve() : reject()
+        }
+        onConfirm={(ev) => void confirm(ev)}
+      />
+      <div className="mt-6 flex items-center gap-3">
+        <span className="h-px flex-1 bg-[#e7e8e3]" />
+        <span className="font-ui text-[12px] text-[#142e2a]/55">Or pay with card below</span>
+        <span className="h-px flex-1 bg-[#e7e8e3]" />
+      </div>
+    </div>
   );
 }
 
@@ -858,11 +992,12 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
     }
   }
 
-  /* ---------------- Apple Pay / Google Pay (Payment Request) ---------- */
-  // Express checkout at the top of the page. If the delivery/contact form is
-  // already filled in, those details are used (as before); otherwise the
-  // wallet supplies name, email, phone and the UK delivery address. Card data
-  // and wallet tokens are handled entirely by Stripe.
+  /* ---------------- Apple Pay / Google Pay (Express Checkout) --------- */
+  // Express checkout at the top of the page: separate Apple Pay and Google
+  // Pay buttons (Stripe Express Checkout Element). If the delivery/contact
+  // form is already filled in, those details are used; otherwise the wallet
+  // supplies name, email, phone and the UK delivery address. Card data and
+  // wallet tokens are handled entirely by Stripe.
   const formReady = Boolean(
     items.length > 0 &&
       firstName.trim() &&
@@ -874,65 +1009,45 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
       phone.trim(),
   );
 
-  // Keep the latest handler in a ref so the Stripe listener never goes stale.
-  const walletPayRef = useRef<(ev: PaymentRequestPaymentMethodEvent) => void>(
-    () => {},
-  );
-  walletPayRef.current = async (ev: PaymentRequestPaymentMethodEvent) => {
+  /** Creates the order for a wallet payment and its PaymentIntent. Shows its
+   *  own error and returns ok:false when it can't go ahead. */
+  async function startWalletOrder(w: WalletDetails): Promise<WalletOrder> {
+    const fail = (message: string): WalletOrder => {
+      setError(message);
+      setBusy(false);
+      return { ok: false };
+    };
     try {
-      if (!stripe) {
-        ev.complete("fail");
-        return;
-      }
-      // Details from the wallet sheet, used when the form isn't filled in.
-      const sa = ev.shippingAddress;
-      const wName = (ev.payerName || sa?.recipient || "").trim();
-      const wEmail = (ev.payerEmail || "").trim();
-      const wPhone = (ev.payerPhone || sa?.phone || "").trim();
-      const wLines = (sa?.addressLine ?? []).map((l) => l.trim()).filter(Boolean);
-      const wCity = (sa?.city || "").trim();
-      const wPostcode = (sa?.postalCode || "").trim().toUpperCase();
       const useWallet = !formReady;
+      const wName = w.name.trim();
+      const wEmail = w.email.trim();
+      const wPhone = w.phone.trim();
+      const wLines = [w.line1, w.line2].map((l) => (l ?? "").trim()).filter(Boolean);
+      const wCity = w.city.trim();
+      const wPostcode = w.postcode.trim().toUpperCase();
       if (useWallet) {
         if (!wName || !isValidEmail(wEmail) || !wPhone || !wLines.length || !wCity || !wPostcode) {
-          ev.complete("fail");
-          setError(
+          return fail(
             "Apple Pay / Google Pay didn’t share your full name, email, phone and UK delivery address. Please fill in your details below and try again.",
           );
-          return;
         }
-        if (sa?.country && sa.country.toUpperCase() !== "GB") {
-          ev.complete("fail");
-          setError("We can only deliver to UK addresses.");
-          return;
+        if (w.country && w.country.toUpperCase() !== "GB") {
+          return fail("We can only deliver to UK addresses.");
         }
       }
       setBusy(true);
       setError(null);
 
       const fullName = useWallet ? wName : `${firstName.trim()} ${lastName.trim()}`.trim();
-      const billingAddress = [
-        address.trim(),
-        apartment.trim(),
-        `${city.trim()} ${postcode.trim()}`.trim(),
-      ]
+      const billingAddress = [address.trim(), apartment.trim(), `${city.trim()} ${postcode.trim()}`.trim()]
         .filter(Boolean)
         .join("\n");
-      const deliveryAddress = [
-        dAddress.trim(),
-        dApartment.trim(),
-        `${dCity.trim()} ${dPostcode.trim()}`.trim(),
-      ]
+      const deliveryAddress = [dAddress.trim(), dApartment.trim(), `${dCity.trim()} ${dPostcode.trim()}`.trim()]
         .filter(Boolean)
         .join("\n");
       const walletAddress = [...wLines, `${wCity} ${wPostcode}`.trim()].join("\n");
-      const composedAddress = useWallet
-        ? walletAddress
-        : deliverElsewhere
-          ? deliveryAddress
-          : billingAddress;
-      const orderNotes =
-        !useWallet && deliverElsewhere ? `Billing/contact address:\n${billingAddress}` : "";
+      const composedAddress = useWallet ? walletAddress : deliverElsewhere ? deliveryAddress : billingAddress;
+      const orderNotes = !useWallet && deliverElsewhere ? `Billing/contact address:\n${billingAddress}` : "";
 
       const cleanItems = items
         .filter(
@@ -956,26 +1071,16 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
           quantity: Math.min(99, Math.max(1, Math.round(i.quantity))),
           imageUrl: i.imageUrl ?? null,
         }));
-
-      if (cleanItems.length === 0) {
-        ev.complete("fail");
-        setError("Your cart has an invalid item. Please re-add the product.");
-        setBusy(false);
-        return;
-      }
+      if (cleanItems.length === 0) return fail("Your cart has an invalid item. Please re-add the product.");
 
       const idemKey = `wco_${
         typeof crypto !== "undefined" && "randomUUID" in crypto
           ? crypto.randomUUID()
           : Date.now() + "_" + Math.random().toString(36).slice(2)
       }`;
-
       const orderRes = await fetch("/api/checkout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": idemKey,
-        },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idemKey },
         credentials: "include",
         body: JSON.stringify({
           items: cleanItems,
@@ -991,44 +1096,32 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
         }),
       });
       const orderJson = await orderRes.json();
-      if (!orderRes.ok || !orderJson.ok) {
-        ev.complete("fail");
-        setError(describeCheckoutError(orderJson, orderRes.status));
-        setBusy(false);
-        return;
-      }
+      if (!orderRes.ok || !orderJson.ok) return fail(describeCheckoutError(orderJson, orderRes.status));
+
       // The wallet sheet showed today's total. If the server's total differs
-      // (e.g. the first-order discount doesn't apply to the wallet's email),
-      // never charge a different amount than was shown: stop, show the right
-      // total and let them pay again.
+      // (e.g. the first-order offer doesn't apply to the wallet's email),
+      // never charge a different amount than was shown: stop and show it.
       const serverTotal = Number(orderJson.totalAmount);
       if (Number.isFinite(serverTotal) && Math.round(serverTotal * 100) !== Math.round(total * 100)) {
-        ev.complete("fail");
         if (useWallet && !email.trim()) setEmail(wEmail);
-        setError(
+        return fail(
           `Your total for ${useWallet ? wEmail : email.trim()} is £${serverTotal.toFixed(2)} (the first-order offer only applies to new customers). Please check the total and pay again.`,
         );
-        setBusy(false);
-        return;
       }
 
+      const who = useWallet
+        ? {
+            email: wEmail,
+            phone: wPhone,
+            firstName: wName.split(/\s+/)[0] ?? "",
+            lastName: wName.split(/\s+/).slice(1).join(" "),
+            city: wCity,
+            postcode: wPostcode,
+          }
+        : undefined;
+      const amount = Number(orderJson.totalAmount) || total;
       if (orderJson.free || orderJson.totalAmount <= 0) {
-        ev.complete("success");
-        finalizeAndRedirect(
-          orderJson.orderNumber,
-          Number(orderJson.totalAmount) || total,
-          useWallet
-          ? {
-              email: wEmail,
-              phone: wPhone,
-              firstName: wName.split(/\s+/)[0] ?? "",
-              lastName: wName.split(/\s+/).slice(1).join(" "),
-              city: wCity,
-              postcode: wPostcode,
-            }
-          : undefined,
-        );
-        return;
+        return { ok: true, free: true, orderNumber: orderJson.orderNumber, amount, who };
       }
 
       const piRes = await fetch("/api/stripe/payment-intent", {
@@ -1039,109 +1132,22 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
       });
       const piJson = await piRes.json();
       if (!piRes.ok || !piJson.ok || !piJson.clientSecret) {
-        ev.complete("fail");
-        setError(
+        return fail(
           typeof piJson?.error === "string" && !looksTechnical(piJson.error)
             ? piJson.error
             : "We couldn’t start the payment. Please try again.",
         );
-        setBusy(false);
-        return;
       }
-
-      // Confirm with the wallet's payment method. handleActions:false lets us
-      // close the wallet sheet first, then run any 3DS step ourselves.
-      const { error: confirmError, paymentIntent } =
-        await stripe.confirmCardPayment(
-          piJson.clientSecret,
-          { payment_method: ev.paymentMethod.id },
-          { handleActions: false },
-        );
-      if (confirmError) {
-        ev.complete("fail");
-        setError(confirmError.message ?? "Your payment could not be completed.");
-        setBusy(false);
-        return;
-      }
-      ev.complete("success");
-
-      if (paymentIntent && paymentIntent.status === "requires_action") {
-        const { error: actionError } = await stripe.confirmCardPayment(
-          piJson.clientSecret,
-        );
-        if (actionError) {
-          setError(actionError.message ?? "Authentication failed.");
-          setBusy(false);
-          return;
-        }
-      }
-
-      await markPaidNow(orderJson.orderNumber);
-      finalizeAndRedirect(
-        orderJson.orderNumber,
-        Number(orderJson.totalAmount) || total,
-        useWallet
-          ? {
-              email: wEmail,
-              phone: wPhone,
-              firstName: wName.split(/\s+/)[0] ?? "",
-              lastName: wName.split(/\s+/).slice(1).join(" "),
-              city: wCity,
-              postcode: wPostcode,
-            }
-          : undefined,
-      );
+      return { ok: true, free: false, orderNumber: orderJson.orderNumber, amount, who, clientSecret: piJson.clientSecret };
     } catch (err) {
-      try {
-        ev.complete("fail");
-      } catch {
-        /* event may already be completed */
-      }
-      setError(friendlyError(err));
-      setBusy(false);
+      return fail(friendlyError(err));
     }
-  };
+  }
 
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
-    null,
-  );
-  useEffect(() => {
-    if (!stripe || total <= 0) {
-      setPaymentRequest(null);
-      return;
-    }
-    const pr = stripe.paymentRequest({
-      country: "GB",
-      currency: "gbp",
-      total: { label: "JoodLife order", amount: Math.round(total * 100) },
-      // Express checkout: the sheet collects contact + delivery details, so a
-      // customer can pay before filling in the form.
-      requestPayerName: true,
-      requestPayerEmail: true,
-      requestPayerPhone: true,
-      requestShipping: true,
-      shippingOptions: [{ id: "free-uk", label: "Free UK delivery", detail: "Tracked DPD", amount: 0 }],
-    });
-    let active = true;
-    pr.canMakePayment().then((result) => {
-      if (!active) return;
-      setPaymentRequest(result ? pr : null);
-    });
-    const handler = (ev: PaymentRequestPaymentMethodEvent) =>
-      walletPayRef.current(ev);
-    // UK delivery only.
-    const onAddress = (ev: PaymentRequestShippingAddressEvent) =>
-      ev.updateWith({
-        status: (ev.shippingAddress.country || "GB").toUpperCase() === "GB" ? "success" : "invalid_shipping_address",
-      });
-    pr.on("paymentmethod", handler);
-    pr.on("shippingaddresschange", onAddress);
-    return () => {
-      active = false;
-      pr.off("paymentmethod", handler);
-      pr.off("shippingaddresschange", onAddress);
-    };
-  }, [stripe, total]);
+  async function walletPaid(o: Extract<WalletOrder, { ok: true }>) {
+    if (!o.free) await markPaidNow(o.orderNumber);
+    finalizeAndRedirect(o.orderNumber, o.amount, o.who);
+  }
 
   /* ---------------- Redirecting to confirmation ---------------- */
   // Shown after a successful payment while we navigate to the thank-you
@@ -1192,30 +1198,24 @@ function CheckoutForm({ results }: { results?: React.ReactNode }) {
             below (order-2) and the results slider last (order-3); on desktop
             the form returns to the left column. */}
         <div className="order-2 rounded-[24px] border border-[#142e2a]/10 bg-white px-6 py-8 md:px-8 md:py-10 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
-          {/* Express checkout — Apple Pay / Google Pay, first thing on the
-              page (shown only when the device/browser has a wallet set up).
-              The wallet supplies the delivery details, so no form needed. */}
-          {paymentRequest ? (
-            <div className="mb-8">
-              <p className="mb-3 text-center font-ui text-[14px] font-medium text-[#142e2a]/70">Express checkout</p>
-              <PaymentRequestButtonElement
-                options={{
-                  paymentRequest,
-                  style: {
-                    paymentRequestButton: {
-                      type: "buy",
-                      theme: "dark",
-                      height: "52px",
-                    },
-                  },
+          {/* Express checkout — Apple Pay and Google Pay buttons side by side,
+              first thing on the page. Each shows when the device/browser
+              supports it; the wallet supplies the delivery details. */}
+          {total > 0 ? (
+            <Elements
+              stripe={stripePromise}
+              options={{ mode: "payment", amount: Math.round(total * 100), currency: "gbp" }}
+            >
+              <WalletExpressCheckout
+                busy={busy}
+                onStart={startWalletOrder}
+                onPaid={walletPaid}
+                onError={(m) => {
+                  setError(m);
+                  setBusy(false);
                 }}
               />
-              <div className="mt-6 flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#e7e8e3]" />
-                <span className="font-ui text-[12px] text-[#142e2a]/55">Or pay with card below</span>
-                <span className="h-px flex-1 bg-[#e7e8e3]" />
-              </div>
-            </div>
+            </Elements>
           ) : null}
 
           {/* 1. Shipping Details */}
