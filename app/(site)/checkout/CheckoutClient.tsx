@@ -285,7 +285,10 @@ function WalletExpressCheckout({
           buttonHeight: 52,
           buttonTheme: { applePay: "black", googlePay: "black" },
           buttonType: { applePay: "plain", googlePay: "plain" },
-          layout: { maxColumns: 2, maxRows: 1, overflow: "never" },
+          // Two buttons side by side. Do NOT add overflow:"never" — combined
+          // with maxColumns/maxRows it stops the element from ever loading
+          // (no ready event, no buttons; tested live 7 Nov 2026).
+          layout: { maxColumns: 2, maxRows: 1 },
           paymentMethodOrder: ["apple_pay", "google_pay"],
           paymentMethods: {
             applePay: "always",
