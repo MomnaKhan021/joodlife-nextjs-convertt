@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   CardCvcElement,
   CardExpiryElement,
@@ -211,6 +211,14 @@ function WalletExpressCheckout({
   const stripe = useStripe();
   const elements = useElements();
   const [available, setAvailable] = useState(false);
+  // ?walletdebug=1 prints what the browser and Stripe report about the
+  // wallets, to diagnose "no Apple Pay / Google Pay button" on a device.
+  const debug = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(window.location.search).has("walletdebug"),
+    () => false,
+  );
+  const [debugInfo, setDebugInfo] = useState<string>("waiting for Stripe…");
 
   async function confirm(ev: StripeExpressCheckoutElementConfirmEvent) {
     if (!stripe || !elements || busy) {
@@ -264,6 +272,11 @@ function WalletExpressCheckout({
   // show once a button is available.
   return (
     <div className={available ? "mb-8" : ""}>
+      {debug ? (
+        <p className="mb-3 break-words rounded-[8px] bg-[#fff7e6] px-3 py-2 font-mono text-[11px] text-[#7a4b00]">
+          Wallet check: {debugInfo}
+        </p>
+      ) : null}
       {available ? (
         <p className="mb-3 text-center font-ui text-[14px] font-medium text-[#142e2a]/70">Express checkout</p>
       ) : null}
@@ -283,9 +296,22 @@ function WalletExpressCheckout({
             klarna: "never",
           },
         }}
-        onReady={({ availablePaymentMethods }) =>
-          setAvailable(!!availablePaymentMethods && Object.values(availablePaymentMethods).some(Boolean))
-        }
+        onReady={({ availablePaymentMethods }) => {
+          setAvailable(!!availablePaymentMethods && Object.values(availablePaymentMethods).some(Boolean));
+          if (debug) {
+            let apple = "no ApplePaySession (not Safari / not supported)";
+            try {
+              const APS = (window as unknown as { ApplePaySession?: { canMakePayments: () => boolean } }).ApplePaySession;
+              if (APS) apple = `ApplePaySession.canMakePayments() = ${APS.canMakePayments()}`;
+            } catch (e) {
+              apple = `ApplePaySession error: ${e instanceof Error ? e.message : String(e)}`;
+            }
+            setDebugInfo(`Stripe ready · wallets: ${JSON.stringify(availablePaymentMethods ?? null)} · ${apple} · host: ${window.location.host}`);
+          }
+        }}
+        onLoadError={(e) => {
+          if (debug) setDebugInfo(`Stripe load error: ${e.error?.message ?? JSON.stringify(e.error)}`);
+        }}
         onClick={({ resolve }) =>
           resolve({
             emailRequired: true,
