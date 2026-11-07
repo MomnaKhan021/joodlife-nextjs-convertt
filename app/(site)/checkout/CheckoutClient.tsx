@@ -258,9 +258,15 @@ function WalletExpressCheckout({
     await onPaid(order);
   }
 
+  // The element itself always stays in the layout: Stripe needs it rendered
+  // (not display:none) to size the buttons and report which wallets exist.
+  // With no wallet it collapses to nothing; the heading and divider only
+  // show once a button is available.
   return (
-    <div className={available ? "mb-8" : "hidden"}>
-      <p className="mb-3 text-center font-ui text-[14px] font-medium text-[#142e2a]/70">Express checkout</p>
+    <div className={available ? "mb-8" : ""}>
+      {available ? (
+        <p className="mb-3 text-center font-ui text-[14px] font-medium text-[#142e2a]/70">Express checkout</p>
+      ) : null}
       <ExpressCheckoutElement
         options={{
           buttonHeight: 52,
@@ -294,11 +300,13 @@ function WalletExpressCheckout({
         }
         onConfirm={(ev) => void confirm(ev)}
       />
-      <div className="mt-6 flex items-center gap-3">
-        <span className="h-px flex-1 bg-[#e7e8e3]" />
-        <span className="font-ui text-[12px] text-[#142e2a]/55">Or pay with card below</span>
-        <span className="h-px flex-1 bg-[#e7e8e3]" />
-      </div>
+      {available ? (
+        <div className="mt-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-[#e7e8e3]" />
+          <span className="font-ui text-[12px] text-[#142e2a]/55">Or pay with card below</span>
+          <span className="h-px flex-1 bg-[#e7e8e3]" />
+        </div>
+      ) : null}
     </div>
   );
 }
